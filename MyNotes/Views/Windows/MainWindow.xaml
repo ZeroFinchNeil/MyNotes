@@ -5,7 +5,7 @@
         xmlns:local="using:MyNotes.Views.Windows"
         xmlns:models="using:MyNotes.Models"
         xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-        xmlns:buttons="using:MyNotes.CustomControls.Buttons"
+        xmlns:templates="using:MyNotes.Templates"
         Title="MyNotes">
 
   <Window.SystemBackdrop>
@@ -43,26 +43,26 @@
                             Width="0" />
         </Grid.ColumnDefinitions>
 
-        <buttons:AnimatedIconButton x:Name="MainWindow_BackButton"
-                                    x:Uid="MainWindow_BackButton"
-                                    Grid.Column="1"
-                                    Content="&#xE72B;"
-                                    Visibility="{x:Bind MainWindow_NavigationFrame.CanGoBack, Mode=OneWay}"
-                                    Click="MainWindow_BackButton_Click">
-          <buttons:AnimatedIconButton.AnimatedIconSource>
+        <templates:AnimatedIconButton x:Name="MainWindow_BackButton"
+                                      x:Uid="MainWindow_BackButton"
+                                      Grid.Column="1"
+                                      Content="&#xE72B;"
+                                      Visibility="{x:Bind MainWindow_NavigationFrame.CanGoBack, Mode=OneWay}"
+                                      Click="MainWindow_BackButton_Click">
+          <templates:AnimatedIconButton.AnimatedIconSource>
             <animatedvisuals:AnimatedBackVisualSource />
-          </buttons:AnimatedIconButton.AnimatedIconSource>
-        </buttons:AnimatedIconButton>
+          </templates:AnimatedIconButton.AnimatedIconSource>
+        </templates:AnimatedIconButton>
 
-        <buttons:AnimatedIconButton x:Name="MainWindow_PaneToggleButton"
-                                    x:Uid="MainWindow_PaneToggleButton"
-                                    Grid.Column="2"
-                                    Content="&#xE700;"
-                                    Click="MainWindow_PaneToggleButton_Click">
-          <buttons:AnimatedIconButton.AnimatedIconSource>
+        <templates:AnimatedIconButton x:Name="MainWindow_PaneToggleButton"
+                                      x:Uid="MainWindow_PaneToggleButton"
+                                      Grid.Column="2"
+                                      Content="&#xE700;"
+                                      Click="MainWindow_PaneToggleButton_Click">
+          <templates:AnimatedIconButton.AnimatedIconSource>
             <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
-          </buttons:AnimatedIconButton.AnimatedIconSource>
-        </buttons:AnimatedIconButton>
+          </templates:AnimatedIconButton.AnimatedIconSource>
+        </templates:AnimatedIconButton>
 
         <ImageIcon Grid.Column="3"
                    Source="/Assets/AppIcon_128.ico"
@@ -90,10 +90,12 @@
                       IsBackButtonVisible="Collapsed"
                       IsPaneToggleButtonVisible="False"
                       IsSettingsVisible="False"
-                      MenuItemsSource="{x:Bind ViewModel.MenuItems}"
+                      MenuItemsSource="{x:Bind ViewModel.MenuItems.View}"
                       FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                      SelectedItem="{x:Bind ViewModel.MenuItems[0]}"
-                      SelectionChanged="MainWindow_NavigationView_SelectionChanged" >
+                      SelectedItem="{x:Bind ViewModel.MenuItems.View[0]}"
+                      SelectionChanged="MainWindow_NavigationView_SelectionChanged"
+                      SizeChanged="MainWindow_NavigationView_SizeChanged"
+                      AllowDrop="True">
         <NavigationView.Resources>
           <SolidColorBrush x:Key="NavigationViewContentBackground"
                            Color="{ThemeResource ControlFillColorTransparent}" />
@@ -113,13 +115,196 @@
                 <NavigationViewItemSeparator />
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
+
+            <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+              <DataTemplate x:DataType="models:NavigationUserCompositeNode">
+                <NavigationViewItem Content="{x:Bind Title}"
+                                    MenuItemsSource="{x:Bind ChildNodes}">
+                  <NavigationViewItem.Icon>
+                    <IconSourceElement IconSource="{x:Bind Icon, Mode=OneWay}" />
+                  </NavigationViewItem.Icon>
+
+                  <NavigationViewItem.ContextFlyout>
+                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserCompositeNode_AddListMenuFlyoutItem"
+                                      Icon="Add" />
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserCompositeNode_AddGroupMenuFlyoutItem"
+                                      Icon="Add" />
+                      <MenuFlyoutSeparator />
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserCompositeNode_DeleteMenuFlyoutItem"
+                                      Icon="Delete" />
+                    </MenuFlyout>
+                  </NavigationViewItem.ContextFlyout>
+                </NavigationViewItem>
+              </DataTemplate>
+            </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+
+            <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+              <DataTemplate x:DataType="models:NavigationUserLeafNode">
+                <NavigationViewItem Content="{x:Bind Title}">
+                  <NavigationViewItem.Icon>
+                    <IconSourceElement IconSource="{x:Bind Icon, Mode=OneWay}" />
+                  </NavigationViewItem.Icon>
+
+                  <NavigationViewItem.ContextFlyout>
+                    <MenuFlyout>
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserLeafNode_AddListMenuFlyoutItem"
+                                      Icon="Add" />
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserLeafNode_AddGroupMenuFlyoutItem"
+                                      Icon="Add" />
+                      <MenuFlyoutSeparator />
+                      <MenuFlyoutItem x:Uid="MainWindow_NavigationUserLeafNode_DeleteMenuFlyoutItem"
+                                      Icon="Delete" />
+                    </MenuFlyout>
+                  </NavigationViewItem.ContextFlyout>
+                </NavigationViewItem>
+              </DataTemplate>
+            </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
           </local:MainWindowNavigationViewDataTemplateSelector>
-          
-          
         </NavigationView.MenuItemTemplateSelector>
-        
+
+        <NavigationView.PaneFooter>
+          <templates:SubtleIconButton x:Name="MainWindow_PaneFooter_EditListsButton"
+                                      x:Uid="MainWindow_PaneFooter_EditListsButton"
+                                      Margin="3,0"
+                                      Icon="Edit">
+
+            <templates:SubtleIconButton.Flyout>
+              <MenuFlyout Placement="Top">
+                <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddListMunuFlyoutSubItem"
+                                   x:Uid="MainWindow_PaneFooter_AddListMunuFlyoutSubItem"
+                                   Icon="Add"
+                                   MinWidth="200"
+                                   Height="40">
+                  <MenuFlyoutItem Text="to root"/>
+                  <MenuFlyoutItem Text="at selected position" />
+                </MenuFlyoutSubItem>
+                <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"
+                                   x:Uid="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"
+                                   Icon="Add"
+                                   MinWidth="200"
+                                   Height="40">
+                  <MenuFlyoutItem Text="to root" />
+                  <MenuFlyoutItem Text="at selected position" />
+                </MenuFlyoutSubItem>
+                <MenuFlyoutSeparator />
+                <MenuFlyoutItem x:Name="MainWindow_PaneFooter_MoveListsMenuFlyoutItem"
+                                x:Uid="MainWindow_PaneFooter_MoveListsMenuFlyoutItem"
+                                Icon="Switch"
+                                MinWidth="200"
+                                Height="40"
+                                Click="MainWindow_PaneFooter_MoveListsMenuFlyoutItem_Click" />
+              </MenuFlyout>
+            </templates:SubtleIconButton.Flyout>
+          </templates:SubtleIconButton>
+        </NavigationView.PaneFooter>
+
         <Frame x:Name="MainWindow_NavigationFrame" />
       </NavigationView>
+
+      <Popup x:Name="MainWindow_MoveListsPopup"
+             Grid.Row="1"
+             Canvas.ZIndex="12"
+             HorizontalAlignment="Left"
+             IsLightDismissEnabled="True"
+             IsOpen="False">
+
+        <Grid x:Name="MainWindow_MoveListsInnerGrid"
+              Width="320"
+              VerticalAlignment="Stretch"
+              CornerRadius="{ThemeResource ControlCornerRadius}">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="92" />
+            <RowDefinition />
+            <RowDefinition Height="92" />
+          </Grid.RowDefinitions>
+          <Grid Grid.Row="1"
+                Padding="4"
+                Margin="3,0"
+                Background="{ThemeResource ControlSolidFillColorDefault}"
+                CornerRadius="4"
+                BorderBrush="{ThemeResource ControlStrokeColorDefault}"
+                BorderThickness="1"
+                Translation="0,0,12">
+            <Grid.Shadow>
+              <ThemeShadow />
+            </Grid.Shadow>
+
+            <Grid.RowDefinitions>
+              <RowDefinition />
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <TreeView ItemsSource="{x:Bind ViewModel.UserNavigations}"
+                      SelectionMode="None">
+              <TreeView.ItemTemplateSelector>
+                <local:MainWindowTreeViewDataTemplateSelector>
+                  <local:MainWindowTreeViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+                    <DataTemplate x:DataType="models:NavigationUserCompositeNode">
+                      <TreeViewItem ItemsSource="{x:Bind ChildNodes}"
+                                    IsExpanded="True">
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition />
+                          </Grid.ColumnDefinitions>
+
+                          <Viewbox Grid.Column="0"
+                                   Height="16"
+                                   Width="16">
+                            <IconSourceElement IconSource="{x:Bind Icon}" />
+                          </Viewbox>
+
+                          <TextBlock Grid.Column="1"
+                                     Text="{x:Bind Title}" />
+                        </Grid>
+                      </TreeViewItem>
+                    </DataTemplate>
+                  </local:MainWindowTreeViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+
+                  <local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+                    <DataTemplate x:DataType="models:NavigationUserLeafNode">
+                      <TreeViewItem>
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition />
+                          </Grid.ColumnDefinitions>
+
+                          <Viewbox Grid.Column="0"
+                                   Height="16"
+                                   Width="16">
+                            <IconSourceElement IconSource="{x:Bind Icon}" />
+                          </Viewbox>
+
+                          <TextBlock Grid.Column="1"
+                                     Text="{x:Bind Title}" />
+                        </Grid>
+                      </TreeViewItem>
+                    </DataTemplate>
+                  </local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+                </local:MainWindowTreeViewDataTemplateSelector>
+              </TreeView.ItemTemplateSelector>
+            </TreeView>
+
+            <Rectangle Grid.Row="1"
+                       Fill="{ThemeResource CardStrokeColorDefault}"
+                       Height="1"
+                       Margin="0,4"
+                       Stretch="UniformToFill" />
+
+            <templates:SubtleIconButton x:Name="MainWindow_MoveListsApplyButton"
+                                        x:Uid="MainWindow_MoveListsApplyButton"
+                                        Grid.Row="2"
+                                        Icon="Accept"
+                                        Padding="8"
+                                        HorizontalAlignment="Right"
+                                        Click="MainWindow_MoveListsApplyButton_Click" />
+          </Grid>
+
+        </Grid>
+      </Popup>
 
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="WindowActivationStates">
@@ -134,6 +319,16 @@
                       Value="{ThemeResource WindowCaptionForegroundDisabled}" />
               <Setter Target="MainWindow_SearchAutoSuggestBox.IsEnabled"
                       Value="False" />
+            </VisualState.Setters>
+          </VisualState>
+        </VisualStateGroup>
+
+        <VisualStateGroup x:Name="MoveListsPopupVisibilityStates">
+          <VisualState x:Name="MoveListsPopupCollapsed" />
+          <VisualState x:Name="MoveListsPopupVisible">
+            <VisualState.Setters>
+              <Setter Target="MainWindow_MoveListsPopup.IsOpen"
+                      Value="True" />
             </VisualState.Setters>
           </VisualState>
         </VisualStateGroup>

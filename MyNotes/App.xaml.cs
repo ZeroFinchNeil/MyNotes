@@ -2,11 +2,14 @@
 
 using MyNotes.ViewModels;
 
+using Windows.ApplicationModel;
+
 namespace MyNotes;
 
 public partial class App : Application
 {
   public static App Instance => (App)Current;
+  public static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
 
   private Window? _window;
 

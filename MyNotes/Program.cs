@@ -118,6 +118,10 @@ public class Program
 
     // Bring the window to the foreground
     Process process = Process.GetProcessById((int)keyInstance.ProcessId);
+
+    int SW_RESTORE = 9;
+    NativeMethods.ShowWindowAsync(process.MainWindowHandle, SW_RESTORE);
+
     NativeMethods.SetForegroundWindow(process.MainWindowHandle);
   }
 }

@@ -12,12 +12,12 @@
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
-  <Project Path="MyNotes.CustomControls/MyNotes.CustomControls.csproj" Id="59aedc38-2119-454f-aff4-6575d6759e33">
+  <Project Path="MyNotes.Services/MyNotes.Services.csproj" Id="f5d73251-7ad9-4a35-bbfb-69125ec74fff">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
-  <Project Path="MyNotes.Services/MyNotes.Services.csproj" Id="f5d73251-7ad9-4a35-bbfb-69125ec74fff">
+  <Project Path="MyNotes.Templates/MyNotes.Templates.csproj" Id="f12b7680-0de7-447f-ba88-0e1c2034c5e3">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />

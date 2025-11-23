@@ -1,7 +1,7 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
-namespace MyNotes.CustomControls.Buttons;
+namespace MyNotes.Templates;
 
 public sealed partial class AnimatedIconButton : Button
 {

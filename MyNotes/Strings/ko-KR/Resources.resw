@@ -138,4 +138,37 @@
   <data name="NavigationTrash_Title" xml:space="preserve">
     <value>휴지통</value>
   </data>
+  <data name="MainWindow_PaneFooter_EditListsButton.Content" xml:space="preserve">
+    <value>목록 수정</value>
+  </data>
+  <data name="MainWindow_PaneFooter_AddListMunuFlyoutSubItem.Text" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem.Text" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
+  <data name="MainWindow_PaneFooter_MoveListsMenuFlyoutItem.Text" xml:space="preserve">
+    <value>목록 이동</value>
+  </data>
+  <data name="MainWindow_MoveListsApplyButton.Content" xml:space="preserve">
+    <value>적용</value>
+  </data>
+  <data name="MainWindow_NavigationUserCompositeNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="MainWindow_NavigationUserCompositeNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
+  <data name="MainWindow_NavigationUserCompositeNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="MainWindow_NavigationUserLeafNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="MainWindow_NavigationUserLeafNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
+  <data name="MainWindow_NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
+    <value>삭제</value>
+  </data>
 </root>

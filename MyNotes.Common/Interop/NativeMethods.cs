@@ -79,6 +79,14 @@ public static partial class NativeMethods
   [return: MarshalAs(UnmanagedType.Bool)]
   public static partial bool SetForegroundWindow(IntPtr hWnd);
 
+  [LibraryImport("user32.dll")]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  public static partial bool ShowWindowAsync(IntPtr hWnd, int nCmdShow);
+
+  [LibraryImport("user32.dll")]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  public static partial bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
   // Message
   [LibraryImport("user32.dll", EntryPoint = "GetMessageW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
   [return: MarshalAs(UnmanagedType.Bool)]

@@ -1,24 +1,77 @@
 ﻿using MyNotes.Models;
-
-using Windows.ApplicationModel.Resources;
+using MyNotes.Views.Navigations;
 
 namespace MyNotes.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-  public ObservableCollection<INavigation> MenuItems { get; } = new();
-  public ObservableCollection<INavigation> FooterMenuItems { get; } = new();
+  private readonly ImmutableList<INavigation> PrimaryCoreNavigations;
+  private readonly NavigationUserRootNode UserRootNavigation = NavigationUserRootNode.Instance;
+  private readonly ImmutableList<INavigation> SecondaryCoreNavigations;
+
+  public CollectionViewSource MenuItems { get; } = new() { IsSourceGrouped = true };
+  public IReadOnlyList<INavigation> FooterMenuItems => SecondaryCoreNavigations;
+  public IReadOnlyList<INavigationUserNode> UserNavigations => UserRootNavigation.ChildNodes;
 
   public MainViewModel()
   {
-    var home = NavigationHome.Instance;
-    Debug.WriteLine(home.Title);
+    PrimaryCoreNavigations = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
+    SecondaryCoreNavigations = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
 
-    MenuItems.Add(NavigationHome.Instance);
-    MenuItems.Add(NavigationBookmarks.Instance);
-    MenuItems.Add(new NavigationSeparator());
+    var composite1 = new NavigationUserCompositeNode()
+    {
+      Id = Guid.NewGuid(),
+      Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+      Title = "Composite 1",
+      PageType = typeof(HomePage)
+    };
+    var composite2 = new NavigationUserCompositeNode()
+    {
+      Id = Guid.NewGuid(),
+      Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+      Title = "Composite 2",
+      PageType = typeof(HomePage)
+    };
+    var leaf1 = new NavigationUserLeafNode()
+    {
+      Id = Guid.NewGuid(),
+      Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+      Title = "Leaf 1",
+      PageType = typeof(HomePage)
+    };
+    var leaf2 = new NavigationUserLeafNode()
+    {
+      Id = Guid.NewGuid(),
+      Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+      Title = "Leaf 2",
+      PageType = typeof(HomePage)
+    };
+    composite1.ChildNodes.Add(leaf1);
+    composite1.ChildNodes.Add(composite2);
+    UserRootNavigation.ChildNodes.Add(composite1);
+    UserRootNavigation.ChildNodes.Add(leaf2);
 
-    FooterMenuItems.Add(NavigationTrash.Instance);
-    FooterMenuItems.Add(NavigationSettings.Instance);
+    IReadOnlyList<IReadOnlyList<INavigation>> MenuItemsSource = [PrimaryCoreNavigations, UserNavigations];
+    MenuItems.Source = MenuItemsSource;
+  }
+
+  public NavigationUserNode? GetUserNode(Func<NavigationUserNode, bool> func)
+  {
+    Stack<NavigationUserNode> stack = new();
+    stack.Push(UserRootNavigation);
+
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      if (func.Invoke(node))
+        return node;
+
+      if (node is NavigationUserCompositeNode compositeNode)
+      {
+        foreach (var childNode in compositeNode.ChildNodes)
+          stack.Push(childNode);
+      }
+    }
+    return null;
   }
 }

@@ -3,6 +3,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Models;
 using MyNotes.ViewModels;
 
+using Windows.ApplicationModel.DataTransfer;
+
 namespace MyNotes.Views.Windows;
 
 public sealed partial class MainWindow : Window
@@ -14,7 +16,6 @@ public sealed partial class MainWindow : Window
   public MainWindow()
   {
     InitializeComponent();
-
     ViewModel = App.Instance.Services.GetRequiredService<MainViewModel>();
 
     this.ExtendsContentIntoTitleBar = true;
@@ -27,22 +28,27 @@ public sealed partial class MainWindow : Window
     // 창 최소 크기 지정
     _presenter = AppWindow.Presenter as OverlappedPresenter;
     _presenter?.PreferredMinimumWidth = (int)(600 * scaleFactor);
-    _presenter?.PreferredMinimumHeight = (int)(300 * scaleFactor);
+    _presenter?.PreferredMinimumHeight = (int)(600 * scaleFactor);
 
     // 높은(48epx) 캡션 컨트롤 지원
     AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
 
-    // 창 초기 크기 지정
-    AppWindow.ResizeClient(new((int)(600 * scaleFactor), (int)(800 * scaleFactor)));
-
-
     // 타이틀 바에 캡션 컨트롤 여백 및 드래그 제외 영역 지정
+    _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(AppWindow.Id);
     MainWindow_TitleBarGrid.Loaded += MainWindow_TitleBarGrid_Loaded;
-    this.SizeChanged += MainWindow_SizeChanged;
+    MainWindow_TitleBarGrid.SizeChanged += MainWindow_TitleBarGrid_SizeChanged;
 
     // 창 활성화 변경 시
     this.Activated += MainWindow_Activated;
-    this.Closed += (s, e) => this.Activated -= MainWindow_Activated;
+    this.Closed += MainWindow_Closed;
+
+    // 창 초기 크기 지정
+    AppWindow.ResizeClient(new((int)(600 * scaleFactor), (int)(800 * scaleFactor)));
+  }
+
+  private void MainWindow_Closed(object sender, WindowEventArgs args)
+  {
+    this.Activated -= MainWindow_Activated;
   }
 
   private void MainWindow_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
@@ -50,19 +56,20 @@ public sealed partial class MainWindow : Window
     SetRegionsForCustomTitleBar();
   }
 
-  private void MainWindow_SizeChanged(object sender, WindowSizeChangedEventArgs args)
+  private void MainWindow_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
   }
 
+  private readonly InputNonClientPointerSource _inputNonClientPointerSource;
   private void SetRegionsForCustomTitleBar()
   {
     if (MainWindow_TitleBarGrid.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
-      RightPaddingColumn.Width = new GridLength(AppWindow.TitleBar.RightInset / scaleFactor);
-      LeftPaddingColumn.Width = new GridLength(AppWindow.TitleBar.LeftInset / scaleFactor);
+      RightPaddingColumn.Width = new GridLength(Math.Max(0, AppWindow.TitleBar.RightInset) / scaleFactor);
+      LeftPaddingColumn.Width = new GridLength(Math.Max(0, AppWindow.TitleBar.LeftInset) / scaleFactor);
 
       var BackButtonPosition = MainWindow_BackButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_BackButton.ActualWidth, MainWindow_BackButton.ActualHeight));
       var PaneToggleButtonPosition = MainWindow_PaneToggleButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_PaneToggleButton.ActualWidth, MainWindow_PaneToggleButton.ActualHeight));
@@ -72,12 +79,12 @@ public sealed partial class MainWindow : Window
       RectInt32 PaneToggleButtonRect = GetRect(PaneToggleButtonPosition, scaleFactor);
       RectInt32 SearchBoxRect = GetRect(SearchBoxPosition, scaleFactor);
 
-      InputNonClientPointerSource inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(AppWindow.Id);
-      inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
+      //Debug.WriteLine(BackButtonRect.X + ", " + PaneToggleButtonRect.X + ", " + SearchBoxRect.X);
+      _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
     }
   }
 
-  private RectInt32 GetRect(Rect bounds, double scale) =>
+  private static RectInt32 GetRect(Rect bounds, double scale) =>
     new(
       _X: (int)Math.Round(bounds.X * scale),
       _Y: (int)Math.Round(bounds.Y * scale),
@@ -89,8 +96,7 @@ public sealed partial class MainWindow : Window
   {
     if (args.WindowActivationState == WindowActivationState.Deactivated)
     {
-      InputNonClientPointerSource inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(AppWindow.Id);
-      inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
+      _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
       VisualStateManager.GoToState(MainWindow_RootControl, "WindowDeactivated", false);
     }
     else
@@ -126,13 +132,86 @@ public sealed partial class MainWindow : Window
     if (_preventNavigation)
       return;
 
-    if (args.SelectedItem is NavigationCoreNode coreNode)
+    switch (args.SelectedItem)
     {
-      MainWindow_NavigationFrame.Navigate(coreNode.PageType);
-      if (_currentNavigation is not null)
-        _navigationBackStack.Push(_currentNavigation);
-      _currentNavigation = coreNode;
+      case NavigationCoreNode coreNode:
+        MainWindow_NavigationFrame.Navigate(coreNode.PageType);
+        if (_currentNavigation is not null)
+          _navigationBackStack.Push(_currentNavigation);
+        _currentNavigation = coreNode;
+        break;
+      case NavigationUserNode userNode:
+        MainWindow_NavigationFrame.Navigate(userNode.PageType);
+        if (_currentNavigation is not null)
+          _navigationBackStack.Push(_currentNavigation);
+        _currentNavigation = userNode;
+        break;
     }
+  }
+
+  private void ReorderableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
+  {
+    if (MainWindow_NavigationView.MenuItemFromContainer(sender) is NavigationUserNode node)
+    {
+      args.Data.SetData($"{App.PackageFamilyName}.NavigationUserNode.Id", node.Id.ToString());
+    }
+  }
+
+  private void ReorderableNavigationViewItem_DropCompleted(UIElement sender, DropCompletedEventArgs args)
+  {
+    //Debug.WriteLine("DropCompleted");
+  }
+
+  private void ReorderableNavigationViewItem_DragEnter(object sender, DragEventArgs e)
+  {
+    //Debug.WriteLine("DragEnter");
+  }
+
+  private void ReorderableNavigationViewItem_DragLeave(object sender, DragEventArgs e)
+  {
+    //Debug.WriteLine("DragLeave");
+  }
+
+  private void ReorderableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  {
+    e.AcceptedOperation = DataPackageOperation.Move;
+  }
+
+  private async void ReorderableNavigationViewItem_Drop(object sender, DragEventArgs e)
+  {
+    Debug.WriteLine(string.Join(", ", e.DataView.AvailableFormats));
+    if (await e.DataView.GetDataAsync($"{App.PackageFamilyName}.NavigationUserNode.Id") is string id)
+    {
+      if (MainWindow_NavigationView.MenuItemFromContainer(sender as UIElement) is NavigationUserNode node)
+      {
+        if (ViewModel.GetUserNode(n => n.Id == Guid.Parse(id)) is NavigationUserNode sourceNode &&
+          ViewModel.GetUserNode(n => n.Id == node.Id) is NavigationUserNode targetNode)
+        {
+        }
+      }
+    }
+
+    e.Handled = true;
+  }
+
+  private void MainWindow_NavigationView_SizeChanged(object sender, SizeChangedEventArgs e)
+  {
+    MainWindow_MoveListsInnerGrid.Height = e.NewSize.Height;
+  }
+
+  private void MainWindow_PaneFooter_MoveListsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupVisible", false);
+  }
+
+  private void MainWindow_MoveListsCancelButton_Click(object sender, RoutedEventArgs e)
+  {
+    VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupCollapsed", false);
+  }
+
+  private void MainWindow_MoveListsApplyButton_Click(object sender, RoutedEventArgs e)
+  {
+    VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupCollapsed", false);
   }
 }
 
@@ -149,6 +228,22 @@ public class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
     {
       NavigationCoreNode => NavigationCoreNodeTemplate,
       NavigationSeparator => NavigationSeparatorTemplate,
+      NavigationUserCompositeNode => NavigationUserCompositeNodeTemplate,
+      NavigationUserLeafNode => NavigationUserLeafNodeTemplate,
+      _ => null
+    };
+  }
+}
+
+public class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
+{
+  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
+  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
+
+  protected override DataTemplate? SelectTemplateCore(object item)
+  {
+    return item switch
+    {
       NavigationUserCompositeNode => NavigationUserCompositeNodeTemplate,
       NavigationUserLeafNode => NavigationUserLeafNodeTemplate,
       _ => null

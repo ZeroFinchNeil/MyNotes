@@ -91,21 +91,53 @@ public interface INavigationUserNode : INavigationNode { }
 
 public class NavigationUserNode : ObservableObject, INavigationUserNode
 {
+  public required Guid Id
+  {
+    get;
+    init => SetProperty(ref field, value);
+  }
 
+  public required IconSource? Icon
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public required string Title
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public required Type? PageType
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public override bool Equals(object? obj) => obj is NavigationUserNode node && this.Id == node.Id;
+  public override int GetHashCode() => Id.GetHashCode();
 }
 
 public class NavigationUserCompositeNode : NavigationUserNode
 {
-
+  public ObservableCollection<NavigationUserNode> ChildNodes { get; } = new();
 }
 
 public class NavigationUserLeafNode : NavigationUserNode
 {
-
 }
 
-public sealed class NavigationUserRootNode : INavigationUserNode
+public sealed class NavigationUserRootNode : NavigationUserCompositeNode
 {
+  public static NavigationUserRootNode Instance => field ??= new()
+  {
+    Id = Guid.Empty,
+    Icon = null,
+    Title = "",
+    PageType = null,
+  };
 
+  private NavigationUserRootNode() { }
 }
 #endregion
