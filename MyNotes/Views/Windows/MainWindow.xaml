@@ -62,10 +62,18 @@
           <templates:AnimatedIconButton.AnimatedIconSource>
             <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
           </templates:AnimatedIconButton.AnimatedIconSource>
+
+          <templates:AnimatedIconButton.ContextFlyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft">
+              <MenuFlyoutItem x:Name="MainWindow_DebugMenuFlyoutItem"
+                              Text="Debug"
+                              Click="MainWindow_DebugMenuFlyoutItem_Click" />
+            </MenuFlyout>
+          </templates:AnimatedIconButton.ContextFlyout>
         </templates:AnimatedIconButton>
 
         <ImageIcon Grid.Column="3"
-                   Source="/Assets/AppIcon_128.ico"
+                   Source="/Assets/AppIcon.ico"
                    Width="16"
                    Height="16"
                    Margin="8,0" />
@@ -176,7 +184,7 @@
                                    Icon="Add"
                                    MinWidth="200"
                                    Height="40">
-                  <MenuFlyoutItem Text="to root"/>
+                  <MenuFlyoutItem Text="to root" />
                   <MenuFlyoutItem Text="at selected position" />
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"

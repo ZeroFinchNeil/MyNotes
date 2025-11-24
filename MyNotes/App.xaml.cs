@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Interop;
+using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 
 using Windows.ApplicationModel;
@@ -11,7 +13,7 @@ public partial class App : Application
   public static App Instance => (App)Current;
   public static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
 
-  private Window? _window;
+  private Window? _mainWindow;
 
   public App()
   {
@@ -20,8 +22,12 @@ public partial class App : Application
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
   {
-    _window = new Views.Windows.MainWindow();
-    _window.Activate();
+    NativeMethods.SetConsole();
+
+    _mainWindow = new Views.Windows.MainWindow();
+    _mainWindow.Activate();
+
+    _mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
   }
 
   public ServiceProvider Services { get; } = ConfigureServices();
@@ -34,6 +40,7 @@ public partial class App : Application
     services.AddSingleton<MainViewModel>();
 
     // Services
+    services.AddSingleton<SettingsService>();
 
     return services.BuildServiceProvider();
   }
