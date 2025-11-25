@@ -8,7 +8,6 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Platforms>x64;ARM64;x86</Platforms>
     <Nullable>enable</Nullable>
-    <GenerateLibraryLayout>true</GenerateLibraryLayout>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.250402" />
