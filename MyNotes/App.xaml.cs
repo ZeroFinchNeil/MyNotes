@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Globalization;
+
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Windows.Globalization;
 
 using MyNotes.Common.Interop;
+using MyNotes.Models;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 
@@ -28,6 +32,10 @@ public partial class App : Application
     _mainWindow.Activate();
 
     _mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
+    Console.WriteLine(ApplicationLanguages.PrimaryLanguageOverride);
+    Console.WriteLine(string.Join(", ", Windows.System.UserProfile.GlobalizationPreferences.Languages));
+    Console.WriteLine(string.Join(", ", ApplicationLanguages.Languages));
+    Console.WriteLine(string.Join(", ", ApplicationLanguages.ManifestLanguages));
   }
 
   public ServiceProvider Services { get; } = ConfigureServices();
@@ -38,6 +46,7 @@ public partial class App : Application
 
     // ViewModels
     services.AddSingleton<MainViewModel>();
+    services.AddSingleton<SettingsViewModel>();
 
     // Services
     services.AddSingleton<SettingsService>();

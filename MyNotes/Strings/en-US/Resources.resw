@@ -195,14 +195,8 @@
   <data name="SettingsPage_Appearence_LanguageSettingsCard.Description" xml:space="preserve">
     <value>Selects a display language for this app.</value>
   </data>
-  <data name="SettingsPage_Appearence_DefaultLanguageComboBoxItem.Content" xml:space="preserve">
+  <data name="Settings_DefaultLanguage" xml:space="preserve">
     <value>Use system settings</value>
-  </data>
-  <data name="SettingsPage_Appearence_EnglishLanguageComboBoxItem.Content" xml:space="preserve">
-    <value>English</value>
-  </data>
-  <data name="SettingsPage_Appearence_KoreanLanguageComboBoxItem.Content" xml:space="preserve">
-    <value>한국어</value>
   </data>
   <data name="SettingsPage_Appearence_LanguageInfoBar.Message" xml:space="preserve">
     <value>App need to be relaunced in order to apply your new display language.</value>
@@ -275,5 +269,8 @@
   </data>
   <data name="SettingsPage_Note_HeightSettingsCard.Header" xml:space="preserve">
     <value>Height</value>
+  </data>
+  <data name="SettingsPage_TitleTextBlock.Text" xml:space="preserve">
+    <value>Settings</value>
   </data>
 </root>

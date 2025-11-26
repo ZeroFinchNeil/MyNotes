@@ -1,3 +1,6 @@
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
@@ -76,6 +79,12 @@ public sealed partial class MainWindow : Window
     PointInt32 position = new((int)windowPosition.X, (int)windowPosition.Y);
     if (ContainsPointInAreas(areas, position))
       AppWindow.Move(new(position.X, position.Y));
+
+    // 앱 테마 설정
+    SetAppTheme((ElementTheme)SettingsService.Load<int>(SettingsDescriptors.AppTheme.Key));
+
+    // 메신저 등록
+    RegisterMessengers();
   }
 
   private void MainWindow_Closed(object sender, WindowEventArgs args)
@@ -89,6 +98,12 @@ public sealed partial class MainWindow : Window
     // 창 위치 및 디스플레이 저장
     SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(AppWindow.Position.X, AppWindow.Position.Y));
     SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+
+    // 메신저 해제
+    UnregisterMessengers();
+
+    // 바인딩 해제
+    Bindings.StopTracking();
   }
 
   private void MainWindow_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
@@ -278,6 +293,31 @@ public sealed partial class MainWindow : Window
     Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "AppWindow(C):", AppWindow.Position.X, AppWindow.Position.Y, AppWindow.ClientSize.Width, AppWindow.ClientSize.Height);
     Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "HWND(C):", cRect.Left, cRect.Top, cRect.Right - cRect.Left, cRect.Bottom - cRect.Top);
     Console.WriteLine();
+  }
+
+  private void SetAppTheme(ElementTheme theme)
+  {
+    MainWindow_RootControl.RequestedTheme = theme;
+
+    AppWindow.TitleBar.PreferredTheme = theme switch
+    {
+      ElementTheme.Light => TitleBarTheme.Light,
+      ElementTheme.Dark => TitleBarTheme.Dark,
+      _ => TitleBarTheme.UseDefaultAppMode
+    };
+  }
+}
+
+public sealed partial class MainWindow : Window
+{
+  private void RegisterMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, string>(this, MessageTokens.ChangeAppTheme, new((recipient, message) => SetAppTheme(message.Value)));
+  }
+
+  private void UnregisterMessengers()
+  {
+    WeakReferenceMessenger.Default.UnregisterAll(this);
   }
 }
 
