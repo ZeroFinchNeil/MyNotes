@@ -171,37 +171,37 @@
   <data name="MainWindow_NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>삭제</value>
   </data>
-  <data name="SettingsPage_Appearence_SubTitleTextBlock.Text" xml:space="preserve">
+  <data name="SettingsPage_Appearance_SubTitleTextBlock.Text" xml:space="preserve">
     <value>모양</value>
   </data>
-  <data name="SettingsPage_Appearence_ThemeSettingsCard.Header" xml:space="preserve">
+  <data name="SettingsPage_Appearance_ThemeSettingsCard.Header" xml:space="preserve">
     <value>앱 테마</value>
   </data>
-  <data name="SettingsPage_Appearence_ThemeSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_Appearance_ThemeSettingsCard.Description" xml:space="preserve">
     <value>앱 테마를 선택하세요.</value>
   </data>
-  <data name="SettingsPage_Appearence_DefaultThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_DefaultThemeComboBoxItem.Content" xml:space="preserve">
     <value>시스템 설정</value>
   </data>
-  <data name="SettingsPage_Appearence_LightThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
     <value>라이트</value>
   </data>
-  <data name="SettingsPage_Appearence_DarkThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
     <value>다크</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageSettingsCard.Header" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageSettingsCard.Header" xml:space="preserve">
     <value>언어</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageSettingsCard.Description" xml:space="preserve">
     <value>앱 언어를 선택하세요.</value>
   </data>
   <data name="Settings_DefaultLanguage" xml:space="preserve">
     <value>시스템 설정</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageInfoBar.Message" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageInfoBar.Message" xml:space="preserve">
     <value>언어를 변경하려면 앱을 다시 시작하세요.</value>
   </data>
-  <data name="SettingsPage_Appearence_RelaunchButton.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_RelaunchButton.Content" xml:space="preserve">
     <value>재시작</value>
   </data>
   <data name="SettingsPage_General_SubTitleTextBlock.Text" xml:space="preserve">

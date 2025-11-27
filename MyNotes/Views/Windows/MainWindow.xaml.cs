@@ -252,7 +252,7 @@ public sealed partial class MainWindow : Window
     {
       if (MainWindow_NavigationView.MenuItemFromContainer(sender as UIElement) is NavigationUserNode node)
       {
-        if (ViewModel.GetUserNode(n => n.Id == Guid.Parse(id)) is NavigationUserNode sourceNode &&
+        if (ViewModel.GetUserNode(n => n.Id.Value == Guid.Parse(id)) is NavigationUserNode sourceNode &&
           ViewModel.GetUserNode(n => n.Id == node.Id) is NavigationUserNode targetNode)
         {
         }

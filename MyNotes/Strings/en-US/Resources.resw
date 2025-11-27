@@ -171,37 +171,37 @@
   <data name="MainWindow_NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="SettingsPage_Appearence_SubTitleTextBlock.Text" xml:space="preserve">
+  <data name="SettingsPage_Appearance_SubTitleTextBlock.Text" xml:space="preserve">
     <value>Appearence</value>
   </data>
-  <data name="SettingsPage_Appearence_ThemeSettingsCard.Header" xml:space="preserve">
+  <data name="SettingsPage_Appearance_ThemeSettingsCard.Header" xml:space="preserve">
     <value>App theme</value>
   </data>
-  <data name="SettingsPage_Appearence_ThemeSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_Appearance_ThemeSettingsCard.Description" xml:space="preserve">
     <value>Select which app theme to display.</value>
   </data>
-  <data name="SettingsPage_Appearence_DefaultThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_DefaultThemeComboBoxItem.Content" xml:space="preserve">
     <value>Use system settings</value>
   </data>
-  <data name="SettingsPage_Appearence_LightThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
     <value>Light</value>
   </data>
-  <data name="SettingsPage_Appearence_DarkThemeComboBoxItem.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
     <value>Dark</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageSettingsCard.Header" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageSettingsCard.Header" xml:space="preserve">
     <value>Language</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageSettingsCard.Description" xml:space="preserve">
     <value>Selects a display language for this app.</value>
   </data>
   <data name="Settings_DefaultLanguage" xml:space="preserve">
     <value>Use system settings</value>
   </data>
-  <data name="SettingsPage_Appearence_LanguageInfoBar.Message" xml:space="preserve">
+  <data name="SettingsPage_Appearance_LanguageInfoBar.Message" xml:space="preserve">
     <value>App need to be relaunced in order to apply your new display language.</value>
   </data>
-  <data name="SettingsPage_Appearence_RelaunchButton.Content" xml:space="preserve">
+  <data name="SettingsPage_Appearance_RelaunchButton.Content" xml:space="preserve">
     <value>Relaunch</value>
   </data>
   <data name="SettingsPage_General_SubTitleTextBlock.Text" xml:space="preserve">

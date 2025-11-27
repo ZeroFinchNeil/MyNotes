@@ -1,4 +1,6 @@
-﻿using Windows.Foundation;
+﻿using System;
+
+using Windows.Foundation;
 
 namespace MyNotes.Services.Settings;
 
@@ -14,6 +16,10 @@ public static class SettingsDescriptors
   // Settings - Appearence
   public static readonly SettingsDescriptor<int> AppTheme = new("AppTheme", 0);
   public static readonly SettingsDescriptor<string> AppLanguage = new("AppLanguage", string.Empty);
+
+  // Settings - General
+  public static readonly SettingsDescriptor<int> InitialPageType = new("InitialPageType", 0);
+  public static readonly SettingsDescriptor<Guid> InitialPageId = new("InitialPageId", Guid.Empty);
 
   // Settings - Note
   public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");

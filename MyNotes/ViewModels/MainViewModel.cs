@@ -20,28 +20,28 @@ public partial class MainViewModel : ViewModelBase
 
     var composite1 = new NavigationUserCompositeNode()
     {
-      Id = Guid.NewGuid(),
+      Id = NavigationId.Create(),
       Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
       Title = "Composite 1",
       PageType = typeof(HomePage)
     };
     var composite2 = new NavigationUserCompositeNode()
     {
-      Id = Guid.NewGuid(),
+      Id = NavigationId.Create(),
       Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
       Title = "Composite 2",
       PageType = typeof(HomePage)
     };
     var leaf1 = new NavigationUserLeafNode()
     {
-      Id = Guid.NewGuid(),
+      Id = NavigationId.Create(),
       Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
       Title = "Leaf 1",
       PageType = typeof(HomePage)
     };
     var leaf2 = new NavigationUserLeafNode()
     {
-      Id = Guid.NewGuid(),
+      Id = NavigationId.Create(),
       Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
       Title = "Leaf 2",
       PageType = typeof(HomePage)

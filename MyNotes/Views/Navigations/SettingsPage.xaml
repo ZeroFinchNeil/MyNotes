@@ -28,32 +28,32 @@
                   Padding="24,12,24,0">
       <StackPanel Margin="0,0,0,24"
                   Spacing="12">
-        <!--#region Appearence -->
+        <!--#region Appearance -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_Appearence_SubTitleTextBlock"
+          <TextBlock x:Uid="SettingsPage_Appearance_SubTitleTextBlock"
                      Padding="4"
                      Style="{StaticResource BaseTextBlockStyle}" />
 
           <!-- App Theme -->
-          <controls:SettingsCard x:Uid="SettingsPage_Appearence_ThemeSettingsCard">
+          <controls:SettingsCard x:Uid="SettingsPage_Appearance_ThemeSettingsCard">
             <controls:SettingsCard.HeaderIcon>
               <ImageIcon Source="/Assets/Icons/FluentUISystem/PaintBrush16Regular.svg" />
             </controls:SettingsCard.HeaderIcon>
             <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay}"
                       MinWidth="160">
-              <ComboBoxItem x:Uid="SettingsPage_Appearence_DefaultThemeComboBoxItem"
+              <ComboBoxItem x:Uid="SettingsPage_Appearance_DefaultThemeComboBoxItem"
                             Tag="Default" />
-              <ComboBoxItem x:Uid="SettingsPage_Appearence_LightThemeComboBoxItem"
+              <ComboBoxItem x:Uid="SettingsPage_Appearance_LightThemeComboBoxItem"
                             Tag="Light" />
-              <ComboBoxItem x:Uid="SettingsPage_Appearence_DarkThemeComboBoxItem"
+              <ComboBoxItem x:Uid="SettingsPage_Appearance_DarkThemeComboBoxItem"
                             Tag="Dark" />
             </ComboBox>
           </controls:SettingsCard>
 
           <!-- Language -->
           <StackPanel>
-            <controls:SettingsCard x:Name="SettingsPage_Appearence_LanguageSettingsCard"
-                                   x:Uid="SettingsPage_Appearence_LanguageSettingsCard"
+            <controls:SettingsCard x:Name="SettingsPage_Appearance_LanguageSettingsCard"
+                                   x:Uid="SettingsPage_Appearance_LanguageSettingsCard"
                                    HeaderIcon="{ui:FontIcon Glyph=&#xF2B7;}">
               <ComboBox ItemsSource="{x:Bind ViewModel.AppLanguages}"
                         SelectedItem="{x:Bind ViewModel.AppLanguage, Mode=TwoWay}"
@@ -72,8 +72,8 @@
                 </ComboBox.ItemTemplate>
               </ComboBox>
             </controls:SettingsCard>
-            <InfoBar x:Name="SettingsPage_Appearence_LanguageInfoBar"
-                     x:Uid="SettingsPage_Appearence_LanguageInfoBar"
+            <InfoBar x:Name="SettingsPage_Appearance_LanguageInfoBar"
+                     x:Uid="SettingsPage_Appearance_LanguageInfoBar"
                      IsOpen="True"
                      Severity="Warning"
                      IsClosable="False"
@@ -82,14 +82,14 @@
                      BorderThickness="1,0,1,1"
                      Canvas.ZIndex="-1">
               <InfoBar.ActionButton>
-                <Button x:Name="SettingsPage_Appearence_RelaunchButton"
-                        x:Uid="SettingsPage_Appearence_RelaunchButton"
+                <Button x:Name="SettingsPage_Appearance_RelaunchButton"
+                        x:Uid="SettingsPage_Appearance_RelaunchButton"
                         HorizontalAlignment="Right"
-                        Click="SettingsPage_Appearence_RelaunchButton_Click" />
+                        Click="SettingsPage_Appearance_RelaunchButton_Click" />
               </InfoBar.ActionButton>
 
               <InfoBar.RenderTransform>
-                <TranslateTransform x:Name="SettingsPage_Appearence_LanguageInfoBar_TranslateTransform" />
+                <TranslateTransform x:Name="SettingsPage_Appearance_LanguageInfoBar_TranslateTransform" />
               </InfoBar.RenderTransform>
 
               <interactivity:Interaction.Behaviors>
@@ -148,8 +148,9 @@
           <controls:SettingsExpander x:Uid="SettingsPage_General_InitialPageSettingsExpander"
                                      Header="Initial page"
                                      Description="Initial page"
-                                     HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}">
-            <ComboBox SelectedIndex="0"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}"
+                                     IsExpanded="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
+            <ComboBox SelectedIndex="{x:Bind ViewModel.InitialPageType, Mode=TwoWay}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="SettingsPage_General_HomePageComboBoxItem"
                             Content="Home page" />
@@ -172,13 +173,14 @@
                     <TextBlock Text=">"
                                Style="{StaticResource BodyLargeTextBlockStyle}"
                                Foreground="{ThemeResource TextFillColorSecondary}" />
-                    <TextBlock Text="Leaf 1"
+                    <TextBlock Text="{x:Bind ViewModel.InitialPageId, Mode=OneWay}"
                                Style="{StaticResource BodyLargeTextBlockStyle}" />
                   </StackPanel>
                 </controls:SettingsCard.Header>
               </controls:SettingsCard>
               <controls:SettingsCard Header="Select a specific page."
-                                     HeaderIcon="Add">
+                                     HeaderIcon="Add"
+                                     IsEnabled="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
                 <Button Content="Select" />
               </controls:SettingsCard>
             </controls:SettingsExpander.Items>
@@ -315,13 +317,13 @@
         <VisualState x:Name="SettingsPage_LanguageSettingsNormalState" />
         <VisualState x:Name="SettingsPage_LanguageSettingsWarningState">
           <VisualState.Setters>
-            <Setter Target="SettingsPage_Appearence_LanguageSettingsCard.CornerRadius"
+            <Setter Target="SettingsPage_Appearance_LanguageSettingsCard.CornerRadius"
                     Value="4,4,0,0" />
-            <Setter Target="SettingsPage_Appearence_LanguageInfoBar.Visibility"
+            <Setter Target="SettingsPage_Appearance_LanguageInfoBar.Visibility"
                     Value="Visible" />
           </VisualState.Setters>
           <Storyboard>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SettingsPage_Appearence_LanguageInfoBar"
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SettingsPage_Appearance_LanguageInfoBar"
                                            Storyboard.TargetProperty="Opacity">
               <DiscreteDoubleKeyFrame KeyTime="0:0:0"
                                       Value="0" />
@@ -329,7 +331,7 @@
                                     KeySpline="0.30,0.30 0,0.95"
                                     Value="1" />
             </DoubleAnimationUsingKeyFrames>
-            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SettingsPage_Appearence_LanguageInfoBar_TranslateTransform"
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="SettingsPage_Appearance_LanguageInfoBar_TranslateTransform"
                                            Storyboard.TargetProperty="Y">
               <DiscreteDoubleKeyFrame KeyTime="0:0:0"
                                       Value="-32" />

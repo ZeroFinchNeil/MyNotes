@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.Reflection.Metadata;
+
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Windows.Globalization;
@@ -26,8 +28,10 @@ public class SettingsViewModel : ViewModelBase
     AppTheme = SettingsService.Load<int?>(SettingsDescriptors.AppTheme.Key) ?? SettingsDescriptors.AppTheme.DefaultValue;
     AppLanguage = _initalLanguage;
 
-    NoteBackground = ToolkitColorHelper.ToColor(SettingsService.Load<string>(SettingsDescriptors.NoteBackground.Key) ?? SettingsDescriptors.NoteBackground.DefaultValue);
+    InitialPageType = SettingsService.Load<int?>(SettingsDescriptors.InitialPageType.Key) ?? SettingsDescriptors.InitialPageType.DefaultValue;
+    InitialPageId = SettingsService.Load<Guid?>(SettingsDescriptors.InitialPageId.Key) ?? SettingsDescriptors.InitialPageId.DefaultValue;
 
+    NoteBackground = ToolkitColorHelper.ToColor(SettingsService.Load<string>(SettingsDescriptors.NoteBackground.Key) ?? SettingsDescriptors.NoteBackground.DefaultValue);
     NoteBackdrop = SettingsService.Load<int?>(SettingsDescriptors.NoteBackdrop.Key) ?? SettingsDescriptors.NoteBackdrop.DefaultValue;
 
     var noteSize = SettingsService.Load<Size?>(SettingsDescriptors.NoteSize.Key) ?? SettingsDescriptors.NoteSize.DefaultValue;
@@ -37,6 +41,7 @@ public class SettingsViewModel : ViewModelBase
     ShowNoteCount = SettingsService.Load<bool?>(SettingsDescriptors.ShowNoteCount.Key) ?? SettingsDescriptors.ShowNoteCount.DefaultValue;
   }
 
+  #region Appearance
   public int AppTheme
   {
     get;
@@ -91,7 +96,45 @@ public class SettingsViewModel : ViewModelBase
     get;
     set => SetProperty(ref field, value);
   }
+  #endregion
 
+  #region General
+  public int InitialPageType
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        InitialPageId = value switch
+        {
+          0 => NavigationId.Home.Value,
+          1 => NavigationId.Bookmarks.Value,
+          2 => NavigationId.Empty.Value,
+          3 => NavigationId.Empty.Value,
+          _ => NavigationId.Home.Value
+        };
+        SettingsService.Save(SettingsDescriptors.InitialPageType.Key, value);
+      }
+    }
+  }
+
+  public Guid InitialPageId
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.InitialPageId.Key, value);
+      }
+    }
+  }
+  #endregion
+
+  #region Note
   public Color NoteBackground
   {
     get;
@@ -143,7 +186,9 @@ public class SettingsViewModel : ViewModelBase
       }
     }
   }
+  #endregion
 
+  #region List
   public bool ShowNoteCount
   {
     get;
@@ -156,6 +201,7 @@ public class SettingsViewModel : ViewModelBase
       }
     }
   }
+  #endregion
 
   // StartupTask
   public async Task<bool> GetStartupTaskState()
