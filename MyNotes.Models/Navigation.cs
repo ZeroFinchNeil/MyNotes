@@ -1,9 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
+using System.Collections.ObjectModel;
 
-using Microsoft.UI.Xaml.Controls.AnimatedVisuals;
+using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Strings;
-using MyNotes.Views.Navigations;
+using Microsoft.UI.Xaml.Controls;
 
 namespace MyNotes.Models;
 
@@ -42,58 +42,6 @@ public abstract class NavigationCoreNode : ObservableObject, INavigationCoreNode
     get;
     set => SetProperty(ref field, value);
   }
-}
-
-public sealed class NavigationHome : NavigationCoreNode
-{
-  public static NavigationHome Instance => field ??= new()
-  {
-    Id = NavigationId.Home,
-    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Home } },
-    Title = Resources.NavigationHomeTitle,
-    PageType = typeof(HomePage)
-  };
-
-  private NavigationHome() { }
-}
-
-public sealed class NavigationBookmarks : NavigationCoreNode
-{
-  public static NavigationBookmarks Instance => field ??= new()
-  {
-    Id = NavigationId.Bookmarks,
-    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Bookmarks } },
-    Title = Resources.NavigationBookmarksTitle,
-    PageType = typeof(HomePage)
-  };
-
-  private NavigationBookmarks() { }
-}
-
-public sealed class NavigationTrash : NavigationCoreNode
-{
-  public static NavigationTrash Instance => field ??= new()
-  {
-    Id = NavigationId.Empty,
-    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Delete } },
-    Title = Resources.NavigationTrashTitle,
-    PageType = typeof(HomePage)
-  };
-
-  private NavigationTrash() { }
-}
-
-public sealed class NavigationSettings : NavigationCoreNode
-{
-  public static NavigationSettings Instance => field ??= new()
-  {
-    Id = NavigationId.Empty,
-    Icon = new AnimatedIcon() { Source = new AnimatedSettingsVisualSource() },
-    Title = Resources.NavigationSettingsTitle,
-    PageType = typeof(SettingsPage)
-  };
-
-  private NavigationSettings() { }
 }
 #endregion
 

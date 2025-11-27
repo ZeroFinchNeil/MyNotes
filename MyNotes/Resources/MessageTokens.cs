@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Models;
+﻿namespace MyNotes.Resources;
 
 public static class MessageTokens
 {

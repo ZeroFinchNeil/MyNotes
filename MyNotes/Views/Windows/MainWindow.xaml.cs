@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
 using MyNotes.Models;
+using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 

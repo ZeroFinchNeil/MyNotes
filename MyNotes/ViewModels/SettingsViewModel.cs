@@ -1,13 +1,11 @@
-﻿using System.Reflection.Metadata;
-
-using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Windows.Globalization;
 
 using MyNotes.Models;
+using MyNotes.Resources;
 using MyNotes.Services.Settings;
-using MyNotes.Strings;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
@@ -16,7 +14,7 @@ using ToolkitColorHelper = CommunityToolkit.WinUI.Helpers.ColorHelper;
 
 namespace MyNotes.ViewModels;
 
-public class SettingsViewModel : ViewModelBase
+public class SettingsViewModel : NavigationPageViewModel
 {
   private readonly SettingsService SettingsService;
 
@@ -206,13 +204,13 @@ public class SettingsViewModel : ViewModelBase
   // StartupTask
   public async Task<bool> GetStartupTaskState()
   {
-    StartupTask startupTask = await StartupTask.GetAsync(Resources.StartupTaskId);
+    StartupTask startupTask = await StartupTask.GetAsync(AppStrings.StartupTaskId);
     return startupTask.State is StartupTaskState.Enabled or StartupTaskState.EnabledByPolicy;
   }
 
   public async Task<bool> ToggleStartupTaskState()
   {
-    StartupTask startupTask = await StartupTask.GetAsync(Resources.StartupTaskId);
+    StartupTask startupTask = await StartupTask.GetAsync(AppStrings.StartupTaskId);
     switch (startupTask.State)
     {
       case StartupTaskState.Enabled:

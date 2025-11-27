@@ -4,13 +4,18 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="MyNotes.Package/MyNotes.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5">
-    <Deploy />
-  </Project>
   <Project Path="MyNotes.Common/MyNotes.Common.csproj" Id="5f737b78-0cad-4b54-b0eb-1644412a4eb0">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="MyNotes.Models/MyNotes.Models.csproj" Id="75888f05-f2fc-4e1b-aaaa-01f5c07b83ae">
+    <Platform Solution="*|ARM64" Project="ARM64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
+  <Project Path="MyNotes.Package/MyNotes.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5">
+    <Deploy />
   </Project>
   <Project Path="MyNotes.Services/MyNotes.Services.csproj" Id="f5d73251-7ad9-4a35-bbfb-69125ec74fff">
     <Platform Solution="*|ARM64" Project="ARM64" />

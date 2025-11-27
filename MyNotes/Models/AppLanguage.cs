@@ -2,9 +2,7 @@
 
 using Microsoft.Windows.Globalization;
 
-using MyNotes.Strings;
-
-using Windows.System.UserProfile;
+using MyNotes.Resources;
 
 namespace MyNotes.Models;
 
@@ -34,7 +32,7 @@ public sealed record AppLanguage
     {
       Language = string.Empty;
       DisplayName = string.Empty;
-      NativeName = Resources.SettingsDefaultLanguage;
+      NativeName = LocalizedStrings.SettingsDefaultLanguage;
     }
   }
 
