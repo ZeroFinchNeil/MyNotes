@@ -32,10 +32,6 @@ public partial class App : Application
     _mainWindow.Activate();
 
     _mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
-    Console.WriteLine(ApplicationLanguages.PrimaryLanguageOverride);
-    Console.WriteLine(string.Join(", ", Windows.System.UserProfile.GlobalizationPreferences.Languages));
-    Console.WriteLine(string.Join(", ", ApplicationLanguages.Languages));
-    Console.WriteLine(string.Join(", ", ApplicationLanguages.ManifestLanguages));
   }
 
   public ServiceProvider Services { get; } = ConfigureServices();

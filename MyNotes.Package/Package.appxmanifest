@@ -112,6 +112,11 @@
             </uap3:Properties>
           </uap3:AppExtension>
         </uap3:Extension>
+
+        <uap5:Extension Category="windows.startupTask">
+          <uap5:StartupTask TaskId="StartupTaskId"
+                            DisplayName="MyNotes" />
+        </uap5:Extension>
       </Extensions>
     </Application>
   </Applications>

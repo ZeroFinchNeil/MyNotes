@@ -232,10 +232,10 @@
     <value>Change the background color of a new note.</value>
   </data>
   <data name="SettingsPage_Note_BackdropSettingsCard.Header" xml:space="preserve">
-    <value>Backdrop</value>
+    <value>Backdrop material</value>
   </data>
   <data name="SettingsPage_Note_BackdropSettingsCard.Description" xml:space="preserve">
-    <value>Change the backdrop effect of a new note.</value>
+    <value>Change the backdrop material of a new note.</value>
   </data>
   <data name="SettingsPage_Note_BackdropNoneComboBoxItem.Content" xml:space="preserve">
     <value>None</value>
@@ -255,10 +255,10 @@
   <data name="SettingsPage_List_SubTitleTextBlock.Text" xml:space="preserve">
     <value>List</value>
   </data>
-  <data name="SettingsPage_List_NoteCountSettingsCard.Header" xml:space="preserve">
-    <value>Note count</value>
+  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
+    <value>Show note count</value>
   </data>
-  <data name="SettingsPage_List_NoteCountSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
     <value>Display the number of notes on the list.</value>
   </data>
   <data name="SettingsPage_About_SubTitleTextBlock.Text" xml:space="preserve">

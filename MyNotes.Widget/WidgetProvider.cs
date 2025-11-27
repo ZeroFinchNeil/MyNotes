@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 
 using Microsoft.UI;
 using Microsoft.Windows.Widgets.Providers;
 
-using Windows.Storage;
 using Windows.UI;
 
 namespace MyNotes.Widget;

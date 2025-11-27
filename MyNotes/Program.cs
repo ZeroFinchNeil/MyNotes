@@ -1,4 +1,5 @@
 ﻿using MyNotes.Common.Interop;
+using MyNotes.Strings;
 using MyNotes.Widget;
 
 namespace MyNotes;
@@ -13,7 +14,7 @@ public class Program
     // Windows 11 Widget
     if (IsWindowsVersion11OrHigher)
     {
-      Guid CLSID_Factory = Guid.Parse("A5423B36-2D5C-45CA-9268-71B560D7269A");
+      Guid CLSID_Factory = Guid.Parse(Resources.WidgetProvider_COM_CLSID);
       WidgetProviderFactory<WidgetProvider> widgetProviderFactory = new();
       WidgetProvider = widgetProviderFactory.Instance;
       _ = NativeMethods.CoRegisterClassObject(CLSID_Factory, widgetProviderFactory, 0x4, 0x1, out uint cookie);

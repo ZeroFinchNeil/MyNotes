@@ -35,9 +35,12 @@
                      Style="{StaticResource BaseTextBlockStyle}" />
 
           <!-- App Theme -->
-          <controls:SettingsCard x:Uid="SettingsPage_Appearence_ThemeSettingsCard"
-                                 HeaderIcon="{ui:FontIcon Glyph=&#xE790;}">
-            <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay}">
+          <controls:SettingsCard x:Uid="SettingsPage_Appearence_ThemeSettingsCard">
+            <controls:SettingsCard.HeaderIcon>
+              <ImageIcon Source="/Assets/Icons/FluentUISystem/PaintBrush16Regular.svg" />
+            </controls:SettingsCard.HeaderIcon>
+            <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay}"
+                      MinWidth="160">
               <ComboBoxItem x:Uid="SettingsPage_Appearence_DefaultThemeComboBoxItem"
                             Tag="Default" />
               <ComboBoxItem x:Uid="SettingsPage_Appearence_LightThemeComboBoxItem"
@@ -53,7 +56,8 @@
                                    x:Uid="SettingsPage_Appearence_LanguageSettingsCard"
                                    HeaderIcon="{ui:FontIcon Glyph=&#xF2B7;}">
               <ComboBox ItemsSource="{x:Bind ViewModel.AppLanguages}"
-                        SelectedItem="{x:Bind ViewModel.AppLanguage, Mode=TwoWay}">
+                        SelectedItem="{x:Bind ViewModel.AppLanguage, Mode=TwoWay}"
+                        MinWidth="160">
                 <ComboBox.ItemTemplate>
                   <DataTemplate x:DataType="models:AppLanguage">
                     <StackPanel Orientation="Horizontal"
@@ -80,8 +84,8 @@
               <InfoBar.ActionButton>
                 <Button x:Name="SettingsPage_Appearence_RelaunchButton"
                         x:Uid="SettingsPage_Appearence_RelaunchButton"
-                        HorizontalAlignment="Right" 
-                        Click="SettingsPage_Appearence_RelaunchButton_Click"/>
+                        HorizontalAlignment="Right"
+                        Click="SettingsPage_Appearence_RelaunchButton_Click" />
               </InfoBar.ActionButton>
 
               <InfoBar.RenderTransform>
@@ -93,7 +97,7 @@
                                                    Value="False">
                   <interactivity:GoToStateAction StateName="SettingsPage_LanguageSettingsNormalState" />
                 </interactivity:DataTriggerBehavior>
-                
+
                 <interactivity:DataTriggerBehavior Binding="{x:Bind ViewModel.IsAppLanguageChanged, Mode=OneWay}"
                                                    Value="True">
                   <interactivity:GoToStateAction StateName="SettingsPage_LanguageSettingsWarningState" />
@@ -114,8 +118,9 @@
           <StackPanel>
             <controls:SettingsCard x:Name="SettingsPage_General_StartupSettingsCard"
                                    x:Uid="SettingsPage_General_StartupSettingsCard"
-                                   HeaderIcon="{ui:FontIcon Glyph=&#xE7C4;}">
-              <ToggleSwitch x:Name="SettingsPage_General_StartupToggleSwitch" />
+                                   HeaderIcon="{ui:FontIcon Glyph=&#xE7B5;}">
+              <ToggleSwitch x:Name="SettingsPage_General_StartupToggleSwitch"
+                            Toggled="SettingsPage_General_StartupToggleSwitch_Toggled" />
             </controls:SettingsCard>
             <InfoBar x:Name="SettingsPage_General_StartupInfoBar"
                      x:Uid="SettingsPage_General_StartupInfoBar"
@@ -129,7 +134,8 @@
               <InfoBar.ActionButton>
                 <Button x:Name="SettingsPage_General_AppStartupButton"
                         x:Uid="SettingsPage_General_AppStartupButton"
-                        HorizontalAlignment="Right" />
+                        HorizontalAlignment="Right"
+                        Click="SettingsPage_General_AppStartupButton_Click" />
               </InfoBar.ActionButton>
 
               <InfoBar.RenderTransform>
@@ -137,6 +143,46 @@
               </InfoBar.RenderTransform>
             </InfoBar>
           </StackPanel>
+
+          <!-- Initial Page -->
+          <controls:SettingsExpander x:Uid="SettingsPage_General_InitialPageSettingsExpander"
+                                     Header="Initial page"
+                                     Description="Initial page"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}">
+            <ComboBox SelectedIndex="0"
+                      MinWidth="160">
+              <ComboBoxItem x:Uid="SettingsPage_General_HomePageComboBoxItem"
+                            Content="Home page" />
+              <ComboBoxItem x:Uid="SettingsPage_General_BookmarksPageComboBoxItem"
+                            Content="Bookmarks page" />
+              <ComboBoxItem x:Uid="SettingsPage_General_LastOpenedPageComboBoxItem"
+                            Content="Last opened page" />
+              <ComboBoxItem x:Uid="SettingsPage_General_SpecificPageComboBoxItem"
+                            Content="Specific page" />
+            </ComboBox>
+
+            <controls:SettingsExpander.Items>
+              <controls:SettingsCard>
+                <controls:SettingsCard.Header>
+                  <StackPanel Orientation="Horizontal"
+                              Spacing="8">
+                    <TextBlock Text="Composite 1"
+                               Style="{StaticResource BodyLargeTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondary}" />
+                    <TextBlock Text=">"
+                               Style="{StaticResource BodyLargeTextBlockStyle}"
+                               Foreground="{ThemeResource TextFillColorSecondary}" />
+                    <TextBlock Text="Leaf 1"
+                               Style="{StaticResource BodyLargeTextBlockStyle}" />
+                  </StackPanel>
+                </controls:SettingsCard.Header>
+              </controls:SettingsCard>
+              <controls:SettingsCard Header="Select a specific page."
+                                     HeaderIcon="Add">
+                <Button Content="Select" />
+              </controls:SettingsCard>
+            </controls:SettingsExpander.Items>
+          </controls:SettingsExpander>
         </StackPanel>
         <!--#endregion-->
 
@@ -151,13 +197,15 @@
             <SplitButton>
               <Border Width="24"
                       Height="24"
-                      CornerRadius="{ThemeResource ControlCornerRadius}" />
+                      CornerRadius="{ThemeResource ControlCornerRadius}" 
+                      Background="{x:Bind ToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
               <SplitButton.Flyout>
-                <Flyout Placement="Bottom"
+                <Flyout Placement="BottomEdgeAlignedRight"
                         ShouldConstrainToRootBounds="False">
                   <StackPanel>
                     <ColorPicker IsAlphaEnabled="True"
-                                 IsMoreButtonVisible="True" />
+                                 IsMoreButtonVisible="True"
+                                 Color="{x:Bind ViewModel.NoteBackground, Mode=TwoWay}"/>
                   </StackPanel>
                 </Flyout>
               </SplitButton.Flyout>
@@ -167,7 +215,8 @@
           <!-- Default Note Backdrop -->
           <controls:SettingsCard x:Uid="SettingsPage_Note_BackdropSettingsCard"
                                  HeaderIcon="{ui:FontIcon Glyph=&#xF4A5;}">
-            <ComboBox SelectedIndex="0">
+            <ComboBox SelectedIndex="{x:Bind ViewModel.NoteBackdrop, Mode=TwoWay}"
+                      MinWidth="160">
               <ComboBoxItem x:Uid="SettingsPage_Note_BackdropNoneComboBoxItem" />
               <ComboBoxItem x:Uid="SettingsPage_Note_BackdropAcrylicComboBoxItem" />
               <ComboBoxItem x:Uid="SettingsPage_Note_BackdropMicaComboBoxItem" />
@@ -177,22 +226,26 @@
           <!-- Default Note Size -->
           <controls:SettingsExpander x:Uid="SettingsPage_Note_SizeSettingsExpander"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE9A6;}">
-            <TextBlock Text="300 × 200"
+            <TextBlock Text="{x:Bind ToDisplaySize(ViewModel.NoteWidth, ViewModel.NoteHeight), Mode=OneWay}"
                        Foreground="{ThemeResource TextFillColorSecondary}" />
             <controls:SettingsExpander.Items>
-              <controls:SettingsCard x:Uid="SettingsPage_Note_WidthSettingsCard"
-                                     HeaderIcon="{ui:FontIcon Glyph=&#xE76F;}">
+              <controls:SettingsCard x:Uid="SettingsPage_Note_WidthSettingsCard">
+                <controls:SettingsCard.HeaderIcon>
+                  <ImageIcon Source="/Assets/Icons/FluentUISystem/ArrowBidirectionalLeftRight16Regular.svg" />
+                </controls:SettingsCard.HeaderIcon>
                 <NumberBox SpinButtonPlacementMode="Inline"
-                           Value="300"
+                           Value="{x:Bind ViewModel.NoteWidth, Mode=TwoWay}"
                            Minimum="300"
                            Maximum="1000"
                            SmallChange="10"
                            Width="160" />
               </controls:SettingsCard>
-              <controls:SettingsCard x:Uid="SettingsPage_Note_HeightSettingsCard"
-                                     HeaderIcon="{ui:FontIcon Glyph=&#xE784;}">
+              <controls:SettingsCard x:Uid="SettingsPage_Note_HeightSettingsCard">
+                <controls:SettingsCard.HeaderIcon>
+                  <ImageIcon Source="/Assets/Icons/FluentUISystem/ArrowBidirectionalUpDown16Regular.svg" />
+                </controls:SettingsCard.HeaderIcon>
                 <NumberBox SpinButtonPlacementMode="Inline"
-                           Value="200"
+                           Value="{x:Bind ViewModel.NoteHeight, Mode=TwoWay}"
                            Minimum="200"
                            Maximum="1000"
                            SmallChange="10"
@@ -209,10 +262,28 @@
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
 
-          <!-- Bool SettingsCard -->
-          <controls:SettingsCard x:Uid="SettingsPage_List_NoteCountSettingsCard"
-                                 HeaderIcon="{ui:FontIcon Glyph=&#xE7B3;}">
-            <ToggleSwitch IsOn="True" />
+          <!-- Show Note Count SettingsCard -->
+          <controls:SettingsCard x:Uid="SettingsPage_List_ShowNoteCountSettingsCard">
+            <controls:SettingsCard.HeaderIcon>
+              <ImageIcon Source="/Assets/Icons/FluentUISystem/Document10016Regular.svg" />
+            </controls:SettingsCard.HeaderIcon>
+            <ToggleSwitch IsOn="{x:Bind ViewModel.ShowNoteCount, Mode=TwoWay}" />
+          </controls:SettingsCard>
+        </StackPanel>
+        <!--#endregion -->
+
+        <!--#region Widget -->
+        <StackPanel Spacing="4">
+          <TextBlock x:Uid="SettingsPage_Widget_SubTitleTextBlock"
+                     Text="Widget"
+                     Padding="4"
+                     Style="{ThemeResource BaseTextBlockStyle}" />
+
+          <!-- Show Note Count SettingsCard -->
+          <controls:SettingsCard Header="Widget Settings">
+            <Button Style="{StaticResource SubtleButtonStyle}">
+              <SymbolIcon Symbol="Forward" />
+            </Button>
           </controls:SettingsCard>
         </StackPanel>
         <!--#endregion -->
@@ -223,8 +294,11 @@
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
           <controls:SettingsExpander Header="MyNotes"
-                                     HeaderIcon="{ui:BitmapIcon Source=/Assets/AppIcon.ico, ShowAsMonochrome=False}"
                                      Description="© 2025. All rights reserved.">
+            <controls:SettingsExpander.HeaderIcon>
+              <ImageIcon Source="/Assets/AppIcon.ico" />
+            </controls:SettingsExpander.HeaderIcon>
+            
             <TextBlock Text="v1.0.0" />
             <controls:SettingsExpander.Items>
               <controls:SettingsCard Header="About" />

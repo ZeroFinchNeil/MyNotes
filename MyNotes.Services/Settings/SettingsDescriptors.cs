@@ -15,11 +15,8 @@ public static class SettingsDescriptors
   public static readonly SettingsDescriptor<int> AppTheme = new("AppTheme", 0);
   public static readonly SettingsDescriptor<string> AppLanguage = new("AppLanguage", string.Empty);
 
-  // Settings - General
-  public static readonly SettingsDescriptor<bool> RegisterStartupTask = new("RegisterStartupTask", false);
-
   // Settings - Note
-  public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#FFFFFFFF");
+  public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");
   public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", 0);
   public static readonly SettingsDescriptor<Size> NoteSize = new("NoteSize", new Size(300.0, 200.0));
 

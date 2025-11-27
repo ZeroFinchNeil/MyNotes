@@ -232,10 +232,10 @@
     <value>새 노트의 배경 색상을 변경합니다.</value>
   </data>
   <data name="SettingsPage_Note_BackdropSettingsCard.Header" xml:space="preserve">
-    <value>배경 효과</value>
+    <value>배경 재질</value>
   </data>
   <data name="SettingsPage_Note_BackdropSettingsCard.Description" xml:space="preserve">
-    <value>새 노트의 배경 효과를 변경합니다.</value>
+    <value>새 노트의 배경 재질을 변경합니다.</value>
   </data>
   <data name="SettingsPage_Note_BackdropNoneComboBoxItem.Content" xml:space="preserve">
     <value>없음</value>
@@ -255,10 +255,10 @@
   <data name="SettingsPage_List_SubTitleTextBlock.Text" xml:space="preserve">
     <value>목록</value>
   </data>
-  <data name="SettingsPage_List_NoteCountSettingsCard.Header" xml:space="preserve">
-    <value>노트 개수</value>
+  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
+    <value>노트 개수 표시</value>
   </data>
-  <data name="SettingsPage_List_NoteCountSettingsCard.Description" xml:space="preserve">
+  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
     <value>목록 안에 포함된 노트의 개수를 표시합니다.</value>
   </data>
   <data name="SettingsPage_About_SubTitleTextBlock.Text" xml:space="preserve">
