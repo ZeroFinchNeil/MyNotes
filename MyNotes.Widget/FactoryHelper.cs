@@ -13,6 +13,7 @@ public static class Guids
   public const string IUnknown = "00000000-0000-0000-C000-000000000046";
 }
 
+#pragma warning disable SYSLIB1096 // 'GeneratedComInterface'로 변환
 [ComImport, ComVisible(false), InterfaceType(ComInterfaceType.InterfaceIsIUnknown), Guid(Guids.IClassFactory)]
 public interface IClassFactory
 {

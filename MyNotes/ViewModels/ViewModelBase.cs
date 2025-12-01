@@ -2,10 +2,10 @@
 
 namespace MyNotes.ViewModels;
 
-public abstract class ViewModelBase : ObservableObject, IViewModel
+internal abstract class ViewModelBase : ObservableObject, IViewModel
 { }
 
-public abstract class DisposableViewModelBase : IDisposable
+internal abstract class DisposableViewModelBase : IDisposable
 {
   private bool _disposed;
 

@@ -1,5 +1,5 @@
 ﻿namespace MyNotes.ViewModels;
 
-public interface IViewModel
+internal interface IViewModel
 {
 }

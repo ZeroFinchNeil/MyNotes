@@ -1,4 +1,4 @@
 ﻿namespace MyNotes.ViewModels;
 
-public abstract class NavigationPageViewModel : ViewModelBase
+internal abstract class NavigationPageViewModel : ViewModelBase
 { }

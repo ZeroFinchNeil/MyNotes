@@ -6,7 +6,7 @@ using MyNotes.Resources;
 
 namespace MyNotes.Models;
 
-public sealed record AppLanguage
+internal sealed record AppLanguage
 {
   public static SortedList<string, CultureInfo> ManifestLanguages { get; } = new();
   static AppLanguage()

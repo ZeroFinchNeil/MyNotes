@@ -1,10 +1,7 @@
-﻿using System.Globalization;
-
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Windows.Globalization;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Models;
+using MyNotes.Services.Database;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 
@@ -14,14 +11,19 @@ namespace MyNotes;
 
 public partial class App : Application
 {
-  public static App Instance => (App)Current;
-  public static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
+  internal static App Instance => (App)Current;
+  internal static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
 
   private Window? _mainWindow;
 
-  public App()
+  internal App()
   {
     InitializeComponent();
+
+    using(var appIitializeScope = Services.CreateScope())
+    {
+      _ = appIitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
+    }
   }
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -34,7 +36,7 @@ public partial class App : Application
     _mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
   }
 
-  public ServiceProvider Services { get; } = ConfigureServices();
+  internal ServiceProvider Services { get; } = ConfigureServices();
 
   private static ServiceProvider ConfigureServices()
   {
@@ -46,6 +48,9 @@ public partial class App : Application
 
     // Services
     services.AddSingleton<SettingsService>();
+    services.AddSingleton<AppDbContextTaskDispatcher>();
+    services.AddDbContextFactory<AppDbContext>();
+    services.AddScoped<AppDbContextInitializer>();
 
     return services.BuildServiceProvider();
   }

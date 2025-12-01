@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.Resources;
 
-public static class MessageTokens
+internal static class MessageTokens
 {
   // SettingsViewModel -> MainWindow
   public static readonly string ChangeAppTheme = "ChangeAppTheme";

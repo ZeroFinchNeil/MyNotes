@@ -14,7 +14,7 @@ using ToolkitColorHelper = CommunityToolkit.WinUI.Helpers.ColorHelper;
 
 namespace MyNotes.ViewModels;
 
-public class SettingsViewModel : NavigationPageViewModel
+internal sealed partial class SettingsViewModel : NavigationPageViewModel
 {
   private readonly SettingsService SettingsService;
 

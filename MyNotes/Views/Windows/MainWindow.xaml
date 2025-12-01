@@ -184,8 +184,12 @@
                                    Icon="Add"
                                    MinWidth="200"
                                    Height="40">
-                  <MenuFlyoutItem Text="to root" />
-                  <MenuFlyoutItem Text="at selected position" />
+                  <MenuFlyoutItem Text="to root" 
+                                  Command="{x:Bind ViewModel.AddListCommand}"
+                                  CommandParameter="{x:Bind ViewModel.UserRootNavigation}"/>
+                  <MenuFlyoutItem Text="at selected position"
+                                  Command="{x:Bind ViewModel.AddListCommand}"
+                                  CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"
                                    x:Uid="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"

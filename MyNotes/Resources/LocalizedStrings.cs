@@ -2,7 +2,7 @@
 
 namespace MyNotes.Resources;
 
-public class LocalizedStrings
+internal class LocalizedStrings
 {
   public static ResourceLoader ResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse();
 

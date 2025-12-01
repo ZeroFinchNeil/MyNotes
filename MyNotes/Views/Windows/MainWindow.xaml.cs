@@ -1,11 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
 using MyNotes.Models;
 using MyNotes.Resources;
+using MyNotes.Services.Database;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 
@@ -205,12 +207,14 @@ public sealed partial class MainWindow : Window
     {
       case NavigationCoreNode coreNode:
         MainWindow_NavigationFrame.Navigate(coreNode.PageType);
+        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
         if (_currentNavigation is not null)
           _navigationBackStack.Push(_currentNavigation);
         _currentNavigation = coreNode;
         break;
       case NavigationUserNode userNode:
         MainWindow_NavigationFrame.Navigate(userNode.PageType);
+        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
         if (_currentNavigation is not null)
           _navigationBackStack.Push(_currentNavigation);
         _currentNavigation = userNode;
@@ -218,43 +222,20 @@ public sealed partial class MainWindow : Window
     }
   }
 
-  private void ReorderableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
-  {
-    if (MainWindow_NavigationView.MenuItemFromContainer(sender) is NavigationUserNode node)
-    {
-      args.Data.SetData($"{App.PackageFamilyName}.NavigationUserNode.Id", node.Id.ToString());
-    }
-  }
-
-  private void ReorderableNavigationViewItem_DropCompleted(UIElement sender, DropCompletedEventArgs args)
-  {
-    //Debug.WriteLine("DropCompleted");
-  }
-
-  private void ReorderableNavigationViewItem_DragEnter(object sender, DragEventArgs e)
-  {
-    //Debug.WriteLine("DragEnter");
-  }
-
-  private void ReorderableNavigationViewItem_DragLeave(object sender, DragEventArgs e)
-  {
-    //Debug.WriteLine("DragLeave");
-  }
-
-  private void ReorderableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  private void NavigationViewItem_DragOver(object sender, DragEventArgs e)
   {
     e.AcceptedOperation = DataPackageOperation.Move;
   }
 
-  private async void ReorderableNavigationViewItem_Drop(object sender, DragEventArgs e)
+  private async void NavigationViewItem_Drop(object sender, DragEventArgs e)
   {
     Debug.WriteLine(string.Join(", ", e.DataView.AvailableFormats));
     if (await e.DataView.GetDataAsync($"{App.PackageFamilyName}.NavigationUserNode.Id") is string id)
     {
       if (MainWindow_NavigationView.MenuItemFromContainer(sender as UIElement) is NavigationUserNode node)
       {
-        if (ViewModel.GetUserNode(n => n.Id.Value == Guid.Parse(id)) is NavigationUserNode sourceNode &&
-          ViewModel.GetUserNode(n => n.Id == node.Id) is NavigationUserNode targetNode)
+        if (NavigationUserNode.FindUserNode(n => n.Id.Value == Guid.Parse(id)) is NavigationUserNode sourceNode &&
+          NavigationUserNode.FindUserNode(n => n.Id == node.Id) is NavigationUserNode targetNode)
         {
         }
       }
@@ -278,22 +259,17 @@ public sealed partial class MainWindow : Window
     VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupCollapsed", false);
   }
 
-  private void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    //var displayArea = DisplayArea.GetFromWindowId(AppWindow.Id, DisplayAreaFallback.Primary);
-    //Console.WriteLine($"DisplayId: {displayArea.DisplayId.Value}");
-    //Console.WriteLine($"IsPrimary: {displayArea.IsPrimary}");
-    //Console.WriteLine($"OuterBounds: ({displayArea.OuterBounds.X}, {displayArea.OuterBounds.Y}), {displayArea.OuterBounds.Width} X {displayArea.OuterBounds.Height}");
-    //Console.WriteLine($"WorkArea: ({displayArea.WorkArea.X}, {displayArea.WorkArea.Y}), {displayArea.WorkArea.Width} X{displayArea.WorkArea.Height}");
-
-    _ = NativeMethods.GetWindowRect(_hWnd, out var oRect);
-    _ = NativeMethods.GetClientRect(_hWnd, out var cRect);
-    Console.WriteLine("----- Window -----");
-    Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "AppWindow(O):", AppWindow.Position.X, AppWindow.Position.Y, AppWindow.Size.Width, AppWindow.Size.Height);
-    Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "HWND(O):", oRect.Left, oRect.Top, oRect.Right - oRect.Left, oRect.Bottom - oRect.Top);
-    Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "AppWindow(C):", AppWindow.Position.X, AppWindow.Position.Y, AppWindow.ClientSize.Width, AppWindow.ClientSize.Height);
-    Console.WriteLine("{0,-15} ({1,4}, {2,4}) {3,4} X {4,4}", "HWND(C):", cRect.Left, cRect.Top, cRect.Right - cRect.Left, cRect.Bottom - cRect.Top);
-    Console.WriteLine();
+    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using (var context = await factory.CreateDbContextAsync())
+    {
+      foreach (var entity in await context.NavigationEntities.ToListAsync())
+      {
+        Console.WriteLine(entity.ToString());
+        Console.WriteLine();
+      }
+    }
   }
 
   private void SetAppTheme(ElementTheme theme)
@@ -322,7 +298,7 @@ public sealed partial class MainWindow : Window
   }
 }
 
-public class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
+public sealed partial class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
 {
   public DataTemplate? NavigationCoreNodeTemplate { get; set; }
   public DataTemplate? NavigationSeparatorTemplate { get; set; }
@@ -342,7 +318,7 @@ public class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
   }
 }
 
-public class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
+public sealed partial class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
 {
   public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
   public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }

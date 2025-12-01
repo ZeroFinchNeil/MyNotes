@@ -2,7 +2,7 @@
 
 namespace MyNotes.Services.Settings;
 
-public class SettingsService
+internal sealed class SettingsService
 {
   // 앱 설정(LocalSettings) 사용 방법은 다음 페이지를 참고하세요.
   // https://learn.microsoft.com/windows/apps/design/app-settings/store-and-retrieve-app-data
