@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
@@ -11,21 +11,6 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="Views\Window\**" />
-    <Content Remove="Views\Window\**" />
-    <EmbeddedResource Remove="Views\Window\**" />
-    <None Remove="Views\Window\**" />
-    <Page Remove="Views\Window\**" />
-    <PRIResource Remove="Views\Window\**" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="Themes\Generic.xaml" />
-    <None Remove="Views\MainWindow.xaml" />
-    <None Remove="Views\Navigations\HomePage.xaml" />
-    <None Remove="Views\Navigations\SettingsPage.xaml" />
-    <None Remove="Views\Windows\NoteWindow.xaml" />
-  </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
@@ -53,35 +38,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Themes\Generic.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
+    <Compile Update="Views\Windows\MainWindow.xaml.*">
+      <DependentUpon>Views\Windows\MainWindow.xaml</DependentUpon>
+    </Compile>
 
-  <ItemGroup>
-    <Page Update="Views\Navigations\SettingsPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
+    <Compile Update="ViewModels\MainViewModel.*.cs">
+      <DependentUpon>VViewModels\MainViewModel.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Navigations\HomePage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Windows\NoteWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
+  
   <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>

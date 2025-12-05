@@ -12,7 +12,9 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public required Guid Parent { get; set; }
 
-  public required Guid Next { get; set; }
+  public required int Position { get; set; }
+
+  public required bool IsComposite { get; init; }
 
   public override string ToString() => string.Format(
     """
@@ -20,11 +22,13 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
     {2,8} | {3}
     {4,8} | {5}
     {6,8} | {7}
+    {8,8} | {9}
     """,
     "ID", Id,
     "Title", Title,
     "Parent", Parent,
-    "Next", Next);
+    "Position", Position,
+    "IsComposite", IsComposite);
 
   public bool Equals(NavigationEntity? other) => other is not null && other.Id == Id;
 

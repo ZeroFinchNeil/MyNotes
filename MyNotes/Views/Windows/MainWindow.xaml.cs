@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Models;
+using MyNotes.Models.Navigation;
 using MyNotes.Resources;
 using MyNotes.Services.Database;
 using MyNotes.Services.Settings;
@@ -55,9 +55,17 @@ public sealed partial class MainWindow : Window
     MainWindow_TitleBarGrid.Loaded += MainWindow_TitleBarGrid_Loaded;
     MainWindow_TitleBarGrid.SizeChanged += MainWindow_TitleBarGrid_SizeChanged;
 
+    // 뒤로가기 활성화에 따른 드래그 영역 조정
+    BackButtonVisibilityPropertyChangedToken = MainWindow_BackButton.RegisterPropertyChangedCallback(UIElement.VisibilityProperty, (obj, dp) =>
+    {
+      var button = (Button)obj;
+      button.LayoutUpdated += MainWindow_BackButton_LayoutUpdated;
+    });
+
     // 창 활성화 변경 시
     this.Activated += MainWindow_Activated;
     this.Closed += MainWindow_Closed;
+    AppWindow.Destroying += AppWindow_Destroying;
 
     // 창 초기 크기 지정
     var windowSize = SettingsService.Load<Size>(SettingsDescriptors.MainWindowSize.Key);
@@ -90,10 +98,8 @@ public sealed partial class MainWindow : Window
     RegisterMessengers();
   }
 
-  private void MainWindow_Closed(object sender, WindowEventArgs args)
+  private void AppWindow_Destroying(AppWindow sender, object args)
   {
-    this.Activated -= MainWindow_Activated;
-
     // 창 크기 저장
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
     SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(AppWindow.ClientSize.Width / scaleFactor, AppWindow.ClientSize.Height / scaleFactor));
@@ -102,13 +108,23 @@ public sealed partial class MainWindow : Window
     SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(AppWindow.Position.X, AppWindow.Position.Y));
     SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
 
+    // CanGoBackProperty에 등록한 콜백 해제
+    MainWindow_BackButton.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, BackButtonVisibilityPropertyChangedToken);
+  }
+
+  private void MainWindow_Closed(object sender, WindowEventArgs args)
+  {
+    this.Activated -= MainWindow_Activated;
+
     // 메신저 해제
     UnregisterMessengers();
 
     // 바인딩 해제
     Bindings.StopTracking();
+
   }
 
+  #region 타이틀바 드래그 영역 조정
   private void MainWindow_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
@@ -119,10 +135,17 @@ public sealed partial class MainWindow : Window
     SetRegionsForCustomTitleBar();
   }
 
+  private readonly long BackButtonVisibilityPropertyChangedToken;
+  private void MainWindow_BackButton_LayoutUpdated(object? sender, object e)
+  {
+    (sender as Button)?.LayoutUpdated -= MainWindow_BackButton_LayoutUpdated;
+    SetRegionsForCustomTitleBar();
+  }
+
   private readonly InputNonClientPointerSource _inputNonClientPointerSource;
   private void SetRegionsForCustomTitleBar()
   {
-    if (MainWindow_TitleBarGrid.XamlRoot is XamlRoot xamlRoot)
+    if (AppWindow is not null && MainWindow_TitleBarGrid.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -151,6 +174,7 @@ public sealed partial class MainWindow : Window
       _Width: (int)Math.Round(bounds.Width * scale),
       _Height: (int)Math.Round(bounds.Height * scale)
     );
+  #endregion
 
   public static bool ContainsPointInAreas(List<RectInt32> areas, PointInt32 point)
   {
@@ -259,19 +283,6 @@ public sealed partial class MainWindow : Window
     VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupCollapsed", false);
   }
 
-  private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using (var context = await factory.CreateDbContextAsync())
-    {
-      foreach (var entity in await context.NavigationEntities.ToListAsync())
-      {
-        Console.WriteLine(entity.ToString());
-        Console.WriteLine();
-      }
-    }
-  }
-
   private void SetAppTheme(ElementTheme theme)
   {
     MainWindow_RootControl.RequestedTheme = theme;
@@ -298,38 +309,37 @@ public sealed partial class MainWindow : Window
   }
 }
 
-public sealed partial class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
+// DEBUG
+public sealed partial class MainWindow : Window
 {
-  public DataTemplate? NavigationCoreNodeTemplate { get; set; }
-  public DataTemplate? NavigationSeparatorTemplate { get; set; }
-  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
-  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
-
-  protected override DataTemplate? SelectTemplateCore(object item)
+  private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    return item switch
+    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using var context = await factory.CreateDbContextAsync();
+    foreach (var entity in await context.NavigationEntities.ToListAsync())
     {
-      NavigationCoreNode => NavigationCoreNodeTemplate,
-      NavigationSeparator => NavigationSeparatorTemplate,
-      NavigationUserCompositeNode => NavigationUserCompositeNodeTemplate,
-      NavigationUserLeafNode => NavigationUserLeafNodeTemplate,
-      _ => null
-    };
+      Console.WriteLine(entity.ToString());
+      Console.WriteLine();
+    }
   }
-}
 
-public sealed partial class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
-{
-  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
-  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
-
-  protected override DataTemplate? SelectTemplateCore(object item)
+  private async void MainWindow_ClearDatabaseMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    return item switch
-    {
-      NavigationUserCompositeNode => NavigationUserCompositeNodeTemplate,
-      NavigationUserLeafNode => NavigationUserLeafNodeTemplate,
-      _ => null
-    };
+    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using var context = await factory.CreateDbContextAsync();
+    await context.Database.EnsureDeletedAsync();
+    ViewModel.UserRootNavigation.ChildNodes.Clear();
+  }
+
+  private async void MainWindow_CreateDatabaseMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+    await using var context = await factory.CreateDbContextAsync();
+    await context.Database.EnsureCreatedAsync();
+  }
+
+  private void MainWindow_GCMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    GC.Collect();
   }
 }

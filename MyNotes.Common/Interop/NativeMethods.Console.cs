@@ -79,17 +79,17 @@ internal static partial class NativeMethods
     if (consoleHwnd == IntPtr.Zero)
       return;
 
-    uint SWP_NOMOVE = 0x0002;
-    uint SWP_NOSIZE = 0x0001;
-    uint SWP_SHOWWINDOW = 0x0040;
-    SetWindowPos(consoleHwnd, new IntPtr(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+    //uint SWP_NOMOVE = 0x0002;
+    //uint SWP_NOSIZE = 0x0001;
+    //uint SWP_SHOWWINDOW = 0x0040;
+    //SetWindowPos(consoleHwnd, new IntPtr(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
     SetConsoleFont("Cascadia Mono");
 
     int STD_INPUT_HANDLE = -10;
     uint ENABLE_EXTENDED_FLAGS = 0x0080;
     uint ENABLE_MOUSE_INPUT = 0x0010;
-    uint ENABLE_QUICK_EDIT_MODE = 0x0040;
+    //uint ENABLE_QUICK_EDIT_MODE = 0x0040;
 
     var handle = GetStdHandle(STD_INPUT_HANDLE);
 
