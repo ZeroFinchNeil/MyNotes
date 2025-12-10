@@ -10,6 +10,8 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public required string Title { get; set; }
 
+  public required string Icon { get; set; }
+
   public required Guid Parent { get; set; }
 
   public required int Position { get; set; }
