@@ -5,6 +5,7 @@
                     xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
                     xmlns:local="using:MyNotes.Templates">
 
+  <!--#region AnimatedIconLabelButton Style -->
   <Style TargetType="local:AnimatedIconButton">
     <Setter Property="Background"
             Value="{ThemeResource SubtleFillColorTransparent}" />
@@ -124,7 +125,9 @@
       </Setter.Value>
     </Setter>
   </Style>
-
+  <!--endregion -->
+  
+  <!--#region ReorderableNavigationViewItem Style -->
   <Style TargetType="local:ReorderableNavigationViewItem">
     <Setter Property="Foreground"
             Value="{ThemeResource NavigationViewItemForeground}" />
@@ -287,9 +290,15 @@
       </Setter.Value>
     </Setter>
   </Style>
-
+  <!--endregion -->
+  
+  <!--#region SubtleIconButton Style -->
   <Style TargetType="local:SubtleIconButton"
          BasedOn="{StaticResource SubtleButtonStyle}">
+    <Setter Property="Width"
+            Value="40" />
+    <Setter Property="Height"
+            Value="40" />
     <Setter Property="Background"
             Value="{ThemeResource SubtleButtonBackground}" />
     <Setter Property="BackgroundSizing"
@@ -323,6 +332,155 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:SubtleIconButton">
+          <Border x:Name="RootBorder"
+                  Width="{TemplateBinding Width}"
+                  Height="{TemplateBinding Height}"
+                  Background="{TemplateBinding Background}"
+                  BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  AutomationProperties.AccessibilityView="Raw">
+            <Border.BackgroundTransition>
+              <BrushTransition Duration="0:0:0.083" />
+            </Border.BackgroundTransition>
+            <Viewbox>
+              <ContentControl x:Name="IconPresenter"
+                              Content="{TemplateBinding Icon}"
+                              Foreground="{TemplateBinding Foreground}"
+                              AnimatedIcon.State="Normal" />
+            </Viewbox>
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+
+                <VisualState x:Name="PointerOver">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="PointerOver" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Pressed">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Pressed" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Disabled">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Normal" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+              </VisualStateGroup>
+
+            </VisualStateManager.VisualStateGroups>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <!--endregion -->
+  
+  <!--#region SubtleIconLabelButton Style -->
+  <Style TargetType="local:SubtleIconLabelButton"
+         BasedOn="{StaticResource SubtleButtonStyle}">
+    <Setter Property="Background"
+            Value="{ThemeResource SubtleButtonBackground}" />
+    <Setter Property="BackgroundSizing"
+            Value="InnerBorderEdge" />
+    <Setter Property="Foreground"
+            Value="{ThemeResource SubtleButtonForeground}" />
+    <Setter Property="BorderBrush"
+            Value="{ThemeResource SubtleButtonBorderBrush}" />
+    <Setter Property="BorderThickness"
+            Value="{ThemeResource ButtonBorderThemeThickness}" />
+    <Setter Property="Padding"
+            Value="0,8" />
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment"
+            Value="Left" />
+    <Setter Property="VerticalAlignment"
+            Value="Center" />
+    <Setter Property="FontFamily"
+            Value="{ThemeResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontWeight"
+            Value="Normal" />
+    <Setter Property="FontSize"
+            Value="{ThemeResource ControlContentThemeFontSize}" />
+    <Setter Property="UseSystemFocusVisuals"
+            Value="{StaticResource UseSystemFocusVisuals}" />
+    <Setter Property="FocusVisualMargin"
+            Value="-3" />
+    <Setter Property="CornerRadius"
+            Value="{ThemeResource ControlCornerRadius}" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="local:SubtleIconLabelButton">
           <Border x:Name="RootBorder"
                   Background="{TemplateBinding Background}"
                   BackgroundSizing="{TemplateBinding BackgroundSizing}"
@@ -469,4 +627,355 @@
       </Setter.Value>
     </Setter>
   </Style>
+  <!--endregion -->
+
+  <!--#region IconsPickerStyle -->
+  <Style TargetType="local:IconPicker">
+    <Setter Property="MaxWidth"
+            Value="350" />
+    <Setter Property="MaxHeight"
+            Value="500" />
+    <Setter Property="MinHeight"
+            Value="240" />
+    <Setter Property="Width"
+            Value="350" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="local:IconPicker">
+          <Grid x:Name="RootGrid">
+            <Grid.Resources>
+              <Style x:Key="IconButtonStyle"
+                     TargetType="Button"
+                     BasedOn="{StaticResource SubtleButtonStyle}" />
+
+              <Style x:Key="SkintoneRadioButtonStyle"
+                     TargetType="RadioButton">
+                <Setter Property="MinWidth"
+                        Value="30" />
+                <Setter Property="Background"
+                        Value="{ThemeResource ToggleButtonBackground}" />
+                <Setter Property="BorderBrush"
+                        Value="{ThemeResource ControlFillColorTransparent}" />
+                <Setter Property="BorderThickness"
+                        Value="8" />
+                <Setter Property="HorizontalAlignment"
+                        Value="Left" />
+                <Setter Property="VerticalAlignment"
+                        Value="Center" />
+                <Setter Property="UseSystemFocusVisuals"
+                        Value="{StaticResource UseSystemFocusVisuals}" />
+                <Setter Property="FocusVisualMargin"
+                        Value="-3" />
+                <Setter Property="Template">
+                  <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                      <Grid Padding="{TemplateBinding Padding}">
+                        <Ellipse x:Name="OuterCircle"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Width="24"
+                                 Height="24"
+                                 Stroke="{TemplateBinding BorderBrush}"
+                                 StrokeThickness="2" />
+                        <Ellipse x:Name="InnerCircle"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 Width="18"
+                                 Height="18"
+                                 Fill="{TemplateBinding Background}"
+                                 RenderTransformOrigin="0.5 0.5">
+                          <Ellipse.RenderTransform>
+                            <ScaleTransform x:Name="InnerCircleScaleTransform"
+                                            CenterX="0.5"
+                                            CenterY="0.5" />
+                          </Ellipse.RenderTransform>
+                        </Ellipse>
+
+                        <VisualStateManager.VisualStateGroups>
+                          <VisualStateGroup x:Name="CommonStates">
+                            <VisualState x:Name="Normal" />
+
+                            <VisualState x:Name="PointerOver">
+
+                              <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleX">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.2" />
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleY">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.2" />
+                                </DoubleAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+
+                            <VisualState x:Name="Pressed">
+
+                              <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleX">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.1" />
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleY">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.1" />
+                                </DoubleAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+
+                            <VisualState x:Name="Disabled">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="InnerCircle"
+                                                               Storyboard.TargetProperty="Fill">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource ControlFillColorDisabled}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+
+                            <VisualState x:Name="Checked">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="OuterCircle"
+                                                               Storyboard.TargetProperty="Stroke">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="CheckedPointerOver">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="OuterCircle"
+                                                               Storyboard.TargetProperty="Stroke">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="CheckedPressed">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="OuterCircle"
+                                                               Storyboard.TargetProperty="Stroke">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="CheckedDisabled">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="InnerCircle"
+                                                               Storyboard.TargetProperty="Fill">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource ControlFillColorDisabled}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="Indeterminate" />
+                            <VisualState x:Name="IndeterminatePointerOver">
+
+                              <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleX">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.2" />
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleY">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.2" />
+                                </DoubleAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="IndeterminatePressed">
+
+                              <Storyboard>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleX">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.1" />
+                                </DoubleAnimationUsingKeyFrames>
+                                <DoubleAnimationUsingKeyFrames Storyboard.TargetName="InnerCircleScaleTransform"
+                                                               Storyboard.TargetProperty="ScaleY">
+                                  <LinearDoubleKeyFrame KeyTime="0:0:0.167"
+                                                        Value="1.1" />
+                                </DoubleAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+                            <VisualState x:Name="IndeterminateDisabled">
+
+                              <Storyboard>
+                                <ObjectAnimationUsingKeyFrames Storyboard.TargetName="InnerCircle"
+                                                               Storyboard.TargetProperty="Fill">
+                                  <DiscreteObjectKeyFrame KeyTime="0"
+                                                          Value="{ThemeResource ControlFillColorDisabled}" />
+                                </ObjectAnimationUsingKeyFrames>
+                              </Storyboard>
+                            </VisualState>
+
+                          </VisualStateGroup>
+
+                        </VisualStateManager.VisualStateGroups>
+
+                      </Grid>
+                    </ControlTemplate>
+                  </Setter.Value>
+                </Setter>
+              </Style>
+            </Grid.Resources>
+
+            <Grid.RowDefinitions>
+              <RowDefinition Height="Auto" />
+              <RowDefinition Height="Auto" />
+              <RowDefinition x:Name="IconsPanelRowDefinition"
+                             Height="180" />
+              <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <SelectorBar x:Name="HeaderSelectorBar"
+                         HorizontalAlignment="Center">
+              <SelectorBarItem x:Name="RecentSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xE81C;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="ObjectsAndActivitiesSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xED55;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="AnimalsAndNatureSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xE8BE;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="FoodAndDrinkSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xED56;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="PeopleAndBodySelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xED53;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="SmileysAndEmotionSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xE76E;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="TravelAndPlacesSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xED57;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+              <SelectorBarItem x:Name="SymbolsAndFlagsSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xE7C1;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
+            </SelectorBar>
+
+            <Border x:Name="SkintonePanel"
+                    Grid.Row="1"
+                    Visibility="Collapsed"
+                    HorizontalAlignment="Center"
+                    Margin="0,4">
+              <RadioButtons x:Name="SkintoneRadioButtons"
+                            MaxColumns="6">
+                <RadioButton x:Name="SkintoneDefaultButton"
+                             Background="#ffc83d"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+                <RadioButton x:Name="SkintoneLightButton"
+                             Background="#f7d7c4"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+                <RadioButton x:Name="SkintoneMediumLightButton"
+                             Background="#d8b094"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+                <RadioButton x:Name="SkintoneMediumButton"
+                             Background="#bb9167"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+                <RadioButton x:Name="SkintoneMediumDarkButton"
+                             Background="#8e562e"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+                <RadioButton x:Name="SkintoneDarkButton"
+                             Background="#613d30"
+                             GroupName="Skintone"
+                             Style="{StaticResource SkintoneRadioButtonStyle}" />
+              </RadioButtons>
+            </Border>
+
+            <ScrollView x:Name="IconsScrollView"
+                        Grid.Row="2"
+                        ContentOrientation="Vertical">
+              <ItemsRepeater x:Name="IconsItemsRepeater">
+                <ItemsRepeater.Layout>
+                  <UniformGridLayout />
+                </ItemsRepeater.Layout>
+              </ItemsRepeater>
+            </ScrollView>
+
+            <Grid x:Name="SearchPanel"
+                  Grid.Row="3"
+                  MaxHeight="240"
+                  Margin="0,12,0,0"
+                  RowSpacing="6"
+                  VerticalAlignment="Top">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition />
+              </Grid.RowDefinitions>
+              <AutoSuggestBox x:Name="SearchAutoSuggestBox"
+                              QueryIcon="Find" />
+              <ScrollView ContentOrientation="Vertical"
+                          Grid.Row="1">
+                <ItemsRepeater x:Name="SearchItemsRepeater">
+                  <ItemsRepeater.Layout>
+                    <UniformGridLayout />
+                  </ItemsRepeater.Layout>
+                </ItemsRepeater>
+              </ScrollView>
+            </Grid>
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="SkintonePanelVisibleStates">
+                <VisualState x:Name="SkintonePanelCollapsed" />
+                <VisualState x:Name="SkintonePanelVisible">
+                  <VisualState.Setters>
+                    <Setter Target="SkintonePanel.Visibility"
+                            Value="Visible" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+
+              <VisualStateGroup x:Name="SearchPanelVisibleStates">
+                <VisualState x:Name="SearchPanelVisible" />
+                <VisualState x:Name="SearchPanelCollapsed">
+                  <VisualState.Setters>
+                    <Setter Target="IconsPanelRowDefinition.Height"
+                            Value="*" />
+                    <Setter Target="SearchPanel.Visibility"
+                            Value="Collapsed" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+          </Grid>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <!--#endregion-->
 </ResourceDictionary>

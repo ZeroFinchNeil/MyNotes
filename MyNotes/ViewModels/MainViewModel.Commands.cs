@@ -1,15 +1,22 @@
-﻿using MyNotes.Common.Commands;
+﻿using CommunityToolkit.Mvvm.Messaging;
+
+using Microsoft.UI.Xaml.Media.Imaging;
+
+using MyNotes.Common.Commands;
+using MyNotes.Common.Messages;
 using MyNotes.Models.Navigation;
+using MyNotes.Resources;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.ViewModels;
 
-internal sealed partial class MainViewModel : ViewModelBase
+internal sealed partial class MainViewModel : DisposableViewModelBase
 {
   public Command<INavigationNode>? AddListCommand { get; private set; }
   public Command<INavigationNode>? AddGroupCommand { get; private set; }
   public Command? SetMovableNavigationsCommand { get; private set; }
+  public Command<NavigationUserNode>? ExitUserNodeEditCommand { get; private set; }
 
   private async Task AddUserNode(INavigationNode navigation, bool isCompositeNode)
   {
@@ -24,7 +31,7 @@ internal sealed partial class MainViewModel : ViewModelBase
       ? new NavigationUserCompositeNode()
       {
         Id = NavigationId.NewId(),
-        Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+        Icon = "1f600",
         Title = "Composite " + new Random().Next(10000),
         PageType = typeof(HomePage),
         Position = int.MaxValue
@@ -32,7 +39,7 @@ internal sealed partial class MainViewModel : ViewModelBase
       : new NavigationUserLeafNode()
       {
         Id = NavigationId.NewId(),
-        Icon = new SymbolIconSource() { Symbol = Symbol.Bookmarks },
+        Icon = "1f600",
         Title = "Leaf " + new Random().Next(10000),
         PageType = typeof(HomePage),
         Position = int.MaxValue
@@ -62,6 +69,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     {
       Id = newNode.Id.Value,
       Title = newNode.Title,
+      Icon = newNode.Icon,
       Parent = parentNode.Id.Value,
       Position = newNode.Position,
       IsComposite = isCompositeNode
@@ -74,6 +82,14 @@ internal sealed partial class MainViewModel : ViewModelBase
     }
 
     newNode.PropertyChanged += UserNode_PropertyChanged;
+
+    CurrentNavigation = newNode;
+    newNode.IsEditable = true;
+
+    //var message = new ExtendedRequestMessage<NavigationUserNode, bool>() { Request = newNode };
+    //WeakReferenceMessenger.Default.Send(message, MessageTokens.ChangeUserNodeFocustState);
+
+    //Console.WriteLine(message.Response);
   }
 
   private void SetCommands()
@@ -93,5 +109,7 @@ internal sealed partial class MainViewModel : ViewModelBase
       {
 
       });
+
+    ExitUserNodeEditCommand = new(node => node.IsEditable = false);
   }
 }

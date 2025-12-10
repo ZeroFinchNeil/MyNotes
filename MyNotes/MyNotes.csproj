@@ -11,6 +11,9 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+    <Content Include="AppIcon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
@@ -38,13 +41,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Views\Windows\MainWindow.xaml.*">
-      <DependentUpon>Views\Windows\MainWindow.xaml</DependentUpon>
+    <Compile Update="Views\Windows\MainWindow.xaml.*.cs">
+      <DependentUpon>Views\Windows\MainWindow.xaml.cs</DependentUpon>
     </Compile>
 
     <Compile Update="ViewModels\MainViewModel.*.cs">
-      <DependentUpon>VViewModels\MainViewModel.cs</DependentUpon>
+      <DependentUpon>ViewModels\MainViewModel.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Dialogs\SetUserNodeDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   
   <!-- Publish Properties -->
@@ -59,6 +68,6 @@
   <PropertyGroup>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <ApplicationIcon>AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

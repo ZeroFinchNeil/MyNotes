@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Models.Navigation;
 using MyNotes.Services.Database;
@@ -7,7 +8,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.ViewModels;
 
-internal sealed partial class MainViewModel : ViewModelBase
+internal sealed partial class MainViewModel : DisposableViewModelBase
 {
   private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
 
@@ -18,6 +19,12 @@ internal sealed partial class MainViewModel : ViewModelBase
   public CollectionViewSource MenuItems { get; } = new() { IsSourceGrouped = true };
   public IReadOnlyList<INavigation> FooterMenuItems => SecondaryCoreNavigations;
   public IReadOnlyList<INavigationUserNode> UserNavigations => UserRootNavigation.ChildNodes;
+  
+  public INavigation? CurrentNavigation
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
 
   public MainViewModel(IDbContextFactory<AppDbContext> dbContextFactory)
   {
@@ -29,101 +36,92 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     IReadOnlyList<IReadOnlyList<INavigation>> MenuItemsSource = [PrimaryCoreNavigations, UserNavigations];
     MenuItems.Source = MenuItemsSource;
+    CurrentNavigation = PrimaryCoreNavigations[0];
 
     _ = BuildNavigationTree();
+  }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (_disposed)
+      return;
+
+    if (disposing)
+    {
+      UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
+    }
+
+    _disposed = true;
   }
 
   public async Task BuildNavigationTree()
   {
     await using var context = await _dbContextFactory.CreateDbContextAsync();
-
-    // Dictionary<ParentNode, Dictionary<ChildId, ChildEntity>>
-    // Entity로부터 부모 노드 복원 및 공통 부모로 그룹핑
-    var group = context.NavigationEntities
-      .AsEnumerable()
-      .GroupBy(e => e.Parent == UserRootNavigation.Id.Value
-        ? UserRootNavigation
-        : new NavigationUserCompositeNode()
+    var entities = context.NavigationEntities.AsEnumerable();
+    var nodes = entities
+      .Select<NavigationEntity, NavigationUserNode>(e => e.IsComposite
+        ? new NavigationUserCompositeNode()
         {
           Id = NavigationId.Create(e.Id),
-          Icon = new SymbolIconSource() { Symbol = Symbol.List },
+          Icon = e.Icon,
           PageType = typeof(HomePage),
           Title = e.Title,
           Position = e.Position
-        })
-      .ToDictionary(g => g.Key, g => g.ToDictionary(e => e.Id));
+        }
+      : new NavigationUserLeafNode()
+      {
+        Id = NavigationId.Create(e.Id),
+        Icon = e.Icon,
+        PageType = typeof(HomePage),
+        Title = e.Title,
+        Position = e.Position
+      })
+     .ToDictionary(n => n.Id.Value);
+    nodes.Add(UserRootNavigation.Id.Value, UserRootNavigation);
 
-    // 부모 노드 빠른 탐색용
-    Dictionary<Guid, NavigationUserCompositeNode> parents = group.Keys.ToDictionary(e => e.Id.Value);
+    var families = entities
+      .GroupBy(e => e.Parent)
+      .ToDictionary(g => g.Key, g => new SortedSet<NavigationEntity>(g, Comparer<NavigationEntity>.Create((x, y) => x.Position.CompareTo(y.Position))));
 
-    Debug.WriteLine(parents.Count);
-    foreach (var family in group)
+    foreach (var family in families)
     {
-      // family => Key: ParentNode, Value: Dictionary<ChildId, ChildEntity>
-      // parents => Key: ParentId, Value: ParentNode
-
-      var parentNode = family.Key;
-      var children = family.Value;
-
-      Debug.WriteLine(parentNode.Id.Value);
-      Debug.WriteLine(children.Count);
-
-      parentNode.PropertyChanged += UserNode_PropertyChanged;
-
-      List<NavigationUserNode> childNodes = new();
-      // child => Key: ChildId, Value: ChildEntity 
-      foreach (var child in children)
+      if(nodes.TryGetValue(family.Key, out var parent) && parent is NavigationUserCompositeNode compositeNode)
       {
-        // Entity로부터 자식 노드 복원(이미 복원된 부모 노드는 기존 노드 사용)
-        var childId = child.Key;
-        var childEntity = child.Value;
-        NavigationUserNode childNode = parents.TryGetValue(child.Key, out var existingNode)
-          ? existingNode
-          : childEntity.IsComposite
-             ? new NavigationUserCompositeNode()
-             {
-               Id = NavigationId.Create(childEntity.Id),
-               Icon = new SymbolIconSource() { Symbol = Symbol.List },
-               PageType = typeof(HomePage),
-               Title = childEntity.Title,
-               Position = childEntity.Position
-             }
-            : new NavigationUserLeafNode()
-            {
-              Id = NavigationId.Create(childEntity.Id),
-              Icon = new SymbolIconSource() { Symbol = Symbol.List },
-              PageType = typeof(HomePage),
-              Title = childEntity.Title,
-              Position = childEntity.Position
-            };
-
-        if (!childNode.Equals(existingNode))
-          childNode.PropertyChanged += UserNode_PropertyChanged;
-
-        childNodes.Add(childNode);
-      }
-
-      // 순서에 맞게 자식 노드 정렬
-      foreach (var child in childNodes.OrderBy(n => n.Position))
-      {
-        parentNode.ChildNodes.Add(child);
+        foreach(var childEntity in family.Value)
+        {
+          if (nodes.TryGetValue(childEntity.Id, out var childNode))
+            compositeNode.ChildNodes.Add(childNode);
+        }
       }
     }
+
+    foreach (var node in nodes.Values)
+      node.PropertyChanged += UserNode_PropertyChanged;
   }
 
   private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
   {
     if (s is NavigationUserNode node)
     {
-      if (e.PropertyName == nameof(NavigationUserNode.Position))
+      switch (e.PropertyName)
       {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        if (context.NavigationEntities.FirstOrDefault(e => e.Id == node.Id.Value) is NavigationEntity entity)
-        {
-          entity.Position = node.Position;
-          await context.SaveChangesAsync();
-        }
+        case nameof(NavigationUserNode.Position):
+          await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
+          break;
+        case nameof(NavigationUserNode.Title):
+          await UpdateNavigationEntity(node, entity => entity.Title = node.Title);
+          break;
       }
+    }
+  }
+
+  private async Task UpdateNavigationEntity(NavigationUserNode node, Action<NavigationEntity> action)
+  {
+    await using var context = await _dbContextFactory.CreateDbContextAsync();
+    if (context.NavigationEntities.FirstOrDefault(e => e.Id == node.Id.Value) is NavigationEntity entity)
+    {
+      action.Invoke(entity);
+      await context.SaveChangesAsync();
     }
   }
 }

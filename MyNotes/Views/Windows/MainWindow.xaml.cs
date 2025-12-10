@@ -1,15 +1,18 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.WinUI;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Common.Messages;
 using MyNotes.Models.Navigation;
 using MyNotes.Resources;
 using MyNotes.Services.Database;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
+using MyNotes.Views.Dialogs;
 
 using Windows.ApplicationModel.DataTransfer;
 
@@ -122,6 +125,8 @@ public sealed partial class MainWindow : Window
     // 바인딩 해제
     Bindings.StopTracking();
 
+    // 뷰모델 해제
+    ViewModel.Dispose();
   }
 
   #region 타이틀바 드래그 영역 조정
@@ -207,7 +212,7 @@ public sealed partial class MainWindow : Window
     {
       _preventNavigation = true;
       MainWindow_NavigationFrame.GoBack();
-      MainWindow_NavigationView.SelectedItem = _navigationBackStack.Pop();
+      ViewModel.CurrentNavigation = _navigationBackStack.Pop();
       _preventNavigation = false;
     }
   }
@@ -217,7 +222,6 @@ public sealed partial class MainWindow : Window
     MainWindow_NavigationView.IsPaneOpen = !MainWindow_NavigationView.IsPaneOpen;
   }
 
-  private INavigation? _currentNavigation;
   private readonly Stack<INavigation> _navigationBackStack = new();
 
   private bool _preventNavigation = false;
@@ -232,16 +236,17 @@ public sealed partial class MainWindow : Window
       case NavigationCoreNode coreNode:
         MainWindow_NavigationFrame.Navigate(coreNode.PageType);
         ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-        if (_currentNavigation is not null)
-          _navigationBackStack.Push(_currentNavigation);
-        _currentNavigation = coreNode;
+        if (ViewModel.CurrentNavigation is not null)
+          _navigationBackStack.Push(ViewModel.CurrentNavigation);
+        ViewModel.CurrentNavigation = coreNode;
         break;
       case NavigationUserNode userNode:
         MainWindow_NavigationFrame.Navigate(userNode.PageType);
         ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-        if (_currentNavigation is not null)
-          _navigationBackStack.Push(_currentNavigation);
-        _currentNavigation = userNode;
+        if (ViewModel.CurrentNavigation is not null)
+          _navigationBackStack.Push(ViewModel.CurrentNavigation);
+        ViewModel.CurrentNavigation = userNode;
+        (MainWindow_NavigationView.ContainerFromMenuItem(userNode) as NavigationViewItem)?.IsSelected = true;
         break;
     }
   }
@@ -294,6 +299,22 @@ public sealed partial class MainWindow : Window
       _ => TitleBarTheme.UseDefaultAppMode
     };
   }
+
+  private void TreeViewItem_Drop(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+  }
+
+  private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    SetUserNodeDialog dialog = new() { XamlRoot = this.Content.XamlRoot };
+    _ = await dialog.ShowAsync();
+  }
+
+  private Uri GetIconUri(string icon)
+  {
+    return new Uri($"ms-appx:///Assets/Icons/FluentEmoji/{icon}");
+  }
 }
 
 public sealed partial class MainWindow : Window
@@ -301,6 +322,22 @@ public sealed partial class MainWindow : Window
   private void RegisterMessengers()
   {
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, string>(this, MessageTokens.ChangeAppTheme, new((recipient, message) => SetAppTheme(message.Value)));
+    WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NavigationUserNode, bool>, string>(this, MessageTokens.ChangeUserNodeFocustState, new((recipient, message) =>
+    {
+      var container = MainWindow_NavigationView.ContainerFromMenuItem(message.Request);
+      Console.WriteLine("container type: " + container?.GetType());
+      var textbox = container?.FindDescendant(typeof(Grid))?.FindDescendant(typeof(TextBox)) as TextBox;
+      Console.WriteLine("first type: " + container?.FindDescendant(typeof(Grid))?.GetType());
+      Console.WriteLine("second type: " + container?.FindDescendant(typeof(Grid))?.FindDescendant(typeof(TextBox))?.GetType());
+      if (textbox is not null)
+      {
+        message.Reply(textbox.Focus(FocusState.Programmatic));
+      }
+      else
+      {
+        message.Reply(false);
+      }
+    }));
   }
 
   private void UnregisterMessengers()

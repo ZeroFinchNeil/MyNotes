@@ -81,7 +81,4 @@ public sealed partial class SettingsPage : Page
   {
     await Launcher.LaunchUriAsync(new Uri($"ms-settings:appsfeatures-app?{Uri.EscapeDataString(App.PackageFamilyName)}"));
   }
-
-  private SolidColorBrush ToBrush(Color c) => new SolidColorBrush(c);
-  private string ToDisplaySize(int width, int height) => $"{width} ¡¿ {height}";
 }

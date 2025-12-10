@@ -7,6 +7,9 @@
         xmlns:navigation="using:MyNotes.Models.Navigation"
         xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
         xmlns:templates="using:MyNotes.Templates"
+        xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+        xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+        xmlns:helpers="using:MyNotes.Helpers"
         Title="MyNotes">
 
   <Window.SystemBackdrop>
@@ -20,6 +23,7 @@
         <RowDefinition />
       </Grid.RowDefinitions>
 
+      <!--#region 타이틀 바 -->
       <Grid x:Name="MainWindow_TitleBarGrid"
             Height="48">
         <Grid.ColumnDefinitions>
@@ -104,7 +108,9 @@
                         VerticalAlignment="Center"
                         MaxWidth="330" />
       </Grid>
+      <!--#endregion -->
 
+      <!--#region 내비게이션 영역 -->
       <NavigationView x:Name="MainWindow_NavigationView"
                       Grid.Row="1"
                       IsBackButtonVisible="Collapsed"
@@ -112,7 +118,7 @@
                       IsSettingsVisible="False"
                       MenuItemsSource="{x:Bind ViewModel.MenuItems.View}"
                       FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                      SelectedItem="{x:Bind ViewModel.MenuItems.View[0]}"
+                      SelectedItem="{x:Bind ViewModel.CurrentNavigation, Mode=TwoWay}"
                       SelectionChanged="MainWindow_NavigationView_SelectionChanged"
                       SizeChanged="MainWindow_NavigationView_SizeChanged"
                       AllowDrop="True">
@@ -121,8 +127,11 @@
                            Color="{ThemeResource ControlFillColorTransparent}" />
         </NavigationView.Resources>
 
+        <!--#region 내비게이션 뷰 항목 템플릿 -->
         <NavigationView.MenuItemTemplateSelector>
           <local:MainWindowNavigationViewDataTemplateSelector>
+
+            <!-- 기본 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationCoreNodeTemplate>
               <DataTemplate x:DataType="navigation:NavigationCoreNode">
                 <NavigationViewItem Content="{x:Bind Title}"
@@ -130,18 +139,26 @@
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationCoreNodeTemplate>
 
+            <!-- 내비게이션 구분선 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
               <DataTemplate x:DataType="navigation:NavigationSeparator">
                 <NavigationViewItemSeparator />
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
 
+            <!-- 사용자 그룹 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
               <DataTemplate x:DataType="navigation:NavigationUserCompositeNode">
-                <NavigationViewItem Content="{x:Bind Title}"
+                <NavigationViewItem Content="{x:Bind Title, Mode=OneWay}"
                                     MenuItemsSource="{x:Bind ChildNodes}">
                   <NavigationViewItem.Icon>
-                    <IconSourceElement IconSource="{x:Bind Icon, Mode=OneWay}" />
+                    <ImageIcon>
+                      <ImageIcon.Source>
+                        <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(Icon), Mode=OneWay}"
+                                     DecodePixelWidth="40"
+                                     DecodePixelHeight="40" />
+                      </ImageIcon.Source>
+                    </ImageIcon>
                   </NavigationViewItem.Icon>
 
                   <NavigationViewItem.ContextFlyout>
@@ -159,17 +176,25 @@
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
 
+            <!-- 사용자 목록 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
               <DataTemplate x:DataType="navigation:NavigationUserLeafNode">
-                <NavigationViewItem Content="{x:Bind Title}">
+                <NavigationViewItem Content="{x:Bind Title, Mode=OneWay}">
                   <NavigationViewItem.Icon>
-                    <IconSourceElement IconSource="{x:Bind Icon, Mode=OneWay}" />
+                    <ImageIcon>
+                      <ImageIcon.Source>
+                        <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(Icon), Mode=OneWay}"
+                                     DecodePixelWidth="40"
+                                     DecodePixelHeight="40" />
+                      </ImageIcon.Source>
+                    </ImageIcon>
                   </NavigationViewItem.Icon>
 
                   <NavigationViewItem.ContextFlyout>
                     <MenuFlyout>
                       <MenuFlyoutItem x:Uid="MainWindow_NavigationUserLeafNode_AddListMenuFlyoutItem"
-                                      Icon="Add" />
+                                      Icon="Add"
+                                      Click="MenuFlyoutItem_Click" />
                       <MenuFlyoutItem x:Uid="MainWindow_NavigationUserLeafNode_AddGroupMenuFlyoutItem"
                                       Icon="Add" />
                       <MenuFlyoutSeparator />
@@ -182,14 +207,16 @@
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
           </local:MainWindowNavigationViewDataTemplateSelector>
         </NavigationView.MenuItemTemplateSelector>
+        <!--#endregion -->
 
+        <!-- 내비게이션 뷰 하단 -->
         <NavigationView.PaneFooter>
-          <templates:SubtleIconButton x:Name="MainWindow_PaneFooter_EditListsButton"
-                                      x:Uid="MainWindow_PaneFooter_EditListsButton"
-                                      Margin="3,0"
-                                      Icon="Edit">
+          <templates:SubtleIconLabelButton x:Name="MainWindow_PaneFooter_EditListsButton"
+                                           x:Uid="MainWindow_PaneFooter_EditListsButton"
+                                           Margin="3,0"
+                                           Icon="Edit">
 
-            <templates:SubtleIconButton.Flyout>
+            <templates:SubtleIconLabelButton.Flyout>
               <MenuFlyout Placement="Top">
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddListMunuFlyoutSubItem"
                                    x:Uid="MainWindow_PaneFooter_AddListMunuFlyoutSubItem"
@@ -223,13 +250,16 @@
                                 Height="40"
                                 Click="MainWindow_PaneFooter_MoveListsMenuFlyoutItem_Click" />
               </MenuFlyout>
-            </templates:SubtleIconButton.Flyout>
-          </templates:SubtleIconButton>
+            </templates:SubtleIconLabelButton.Flyout>
+          </templates:SubtleIconLabelButton>
         </NavigationView.PaneFooter>
 
+        <!-- 내비게이션 뷰 콘텐츠 프레임 -->
         <Frame x:Name="MainWindow_NavigationFrame" />
       </NavigationView>
+      <!--#endregion -->
 
+      <!--#region 사용자 내비게이션 이동 팝업 -->
       <Popup x:Name="MainWindow_MoveListsPopup"
              Grid.Row="1"
              Canvas.ZIndex="12"
@@ -281,7 +311,13 @@
                           <Viewbox Grid.Column="0"
                                    Height="16"
                                    Width="16">
-                            <IconSourceElement IconSource="{x:Bind Icon}" />
+                            <ImageIcon>
+                              <ImageIcon.Source>
+                                <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(Icon), Mode=OneWay}"
+                                             DecodePixelWidth="40"
+                                             DecodePixelHeight="40" />
+                              </ImageIcon.Source>
+                            </ImageIcon>
                           </Viewbox>
 
                           <TextBlock Grid.Column="1"
@@ -293,7 +329,7 @@
 
                   <local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
                     <DataTemplate x:DataType="navigation:NavigationUserLeafNode">
-                      <TreeViewItem>
+                      <TreeViewItem Drop="TreeViewItem_Drop">
                         <Grid>
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40" />
@@ -303,7 +339,13 @@
                           <Viewbox Grid.Column="0"
                                    Height="16"
                                    Width="16">
-                            <IconSourceElement IconSource="{x:Bind Icon}" />
+                            <ImageIcon>
+                              <ImageIcon.Source>
+                                <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(Icon), Mode=OneWay}"
+                                             DecodePixelWidth="40"
+                                             DecodePixelHeight="40" />
+                              </ImageIcon.Source>
+                            </ImageIcon>
                           </Viewbox>
 
                           <TextBlock Grid.Column="1"
@@ -322,18 +364,20 @@
                        Margin="0,4"
                        Stretch="UniformToFill" />
 
-            <templates:SubtleIconButton x:Name="MainWindow_MoveListsApplyButton"
-                                        x:Uid="MainWindow_MoveListsApplyButton"
-                                        Grid.Row="2"
-                                        Icon="Accept"
-                                        Padding="8"
-                                        HorizontalAlignment="Right"
-                                        Click="MainWindow_MoveListsApplyButton_Click" />
+            <templates:SubtleIconLabelButton x:Name="MainWindow_MoveListsApplyButton"
+                                             x:Uid="MainWindow_MoveListsApplyButton"
+                                             Grid.Row="2"
+                                             Icon="Accept"
+                                             Padding="8"
+                                             HorizontalAlignment="Right"
+                                             Click="MainWindow_MoveListsApplyButton_Click" />
           </Grid>
 
         </Grid>
       </Popup>
+      <!--#endregion -->
 
+      <!--#region Visual States -->
       <VisualStateManager.VisualStateGroups>
         <VisualStateGroup x:Name="WindowActivationStates">
           <VisualState x:Name="WindowActivated" />
@@ -361,6 +405,7 @@
           </VisualState>
         </VisualStateGroup>
       </VisualStateManager.VisualStateGroups>
+      <!--#endregion -->
     </Grid>
   </UserControl>
 </Window>

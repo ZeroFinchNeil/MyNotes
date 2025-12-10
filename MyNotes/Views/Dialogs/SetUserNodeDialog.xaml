@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="MyNotes.Views.Dialogs.SetUserNodeDialog"
+               x:Uid="SetUserNodeDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:local="using:MyNotes.Views.Dialogs"
+               xmlns:templates="using:MyNotes.Templates"
+               xmlns:helpers="using:MyNotes.Helpers"
+               Style="{StaticResource DefaultContentDialogStyle}"
+               Title="New node"
+               PrimaryButtonText="Add"
+               CloseButtonText="Cancel"
+               DefaultButton="Primary">
+
+  <Grid>
+
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition Width="*" />
+    </Grid.ColumnDefinitions>
+
+    <templates:SubtleIconButton x:Name="SetUserNodeDialog_IconButton">
+      <templates:SubtleIconButton.Icon>
+        <ImageIcon>
+          <ImageIcon.Source>
+            <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(SetUserNodeDialog_IconPicker.Unicode32Seqeunce), Mode=OneWay}" 
+                         DecodePixelWidth="40"
+                         DecodePixelHeight="40"/>
+          </ImageIcon.Source>
+        </ImageIcon>
+      </templates:SubtleIconButton.Icon>
+      <templates:SubtleIconButton.Flyout>
+        <Flyout Placement="BottomEdgeAlignedLeft">
+          <templates:IconPicker x:Name="SetUserNodeDialog_IconPicker" />
+        </Flyout>
+      </templates:SubtleIconButton.Flyout>
+    </templates:SubtleIconButton>
+
+    <TextBox x:Name="SetUserNodeDialog_TitleTextBox"
+             Grid.Column="1" />
+  </Grid>
+</ContentDialog>

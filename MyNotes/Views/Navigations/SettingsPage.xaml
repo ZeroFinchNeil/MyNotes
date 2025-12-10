@@ -7,7 +7,8 @@
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
-      xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
+      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+      xmlns:helpers="using:MyNotes.Helpers">
 
   <Grid>
     <Grid.RowDefinitions>
@@ -200,7 +201,7 @@
               <Border Width="24"
                       Height="24"
                       CornerRadius="{ThemeResource ControlCornerRadius}" 
-                      Background="{x:Bind ToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
+                      Background="{x:Bind helpers:ColorHelper.ColorToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
               <SplitButton.Flyout>
                 <Flyout Placement="BottomEdgeAlignedRight"
                         ShouldConstrainToRootBounds="False">
@@ -228,7 +229,7 @@
           <!-- Default Note Size -->
           <controls:SettingsExpander x:Uid="SettingsPage_Note_SizeSettingsExpander"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE9A6;}">
-            <TextBlock Text="{x:Bind ToDisplaySize(ViewModel.NoteWidth, ViewModel.NoteHeight), Mode=OneWay}"
+            <TextBlock Text="{x:Bind helpers:StringHelper.SizeToString(ViewModel.NoteWidth, ViewModel.NoteHeight), Mode=OneWay}"
                        Foreground="{ThemeResource TextFillColorSecondary}" />
             <controls:SettingsExpander.Items>
               <controls:SettingsCard x:Uid="SettingsPage_Note_WidthSettingsCard">

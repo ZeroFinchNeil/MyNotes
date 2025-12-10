@@ -1,12 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using Microsoft.UI.Xaml.Media.Imaging;
+
 namespace MyNotes.Models.Navigation;
 
 internal class NavigationUserNode : ObservableObject, INavigationUserNode
 {
   public required NavigationId Id { get; init; }
 
-  public required IconSource? Icon
+  public required string Icon
   {
     get;
     set => SetProperty(ref field, value);
@@ -29,6 +31,12 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
     get;
     set => SetProperty(ref field, value);
   }
+
+  public bool IsEditable
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = false;
 
   public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
   public override int GetHashCode() => Id.GetHashCode();
@@ -102,6 +110,24 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
 internal class NavigationUserCompositeNode : NavigationUserNode
 {
   public NavigationUserNodeCollection ChildNodes { get; } = new();
+
+  public void ForEachDescendant(Action<NavigationUserNode> action)
+  {
+    Stack<NavigationUserNode> stack = new();
+    stack.Push(this);
+
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      action.Invoke(node);
+
+      if (node is NavigationUserCompositeNode compositeNode)
+      {
+        foreach (var childNode in compositeNode.ChildNodes)
+          stack.Push(childNode);
+      }
+    }
+  }
 }
 
 internal class NavigationUserLeafNode : NavigationUserNode
