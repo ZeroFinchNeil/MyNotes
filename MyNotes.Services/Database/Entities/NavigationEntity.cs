@@ -25,12 +25,14 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
     {4,8} | {5}
     {6,8} | {7}
     {8,8} | {9}
+    {10,8} | {11}
     """,
     "ID", Id,
     "Title", Title,
     "Parent", Parent,
     "Position", Position,
-    "IsComposite", IsComposite);
+    "IsComposite", IsComposite,
+    "Icon", Icon);
 
   public bool Equals(NavigationEntity? other) => other is not null && other.Id == Id;
 

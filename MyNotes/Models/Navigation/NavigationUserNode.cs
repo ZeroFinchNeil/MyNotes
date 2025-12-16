@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using Microsoft.UI.Xaml.Media.Imaging;
-
 namespace MyNotes.Models.Navigation;
 
 internal class NavigationUserNode : ObservableObject, INavigationUserNode

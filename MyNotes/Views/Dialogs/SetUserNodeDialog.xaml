@@ -21,17 +21,14 @@
 
     <templates:SubtleIconButton x:Name="SetUserNodeDialog_IconButton">
       <templates:SubtleIconButton.Icon>
-        <ImageIcon>
-          <ImageIcon.Source>
-            <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetUri(SetUserNodeDialog_IconPicker.Unicode32Seqeunce), Mode=OneWay}" 
-                         DecodePixelWidth="40"
-                         DecodePixelHeight="40"/>
-          </ImageIcon.Source>
-        </ImageIcon>
+        <ImageIcon Source="{x:Bind SetUserNodeDialog_IconPicker.IconImage, Mode=OneWay}" />
       </templates:SubtleIconButton.Icon>
       <templates:SubtleIconButton.Flyout>
         <Flyout Placement="BottomEdgeAlignedLeft">
-          <templates:IconPicker x:Name="SetUserNodeDialog_IconPicker" />
+          <templates:IconPicker x:Name="SetUserNodeDialog_IconPicker" 
+                                Icon="System_Board"
+                                DecodePixelWidth="40"
+                                DecodePixelHeight="40"/>
         </Flyout>
       </templates:SubtleIconButton.Flyout>
     </templates:SubtleIconButton>

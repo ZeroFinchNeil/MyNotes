@@ -1,11 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-
-using Microsoft.UI.Xaml.Media.Imaging;
-
-using MyNotes.Common.Commands;
-using MyNotes.Common.Messages;
+﻿using MyNotes.Common.Commands;
 using MyNotes.Models.Navigation;
-using MyNotes.Resources;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Views.Navigations;
 
@@ -31,7 +25,7 @@ internal sealed partial class MainViewModel : DisposableViewModelBase
       ? new NavigationUserCompositeNode()
       {
         Id = NavigationId.NewId(),
-        Icon = "1f600",
+        Icon = "10126",
         Title = "Composite " + new Random().Next(10000),
         PageType = typeof(HomePage),
         Position = int.MaxValue
@@ -39,7 +33,7 @@ internal sealed partial class MainViewModel : DisposableViewModelBase
       : new NavigationUserLeafNode()
       {
         Id = NavigationId.NewId(),
-        Icon = "1f600",
+        Icon = "10018",
         Title = "Leaf " + new Random().Next(10000),
         PageType = typeof(HomePage),
         Position = int.MaxValue
