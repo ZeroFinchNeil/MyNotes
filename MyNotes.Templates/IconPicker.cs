@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 namespace MyNotes.Templates;
@@ -64,6 +65,54 @@ public sealed partial class IconPicker : Control
     }
   }
 
+  public IconPicker()
+  {
+    DefaultStyleKey = typeof(IconPicker);
+  }
+
+  #region Dependency Property
+  public static readonly DependencyProperty GlyphProperty = DependencyProperty.Register("Glyph", typeof(string), typeof(IconPicker), new PropertyMetadata(null));
+  public string? Glyph
+  {
+    get => (string?)GetValue(GlyphProperty);
+    set => SetValue(GlyphProperty, value);
+  }
+
+  public static readonly DependencyProperty IconImageProperty = DependencyProperty.Register("IconImage", typeof(ImageSource), typeof(IconPicker), new PropertyMetadata(null));
+  public ImageSource? IconImage
+  {
+    get => (ImageSource?)GetValue(IconImageProperty);
+    set => SetValue(IconImageProperty, value);
+  }
+
+  public static readonly DependencyProperty DecodePixelWidthProperty = DependencyProperty.Register("DecodePixelWidth", typeof(double), typeof(IconPicker), new PropertyMetadata(0.0, DecodePixel_PropertyChanged));
+  public double DecodePixelWidth
+  {
+    get => (double)GetValue(DecodePixelWidthProperty);
+    set => SetValue(DecodePixelWidthProperty, value);
+  }
+
+  public static readonly DependencyProperty DecodePixelHeightProperty = DependencyProperty.Register("DecodePixelHeight", typeof(double), typeof(IconPicker), new PropertyMetadata(0.0, DecodePixel_PropertyChanged));
+  public double DecodePixelHeight
+  {
+    get => (double)GetValue(DecodePixelHeightProperty);
+    set => SetValue(DecodePixelHeightProperty, value);
+  }
+  #endregion
+
+  private async static void DecodePixel_PropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is IconPicker control)
+    {
+      if (control._selectedMetadata is IconMetadata metadata)
+      {
+        var scale = control.XamlRoot.RasterizationScale;
+        control.IconImage = await GetBitmapImage(metadata, (int)(control.DecodePixelWidth * scale), (int)(control.DecodePixelHeight * scale));
+      }
+    }
+  }
+
+  private IconMetadata? _selectedMetadata;
   private async Task<IList<Button>> GetIconButton(string groupKey, double scale = 1.0)
   {
     List<Button> buttons = new();
@@ -73,10 +122,11 @@ public sealed partial class IconPicker : Control
       {
         if (await CreateButton(iconMetadata, scale) is Button button)
         {
-          button.Click += (s, e) =>
+          button.Click += async (s, e) =>
           {
+            _selectedMetadata = iconMetadata;
             this.Glyph = iconMetadata.Unicode16;
-            this.Unicode32Seqeunce = iconMetadata.Unicode32Sequence;
+            this.IconImage = await GetBitmapImage(iconMetadata, (int)(DecodePixelWidth * scale), (int)(DecodePixelHeight * scale));
             AddRecentIcon(iconMetadata);
           };
           buttons.Add(button);
@@ -94,10 +144,11 @@ public sealed partial class IconPicker : Control
     {
       if (await CreateButton(metadata, scale) is Button button)
       {
-        button.Click += (s, e) =>
+        button.Click += async (s, e) =>
         {
+          _selectedMetadata = metadata;
           this.Glyph = metadata.Unicode16;
-          this.Unicode32Seqeunce = metadata.Unicode32Sequence;
+          this.IconImage = await GetBitmapImage(metadata, (int)(DecodePixelWidth * scale), (int)(DecodePixelHeight * scale));
         };
         buttons.Add(button);
       }
@@ -118,10 +169,11 @@ public sealed partial class IconPicker : Control
         {
           if (_metadataList.TryGetValue(id, out var metadata) && await CreateButton(metadata, scale) is Button button)
           {
-            button.Click += (s, e) =>
+            button.Click += async (s, e) =>
             {
+              _selectedMetadata = metadata;
               this.Glyph = metadata.Unicode16;
-              this.Unicode32Seqeunce = metadata.Unicode32Sequence;
+              this.IconImage = await GetBitmapImage(metadata, (int)(DecodePixelWidth * scale), (int)(DecodePixelHeight * scale));
               AddRecentIcon(metadata);
             };
             buttons.Add(button);
@@ -135,24 +187,16 @@ public sealed partial class IconPicker : Control
   private async Task<Button?> CreateButton(IconMetadata metadata, double scale)
   {
     double size = _iconSize * scale;
-    using var stream = _assembly.GetManifestResourceStream($"{_assemblyName}.Resources.Icons.FluentEmoji.{metadata.Unicode32Sequence}");
-    if (stream is not null)
-    {
-      BitmapImage bitmapImage = new() { DecodePixelHeight = (int)size, DecodePixelWidth = (int)size };
-      using (MemoryStream memoryStream = new())
-      {
-        await stream.CopyToAsync(memoryStream);
-        memoryStream.Seek(0, SeekOrigin.Begin);
-        await bitmapImage.SetSourceAsync(memoryStream.AsRandomAccessStream());
-      }
 
+    if (await GetBitmapImage(metadata, (int)size, (int)size) is BitmapImage bitmapImage)
+    {
       Button button = new()
       {
         DataContext = metadata,
         Content = new Image() { Source = bitmapImage, Width = size, Height = size },
         Style = _buttonStyle
       };
-      ToolTipService.SetToolTip(button, metadata.Name);
+      ToolTipService.SetToolTip(button, metadata.Description);
 
       return button;
     }
@@ -160,23 +204,24 @@ public sealed partial class IconPicker : Control
     return null;
   }
 
-  public IconPicker()
+  private static async Task<BitmapImage?> GetBitmapImage(IconMetadata metadata, int width = 0, int height = 0)
   {
-    DefaultStyleKey = typeof(IconPicker);
-  }
+    using var stream = _assembly.GetManifestResourceStream($"{_assemblyName}.Resources.Icons.Images.{metadata.Id}");
+    if (stream is not null)
+    {
+      BitmapImage bitmapImage = width > 0 && height > 0
+        ? new() { DecodePixelWidth = width, DecodePixelHeight = height }
+        : new();
 
-  public static readonly DependencyProperty GlyphProperty = DependencyProperty.Register("Glyph", typeof(string), typeof(IconPicker), new PropertyMetadata(null));
-  public string Glyph
-  {
-    get => (string)GetValue(GlyphProperty);
-    set => SetValue(GlyphProperty, value);
-  }
-
-  public static readonly DependencyProperty Unicode32SeqeunceProperty = DependencyProperty.Register("Unicode32Seqeunce", typeof(string), typeof(IconPicker), new PropertyMetadata(null));
-  public string Unicode32Seqeunce
-  {
-    get => (string)GetValue(Unicode32SeqeunceProperty);
-    set => SetValue(Unicode32SeqeunceProperty, value);
+      using (MemoryStream memoryStream = new())
+      {
+        await stream.CopyToAsync(memoryStream);
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        await bitmapImage.SetSourceAsync(memoryStream.AsRandomAccessStream());
+      }
+      return bitmapImage;
+    }
+    return null;
   }
 
   private Style? _buttonStyle;
@@ -191,6 +236,7 @@ public sealed partial class IconPicker : Control
   private SelectorBarItem? SmileysAndEmotionSelectorBarItem;
   private SelectorBarItem? TravelAndPlacesSelectorBarItem;
   private SelectorBarItem? SymbolsAndFlagsSelectorBarItem;
+  private SelectorBarItem? SimpleIconsSelectorBarItem;
 
   private ScrollView? IconsScrollView;
   private ItemsRepeater? IconsItemsRepeater;
@@ -229,8 +275,9 @@ public sealed partial class IconPicker : Control
     SmileysAndEmotionSelectorBarItem = GetTemplateChild("SmileysAndEmotionSelectorBarItem") as SelectorBarItem;
     TravelAndPlacesSelectorBarItem = GetTemplateChild("TravelAndPlacesSelectorBarItem") as SelectorBarItem;
     SymbolsAndFlagsSelectorBarItem = GetTemplateChild("SymbolsAndFlagsSelectorBarItem") as SelectorBarItem;
+    SimpleIconsSelectorBarItem = GetTemplateChild("SimpleIconsSelectorBarItem") as SelectorBarItem;
 
-    ToolTipService.SetToolTip(RecentSelectorBarItem, "Recent history");
+    ToolTipService.SetToolTip(RecentSelectorBarItem, "Recent & Search");
     ToolTipService.SetToolTip(ObjectsAndActivitiesSelectorBarItem, "Objects & Activities");
     ToolTipService.SetToolTip(AnimalsAndNatureSelectorBarItem, "Animals & Nature");
     ToolTipService.SetToolTip(FoodAndDrinkSelectorBarItem, "Food & Drink");
@@ -238,6 +285,7 @@ public sealed partial class IconPicker : Control
     ToolTipService.SetToolTip(SmileysAndEmotionSelectorBarItem, "Smileys & Emotion");
     ToolTipService.SetToolTip(TravelAndPlacesSelectorBarItem, "Travel & Places");
     ToolTipService.SetToolTip(SymbolsAndFlagsSelectorBarItem, "Symbols & Flags");
+    ToolTipService.SetToolTip(SimpleIconsSelectorBarItem, "Simple Icons");
 
     IconsScrollView = GetTemplateChild("IconsScrollView") as ScrollView;
     IconsItemsRepeater = GetTemplateChild("IconsItemsRepeater") as ItemsRepeater;
@@ -280,6 +328,7 @@ public sealed partial class IconPicker : Control
       SelectorBarItem item when item == SmileysAndEmotionSelectorBarItem => await GetIconButton(IconGroup.SmileysAndEmotion, scale),
       SelectorBarItem item when item == TravelAndPlacesSelectorBarItem => await GetIconButton(IconGroup.TravelAndPlaces, scale),
       SelectorBarItem item when item == SymbolsAndFlagsSelectorBarItem => [.. await GetIconButton(IconGroup.Symbols, scale), .. await GetIconButton(IconGroup.Flags, scale)],
+      SelectorBarItem item when item == SimpleIconsSelectorBarItem => [.. await GetIconButton(IconGroup.Color, scale)],
       _ => [],
     });
 
@@ -330,22 +379,15 @@ public sealed partial class IconPicker : Control
 public record IconMetadata : IComparable<IconMetadata>
 {
   public required short Id { get; set; }
+  public required string Category { get; set; }
   public required string Group { get; set; }
+  public required HashSet<string> Keywords { get; set; }
+  public string? Description { get; set; }
   public string? Skintone { get; set; }
-  public required string Name { get; set; }
-  public required string Unicode16 { get; set; }
-  public required int[] Unicode32CodePoints { get; set; }
-  public required string Unicode32Sequence { get; set; }
-  public required string[] Keywords { get; set; }
+  public string? Unicode16 { get; set; }
+  public int[]? Unicode32CodePoints { get; set; }
 
-  public int CompareTo(IconMetadata? other)
-  {
-    if (other is null)
-      return 1;
-
-    int first = (Group + Skintone).CompareTo(other.Group + other.Skintone);
-    return first == 0 ? Unicode32Sequence.CompareTo(other.Unicode32Sequence) : first;
-  }
+  public int CompareTo(IconMetadata? other) => other is null ? 1 : this.Id.CompareTo(other.Id);
 }
 
 public static class IconGroup
@@ -359,6 +401,10 @@ public static class IconGroup
   public static readonly string TravelAndPlaces = "Travel & Places";
   public static readonly string Symbols = "Symbols";
   public static readonly string Flags = "Flags";
+
+  public static readonly string Regular = "Regular";
+  public static readonly string Filled = "Filled";
+  public static readonly string Color = "Color";
 
   public static readonly string PeopleAndBodyDefault = "People & Body.default";
   public static readonly string PeopleAndBodyLight = "People & Body.light";

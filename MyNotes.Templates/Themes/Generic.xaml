@@ -632,13 +632,13 @@
   <!--#region IconsPickerStyle -->
   <Style TargetType="local:IconPicker">
     <Setter Property="MaxWidth"
-            Value="350" />
+            Value="408" />
     <Setter Property="MaxHeight"
             Value="500" />
     <Setter Property="MinHeight"
             Value="240" />
     <Setter Property="Width"
-            Value="350" />
+            Value="408" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:IconPicker">
@@ -881,13 +881,18 @@
                   <FontIcon Glyph="&#xE7C1;" />
                 </SelectorBarItem.Icon>
               </SelectorBarItem>
+              <SelectorBarItem x:Name="SimpleIconsSelectorBarItem">
+                <SelectorBarItem.Icon>
+                  <FontIcon Glyph="&#xF6BA;" />
+                </SelectorBarItem.Icon>
+              </SelectorBarItem>
             </SelectorBar>
 
             <Border x:Name="SkintonePanel"
                     Grid.Row="1"
                     Visibility="Collapsed"
                     HorizontalAlignment="Center"
-                    Margin="0,4">
+                    Margin="0,0,0,12">
               <RadioButtons x:Name="SkintoneRadioButtons"
                             MaxColumns="6">
                 <RadioButton x:Name="SkintoneDefaultButton"
@@ -929,7 +934,7 @@
 
             <Grid x:Name="SearchPanel"
                   Grid.Row="3"
-                  MaxHeight="240"
+                  MaxHeight="300"
                   Margin="0,12,0,0"
                   RowSpacing="6"
                   VerticalAlignment="Top">
