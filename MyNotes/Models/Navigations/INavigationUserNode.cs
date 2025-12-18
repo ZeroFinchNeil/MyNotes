@@ -1,3 +1,3 @@
-﻿namespace MyNotes.Models.Navigation;
+﻿namespace MyNotes.Models.Navigations;
 
 internal interface INavigationUserNode : INavigationNode { }

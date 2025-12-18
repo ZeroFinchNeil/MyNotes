@@ -7,22 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
-using MyNotes.Models.Navigation;
+using MyNotes.Models.Navigations;
 using MyNotes.Resources;
 using MyNotes.Services.Database;
+using MyNotes.Services.Dialog;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
+using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Dialogs;
 
 using Windows.ApplicationModel.DataTransfer;
 
 namespace MyNotes.Views.Windows;
 
-public sealed partial class MainWindow : Window
+internal sealed partial class MainWindow : Window
 {
   // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
+  private readonly DialogService DialogService;
 
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
@@ -33,6 +36,7 @@ public sealed partial class MainWindow : Window
     InitializeComponent();
     ViewModel = App.Instance.Services.GetRequiredService<MainViewModel>();
     SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
+    DialogService = App.Instance.Services.GetRequiredService<DialogService>();
 
     this.ExtendsContentIntoTitleBar = true;
     this.SetTitleBar(MainWindow_TitleBarGrid);
@@ -222,7 +226,7 @@ public sealed partial class MainWindow : Window
     MainWindow_NavigationView.IsPaneOpen = !MainWindow_NavigationView.IsPaneOpen;
   }
 
-  private readonly Stack<INavigation> _navigationBackStack = new();
+  private readonly Stack<NavigationViewModelBase> _navigationBackStack = new();
 
   private bool _preventNavigation = false;
 
@@ -233,20 +237,28 @@ public sealed partial class MainWindow : Window
 
     switch (args.SelectedItem)
     {
-      case NavigationCoreNode coreNode:
-        MainWindow_NavigationFrame.Navigate(coreNode.PageType);
+      case CoreNavigationViewModel coreNode:
+        MainWindow_NavigationFrame.Navigate(coreNode.Navigation.PageType);
         ViewModel.AddListCommand?.RaiseCanExecuteChanged();
         if (ViewModel.CurrentNavigation is not null)
           _navigationBackStack.Push(ViewModel.CurrentNavigation);
         ViewModel.CurrentNavigation = coreNode;
         break;
-      case NavigationUserNode userNode:
-        MainWindow_NavigationFrame.Navigate(userNode.PageType);
+      case UserCompositeNavigationViewModel compositeNode:
+        MainWindow_NavigationFrame.Navigate(compositeNode.Navigation.PageType);
         ViewModel.AddListCommand?.RaiseCanExecuteChanged();
         if (ViewModel.CurrentNavigation is not null)
           _navigationBackStack.Push(ViewModel.CurrentNavigation);
-        ViewModel.CurrentNavigation = userNode;
-        (MainWindow_NavigationView.ContainerFromMenuItem(userNode) as NavigationViewItem)?.IsSelected = true;
+        ViewModel.CurrentNavigation = compositeNode;
+        (MainWindow_NavigationView.ContainerFromMenuItem(compositeNode) as NavigationViewItem)?.IsSelected = true;
+        break;
+      case UserLeafNavigationViewModel leafNode:
+        MainWindow_NavigationFrame.Navigate(leafNode.Navigation.PageType);
+        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+        if (ViewModel.CurrentNavigation is not null)
+          _navigationBackStack.Push(ViewModel.CurrentNavigation);
+        ViewModel.CurrentNavigation = leafNode;
+        (MainWindow_NavigationView.ContainerFromMenuItem(leafNode) as NavigationViewItem)?.IsSelected = true;
         break;
     }
   }
@@ -304,20 +316,9 @@ public sealed partial class MainWindow : Window
   {
     e.Handled = true;
   }
-
-  private async void MenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    SetUserNodeDialog dialog = new() { XamlRoot = this.Content.XamlRoot };
-    _ = await dialog.ShowAsync();
-  }
-
-  private Uri GetIconUri(string icon)
-  {
-    return new Uri($"ms-appx:///Assets/Icons/FluentEmoji/{icon}");
-  }
 }
 
-public sealed partial class MainWindow : Window
+internal sealed partial class MainWindow : Window
 {
   private void RegisterMessengers()
   {
@@ -347,7 +348,7 @@ public sealed partial class MainWindow : Window
 }
 
 // DEBUG
-public sealed partial class MainWindow : Window
+internal sealed partial class MainWindow : Window
 {
   private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
@@ -365,7 +366,7 @@ public sealed partial class MainWindow : Window
     var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
     await using var context = await factory.CreateDbContextAsync();
     await context.Database.EnsureDeletedAsync();
-    ViewModel.UserRootNavigation.ChildNodes.Clear();
+    ViewModel.UserRootNavigationViewModel?.Navigation.ChildNodes.Clear();
   }
 
   private async void MainWindow_CreateDatabaseMenuFlyoutItem_Click(object sender, RoutedEventArgs e)

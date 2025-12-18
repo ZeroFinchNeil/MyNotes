@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 
 namespace MyNotes.Services.Database.Entities;
 
@@ -18,21 +19,24 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public required bool IsComposite { get; init; }
 
-  public override string ToString() => string.Format(
-    """
-    {0,8} | {1}
-    {2,8} | {3}
-    {4,8} | {5}
-    {6,8} | {7}
-    {8,8} | {9}
-    {10,8} | {11}
-    """,
-    "ID", Id,
-    "Title", Title,
-    "Parent", Parent,
-    "Position", Position,
-    "IsComposite", IsComposite,
-    "Icon", Icon);
+  public required bool IsExpanded { get; set; }
+
+  public required bool IsDeleted { get; set; }
+
+  private static string ToStringValue(string name, object value) => string.Format("{0,12} | {1}", name, value.ToString());
+  public override string ToString()
+  {
+    StringBuilder sb = new();
+    sb.AppendLine(ToStringValue(nameof(Id), Id));
+    sb.AppendLine(ToStringValue(nameof(Title), Title));
+    sb.AppendLine(ToStringValue(nameof(Icon), Icon));
+    sb.AppendLine(ToStringValue(nameof(Parent), Parent));
+    sb.AppendLine(ToStringValue(nameof(Position), Position));
+    sb.AppendLine(ToStringValue(nameof(IsComposite), IsComposite));
+    sb.AppendLine(ToStringValue(nameof(IsExpanded), IsExpanded));
+    sb.AppendLine(ToStringValue(nameof(IsDeleted), IsDeleted));
+    return sb.ToString();
+  }
 
   public bool Equals(NavigationEntity? other) => other is not null && other.Id == Id;
 

@@ -1,6 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace MyNotes.Models.Navigation;
+using Microsoft.UI.Xaml.Media.Imaging;
+
+using MyNotes.Helpers;
+
+namespace MyNotes.Models.Navigations;
 
 internal class NavigationUserNode : ObservableObject, INavigationUserNode
 {
@@ -9,7 +13,20 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
   public required string Icon
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        _ = ChangeIconImage(value);
+      }
+    }
+  }
+
+  public BitmapImage? IconImage
+  {
+    get;
+    private set => SetProperty(ref field, value);
   }
 
   public required string Title
@@ -38,6 +55,8 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
 
   public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
   public override int GetHashCode() => Id.GetHashCode();
+
+  private async Task ChangeIconImage(string icon) => IconImage = await IconHelper.GetIconImage(icon, ((short)Templates.Icon.Emoji_OpenFileFolder).ToString(), this is NavigationUserCompositeNode);
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {
@@ -109,6 +128,12 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 {
   public NavigationUserNodeCollection ChildNodes { get; } = new();
 
+  public bool IsExpanded
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
   public void ForEachDescendant(Action<NavigationUserNode> action)
   {
     Stack<NavigationUserNode> stack = new();
@@ -136,8 +161,8 @@ internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
   public static NavigationUserRootNode Instance => field ??= new()
   {
     Id = NavigationId.UserRootNode,
-    Icon = null,
-    Title = "",
+    Icon = string.Empty,
+    Title = string.Empty,
     PageType = typeof(Page),
     Position = 0
   };

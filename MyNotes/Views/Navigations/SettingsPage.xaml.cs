@@ -6,7 +6,7 @@ using Windows.System;
 
 namespace MyNotes.Views.Navigations;
 
-public sealed partial class SettingsPage : Page
+internal sealed partial class SettingsPage : Page
 {
   private readonly SettingsViewModel ViewModel;
   private readonly DispatcherTimer _startupTaskTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };

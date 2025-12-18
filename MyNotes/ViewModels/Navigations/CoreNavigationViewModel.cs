@@ -1,0 +1,13 @@
+﻿using MyNotes.Models.Navigations;
+
+namespace MyNotes.ViewModels.Navigations;
+
+internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
+{
+  public override NavigationCoreNode Navigation { get; }
+
+  public CoreNavigationViewModel(NavigationCoreNode navigation)
+  {
+    Navigation = navigation;
+  }
+}

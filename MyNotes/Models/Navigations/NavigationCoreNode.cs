@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml.Controls.AnimatedVisuals;
 using MyNotes.Resources;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigation;
+namespace MyNotes.Models.Navigations;
 
 internal abstract class NavigationCoreNode : ObservableObject, INavigationCoreNode
 {

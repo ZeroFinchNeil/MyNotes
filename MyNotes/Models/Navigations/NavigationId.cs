@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Models.Navigation;
+﻿namespace MyNotes.Models.Navigations;
 
 internal class NavigationId : IEquatable<NavigationId>
 {

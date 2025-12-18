@@ -2,14 +2,9 @@
 
 namespace MyNotes.ViewModels;
 
-internal abstract class ViewModelBase : ObservableObject, IViewModel
-{ }
-
-internal abstract class DisposableViewModelBase : ObservableObject, IViewModel, IDisposable
+internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposable
 {
   protected bool _disposed;
-
-  protected abstract void Dispose(bool disposing);
 
   public void Dispose()
   {
@@ -17,15 +12,26 @@ internal abstract class DisposableViewModelBase : ObservableObject, IViewModel, 
     GC.SuppressFinalize(this);
   }
 
-  // IDisposable 패턴 예시
-  // protected override void Dispose(bool disposing)
-  // {
-  //   if (_disposed)
-  //     return;
+  protected virtual void Dispose(bool disposing)
+  {
+    if (_disposed)
+      return;
 
-  //   if (disposing)
-  //   { }
+    if (disposing)
+    { }
 
-  //   _disposed = true;
-  // }
+    _disposed = true;
+  }
+
+  // 파생 클래스 IDisposable 패턴 예시
+  //protected override void Dispose(bool disposing)
+  //{
+  //  if (_disposed)
+  //    return;
+
+  //  if (disposing)
+  //  { }
+
+  //  _disposed = true;
+  //}
 }

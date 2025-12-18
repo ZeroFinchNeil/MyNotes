@@ -1,8 +1,9 @@
-﻿using MyNotes.Models.Navigation;
+﻿using MyNotes.Models.Navigations;
+using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.Views.Windows;
 
-public sealed partial class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
+internal sealed partial class MainWindowNavigationViewDataTemplateSelector : DataTemplateSelector
 {
   public DataTemplate? NavigationCoreNodeTemplate { get; set; }
   public DataTemplate? NavigationSeparatorTemplate { get; set; }
@@ -13,16 +14,16 @@ public sealed partial class MainWindowNavigationViewDataTemplateSelector : DataT
   {
     return item switch
     {
-      NavigationCoreNode => NavigationCoreNodeTemplate,
-      NavigationSeparator => NavigationSeparatorTemplate,
-      NavigationUserCompositeNode => NavigationUserCompositeNodeTemplate,
-      NavigationUserLeafNode => NavigationUserLeafNodeTemplate,
+      CoreNavigationViewModel => NavigationCoreNodeTemplate,
+      SeparatorNavigationViewModel => NavigationSeparatorTemplate,
+      UserCompositeNavigationViewModel => NavigationUserCompositeNodeTemplate,
+      UserLeafNavigationViewModel => NavigationUserLeafNodeTemplate,
       _ => null
     };
   }
 }
 
-public sealed partial class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
+internal sealed partial class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
 {
   public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
   public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }

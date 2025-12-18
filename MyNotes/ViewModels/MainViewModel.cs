@@ -1,44 +1,44 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.UI.Xaml.Media.Imaging;
-
-using MyNotes.Models.Navigation;
-using MyNotes.Services.Database;
-using MyNotes.Services.Database.Entities;
-using MyNotes.Views.Navigations;
+﻿using MyNotes.Common.Commands;
+using MyNotes.Models.Navigations;
+using MyNotes.Services.Navigation;
+using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.ViewModels;
 
-internal sealed partial class MainViewModel : DisposableViewModelBase
+internal sealed partial class MainViewModel : ViewModelBase
 {
-  private readonly IDbContextFactory<AppDbContext> _dbContextFactory;
+  private readonly NavigationService NavigationService;
+  private readonly NavigationViewModelFactory NavigationViewModelFactory;
 
-  private readonly ImmutableList<INavigation> PrimaryCoreNavigations;
-  public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
-  private readonly ImmutableList<INavigation> SecondaryCoreNavigations;
+  public CollectionViewSource MenuItems { get; private set; } = new() { IsSourceGrouped = true };
+  public IReadOnlyList<NavigationViewModelBase>? HeaderMenuItems { get; }
+  public UserCompositeNavigationViewModel? UserRootNavigationViewModel { get; }
+  public IReadOnlyList<NavigationViewModelBase>? UserNavigationViewModels => UserRootNavigationViewModel?.ChildNodeViewModels;
+  public IReadOnlyList<NavigationViewModelBase>? FooterMenuItems { get; }
+  //public IReadOnlyList<INavigation> FooterMenuItems2 => NavigationService.SecondaryCoreNavigations;
+  //public NavigationUserRootNode UserRootNavigation2 => NavigationService.UserRootNavigation;
+  //public IReadOnlyList<INavigationUserNode> UserNavigations2 => NavigationService.UserRootNavigation.ChildNodes;
 
-  public CollectionViewSource MenuItems { get; } = new() { IsSourceGrouped = true };
-  public IReadOnlyList<INavigation> FooterMenuItems => SecondaryCoreNavigations;
-  public IReadOnlyList<INavigationUserNode> UserNavigations => UserRootNavigation.ChildNodes;
-  
-  public INavigation? CurrentNavigation
+  public NavigationViewModelBase? CurrentNavigation
   {
     get;
     set => SetProperty(ref field, value);
   }
 
-  public MainViewModel(IDbContextFactory<AppDbContext> dbContextFactory)
+  public MainViewModel(NavigationService navigationService, NavigationViewModelFactory navigationViewModelFactory)
   {
-    _dbContextFactory = dbContextFactory;
-    SetCommands();
+    NavigationService = navigationService;
+    NavigationViewModelFactory = navigationViewModelFactory;
 
-    PrimaryCoreNavigations = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
-    SecondaryCoreNavigations = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
-
-    IReadOnlyList<IReadOnlyList<INavigation>> MenuItemsSource = [PrimaryCoreNavigations, UserNavigations];
+    HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelFactory.Resolve(n))];
+    UserRootNavigationViewModel = NavigationViewModelFactory.Resolve(NavigationService.UserRootNavigation) as UserCompositeNavigationViewModel;
+    FooterMenuItems = [.. NavigationService.SecondaryCoreNavigations.Select(n => NavigationViewModelFactory.Resolve(n))];
+    IReadOnlyList<IReadOnlyList<NavigationViewModelBase>?> MenuItemsSource = [HeaderMenuItems, UserNavigationViewModels];
     MenuItems.Source = MenuItemsSource;
-    CurrentNavigation = PrimaryCoreNavigations[0];
 
-    _ = BuildNavigationTree();
+    CurrentNavigation = HeaderMenuItems[0];
+
+    SetCommands();
   }
 
   protected override void Dispose(bool disposing)
@@ -48,80 +48,21 @@ internal sealed partial class MainViewModel : DisposableViewModelBase
 
     if (disposing)
     {
-      UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
+
     }
 
     _disposed = true;
   }
+}
 
-  public async Task BuildNavigationTree()
+internal sealed partial class MainViewModel : ViewModelBase
+{
+  public Command<NavigationViewModelBase>? AddListCommand => NavigationService.AddListCommand;
+  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationService.AddGroupCommand;
+  public Command<NavigationUserNode>? ExitUserNodeEditCommand { get; private set; }
+
+  private void SetCommands()
   {
-    await using var context = await _dbContextFactory.CreateDbContextAsync();
-    var entities = context.NavigationEntities.AsEnumerable();
-    var nodes = entities
-      .Select<NavigationEntity, NavigationUserNode>(e => e.IsComposite
-        ? new NavigationUserCompositeNode()
-        {
-          Id = NavigationId.Create(e.Id),
-          Icon = e.Icon,
-          PageType = typeof(HomePage),
-          Title = e.Title,
-          Position = e.Position
-        }
-      : new NavigationUserLeafNode()
-      {
-        Id = NavigationId.Create(e.Id),
-        Icon = e.Icon,
-        PageType = typeof(HomePage),
-        Title = e.Title,
-        Position = e.Position
-      })
-     .ToDictionary(n => n.Id.Value);
-    nodes.Add(UserRootNavigation.Id.Value, UserRootNavigation);
-
-    var families = entities
-      .GroupBy(e => e.Parent)
-      .ToDictionary(g => g.Key, g => new SortedSet<NavigationEntity>(g, Comparer<NavigationEntity>.Create((x, y) => x.Position.CompareTo(y.Position))));
-
-    foreach (var family in families)
-    {
-      if(nodes.TryGetValue(family.Key, out var parent) && parent is NavigationUserCompositeNode compositeNode)
-      {
-        foreach(var childEntity in family.Value)
-        {
-          if (nodes.TryGetValue(childEntity.Id, out var childNode))
-            compositeNode.ChildNodes.Add(childNode);
-        }
-      }
-    }
-
-    foreach (var node in nodes.Values)
-      node.PropertyChanged += UserNode_PropertyChanged;
-  }
-
-  private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
-  {
-    if (s is NavigationUserNode node)
-    {
-      switch (e.PropertyName)
-      {
-        case nameof(NavigationUserNode.Position):
-          await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
-          break;
-        case nameof(NavigationUserNode.Title):
-          await UpdateNavigationEntity(node, entity => entity.Title = node.Title);
-          break;
-      }
-    }
-  }
-
-  private async Task UpdateNavigationEntity(NavigationUserNode node, Action<NavigationEntity> action)
-  {
-    await using var context = await _dbContextFactory.CreateDbContextAsync();
-    if (context.NavigationEntities.FirstOrDefault(e => e.Id == node.Id.Value) is NavigationEntity entity)
-    {
-      action.Invoke(entity);
-      await context.SaveChangesAsync();
-    }
+    ExitUserNodeEditCommand = new(node => node.IsEditable = false);
   }
 }

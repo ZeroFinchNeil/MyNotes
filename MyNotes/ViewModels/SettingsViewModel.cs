@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Windows.Globalization;
 
 using MyNotes.Models;
-using MyNotes.Models.Navigation;
+using MyNotes.Models.Navigations;
 using MyNotes.Resources;
 using MyNotes.Services.Settings;
 

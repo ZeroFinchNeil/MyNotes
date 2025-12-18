@@ -55,11 +55,11 @@ internal partial class Command : ICommand
 internal partial class Command<T> : ICommand
 {
   public Action<T>? ActionToExecute { get; init; }
-  public Func<T?, bool>? CanExecuteFunc { get; init; }
+  public Func<T, bool>? CanExecuteFunc { get; init; }
 
   public Command() { }
 
-  public Command(Action<T> actionToExecute, Func<T?, bool>? canExecuteFunc = null)
+  public Command(Action<T> actionToExecute, Func<T, bool>? canExecuteFunc = null)
   {
     ActionToExecute = actionToExecute;
     CanExecuteFunc = canExecuteFunc;

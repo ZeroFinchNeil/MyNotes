@@ -19,7 +19,7 @@
     <Border Grid.Row="0"
             Padding="24,12">
       <TextBlock x:Name="SettingsPage_TitleTextBlock"
-                 x:Uid="SettingsPage_TitleTextBlock"
+                 x:Uid="/SettingsPage/TitleTextBlock"
                  VerticalAlignment="Center"
                  Style="{StaticResource TitleTextBlockStyle}" />
     </Border>
@@ -31,22 +31,22 @@
                   Spacing="12">
         <!--#region Appearance -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_Appearance_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/Appearance_SubTitleTextBlock"
                      Padding="4"
                      Style="{StaticResource BaseTextBlockStyle}" />
 
           <!-- App Theme -->
-          <controls:SettingsCard x:Uid="SettingsPage_Appearance_ThemeSettingsCard">
+          <controls:SettingsCard x:Uid="/SettingsPage/Appearance_ThemeSettingsCard">
             <controls:SettingsCard.HeaderIcon>
               <ImageIcon Source="/Assets/Icons/FluentUISystem/PaintBrush16Regular.svg" />
             </controls:SettingsCard.HeaderIcon>
             <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay}"
                       MinWidth="160">
-              <ComboBoxItem x:Uid="SettingsPage_Appearance_DefaultThemeComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/Appearance_DefaultThemeComboBoxItem"
                             Tag="Default" />
-              <ComboBoxItem x:Uid="SettingsPage_Appearance_LightThemeComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/Appearance_LightThemeComboBoxItem"
                             Tag="Light" />
-              <ComboBoxItem x:Uid="SettingsPage_Appearance_DarkThemeComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/Appearance_DarkThemeComboBoxItem"
                             Tag="Dark" />
             </ComboBox>
           </controls:SettingsCard>
@@ -54,7 +54,7 @@
           <!-- Language -->
           <StackPanel>
             <controls:SettingsCard x:Name="SettingsPage_Appearance_LanguageSettingsCard"
-                                   x:Uid="SettingsPage_Appearance_LanguageSettingsCard"
+                                   x:Uid="/SettingsPage/Appearance_LanguageSettingsCard"
                                    HeaderIcon="{ui:FontIcon Glyph=&#xF2B7;}">
               <ComboBox ItemsSource="{x:Bind ViewModel.AppLanguages}"
                         SelectedItem="{x:Bind ViewModel.AppLanguage, Mode=TwoWay}"
@@ -74,7 +74,7 @@
               </ComboBox>
             </controls:SettingsCard>
             <InfoBar x:Name="SettingsPage_Appearance_LanguageInfoBar"
-                     x:Uid="SettingsPage_Appearance_LanguageInfoBar"
+                     x:Uid="/SettingsPage/Appearance_LanguageInfoBar"
                      IsOpen="True"
                      Severity="Warning"
                      IsClosable="False"
@@ -84,7 +84,7 @@
                      Canvas.ZIndex="-1">
               <InfoBar.ActionButton>
                 <Button x:Name="SettingsPage_Appearance_RelaunchButton"
-                        x:Uid="SettingsPage_Appearance_RelaunchButton"
+                        x:Uid="/SettingsPage/Appearance_RelaunchButton"
                         HorizontalAlignment="Right"
                         Click="SettingsPage_Appearance_RelaunchButton_Click" />
               </InfoBar.ActionButton>
@@ -111,20 +111,20 @@
 
         <!--#region General -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_General_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/General_SubTitleTextBlock"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
 
           <!-- Startup -->
           <StackPanel>
             <controls:SettingsCard x:Name="SettingsPage_General_StartupSettingsCard"
-                                   x:Uid="SettingsPage_General_StartupSettingsCard"
+                                   x:Uid="/SettingsPage/General_StartupSettingsCard"
                                    HeaderIcon="{ui:FontIcon Glyph=&#xE7B5;}">
               <ToggleSwitch x:Name="SettingsPage_General_StartupToggleSwitch"
                             Toggled="SettingsPage_General_StartupToggleSwitch_Toggled" />
             </controls:SettingsCard>
             <InfoBar x:Name="SettingsPage_General_StartupInfoBar"
-                     x:Uid="SettingsPage_General_StartupInfoBar"
+                     x:Uid="/SettingsPage/General_StartupInfoBar"
                      IsOpen="True"
                      Severity="Warning"
                      IsClosable="False"
@@ -134,7 +134,7 @@
                      Canvas.ZIndex="-1">
               <InfoBar.ActionButton>
                 <Button x:Name="SettingsPage_General_AppStartupButton"
-                        x:Uid="SettingsPage_General_AppStartupButton"
+                        x:Uid="/SettingsPage/General_AppStartupButton"
                         HorizontalAlignment="Right"
                         Click="SettingsPage_General_AppStartupButton_Click" />
               </InfoBar.ActionButton>
@@ -146,20 +146,20 @@
           </StackPanel>
 
           <!-- Initial Page -->
-          <controls:SettingsExpander x:Uid="SettingsPage_General_InitialPageSettingsExpander"
+          <controls:SettingsExpander x:Uid="/SettingsPage/General_InitialPageSettingsExpander"
                                      Header="Initial page"
                                      Description="Initial page"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}"
                                      IsExpanded="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
             <ComboBox SelectedIndex="{x:Bind ViewModel.InitialPageType, Mode=TwoWay}"
                       MinWidth="160">
-              <ComboBoxItem x:Uid="SettingsPage_General_HomePageComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/General_HomePageComboBoxItem"
                             Content="Home page" />
-              <ComboBoxItem x:Uid="SettingsPage_General_BookmarksPageComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/General_BookmarksPageComboBoxItem"
                             Content="Bookmarks page" />
-              <ComboBoxItem x:Uid="SettingsPage_General_LastOpenedPageComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/General_LastOpenedPageComboBoxItem"
                             Content="Last opened page" />
-              <ComboBoxItem x:Uid="SettingsPage_General_SpecificPageComboBoxItem"
+              <ComboBoxItem x:Uid="/SettingsPage/General_SpecificPageComboBoxItem"
                             Content="Specific page" />
             </ComboBox>
 
@@ -191,11 +191,11 @@
 
         <!--#region Note -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_Note_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/Note_SubTitleTextBlock"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
           <!-- Default Note Background -->
-          <controls:SettingsCard x:Uid="SettingsPage_Note_BackgroundSettingsCard"
+          <controls:SettingsCard x:Uid="/SettingsPage/Note_BackgroundSettingsCard"
                                  HeaderIcon="{ui:FontIcon Glyph=&#xE790;}">
             <SplitButton>
               <Border Width="24"
@@ -216,23 +216,23 @@
           </controls:SettingsCard>
 
           <!-- Default Note Backdrop -->
-          <controls:SettingsCard x:Uid="SettingsPage_Note_BackdropSettingsCard"
+          <controls:SettingsCard x:Uid="/SettingsPage/Note_BackdropSettingsCard"
                                  HeaderIcon="{ui:FontIcon Glyph=&#xF4A5;}">
             <ComboBox SelectedIndex="{x:Bind ViewModel.NoteBackdrop, Mode=TwoWay}"
                       MinWidth="160">
-              <ComboBoxItem x:Uid="SettingsPage_Note_BackdropNoneComboBoxItem" />
-              <ComboBoxItem x:Uid="SettingsPage_Note_BackdropAcrylicComboBoxItem" />
-              <ComboBoxItem x:Uid="SettingsPage_Note_BackdropMicaComboBoxItem" />
+              <ComboBoxItem x:Uid="/SettingsPage/Note_BackdropNoneComboBoxItem" />
+              <ComboBoxItem x:Uid="/SettingsPage/Note_BackdropAcrylicComboBoxItem" />
+              <ComboBoxItem x:Uid="/SettingsPage/Note_BackdropMicaComboBoxItem" />
             </ComboBox>
           </controls:SettingsCard>
 
           <!-- Default Note Size -->
-          <controls:SettingsExpander x:Uid="SettingsPage_Note_SizeSettingsExpander"
+          <controls:SettingsExpander x:Uid="/SettingsPage/Note_SizeSettingsExpander"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE9A6;}">
             <TextBlock Text="{x:Bind helpers:StringHelper.SizeToString(ViewModel.NoteWidth, ViewModel.NoteHeight), Mode=OneWay}"
                        Foreground="{ThemeResource TextFillColorSecondary}" />
             <controls:SettingsExpander.Items>
-              <controls:SettingsCard x:Uid="SettingsPage_Note_WidthSettingsCard">
+              <controls:SettingsCard x:Uid="/SettingsPage/Note_WidthSettingsCard">
                 <controls:SettingsCard.HeaderIcon>
                   <ImageIcon Source="/Assets/Icons/FluentUISystem/ArrowBidirectionalLeftRight16Regular.svg" />
                 </controls:SettingsCard.HeaderIcon>
@@ -243,7 +243,7 @@
                            SmallChange="10"
                            Width="160" />
               </controls:SettingsCard>
-              <controls:SettingsCard x:Uid="SettingsPage_Note_HeightSettingsCard">
+              <controls:SettingsCard x:Uid="/SettingsPage/Note_HeightSettingsCard">
                 <controls:SettingsCard.HeaderIcon>
                   <ImageIcon Source="/Assets/Icons/FluentUISystem/ArrowBidirectionalUpDown16Regular.svg" />
                 </controls:SettingsCard.HeaderIcon>
@@ -261,12 +261,12 @@
 
         <!--#region List -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_List_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/List_SubTitleTextBlock"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
 
           <!-- Show Note Count SettingsCard -->
-          <controls:SettingsCard x:Uid="SettingsPage_List_ShowNoteCountSettingsCard">
+          <controls:SettingsCard x:Uid="/SettingsPage/List_ShowNoteCountSettingsCard">
             <controls:SettingsCard.HeaderIcon>
               <ImageIcon Source="/Assets/Icons/FluentUISystem/Document10016Regular.svg" />
             </controls:SettingsCard.HeaderIcon>
@@ -277,7 +277,7 @@
 
         <!--#region Widget -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_Widget_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/Widget_SubTitleTextBlock"
                      Text="Widget"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
@@ -293,7 +293,7 @@
 
         <!--#region About -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="SettingsPage_About_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/About_SubTitleTextBlock"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
           <controls:SettingsExpander Header="MyNotes"

@@ -117,160 +117,103 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="MainWindow_BackButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Back</value>
-  </data>
-  <data name="NavigationBookmarks_Title" xml:space="preserve">
-    <value>Bookmarks</value>
-  </data>
-  <data name="NavigationHome_Title" xml:space="preserve">
-    <value>Home</value>
-  </data>
-  <data name="MainWindow_PaneToggleButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Toggle Navigation</value>
-  </data>
-  <data name="MainWindow_SearchAutoSuggestBox.PlaceholderText" xml:space="preserve">
-    <value>Search Notes.</value>
-  </data>
-  <data name="NavigationSettings_Title" xml:space="preserve">
-    <value>Settings</value>
-  </data>
-  <data name="NavigationTrash_Title" xml:space="preserve">
-    <value>Trash</value>
-  </data>
-  <data name="MainWindow_PaneFooter_EditListsButton.Content" xml:space="preserve">
-    <value>Edit lists</value>
-  </data>
-  <data name="MainWindow_PaneFooter_AddListMunuFlyoutSubItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem.Text" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
-  <data name="MainWindow_PaneFooter_MoveListsMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Move lists</value>
-  </data>
-  <data name="MainWindow_MoveListsApplyButton.Content" xml:space="preserve">
-    <value>Apply</value>
-  </data>
-  <data name="MainWindow_NavigationUserCompositeNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="MainWindow_NavigationUserCompositeNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
-  <data name="MainWindow_NavigationUserCompositeNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="MainWindow_NavigationUserLeafNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="MainWindow_NavigationUserLeafNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
-  <data name="MainWindow_NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="SettingsPage_Appearance_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>Appearence</value>
-  </data>
-  <data name="SettingsPage_Appearance_ThemeSettingsCard.Header" xml:space="preserve">
-    <value>App theme</value>
-  </data>
-  <data name="SettingsPage_Appearance_ThemeSettingsCard.Description" xml:space="preserve">
-    <value>Select which app theme to display.</value>
-  </data>
-  <data name="SettingsPage_Appearance_DefaultThemeComboBoxItem.Content" xml:space="preserve">
-    <value>Use system settings</value>
-  </data>
-  <data name="SettingsPage_Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
-    <value>Light</value>
-  </data>
-  <data name="SettingsPage_Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
-    <value>Dark</value>
-  </data>
-  <data name="SettingsPage_Appearance_LanguageSettingsCard.Header" xml:space="preserve">
-    <value>Language</value>
-  </data>
-  <data name="SettingsPage_Appearance_LanguageSettingsCard.Description" xml:space="preserve">
-    <value>Selects a display language for this app.</value>
-  </data>
-  <data name="Settings_DefaultLanguage" xml:space="preserve">
-    <value>Use system settings</value>
-  </data>
-  <data name="SettingsPage_Appearance_LanguageInfoBar.Message" xml:space="preserve">
-    <value>App need to be relaunced in order to apply your new display language.</value>
-  </data>
-  <data name="SettingsPage_Appearance_RelaunchButton.Content" xml:space="preserve">
-    <value>Relaunch</value>
-  </data>
-  <data name="SettingsPage_General_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>General</value>
-  </data>
-  <data name="SettingsPage_General_StartupSettingsCard.Header" xml:space="preserve">
-    <value>Run app at system startup</value>
-  </data>
-  <data name="SettingsPage_General_StartupSettingsCard.Description" xml:space="preserve">
-    <value>Run app at system startup.</value>
-  </data>
-  <data name="SettingsPage_General_StartupInfoBar.Message" xml:space="preserve">
-    <value>You can change the startup state to [On] in the [Runs at log-in] section of Windows Settings.</value>
-  </data>
-  <data name="SettingsPage_General_StartupInfoBar.Title" xml:space="preserve">
-    <value>Startup task registration is disabled by the user.</value>
-  </data>
-  <data name="SettingsPage_General_AppStartupButton.Content" xml:space="preserve">
-    <value>Go to Windows Settings</value>
-  </data>
-  <data name="SettingsPage_Note_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>Note</value>
-  </data>
-  <data name="SettingsPage_Note_BackgroundSettingsCard.Header" xml:space="preserve">
-    <value>Background</value>
-  </data>
-  <data name="SettingsPage_Note_BackgroundSettingsCard.Description" xml:space="preserve">
-    <value>Change the background color of a new note.</value>
-  </data>
-  <data name="SettingsPage_Note_BackdropSettingsCard.Header" xml:space="preserve">
-    <value>Backdrop material</value>
-  </data>
-  <data name="SettingsPage_Note_BackdropSettingsCard.Description" xml:space="preserve">
-    <value>Change the backdrop material of a new note.</value>
-  </data>
-  <data name="SettingsPage_Note_BackdropNoneComboBoxItem.Content" xml:space="preserve">
-    <value>None</value>
-  </data>
-  <data name="SettingsPage_Note_BackdropAcrylicComboBoxItem.Content" xml:space="preserve">
-    <value>Acrylic</value>
-  </data>
-  <data name="SettingsPage_Note_BackdropMicaComboBoxItem.Content" xml:space="preserve">
-    <value>Mica</value>
-  </data>
-  <data name="SettingsPage_Note_SizeSettingsExpander.Header" xml:space="preserve">
-    <value>Size</value>
-  </data>
-  <data name="SettingsPage_Note_SizeSettingsExpander.Description" xml:space="preserve">
-    <value>Change the size of a new note.</value>
-  </data>
-  <data name="SettingsPage_List_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>List</value>
-  </data>
-  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
-    <value>Show note count</value>
-  </data>
-  <data name="SettingsPage_List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
-    <value>Display the number of notes on the list.</value>
-  </data>
-  <data name="SettingsPage_About_SubTitleTextBlock.Text" xml:space="preserve">
+  <data name="About_SubTitleTextBlock.Text" xml:space="preserve">
     <value>About</value>
   </data>
-  <data name="SettingsPage_Note_WidthSettingsCard.Header" xml:space="preserve">
-    <value>Width</value>
+  <data name="Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
+    <value>Dark</value>
   </data>
-  <data name="SettingsPage_Note_HeightSettingsCard.Header" xml:space="preserve">
+  <data name="Appearance_DefaultThemeComboBoxItem.Content" xml:space="preserve">
+    <value>Use system settings</value>
+  </data>
+  <data name="Appearance_LanguageInfoBar.Message" xml:space="preserve">
+    <value>App need to be relaunced in order to apply your new display language.</value>
+  </data>
+  <data name="Appearance_LanguageSettingsCard.Description" xml:space="preserve">
+    <value>Selects a display language for this app.</value>
+  </data>
+  <data name="Appearance_LanguageSettingsCard.Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
+    <value>Light</value>
+  </data>
+  <data name="Appearance_RelaunchButton.Content" xml:space="preserve">
+    <value>Relaunch</value>
+  </data>
+  <data name="Appearance_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>Appearence</value>
+  </data>
+  <data name="Appearance_ThemeSettingsCard.Description" xml:space="preserve">
+    <value>Select which app theme to display.</value>
+  </data>
+  <data name="Appearance_ThemeSettingsCard.Header" xml:space="preserve">
+    <value>App theme</value>
+  </data>
+  <data name="General_AppStartupButton.Content" xml:space="preserve">
+    <value>Go to Windows Settings</value>
+  </data>
+  <data name="General_StartupInfoBar.Message" xml:space="preserve">
+    <value>You can change the startup state to [On] in the [Runs at log-in] section of Windows Settings.</value>
+  </data>
+  <data name="General_StartupInfoBar.Title" xml:space="preserve">
+    <value>Startup task registration is disabled by the user.</value>
+  </data>
+  <data name="General_StartupSettingsCard.Description" xml:space="preserve">
+    <value>Run app at system startup.</value>
+  </data>
+  <data name="General_StartupSettingsCard.Header" xml:space="preserve">
+    <value>Run app at system startup</value>
+  </data>
+  <data name="General_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
+    <value>Display the number of notes on the list.</value>
+  </data>
+  <data name="List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
+    <value>Show note count</value>
+  </data>
+  <data name="List_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="Note_BackdropAcrylicComboBoxItem.Content" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="Note_BackdropMicaComboBoxItem.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="Note_BackdropNoneComboBoxItem.Content" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="Note_BackdropSettingsCard.Description" xml:space="preserve">
+    <value>Change the backdrop material of a new note.</value>
+  </data>
+  <data name="Note_BackdropSettingsCard.Header" xml:space="preserve">
+    <value>Backdrop material</value>
+  </data>
+  <data name="Note_BackgroundSettingsCard.Description" xml:space="preserve">
+    <value>Change the background color of a new note.</value>
+  </data>
+  <data name="Note_BackgroundSettingsCard.Header" xml:space="preserve">
+    <value>Background</value>
+  </data>
+  <data name="Note_HeightSettingsCard.Header" xml:space="preserve">
     <value>Height</value>
   </data>
-  <data name="SettingsPage_TitleTextBlock.Text" xml:space="preserve">
+  <data name="Note_SizeSettingsExpander.Description" xml:space="preserve">
+    <value>Change the size of a new note.</value>
+  </data>
+  <data name="Note_SizeSettingsExpander.Header" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="Note_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>Note</value>
+  </data>
+  <data name="Note_WidthSettingsCard.Header" xml:space="preserve">
+    <value>Width</value>
+  </data>
+  <data name="TitleTextBlock.Text" xml:space="preserve">
     <value>Settings</value>
   </data>
 </root>
