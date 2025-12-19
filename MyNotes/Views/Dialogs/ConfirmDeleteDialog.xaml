@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="MyNotes.Views.Dialogs.ConfirmDeleteDialog"
+               x:Uid="ConfirmDeleteDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:local="using:MyNotes.Views.Dialogs"
+               Style="{StaticResource DefaultContentDialogStyle}"
+               DefaultButton="Close"
+               PrimaryButtonText="Delete"
+               CloseButtonText="Cancel">
+
+  <ContentDialog.Title>
+    <StackPanel Orientation="Horizontal">
+      <TextBlock Text="Delete " />
+      <TextBlock Text="{x:Bind ViewModel.TargetTypeName}" />
+    </StackPanel>
+  </ContentDialog.Title>
+
+  <TextBlock Text="{x:Bind ViewModel.TargetName}" />
+</ContentDialog>

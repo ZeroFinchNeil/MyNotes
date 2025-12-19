@@ -118,7 +118,7 @@
                       IsSettingsVisible="False"
                       MenuItemsSource="{x:Bind ViewModel.MenuItems.View}"
                       FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                      SelectedItem="{x:Bind ViewModel.CurrentNavigation, Mode=TwoWay}"
+                      SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=OneWay}"
                       SelectionChanged="MainWindow_NavigationView_SelectionChanged"
                       SizeChanged="MainWindow_NavigationView_SizeChanged"
                       AllowDrop="True">
@@ -159,12 +159,18 @@
                   <NavigationViewItem.ContextFlyout>
                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_AddListMenuFlyoutItem"
-                                      Icon="Add" />
+                                      Icon="Add"
+                                      Command="{x:Bind ShowAddListDialogCommand}"
+                                      CommandParameter="{x:Bind}" />
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_AddGroupMenuFlyoutItem"
-                                      Icon="Add" />
+                                      Icon="Add"
+                                      Command="{x:Bind ShowAddGroupDialogCommand}"
+                                      CommandParameter="{x:Bind}" />
                       <MenuFlyoutSeparator />
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_DeleteMenuFlyoutItem"
-                                      Icon="Delete" />
+                                      Icon="Delete"
+                                      Command="{x:Bind ShowConfirmDeleteDialogCommand}"
+                                      CommandParameter="{x:Bind}" />
                     </MenuFlyout>
                   </NavigationViewItem.ContextFlyout>
                 </NavigationViewItem>
@@ -183,13 +189,17 @@
                     <MenuFlyout>
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_AddListMenuFlyoutItem"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddNavigationDialogCommand}" 
+                                      Command="{x:Bind ShowAddListDialogCommand}" 
                                       CommandParameter="{x:Bind}"/>
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_AddGroupMenuFlyoutItem"
-                                      Icon="Add" />
+                                      Icon="Add"
+                                      Command="{x:Bind ShowAddGroupDialogCommand}"
+                                      CommandParameter="{x:Bind}" />
                       <MenuFlyoutSeparator />
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_DeleteMenuFlyoutItem"
-                                      Icon="Delete" />
+                                      Icon="Delete" 
+                                      Command="{x:Bind ShowConfirmDeleteDialogCommand}"
+                                      CommandParameter="{x:Bind}"/>
                     </MenuFlyout>
                   </NavigationViewItem.ContextFlyout>
                 </NavigationViewItem>

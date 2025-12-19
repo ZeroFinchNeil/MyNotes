@@ -51,17 +51,6 @@ public partial class App : Application
     services.AddSingleton<MainViewModel>();
     services.AddSingleton<SettingsViewModel>();
 
-    // ViewModelFactory
-    //services.AddKeyedTransient<DialogViewModelBase, SetUserNavigationDialogViewModel>(DialogViewModelType.SetNode);
-    //services.AddSingleton<DialogViewModelFactory>(sp => new()
-    //{
-    //  ResolveMap = new Dictionary<DialogViewModelType, Func<DialogViewModelBase>>()
-    //    {
-    //      { DialogViewModelType.SetNode, () => sp.GetRequiredKeyedService<DialogViewModelBase>(DialogViewModelType.SetNode) },
-
-    //    }
-    //});
-
     services.AddSingleton<NavigationViewModelFactory>();
     services.AddSingleton<DialogViewModelFactory>();
 

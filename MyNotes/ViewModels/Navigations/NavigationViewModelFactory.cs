@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Runtime.CompilerServices;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 
@@ -8,12 +10,21 @@ internal sealed partial class NavigationViewModelFactory(IServiceProvider servic
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  public NavigationViewModelBase Resolve(INavigation navigation) => navigation switch
+  public Dictionary<INavigation, WeakReference<NavigationViewModelBase>> ResolvedViewModels { get; } = new();
+
+  public NavigationViewModelBase Resolve(INavigation navigation)
   {
-    NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
-    NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(ServiceProvider, navigation),
-    NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(ServiceProvider, navigation),
-    NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(ServiceProvider, navigation),
-    _ => throw new ArgumentException("Invalid navigation")
-  };
+    NavigationViewModelBase viewModel = navigation switch
+    {
+      NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
+      NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(ServiceProvider, navigation),
+      _ => throw new ArgumentException("Invalid navigation")
+    };
+
+    ResolvedViewModels[navigation] = new WeakReference<NavigationViewModelBase>(viewModel);
+    
+    return viewModel;
+  }
 }

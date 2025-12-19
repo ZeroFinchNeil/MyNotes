@@ -9,11 +9,11 @@ namespace MyNotes.Helpers;
 
 internal static class IconHelper
 {
-  public static Uri GetMainUri(string icon) => new Uri($"ms-appx:///Assets/Icons/Main/{icon}");
+  public static Uri GetMainUri(short icon) => new Uri($"ms-appx:///Assets/Icons/Main/{icon}");
 
   private static readonly float PrimaryIconScale = 1.0f;
   private static readonly float BadgeIconScale = 0.5f;
-  public static async Task<BitmapImage> GetIconImage(string icon, string badge, bool showBadge)
+  public static async Task<BitmapImage> GetIconImage(short icon, short badge, bool showBadge)
   {
     var iconUri = GetMainUri(icon);
 

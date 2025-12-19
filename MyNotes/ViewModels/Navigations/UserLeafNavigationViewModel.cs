@@ -1,6 +1,5 @@
 ﻿using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Dialog;
 using MyNotes.Services.Navigation;
 
 namespace MyNotes.ViewModels.Navigations;
@@ -19,5 +18,7 @@ internal sealed partial class UserLeafNavigationViewModel : NavigationViewModelB
     NavigationService = navigationService;
   }
 
-  public Command<NavigationViewModelBase>? ShowAddNavigationDialogCommand => NavigationService.ShowAddNavigationDialogCommand;
+  public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
+  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
+  public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand => NavigationService.ShowConfirmDeleteDialogCommand;
 }

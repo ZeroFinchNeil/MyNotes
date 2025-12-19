@@ -212,11 +212,11 @@ internal sealed partial class MainWindow : Window
 
   private void MainWindow_BackButton_Click(object sender, RoutedEventArgs e)
   {
-    if (MainWindow_NavigationFrame.CanGoBack && _navigationBackStack.Count > 0)
+    if (MainWindow_NavigationFrame.CanGoBack)
     {
       _preventNavigation = true;
       MainWindow_NavigationFrame.GoBack();
-      ViewModel.CurrentNavigation = _navigationBackStack.Pop();
+      ViewModel.NavigationService.PopNavigationBackStack();
       _preventNavigation = false;
     }
   }
@@ -226,40 +226,19 @@ internal sealed partial class MainWindow : Window
     MainWindow_NavigationView.IsPaneOpen = !MainWindow_NavigationView.IsPaneOpen;
   }
 
-  private readonly Stack<NavigationViewModelBase> _navigationBackStack = new();
-
   private bool _preventNavigation = false;
 
   private void MainWindow_NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
   {
+    Console.WriteLine("{0}: {1}", "Selected Item", ((args.SelectedItem as NavigationViewModelBase)?.Navigation as INavigationNode)?.Title);
     if (_preventNavigation)
       return;
 
-    switch (args.SelectedItem)
+    if(args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
-      case CoreNavigationViewModel coreNode:
-        MainWindow_NavigationFrame.Navigate(coreNode.Navigation.PageType);
-        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-        if (ViewModel.CurrentNavigation is not null)
-          _navigationBackStack.Push(ViewModel.CurrentNavigation);
-        ViewModel.CurrentNavigation = coreNode;
-        break;
-      case UserCompositeNavigationViewModel compositeNode:
-        MainWindow_NavigationFrame.Navigate(compositeNode.Navigation.PageType);
-        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-        if (ViewModel.CurrentNavigation is not null)
-          _navigationBackStack.Push(ViewModel.CurrentNavigation);
-        ViewModel.CurrentNavigation = compositeNode;
-        (MainWindow_NavigationView.ContainerFromMenuItem(compositeNode) as NavigationViewItem)?.IsSelected = true;
-        break;
-      case UserLeafNavigationViewModel leafNode:
-        MainWindow_NavigationFrame.Navigate(leafNode.Navigation.PageType);
-        ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-        if (ViewModel.CurrentNavigation is not null)
-          _navigationBackStack.Push(ViewModel.CurrentNavigation);
-        ViewModel.CurrentNavigation = leafNode;
-        (MainWindow_NavigationView.ContainerFromMenuItem(leafNode) as NavigationViewItem)?.IsSelected = true;
-        break;
+      MainWindow_NavigationFrame.Navigate(navigation.PageType);
+      ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+      ViewModel.NavigationService.PushNavigationBackStack(navigation);
     }
   }
 
@@ -310,11 +289,6 @@ internal sealed partial class MainWindow : Window
       ElementTheme.Dark => TitleBarTheme.Dark,
       _ => TitleBarTheme.UseDefaultAppMode
     };
-  }
-
-  private void TreeViewItem_Drop(object sender, DragEventArgs e)
-  {
-    e.Handled = true;
   }
 }
 

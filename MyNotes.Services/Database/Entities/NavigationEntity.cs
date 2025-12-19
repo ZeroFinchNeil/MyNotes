@@ -11,7 +11,7 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public required string Title { get; set; }
 
-  public required string Icon { get; set; }
+  public required short Icon { get; set; }
 
   public required Guid Parent { get; set; }
 
@@ -23,7 +23,11 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public required bool IsDeleted { get; set; }
 
-  private static string ToStringValue(string name, object value) => string.Format("{0,12} | {1}", name, value.ToString());
+  public Guid? RestorePrevious { get; set; }
+
+  public Guid? RestoreNext { get; set; }
+
+  private static string ToStringValue(string name, object? value) => string.Format("{0,12} | {1}", name, value?.ToString() ?? "Null");
   public override string ToString()
   {
     StringBuilder sb = new();
@@ -35,6 +39,8 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
     sb.AppendLine(ToStringValue(nameof(IsComposite), IsComposite));
     sb.AppendLine(ToStringValue(nameof(IsExpanded), IsExpanded));
     sb.AppendLine(ToStringValue(nameof(IsDeleted), IsDeleted));
+    sb.AppendLine(ToStringValue(nameof(RestorePrevious), RestorePrevious));
+    sb.AppendLine(ToStringValue(nameof(RestoreNext), RestoreNext));
     return sb.ToString();
   }
 

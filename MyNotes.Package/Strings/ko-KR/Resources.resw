@@ -129,6 +129,12 @@
   <data name="NavigationTrash_Title" xml:space="preserve">
     <value>휴지통</value>
   </data>
+  <data name="NavigationUserCompositeNode_DisplayName" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="NavigationUserLeafNode_DisplayName" xml:space="preserve">
+    <value>목록</value>
+  </data>
   <data name="Settings_DefaultLanguage" xml:space="preserve">
     <value>시스템 설정</value>
   </data>

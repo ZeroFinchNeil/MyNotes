@@ -13,6 +13,7 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\ResourceDictionary.xaml" />
+    <None Remove="Views\Dialogs\ConfirmDeleteDialog.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AppIcon.ico" />
@@ -51,6 +52,12 @@
     <Compile Update="ViewModels\MainViewModel.*.cs">
       <DependentUpon>ViewModels\MainViewModel.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Dialogs\ConfirmDeleteDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

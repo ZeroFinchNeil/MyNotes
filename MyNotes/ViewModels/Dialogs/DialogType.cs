@@ -2,5 +2,6 @@
 
 internal enum DialogType
 {
-  SetNode
+  SetNode,
+  ConfirmDelete
 }

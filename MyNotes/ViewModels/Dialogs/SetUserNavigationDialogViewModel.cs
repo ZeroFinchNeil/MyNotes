@@ -7,25 +7,26 @@ namespace MyNotes.ViewModels.Dialogs;
 
 internal sealed partial class SetUserNavigationDialogViewModel : DialogViewModelBase
 {
-  private readonly NavigationService NavigationService;
-
   public NavigationUserNode Target { get; }
+  public bool IsCompositeNode { get; }
 
-  public Task<NavigationUserNode>? Result { get; private set; }
+  public (Icon Icon, string Title)? Result { get; private set; }
 
-  public SetUserNavigationDialogViewModel(NavigationService navigationService, NavigationUserNode targetNavigation)
+  public SetUserNavigationDialogViewModel(NavigationUserNode targetNavigation, bool isCompositeNode)
   {
     Target = targetNavigation;
+    IsCompositeNode = isCompositeNode;
+    _icon = isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
 
-    NavigationService = navigationService;
     SetCommands();
   }
 
-  public Icon? Icon
+  private Icon _icon;
+  public Icon Icon
   {
-    get;
-    set => SetProperty(ref field, value);
-  } = Templates.Icon.System_Board;
+    get => _icon;
+    set => SetProperty(ref _icon, value);
+  }
 
   public string Title
   {
@@ -46,31 +47,8 @@ internal sealed partial class SetUserNavigationDialogViewModel : DialogViewModel
     AddNodeCommand = new(
       actionToExecute: async () =>
       {
-        Result = NavigationService.AddUserNode(navigation: Target, isCompositeNode: Target is NavigationUserCompositeNode, iconName: Icon, title: Title);
+        Result = (Icon, Title);
       }
     );
   }
 }
-
-//internal class OperationContext<TRequest, TResponse>
-//{
-//  public required TRequest Request { get; init; }
-//  public Func<Task<TResponse>>? Operation { get; private set; }
-//  public TaskCompletionSource<TResponse> TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-//  public Task<TResponse> Response => TaskCompletionSource.Task;
-//  public OperationState State { get; private set; } = OperationState.Empty;
-
-//  public void SetOperation(Func<Task<TResponse>> operation)
-//  {
-//    Operation = operation;
-//    TaskCompletionSource.Task
-//  }
-//}
-
-//internal enum OperationState
-//{
-//  Empty,
-//  Ready,
-//  Running,
-//  Completed
-//}

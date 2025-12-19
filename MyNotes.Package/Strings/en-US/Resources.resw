@@ -129,6 +129,12 @@
   <data name="NavigationTrash_Title" xml:space="preserve">
     <value>Trash</value>
   </data>
+  <data name="NavigationUserCompositeNode_DisplayName" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="NavigationUserLeafNode_DisplayName" xml:space="preserve">
+    <value>List</value>
+  </data>
   <data name="Settings_DefaultLanguage" xml:space="preserve">
     <value>Use system settings</value>
   </data>

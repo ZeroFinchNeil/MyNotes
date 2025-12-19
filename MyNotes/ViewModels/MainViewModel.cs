@@ -7,7 +7,7 @@ namespace MyNotes.ViewModels;
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  private readonly NavigationService NavigationService;
+  public NavigationService NavigationService { get; }
   private readonly NavigationViewModelFactory NavigationViewModelFactory;
 
   public CollectionViewSource MenuItems { get; private set; } = new() { IsSourceGrouped = true };
@@ -15,14 +15,15 @@ internal sealed partial class MainViewModel : ViewModelBase
   public UserCompositeNavigationViewModel? UserRootNavigationViewModel { get; }
   public IReadOnlyList<NavigationViewModelBase>? UserNavigationViewModels => UserRootNavigationViewModel?.ChildNodeViewModels;
   public IReadOnlyList<NavigationViewModelBase>? FooterMenuItems { get; }
-  //public IReadOnlyList<INavigation> FooterMenuItems2 => NavigationService.SecondaryCoreNavigations;
-  //public NavigationUserRootNode UserRootNavigation2 => NavigationService.UserRootNavigation;
-  //public IReadOnlyList<INavigationUserNode> UserNavigations2 => NavigationService.UserRootNavigation.ChildNodes;
 
-  public NavigationViewModelBase? CurrentNavigation
+  public NavigationViewModelBase? CurrentNavigationViewModel
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      SetProperty(ref field, value);
+      Console.WriteLine("{0}: {1}", "Navigation VM Changed", (CurrentNavigationViewModel?.Navigation as INavigationNode)?.Title);
+    }
   }
 
   public MainViewModel(NavigationService navigationService, NavigationViewModelFactory navigationViewModelFactory)
@@ -36,9 +37,17 @@ internal sealed partial class MainViewModel : ViewModelBase
     IReadOnlyList<IReadOnlyList<NavigationViewModelBase>?> MenuItemsSource = [HeaderMenuItems, UserNavigationViewModels];
     MenuItems.Source = MenuItemsSource;
 
-    CurrentNavigation = HeaderMenuItems[0];
+    CurrentNavigationViewModel = HeaderMenuItems[0];
 
+    NavigationService.CurrentNavigationChanged += NavigationService_CurrentNavigationChanged;
     SetCommands();
+  }
+
+  private void NavigationService_CurrentNavigationChanged(object sender, INavigation args)
+  {
+    if (NavigationViewModelFactory.ResolvedViewModels.TryGetValue(args, out var wr)
+      && wr.TryGetTarget(out var vm))
+      CurrentNavigationViewModel = vm;
   }
 
   protected override void Dispose(bool disposing)
@@ -48,7 +57,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     if (disposing)
     {
-
+      NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
     }
 
     _disposed = true;

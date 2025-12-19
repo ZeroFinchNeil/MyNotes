@@ -8,6 +8,7 @@ using MyNotes.Services.Dialog;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Navigations;
+using MyNotes.Models;
 
 namespace MyNotes.Services.Navigation;
 
@@ -20,13 +21,33 @@ internal sealed partial class NavigationService : IDisposable
   public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
   public ImmutableList<INavigation> SecondaryCoreNavigations { get; } = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
 
+  public INavigation? CurrentNavigation { get; private set; }
+  public Stack<INavigation> NavigationBackStack { get; } = new();
+
+  public event TypedEventHandler<object, INavigation>? CurrentNavigationChanged;
+
   public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory, DialogService dialogService)
   {
     DbContextFactory = dbContextFactory;
     DialogService = dialogService;
 
     BuildNavigationTask = BuildNavigationTree();
+    CurrentNavigation = PrimaryCoreNavigations[0];
+
     SetCommands();
+
+    CurrentNavigationChanged += (s, e) => Console.WriteLine("{0}: {1}", "Current Navigation", (CurrentNavigation as INavigationNode)?.Title);
+  }
+
+  private bool _disposed;
+  public void Dispose()
+  {
+    if (_disposed)
+      return;
+
+    UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
+
+    _disposed = true;
   }
 
   public Task BuildNavigationTask { get; }
@@ -54,6 +75,9 @@ internal sealed partial class NavigationService : IDisposable
         Position = e.Position
       })
      .ToDictionary(n => n.Id.Value);
+
+    HashSet<NavigationEntity> omissions = [.. entities];
+
     nodes.Add(UserRootNavigation.Id.Value, UserRootNavigation);
 
     var families = entities
@@ -67,13 +91,28 @@ internal sealed partial class NavigationService : IDisposable
         foreach (var childEntity in family.Value)
         {
           if (nodes.TryGetValue(childEntity.Id, out var childNode))
-            compositeNode.ChildNodes.Add(childNode);
+          {
+            if(!childEntity.IsDeleted)
+              compositeNode.ChildNodes.Add(childNode);
+            omissions.Remove(childEntity);
+          }
         }
       }
     }
 
     foreach (var node in nodes.Values)
       node.PropertyChanged += UserNode_PropertyChanged;
+
+    foreach (var omission in omissions)
+    {
+      if (nodes.TryGetValue(omission.Parent, out var parentNode)
+        && parentNode is NavigationUserCompositeNode compositeNode
+        && nodes.TryGetValue(omission.Id, out var childNode))
+      {
+        int position = Math.Clamp(omission.Position, 0, compositeNode.ChildNodes.Count);
+        compositeNode.ChildNodes.Insert(position, childNode);
+      }
+    }
   }
 
   private async Task UpdateNavigationEntity(NavigationUserNode node, Action<NavigationEntity> action)
@@ -86,9 +125,53 @@ internal sealed partial class NavigationService : IDisposable
     }
   }
 
-  public async Task<NavigationUserNode> AddUserNode(INavigationNode? navigation, bool isCompositeNode, Icon? iconName = null, string? title = null)
+  private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
   {
-    NavigationUserNode? node = navigation switch
+    if (s is NavigationUserNode node)
+    {
+      switch (e.PropertyName)
+      {
+        case nameof(NavigationUserNode.Position):
+          await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
+          break;
+        case nameof(NavigationUserNode.Title):
+          await UpdateNavigationEntity(node, entity => entity.Title = node.Title);
+          break;
+        case nameof(NavigationUserCompositeNode.IsExpanded):
+          if (node is NavigationUserCompositeNode compositeNode)
+            await UpdateNavigationEntity(compositeNode, entity => entity.IsExpanded = compositeNode.IsExpanded);
+          break;
+      }
+    }
+  }
+
+  private void ChangeCurrentNavigation(INavigation navigation)
+  {
+    CurrentNavigation = navigation;
+    CurrentNavigationChanged?.Invoke(this, navigation);
+  }
+
+  public void PushNavigationBackStack(INavigation navigation)
+  {
+    if (CurrentNavigation is not null)
+      NavigationBackStack.Push(CurrentNavigation);
+    ChangeCurrentNavigation(navigation);
+  }
+
+  public void PopNavigationBackStack()
+  {
+    if (NavigationBackStack.Count > 0)
+    {
+      ChangeCurrentNavigation(NavigationBackStack.Pop());
+    }
+  }
+}
+
+internal sealed partial class NavigationService : IDisposable
+{
+  private async Task<NavigationUserNode> AddUserNode(INavigationNode? targetNode, bool isCompositeNode, Icon? iconName = null, string? title = null)
+  {
+    NavigationUserNode? node = targetNode switch
     {
       NavigationUserLeafNode leaf => leaf,
       NavigationUserCompositeNode composite => composite.ChildNodes.LastOrDefault(),
@@ -102,7 +185,7 @@ internal sealed partial class NavigationService : IDisposable
       ? new NavigationUserCompositeNode()
       {
         Id = NavigationId.NewId(),
-        Icon = ((short)iconName).ToString(),
+        Icon = (short)iconName,
         Title = title,
         PageType = typeof(HomePage),
         Position = int.MaxValue,
@@ -111,7 +194,7 @@ internal sealed partial class NavigationService : IDisposable
       : new NavigationUserLeafNode()
       {
         Id = NavigationId.NewId(),
-        Icon = ((short)iconName).ToString(),
+        Icon = (short)iconName,
         Title = title,
         PageType = typeof(HomePage),
         Position = int.MaxValue
@@ -126,7 +209,7 @@ internal sealed partial class NavigationService : IDisposable
     }
     else
     {
-      parentNode = navigation switch
+      parentNode = targetNode switch
       {
         NavigationUserCompositeNode composite => composite,
         NavigationUserLeafNode leaf => leaf.FindParentNode() ?? UserRootNavigation,
@@ -162,37 +245,24 @@ internal sealed partial class NavigationService : IDisposable
     return newNode;
   }
 
-  private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
+  private async Task DeleteUserNode(NavigationUserNode node, DeleteMode deleteMode)
   {
-    if (s is NavigationUserNode node)
+    if(deleteMode == DeleteMode.Permanent)
     {
-      switch (e.PropertyName)
-      {
-        case nameof(NavigationUserNode.Position):
-          await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
-          break;
-        case nameof(NavigationUserNode.Title):
-          await UpdateNavigationEntity(node, entity => entity.Title = node.Title);
-          break;
-        case nameof(NavigationUserCompositeNode.IsExpanded):
-          if (node is NavigationUserCompositeNode compositeNode)
-            await UpdateNavigationEntity(compositeNode, entity => entity.IsExpanded = compositeNode.IsExpanded);
-          break;
-      }
+
     }
-  }
-
-
-
-  private bool _disposed;
-  public void Dispose()
-  {
-    if (_disposed)
-      return;
-
-    UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
-
-    _disposed = true;
+    else if(deleteMode == DeleteMode.MoveToTrash)
+    {
+      node.TryFindRelations(out var parentNode, out var previousNode, out var nextNode);
+      await UpdateNavigationEntity(node, entity => 
+      {
+        entity.RestorePrevious = previousNode?.Id.Value;
+        entity.RestoreNext = nextNode?.Id.Value;
+        entity.IsDeleted = true;
+      });
+      node.PropertyChanged -= UserNode_PropertyChanged;
+      parentNode?.ChildNodes.Remove(node);
+    }
   }
 }
 
@@ -200,7 +270,9 @@ internal sealed partial class NavigationService : IDisposable
 {
   public Command<NavigationViewModelBase>? AddListCommand { get; private set; }
   public Command<NavigationViewModelBase>? AddGroupCommand { get; private set; }
-  public Command<NavigationViewModelBase>? ShowAddNavigationDialogCommand { get; private set; }
+  public Command<NavigationViewModelBase>? ShowAddListDialogCommand { get; private set; }
+  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand { get; private set; }
+  public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand { get; private set; }
 
   private void SetCommands()
   {
@@ -208,7 +280,9 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (vm) =>
       {
         if (vm.Navigation is INavigationNode navigation)
-          await AddUserNode(navigation, false);
+        {
+          ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: false));
+        }
       },
       canExecuteFunc: vm => vm.Navigation is INavigationUserNode
     );
@@ -217,22 +291,56 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (vm) =>
       {
         if (vm.Navigation is INavigationNode navigation)
-          await AddUserNode(navigation, true);
+          ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: true));
       },
       canExecuteFunc: vm => vm.Navigation is INavigationUserNode
     );
 
-    ShowAddNavigationDialogCommand = new(
-     actionToExecute: async (vm) =>
-     {
-       if (vm.Navigation is NavigationUserNode navigation
-           && App.Instance.MainWindow?.Content.XamlRoot is XamlRoot xamlRoot)
-       {
-         var result = await DialogService.ShowAddNodeDialogAsync(xamlRoot, navigation);
-         //if (result.ContentDialogResult == ContentDialogResult.Primary && result.AddedNavigation is NavigationUserNode addedNode)
-        //  ViewModel.CurrentNavigation = addedNode;
-       }
-     }
-   );
+    ShowAddListDialogCommand = new(
+      actionToExecute: async (vm) =>
+      {
+        if (vm.Navigation is NavigationUserNode navigation
+            && App.Instance.MainWindow?.Content.XamlRoot is XamlRoot xamlRoot)
+        {
+          var result = await DialogService.ShowAddNodeDialogAsync(xamlRoot, navigation, false);
+          if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
+            ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: false, iconName: v.Icon, title: v.Title));
+        }
+      }
+    );
+
+    ShowAddGroupDialogCommand = new(
+      actionToExecute: async (vm) =>
+      {
+        if (vm.Navigation is NavigationUserNode navigation
+            && App.Instance.MainWindow?.Content.XamlRoot is XamlRoot xamlRoot)
+        {
+          var result = await DialogService.ShowAddNodeDialogAsync(xamlRoot, navigation, true);
+          if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
+            ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: true, iconName: v.Icon, title: v.Title));
+        }
+      }
+    );
+
+    ShowConfirmDeleteDialogCommand = new(
+      actionToExecute: async (vm) =>
+      {
+        if (vm.Navigation is NavigationUserNode navigation
+            && App.Instance.MainWindow?.Content.XamlRoot is XamlRoot xamlRoot)
+        {
+          var targetTypeName = navigation switch
+          {
+            NavigationUserLeafNode => "List",
+            NavigationUserCompositeNode => "Group",
+            _ => string.Empty
+          };
+          var deleteMode = DeleteMode.MoveToTrash;
+          if (await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetTypeName, navigation.Title, deleteMode) == ContentDialogResult.Primary)
+          {
+            await DeleteUserNode(navigation, deleteMode);
+          }
+        }
+      }
+    );
   }
 }

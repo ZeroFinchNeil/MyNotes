@@ -10,7 +10,7 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
 {
   public required NavigationId Id { get; init; }
 
-  public required string Icon
+  public required short Icon
   {
     get;
     set
@@ -56,7 +56,7 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
   public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
   public override int GetHashCode() => Id.GetHashCode();
 
-  private async Task ChangeIconImage(string icon) => IconImage = await IconHelper.GetIconImage(icon, ((short)Templates.Icon.Emoji_OpenFileFolder).ToString(), this is NavigationUserCompositeNode);
+  private async Task ChangeIconImage(short icon) => IconImage = await IconHelper.GetIconImage(icon, (short)Templates.Icon.Emoji_OpenFileFolder, this is NavigationUserCompositeNode);
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {
@@ -161,7 +161,7 @@ internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
   public static NavigationUserRootNode Instance => field ??= new()
   {
     Id = NavigationId.UserRootNode,
-    Icon = string.Empty,
+    Icon = (short)Templates.Icon.System_Notebook,
     Title = string.Empty,
     PageType = typeof(Page),
     Position = 0
