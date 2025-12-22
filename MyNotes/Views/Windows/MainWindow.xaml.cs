@@ -69,8 +69,16 @@ internal sealed partial class MainWindow : Window
       button.LayoutUpdated += MainWindow_BackButton_LayoutUpdated;
     });
 
-    // 창 활성화 변경 시
+    // 창 활성화 및 크기 변경 시
     this.Activated += MainWindow_Activated;
+    //AppWindow.Changed += AppWindow_Changed;
+
+    // 창 종료 시 (AppWindow는 hWnd 기준, Window는 XAML 기준)
+    // ├─ AppWindow.Closing          // 취소 가능, UI 상태 신뢰 가능
+    // ├─ XAML Window.Closed         // 시각 요소/논리 요소 정리
+    // └─ Win32 DestroyWindow        // 내부 Win32 창 파괴
+    //    └─ AppWindow.Destroying    // 창이 제거된 직후
+    AppWindow.Closing += AppWindow_Closing;
     this.Closed += MainWindow_Closed;
     AppWindow.Destroying += AppWindow_Destroying;
 
@@ -79,7 +87,7 @@ internal sealed partial class MainWindow : Window
     if (windowSize.Width < minimumWindowSize.Width && windowSize.Height < minimumWindowSize.Height)
       windowSize = SettingsDescriptors.MainWindowSize.DefaultValue;
 
-    AppWindow.ResizeClient(new((int)(windowSize.Width * scaleFactor), (int)(windowSize.Height * scaleFactor)));
+    AppWindow.Resize(new((int)(windowSize.Width * scaleFactor), (int)(windowSize.Height * scaleFactor)));
 
     // 창 초기 위치 지정
     var windowPosition = SettingsService.Load<Point>(SettingsDescriptors.MainWindowPosition.Key);
@@ -105,16 +113,24 @@ internal sealed partial class MainWindow : Window
     RegisterMessengers();
   }
 
-  private void AppWindow_Destroying(AppWindow sender, object args)
+  private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+  {
+
+  }
+
+  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
   {
     // 창 크기 저장
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
-    SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(AppWindow.ClientSize.Width / scaleFactor, AppWindow.ClientSize.Height / scaleFactor));
+    SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(AppWindow.Size.Width / scaleFactor, AppWindow.Size.Height / scaleFactor));
 
     // 창 위치 및 디스플레이 저장
     SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(AppWindow.Position.X, AppWindow.Position.Y));
     SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+  }
 
+  private void AppWindow_Destroying(AppWindow sender, object args)
+  {
     // CanGoBackProperty에 등록한 콜백 해제
     MainWindow_BackButton.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, BackButtonVisibilityPropertyChangedToken);
   }
@@ -234,7 +250,7 @@ internal sealed partial class MainWindow : Window
     if (_preventNavigation)
       return;
 
-    if(args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
+    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
       MainWindow_NavigationFrame.Navigate(navigation.PageType);
       ViewModel.ShowAddListDialogCommand?.RaiseCanExecuteChanged();
