@@ -40,7 +40,6 @@ internal sealed partial class SettingsPage : Page
   private bool _preventToggleChanging = false;
   private async Task CheckStartupState()
   {
-    Console.WriteLine("Tick");
     _preventToggleChanging = true;
 
     bool state = await ViewModel.GetStartupTaskState();

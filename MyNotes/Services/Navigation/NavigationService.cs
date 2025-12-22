@@ -134,7 +134,6 @@ internal sealed partial class NavigationService : IDisposable
 
   private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
   {
-    Console.WriteLine("{0}: {1}", "Property Changed", e.PropertyName);
     if (s is NavigationUserNode node)
     {
       switch (e.PropertyName)
@@ -180,7 +179,7 @@ internal sealed partial class NavigationService : IDisposable
 
 internal sealed partial class NavigationService : IDisposable
 {
-  private async Task<NavigationUserNode> AddUserNode(INavigationNode? targetNode, bool isCompositeNode, Icon? iconName = null, string? title = null)
+  private async Task<NavigationUserNode> AddUserNode(INavigationNode? targetNode, bool isCompositeNode, Icon iconName, string title)
   {
     NavigationUserNode? beforeNode = targetNode switch
     {
@@ -188,9 +187,6 @@ internal sealed partial class NavigationService : IDisposable
       NavigationUserCompositeNode composite => composite.ChildNodes.LastOrDefault(),
       _ => UserRootNavigation.ChildNodes.LastOrDefault()
     };
-
-    iconName ??= isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
-    title ??= isCompositeNode ? "Composite " + new Random().Next(10000) : "Leaf " + new Random().Next(10000);
 
     NavigationUserCompositeNode parentNode = beforeNode is null
       ? targetNode switch
@@ -272,8 +268,6 @@ internal sealed partial class NavigationService : IDisposable
 
 internal sealed partial class NavigationService : IDisposable
 {
-  public Command<NavigationViewModelBase>? AddListCommand { get; private set; }
-  public Command<NavigationViewModelBase>? AddGroupCommand { get; private set; }
   public Command<NavigationViewModelBase>? ShowAddListDialogCommand { get; private set; }
   public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand { get; private set; }
   public Command<NavigationViewModelBase>? ShowUpdateDialogCommand { get; private set; }
@@ -281,26 +275,6 @@ internal sealed partial class NavigationService : IDisposable
 
   private void SetCommands()
   {
-    AddListCommand = new(
-      actionToExecute: async (vm) =>
-      {
-        if (vm.Navigation is INavigationNode navigation)
-        {
-          ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: false));
-        }
-      },
-      canExecuteFunc: vm => vm.Navigation is INavigationUserNode
-    );
-
-    AddGroupCommand = new(
-      actionToExecute: async (vm) =>
-      {
-        if (vm.Navigation is INavigationNode navigation)
-          ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: true));
-      },
-      canExecuteFunc: vm => vm.Navigation is INavigationUserNode
-    );
-
     ShowAddListDialogCommand = new(
       actionToExecute: async (vm) =>
       {

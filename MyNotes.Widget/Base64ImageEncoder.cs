@@ -16,7 +16,6 @@ public static class Base64ImageEncoder
     sb.Append("""</svg>""");
 
     var base64String = Convert.ToBase64String(Encoding.UTF8.GetBytes(sb.ToString()));
-    Console.WriteLine(sb.ToString());
     return $"data:image/svg+xml;base64,{base64String}";
   }
 }

@@ -153,8 +153,6 @@ internal sealed class NavigationUserNodeCollection : ObservableCollection<Naviga
       }
     }
 
-    Console.WriteLine("{0}: {1}", "index", index);
-    Console.WriteLine("{0}: {1}", "title", item.Title);
     base.InsertItem(index, item);
   }
 }
