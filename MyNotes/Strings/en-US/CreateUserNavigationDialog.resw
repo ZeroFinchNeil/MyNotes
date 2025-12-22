@@ -117,46 +117,16 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="BackButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Back</value>
+  <data name="ContentDialog.PrimaryButtonText" xml:space="preserve">
+    <value>Add</value>
   </data>
-  <data name="MoveListsApplyButton.Content" xml:space="preserve">
-    <value>Apply</value>
+  <data name="ContentDialog.CloseButtonText" xml:space="preserve">
+    <value>Close</value>
   </data>
-  <data name="NavigationUserCompositeNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a group</value>
+  <data name="ContentDialog_TitleText" xml:space="preserve">
+    <value>Add a {0}</value>
   </data>
-  <data name="NavigationUserCompositeNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="NavigationUserCompositeNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="NavigationUserLeafNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
-  <data name="NavigationUserLeafNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Delete</value>
-  </data>
-  <data name="PaneFooter_AddGroupMunuFlyoutSubItem.Text" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
-  <data name="PaneFooter_AddListMunuFlyoutSubItem.Text" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
-  <data name="PaneFooter_EditListsButton.Content" xml:space="preserve">
-    <value>Edit lists</value>
-  </data>
-  <data name="PaneFooter_MoveListsMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Move lists</value>
-  </data>
-  <data name="PaneToggleButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>Toggle Navigation</value>
-  </data>
-  <data name="SearchAutoSuggestBox.PlaceholderText" xml:space="preserve">
-    <value>Search Notes.</value>
+  <data name="SubTitleTextBlock_Text" xml:space="preserve">
+    <value>Add a {0} to "{1}".</value>
   </data>
 </root>

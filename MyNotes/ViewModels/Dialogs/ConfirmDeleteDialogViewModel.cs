@@ -1,4 +1,4 @@
-﻿using MyNotes.Models;
+﻿using MyNotes.Models.Modes;
 
 namespace MyNotes.ViewModels.Dialogs;
 

@@ -74,5 +74,6 @@ internal sealed partial class UserCompositeNavigationViewModel : NavigationViewM
 
   public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
   public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
+  public Command<NavigationViewModelBase>? ShowUpdateDialogCommand => NavigationService.ShowUpdateDialogCommand;
   public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand => NavigationService.ShowConfirmDeleteDialogCommand;
 }

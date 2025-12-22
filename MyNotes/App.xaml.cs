@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Models.Navigations;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialog;
 using MyNotes.Services.Navigation;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Window;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
@@ -18,8 +18,6 @@ public partial class App : Application
 {
   internal static App Instance => (App)Current;
   internal static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
-
-  public Window? MainWindow { get; private set; }
 
   internal App()
   {
@@ -35,10 +33,10 @@ public partial class App : Application
   {
     NativeMethods.SetConsole();
 
-    MainWindow = new Views.Windows.MainWindow();
-    MainWindow.Activate();
-
-    MainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
+    var windowService = Services.GetRequiredService<WindowService>();
+    var mainWindow = windowService.MainWindow;
+    mainWindow.Activate();
+    mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
   }
 
   internal ServiceProvider Services { get; } = ConfigureServices();
@@ -58,6 +56,7 @@ public partial class App : Application
     services.AddSingleton<DialogService>();
     services.AddSingleton<NavigationService>();
     services.AddSingleton<SettingsService>();
+    services.AddSingleton<WindowService>();
 
     // DbContext
     services.AddSingleton<AppDbContextTaskDispatcher>();

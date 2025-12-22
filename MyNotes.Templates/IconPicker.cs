@@ -233,7 +233,7 @@ public sealed partial class IconPicker : Control
     if (stream is not null)
     {
       BitmapImage bitmapImage = width > 0 && height > 0
-        ? new() { DecodePixelWidth = width, DecodePixelHeight = height }
+        ? new() { DecodePixelWidth = width, DecodePixelHeight = height, DecodePixelType = DecodePixelType.Logical }
         : new();
 
       using (MemoryStream memoryStream = new())

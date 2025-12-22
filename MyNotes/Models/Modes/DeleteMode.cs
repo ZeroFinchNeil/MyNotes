@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Models;
+﻿namespace MyNotes.Models.Modes;
 
 internal enum DeleteMode
 {

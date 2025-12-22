@@ -158,19 +158,32 @@
 
                   <NavigationViewItem.ContextFlyout>
                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_AddListMenuFlyoutItem"
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
+                                      Icon="Rename"
+                                      Command="{x:Bind ShowUpdateDialogCommand}"
+                                      CommandParameter="{x:Bind}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                          <KeyboardAccelerator Key="F2" />
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                      </MenuFlyoutItem>
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddListMenuFlyoutItem"
                                       Icon="Add"
                                       Command="{x:Bind ShowAddListDialogCommand}"
                                       CommandParameter="{x:Bind}" />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_AddGroupMenuFlyoutItem"
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddGroupMenuFlyoutItem"
                                       Icon="Add"
                                       Command="{x:Bind ShowAddGroupDialogCommand}"
                                       CommandParameter="{x:Bind}" />
                       <MenuFlyoutSeparator />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserCompositeNode_DeleteMenuFlyoutItem"
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_DeleteMenuFlyoutItem"
                                       Icon="Delete"
+                                      Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"
                                       Command="{x:Bind ShowConfirmDeleteDialogCommand}"
-                                      CommandParameter="{x:Bind}" />
+                                      CommandParameter="{x:Bind}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                          <KeyboardAccelerator Key="Delete" />
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                      </MenuFlyoutItem>
                     </MenuFlyout>
                   </NavigationViewItem.ContextFlyout>
                 </NavigationViewItem>
@@ -187,19 +200,32 @@
 
                   <NavigationViewItem.ContextFlyout>
                     <MenuFlyout>
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_AddListMenuFlyoutItem"
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
+                                      Icon="Rename"
+                                      Command="{x:Bind ShowUpdateDialogCommand}"
+                                      CommandParameter="{x:Bind}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                          <KeyboardAccelerator Key="F2" />
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                      </MenuFlyoutItem>
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddListMenuFlyoutItem"
                                       Icon="Add"
                                       Command="{x:Bind ShowAddListDialogCommand}" 
                                       CommandParameter="{x:Bind}"/>
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_AddGroupMenuFlyoutItem"
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddGroupMenuFlyoutItem"
                                       Icon="Add"
                                       Command="{x:Bind ShowAddGroupDialogCommand}"
                                       CommandParameter="{x:Bind}" />
                       <MenuFlyoutSeparator />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserLeafNode_DeleteMenuFlyoutItem"
-                                      Icon="Delete" 
+                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_DeleteMenuFlyoutItem"
+                                      Icon="Delete"
+                                      Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"
                                       Command="{x:Bind ShowConfirmDeleteDialogCommand}"
-                                      CommandParameter="{x:Bind}"/>
+                                      CommandParameter="{x:Bind}">
+                        <MenuFlyoutItem.KeyboardAccelerators>
+                          <KeyboardAccelerator Key="Delete" />
+                        </MenuFlyoutItem.KeyboardAccelerators>
+                      </MenuFlyoutItem>
                     </MenuFlyout>
                   </NavigationViewItem.ContextFlyout>
                 </NavigationViewItem>
@@ -224,10 +250,10 @@
                                    MinWidth="200"
                                    Height="40">
                   <MenuFlyoutItem Text="to root"
-                                  Command="{x:Bind ViewModel.AddListCommand}"
+                                  Command="{x:Bind ViewModel.ShowAddListDialogCommand}"
                                   CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
                   <MenuFlyoutItem Text="at selected position"
-                                  Command="{x:Bind ViewModel.AddListCommand}"
+                                  Command="{x:Bind ViewModel.ShowAddListDialogCommand}"
                                   CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"
@@ -236,10 +262,10 @@
                                    MinWidth="200"
                                    Height="40">
                   <MenuFlyoutItem Text="to root"
-                                  Command="{x:Bind ViewModel.AddGroupCommand}"
+                                  Command="{x:Bind ViewModel.ShowAddGroupDialogCommand}"
                                   CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
                   <MenuFlyoutItem Text="at selected position"
-                                  Command="{x:Bind ViewModel.AddGroupCommand}"
+                                  Command="{x:Bind ViewModel.ShowAddGroupDialogCommand}"
                                   CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSeparator />

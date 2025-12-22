@@ -66,8 +66,8 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationViewModelBase>? AddListCommand => NavigationService.AddListCommand;
-  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationService.AddGroupCommand;
+  public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
+  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
   public Command<NavigationUserNode>? ExitUserNodeEditCommand { get; private set; }
 
   private void SetCommands()

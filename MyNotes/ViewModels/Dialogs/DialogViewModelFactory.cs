@@ -8,7 +8,7 @@ internal sealed partial class DialogViewModelFactory(IServiceProvider servicePro
 
   public DialogViewModelBase Resolve(DialogType dialogType, params object[] parameters) => dialogType switch
   {
-    DialogType.SetNode => ActivatorUtilities.CreateInstance<SetUserNavigationDialogViewModel>(ServiceProvider, parameters),
+    DialogType.SetNode => ActivatorUtilities.CreateInstance<EditUserNavigationDialogViewModel>(ServiceProvider, parameters),
     DialogType.ConfirmDelete => ActivatorUtilities.CreateInstance<ConfirmDeleteDialogViewModel>(ServiceProvider, parameters),
     _ => throw new ArgumentException("Invalid DialogType")
   };

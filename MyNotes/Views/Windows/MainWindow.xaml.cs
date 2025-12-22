@@ -237,7 +237,8 @@ internal sealed partial class MainWindow : Window
     if(args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
       MainWindow_NavigationFrame.Navigate(navigation.PageType);
-      ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+      ViewModel.ShowAddListDialogCommand?.RaiseCanExecuteChanged();
+      ViewModel.ShowAddGroupDialogCommand?.RaiseCanExecuteChanged();
       ViewModel.NavigationService.PushNavigationBackStack(navigation);
     }
   }

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Models;
+using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigation;
 using MyNotes.Templates;
@@ -19,11 +19,17 @@ internal sealed partial class DialogService
     ViewModelFactory = viewModelFactory;
   }
 
-  public async Task<(ContentDialogResult ContentDialogResult, (Icon Icon, string Title)? Value)> ShowAddNodeDialogAsync(XamlRoot xamlRoot, NavigationUserNode targetNode, bool isCompositeNode)
+  public async Task<(ContentDialogResult ContentDialogResult, (Icon Icon, string Title)? Value)> ShowEditUserNavigationDialogAsync(XamlRoot xamlRoot, NavigationUserNode targetNavigation, EditMode editMode, bool isCompositeNode)
   {
-    if (ViewModelFactory.Resolve(DialogType.SetNode, targetNode, isCompositeNode) is SetUserNavigationDialogViewModel viewModel)
+    if (ViewModelFactory.Resolve(DialogType.SetNode, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewModel)
     {
-      var dialog = new AddUserNavigationDialog(viewModel) { XamlRoot = xamlRoot };
+      ContentDialog dialog = editMode switch
+      {
+        EditMode.Create => new CreateUserNavigationDialog(viewModel),
+        EditMode.Update => new UpdateUserNavigationDialog(viewModel),
+        _ => throw new ArgumentException("Invalid edit mode")
+      };
+      dialog.XamlRoot = xamlRoot;
       var dialogResult = await dialog.ShowAsync();
       return (dialogResult, viewModel.Result);
     }

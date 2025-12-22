@@ -123,23 +123,17 @@
   <data name="MoveListsApplyButton.Content" xml:space="preserve">
     <value>적용</value>
   </data>
-  <data name="NavigationUserCompositeNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
+  <data name="NavigationUserNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
     <value>그룹 추가</value>
   </data>
-  <data name="NavigationUserCompositeNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
+  <data name="NavigationUserNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
     <value>목록 추가</value>
   </data>
-  <data name="NavigationUserCompositeNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
+  <data name="NavigationUserNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>삭제</value>
   </data>
-  <data name="NavigationUserLeafNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
-    <value>그룹 추가</value>
-  </data>
-  <data name="NavigationUserLeafNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
-    <value>목록 추가</value>
-  </data>
-  <data name="NavigationUserLeafNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>삭제</value>
+  <data name="NavigationUserNode_UpdateMenuFlyoutItem.Text" xml:space="preserve">
+    <value>이름과 아이콘 변경</value>
   </data>
   <data name="PaneFooter_AddGroupMunuFlyoutSubItem.Text" xml:space="preserve">
     <value>그룹 추가</value>

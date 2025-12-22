@@ -32,7 +32,7 @@ internal sealed record AppLanguage
     {
       Language = string.Empty;
       DisplayName = string.Empty;
-      NativeName = LocalizedStrings.SettingsDefaultLanguage;
+      NativeName = LocalizedStrings.AppLanguageUseSystem;
     }
   }
 

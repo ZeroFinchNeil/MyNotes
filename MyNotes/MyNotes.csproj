@@ -11,10 +11,7 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup>
-    <None Remove="Resources\ResourceDictionary.xaml" />
-    <None Remove="Views\Dialogs\ConfirmDeleteDialog.xaml" />
-  </ItemGroup>
+  
   <ItemGroup>
     <Content Include="AppIcon.ico" />
   </ItemGroup>
@@ -34,10 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Views\Notes\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
     <ProjectReference Include="..\MyNotes.Services\MyNotes.Services.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
@@ -52,24 +45,6 @@
     <Compile Update="ViewModels\MainViewModel.*.cs">
       <DependentUpon>ViewModels\MainViewModel.cs</DependentUpon>
     </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Dialogs\ConfirmDeleteDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Resources\ResourceDictionary.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Dialogs\AddUserNavigationDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   
   <!-- Publish Properties -->

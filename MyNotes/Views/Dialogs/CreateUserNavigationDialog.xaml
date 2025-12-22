@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog x:Class="MyNotes.Views.Dialogs.CreateUserNavigationDialog"
+               x:Name="CreateUserNavigationDialog_ContentDialog"
+               x:Uid="/CreateUserNavigationDialog/ContentDialog"
+               xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+               xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               xmlns:local="using:MyNotes.Views.Dialogs"
+               xmlns:templates="using:MyNotes.Templates"
+               xmlns:helpers="using:MyNotes.Helpers"
+               Style="{StaticResource DefaultContentDialogStyle}"
+               DefaultButton="Primary"
+               IsPrimaryButtonEnabled="{x:Bind helpers:StringHelper.IsFilled(ViewModel.Title), Mode=OneWay}"
+               PrimaryButtonCommand="{x:Bind ViewModel.PrimaryButtonCommand}">
+
+  <StackPanel Spacing="8">
+    <TextBlock x:Name="CreateUserNavigationDialog_SubtitleTextBlock" />
+
+    <Grid ColumnSpacing="6">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+
+      <templates:SubtleIconButton x:Uid="IconPickerButton">
+        <templates:SubtleIconButton.Icon>
+          <ImageIcon Source="{x:Bind CreateUserNodeDialog_IconPicker.IconImage, Mode=OneWay, FallbackValue='System_Board'}" />
+        </templates:SubtleIconButton.Icon>
+        <templates:SubtleIconButton.Flyout>
+          <Flyout Placement="Bottom">
+            <templates:IconPicker x:Name="CreateUserNodeDialog_IconPicker"
+                                  Icon="{x:Bind ViewModel.Icon, Mode=TwoWay}"
+                                  DecodePixelWidth="40"
+                                  DecodePixelHeight="40" />
+          </Flyout>
+        </templates:SubtleIconButton.Flyout>
+      </templates:SubtleIconButton>
+
+      <TextBox Text="{x:Bind ViewModel.Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+               VerticalAlignment="Center"
+               Grid.Column="1" />
+    </Grid>
+  </StackPanel>
+</ContentDialog>
