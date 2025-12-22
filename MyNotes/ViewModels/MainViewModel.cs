@@ -22,7 +22,6 @@ internal sealed partial class MainViewModel : ViewModelBase
     set
     {
       SetProperty(ref field, value);
-      Console.WriteLine("{0}: {1}", "Navigation VM Changed", (CurrentNavigationViewModel?.Navigation as INavigationNode)?.Title);
     }
   }
 

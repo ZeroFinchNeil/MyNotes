@@ -4,7 +4,4 @@ internal static class MessageTokens
 {
   // SettingsViewModel -> MainWindow
   public static readonly string ChangeAppTheme = "ChangeAppTheme";
-
-  // MainViewModel -> MainWindow
-  public static readonly string ChangeUserNodeFocustState = "ChangeUserNodeFocustState";
 }

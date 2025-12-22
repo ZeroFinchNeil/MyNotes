@@ -1,12 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using CommunityToolkit.WinUI;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Common.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Resources;
 using MyNotes.Services.Database;
@@ -14,7 +12,6 @@ using MyNotes.Services.Dialog;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
-using MyNotes.Views.Dialogs;
 
 using Windows.ApplicationModel.DataTransfer;
 
@@ -246,7 +243,6 @@ internal sealed partial class MainWindow : Window
 
   private void MainWindow_NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
   {
-    Console.WriteLine("{0}: {1}", "Selected Item", ((args.SelectedItem as NavigationViewModelBase)?.Navigation as INavigationNode)?.Title);
     if (_preventNavigation)
       return;
 
@@ -257,28 +253,6 @@ internal sealed partial class MainWindow : Window
       ViewModel.ShowAddGroupDialogCommand?.RaiseCanExecuteChanged();
       ViewModel.NavigationService.PushNavigationBackStack(navigation);
     }
-  }
-
-  private void NavigationViewItem_DragOver(object sender, DragEventArgs e)
-  {
-    e.AcceptedOperation = DataPackageOperation.Move;
-  }
-
-  private async void NavigationViewItem_Drop(object sender, DragEventArgs e)
-  {
-    Debug.WriteLine(string.Join(", ", e.DataView.AvailableFormats));
-    if (await e.DataView.GetDataAsync($"{App.PackageFamilyName}.NavigationUserNode.Id") is string id)
-    {
-      if (MainWindow_NavigationView.MenuItemFromContainer(sender as UIElement) is NavigationUserNode node)
-      {
-        if (NavigationUserNode.FindUserNode(n => n.Id.Value == Guid.Parse(id)) is NavigationUserNode sourceNode &&
-          NavigationUserNode.FindUserNode(n => n.Id == node.Id) is NavigationUserNode targetNode)
-        {
-        }
-      }
-    }
-
-    e.Handled = true;
   }
 
   private void MainWindow_NavigationView_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -307,6 +281,62 @@ internal sealed partial class MainWindow : Window
       _ => TitleBarTheme.UseDefaultAppMode
     };
   }
+
+  private NavigationViewModelBase? _sourceNavigationViewModel;
+  private void DraggableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
+  {
+    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
+    {
+      _sourceNavigationViewModel = sourceViewModel;
+      args.Data.SetData($"{App.PackageFamilyName}.NavigationUserNode.Id", sourceNavigation.Id.Value.ToString());
+    }
+  }
+
+  private async void DraggableNavigationViewItem_Drop(object sender, DragEventArgs e)
+  {
+    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } targetViewModel } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    {
+      if (sourceNavigation == targetNavigation)
+        return;
+      var sourceParentNavigation = sourceNavigation.Parent;
+      switch (targetNavigation)
+      {
+        case NavigationUserLeafNode targetLeafNavigation:
+          var targetParentNavigation = targetLeafNavigation.Parent;
+          int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
+          if (sourceParentNavigation == targetParentNavigation)
+          {
+            int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
+            targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
+          }
+          else
+          {
+            sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+            targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+          }
+          break;
+        case NavigationUserCompositeNode targetCompositeNavigation:
+          if (sourceParentNavigation != targetCompositeNavigation)
+          {
+            sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+            targetCompositeNavigation.ChildNodes.Insert(targetCompositeNavigation.ChildNodes.Count, sourceNavigation);
+          }
+          break;
+      }
+    }
+    //Console.WriteLine(string.Join(", ", e.DataView.AvailableFormats));
+
+    e.Handled = true;
+  }
+
+  private async void DraggableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  {
+    if (await e.DataView.GetDataAsync($"{App.PackageFamilyName}.NavigationUserNode.Id") is string id)
+    {
+      e.AcceptedOperation = DataPackageOperation.Move;
+    }
+    e.Handled = true;
+  }
 }
 
 internal sealed partial class MainWindow : Window
@@ -314,22 +344,6 @@ internal sealed partial class MainWindow : Window
   private void RegisterMessengers()
   {
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, string>(this, MessageTokens.ChangeAppTheme, new((recipient, message) => SetAppTheme(message.Value)));
-    WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NavigationUserNode, bool>, string>(this, MessageTokens.ChangeUserNodeFocustState, new((recipient, message) =>
-    {
-      var container = MainWindow_NavigationView.ContainerFromMenuItem(message.Request);
-      Console.WriteLine("container type: " + container?.GetType());
-      var textbox = container?.FindDescendant(typeof(Grid))?.FindDescendant(typeof(TextBox)) as TextBox;
-      Console.WriteLine("first type: " + container?.FindDescendant(typeof(Grid))?.GetType());
-      Console.WriteLine("second type: " + container?.FindDescendant(typeof(Grid))?.FindDescendant(typeof(TextBox))?.GetType());
-      if (textbox is not null)
-      {
-        message.Reply(textbox.Focus(FocusState.Programmatic));
-      }
-      else
-      {
-        message.Reply(false);
-      }
-    }));
   }
 
   private void UnregisterMessengers()

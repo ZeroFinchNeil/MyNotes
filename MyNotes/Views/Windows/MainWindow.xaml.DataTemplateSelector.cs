@@ -38,3 +38,19 @@ internal sealed partial class MainWindowTreeViewDataTemplateSelector : DataTempl
     };
   }
 }
+
+//internal sealed partial class MainWindowTreeViewDataTemplateSelector : DataTemplateSelector
+//{
+//  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
+//  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
+
+//  protected override DataTemplate? SelectTemplateCore(object item)
+//  {
+//    return item switch
+//    {
+//      UserCompositeNavigationViewModel => NavigationUserCompositeNodeTemplate,
+//      UserLeafNavigationViewModel => NavigationUserLeafNodeTemplate,
+//      _ => null
+//    };
+//  }
+//}

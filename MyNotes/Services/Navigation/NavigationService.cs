@@ -38,8 +38,6 @@ internal sealed partial class NavigationService : IDisposable
     CurrentNavigation = PrimaryCoreNavigations[0];
 
     SetCommands();
-
-    CurrentNavigationChanged += (s, e) => Console.WriteLine("{0}: {1}", "Current Navigation", (CurrentNavigation as INavigationNode)?.Title);
   }
 
   private bool _disposed;
@@ -63,6 +61,7 @@ internal sealed partial class NavigationService : IDisposable
         ? new NavigationUserCompositeNode()
         {
           Id = NavigationId.Create(e.Id),
+          Parent = null!,
           Icon = e.Icon,
           PageType = typeof(HomePage),
           Title = e.Title,
@@ -72,6 +71,7 @@ internal sealed partial class NavigationService : IDisposable
       : new NavigationUserLeafNode()
       {
         Id = NavigationId.Create(e.Id),
+        Parent = null!,
         Icon = e.Icon,
         PageType = typeof(HomePage),
         Title = e.Title,
@@ -110,10 +110,14 @@ internal sealed partial class NavigationService : IDisposable
     {
       if (nodes.TryGetValue(omission.Parent, out var parentNode)
         && parentNode is NavigationUserCompositeNode compositeNode
-        && nodes.TryGetValue(omission.Id, out var childNode))
+        && nodes.TryGetValue(omission.Id, out var omitNode))
       {
-        int position = Math.Clamp(omission.Position, 0, compositeNode.ChildNodes.Count);
-        compositeNode.ChildNodes.Insert(position, childNode);
+        var childNodes = compositeNode.ChildNodes;
+        var pivot = childNodes.FirstOrDefault(n => n.Position > omitNode.Position);
+        int index = pivot is null
+          ? childNodes.Count == 0 || omitNode.Position <= childNodes[0].Position ? 0 : childNodes.Count
+          : childNodes.IndexOf(pivot);
+        compositeNode.ChildNodes.Insert(index, omitNode);
       }
     }
   }
@@ -130,10 +134,14 @@ internal sealed partial class NavigationService : IDisposable
 
   private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
   {
+    Console.WriteLine("{0}: {1}", "Property Changed", e.PropertyName);
     if (s is NavigationUserNode node)
     {
       switch (e.PropertyName)
       {
+        case nameof(NavigationUserNode.Parent):
+          await UpdateNavigationEntity(node, entity => entity.Parent = node.Parent.Id.Value);
+          break;
         case nameof(NavigationUserNode.Position):
           await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
           break;
@@ -174,7 +182,7 @@ internal sealed partial class NavigationService : IDisposable
 {
   private async Task<NavigationUserNode> AddUserNode(INavigationNode? targetNode, bool isCompositeNode, Icon? iconName = null, string? title = null)
   {
-    NavigationUserNode? node = targetNode switch
+    NavigationUserNode? beforeNode = targetNode switch
     {
       NavigationUserLeafNode leaf => leaf,
       NavigationUserCompositeNode composite => composite.ChildNodes.LastOrDefault(),
@@ -184,10 +192,20 @@ internal sealed partial class NavigationService : IDisposable
     iconName ??= isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
     title ??= isCompositeNode ? "Composite " + new Random().Next(10000) : "Leaf " + new Random().Next(10000);
 
+    NavigationUserCompositeNode parentNode = beforeNode is null
+      ? targetNode switch
+      {
+        NavigationUserLeafNode leaf => leaf.Parent,
+        NavigationUserCompositeNode composite => composite,
+        _ => UserRootNavigation
+      }
+      : beforeNode.Parent;
+
     NavigationUserNode newNode = isCompositeNode
       ? new NavigationUserCompositeNode()
       {
         Id = NavigationId.NewId(),
+        Parent = parentNode,
         Icon = (short)iconName,
         Title = title,
         PageType = typeof(HomePage),
@@ -197,38 +215,22 @@ internal sealed partial class NavigationService : IDisposable
       : new NavigationUserLeafNode()
       {
         Id = NavigationId.NewId(),
+        Parent = parentNode,
         Icon = (short)iconName,
         Title = title,
         PageType = typeof(HomePage),
         Position = int.MaxValue
       };
 
-    NavigationUserCompositeNode? parentNode = node?.FindParentNode();
-
-    if (node is not null && parentNode is not null)
-    {
-      int index = parentNode.ChildNodes.IndexOf(node);
-      parentNode.ChildNodes.Insert(index + 1, newNode);
-    }
-    else
-    {
-      parentNode = targetNode switch
-      {
-        NavigationUserCompositeNode composite => composite,
-        NavigationUserLeafNode leaf => leaf.FindParentNode() ?? UserRootNavigation,
-        _ => UserRootNavigation
-      };
-
-      newNode.Position = parentNode.ChildNodes.Count > 0 ? parentNode.ChildNodes[^1].Position + 1 : 0;
-      parentNode.ChildNodes.Add(newNode);
-    }
+    int index = beforeNode is null ? parentNode.ChildNodes.Count : parentNode.ChildNodes.IndexOf(beforeNode) + 1;
+    parentNode.ChildNodes.Insert(index, newNode);
 
     NavigationEntity entity = new()
     {
       Id = newNode.Id.Value,
       Title = newNode.Title,
       Icon = newNode.Icon,
-      Parent = parentNode.Id.Value,
+      Parent = newNode.Parent.Id.Value,
       Position = newNode.Position,
       IsComposite = isCompositeNode,
       IsExpanded = isCompositeNode,
@@ -256,15 +258,14 @@ internal sealed partial class NavigationService : IDisposable
     }
     else if (deleteMode == DeleteMode.MoveToTrash)
     {
-      node.TryFindRelations(out var parentNode, out var previousNode, out var nextNode);
       await UpdateNavigationEntity(node, entity =>
       {
-        entity.RestorePrevious = previousNode?.Id.Value;
-        entity.RestoreNext = nextNode?.Id.Value;
+        entity.RestorePrevious = node.FindPreviousNode()?.Id.Value;
+        entity.RestoreNext = node.FindNextNode()?.Id.Value;
         entity.IsDeleted = true;
       });
       node.PropertyChanged -= UserNode_PropertyChanged;
-      parentNode?.ChildNodes.Remove(node);
+      node.Parent.ChildNodes.Remove(node);
     }
   }
 }

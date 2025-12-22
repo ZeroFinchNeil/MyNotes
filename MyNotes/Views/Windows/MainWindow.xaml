@@ -149,14 +149,20 @@
             <!-- 사용자 그룹 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
               <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
-                <NavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                    MenuItemsSource="{x:Bind ChildNodeViewModels}"
-                                    IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}">
-                  <NavigationViewItem.Icon>
+                <templates:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                       MenuItemsSource="{x:Bind ChildNodeViewModels}"
+                                                       IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
+                                                       DataContext="{x:Bind}"
+                                                       CanDrag="True"
+                                                       AllowDrop="True"
+                                                       DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                       DragOver="DraggableNavigationViewItem_DragOver"
+                                                       Drop="DraggableNavigationViewItem_Drop">
+                  <templates:DraggableNavigationViewItem.Icon>
                     <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                  </NavigationViewItem.Icon>
+                  </templates:DraggableNavigationViewItem.Icon>
 
-                  <NavigationViewItem.ContextFlyout>
+                  <templates:DraggableNavigationViewItem.ContextFlyout>
                     <MenuFlyout Placement="BottomEdgeAlignedLeft">
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
                                       Icon="Rename"
@@ -185,20 +191,26 @@
                         </MenuFlyoutItem.KeyboardAccelerators>
                       </MenuFlyoutItem>
                     </MenuFlyout>
-                  </NavigationViewItem.ContextFlyout>
-                </NavigationViewItem>
+                  </templates:DraggableNavigationViewItem.ContextFlyout>
+                </templates:DraggableNavigationViewItem>
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
 
             <!-- 사용자 목록 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
               <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
-                <NavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}">
-                  <NavigationViewItem.Icon>
+                <templates:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                       DataContext="{x:Bind}"
+                                                       CanDrag="True"
+                                                       AllowDrop="True"
+                                                       DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                       DragOver="DraggableNavigationViewItem_DragOver"
+                                                       Drop="DraggableNavigationViewItem_Drop">
+                  <templates:DraggableNavigationViewItem.Icon>
                     <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                  </NavigationViewItem.Icon>
+                  </templates:DraggableNavigationViewItem.Icon>
 
-                  <NavigationViewItem.ContextFlyout>
+                  <templates:DraggableNavigationViewItem.ContextFlyout>
                     <MenuFlyout>
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
                                       Icon="Rename"
@@ -210,8 +222,8 @@
                       </MenuFlyoutItem>
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddListMenuFlyoutItem"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddListDialogCommand}" 
-                                      CommandParameter="{x:Bind}"/>
+                                      Command="{x:Bind ShowAddListDialogCommand}"
+                                      CommandParameter="{x:Bind}" />
                       <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddGroupMenuFlyoutItem"
                                       Icon="Add"
                                       Command="{x:Bind ShowAddGroupDialogCommand}"
@@ -227,8 +239,8 @@
                         </MenuFlyoutItem.KeyboardAccelerators>
                       </MenuFlyoutItem>
                     </MenuFlyout>
-                  </NavigationViewItem.ContextFlyout>
-                </NavigationViewItem>
+                  </templates:DraggableNavigationViewItem.ContextFlyout>
+                </templates:DraggableNavigationViewItem>
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
           </local:MainWindowNavigationViewDataTemplateSelector>
@@ -320,14 +332,18 @@
               <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
-            <!--<TreeView ItemsSource="{x:Bind ViewModel.UserNavigations}"
-                      SelectionMode="None">
+            <TreeView ItemsSource="{x:Bind ViewModel.NavigationService.UserRootNavigation.ChildNodes}"
+                      SelectionMode="None"
+                      CanReorderItems="False"
+                      xmlns:navigations="using:MyNotes.Models.Navigations">
               <TreeView.ItemTemplateSelector>
                 <local:MainWindowTreeViewDataTemplateSelector>
                   <local:MainWindowTreeViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
                     <DataTemplate x:DataType="navigations:NavigationUserCompositeNode">
                       <TreeViewItem ItemsSource="{x:Bind ChildNodes}"
-                                    IsExpanded="True">
+                                    IsExpanded="{x:Bind IsExpanded}"
+                                    Height="40"
+                                    Style="{StaticResource AppTreeViewItemStyle}">
                         <Grid>
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40" />
@@ -337,13 +353,7 @@
                           <Viewbox Grid.Column="0"
                                    Height="16"
                                    Width="16">
-                            <ImageIcon>
-                              <ImageIcon.Source>
-                                <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetMainUri(Icon), Mode=OneWay}"
-                                             DecodePixelWidth="40"
-                                             DecodePixelHeight="40" />
-                              </ImageIcon.Source>
-                            </ImageIcon>
+                            <ImageIcon Source="{x:Bind IconImage}" />
                           </Viewbox>
 
                           <TextBlock Grid.Column="1"
@@ -355,7 +365,12 @@
 
                   <local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
                     <DataTemplate x:DataType="navigations:NavigationUserLeafNode">
-                      <TreeViewItem Drop="TreeViewItem_Drop">
+                      <TreeViewItem IsExpanded="False"
+                                    ItemsSource="{x:Null}"
+                                    Height="40"
+                                    Style="{StaticResource AppTreeViewItemStyle}"
+                                    CanDrag="True"
+                                    AllowDrop="True">
                         <Grid>
                           <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="40" />
@@ -365,17 +380,63 @@
                           <Viewbox Grid.Column="0"
                                    Height="16"
                                    Width="16">
-                            <ImageIcon>
-                              <ImageIcon.Source>
-                                <BitmapImage UriSource="{x:Bind helpers:IconHelper.GetMainUri(Icon), Mode=OneWay}"
-                                             DecodePixelWidth="40"
-                                             DecodePixelHeight="40" />
-                              </ImageIcon.Source>
-                            </ImageIcon>
+                            <ImageIcon Source="{x:Bind IconImage}" />
                           </Viewbox>
 
                           <TextBlock Grid.Column="1"
                                      Text="{x:Bind Title}" />
+                        </Grid>
+                      </TreeViewItem>
+                    </DataTemplate>
+                  </local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+                </local:MainWindowTreeViewDataTemplateSelector>
+              </TreeView.ItemTemplateSelector>
+            </TreeView>
+
+            <!--<TreeView ItemsSource="{x:Bind ViewModel.UserNavigationViewModels}"
+                      SelectionMode="None">
+              <TreeView.ItemTemplateSelector>
+                <local:MainWindowTreeViewDataTemplateSelector>
+                  <local:MainWindowTreeViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+                    <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
+                      <TreeViewItem ItemsSource="{x:Bind ChildNodeViewModels}"
+                                    IsExpanded="{x:Bind Navigation.IsExpanded}">
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition />
+                          </Grid.ColumnDefinitions>
+
+                          <Viewbox Grid.Column="0"
+                                   Height="16"
+                                   Width="16">
+                            <ImageIcon Source="{x:Bind Navigation.IconImage}" />
+                          </Viewbox>
+
+                          <TextBlock Grid.Column="1"
+                                     Text="{x:Bind Navigation.Title}" />
+                        </Grid>
+                      </TreeViewItem>
+                    </DataTemplate>
+                  </local:MainWindowTreeViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+
+                  <local:MainWindowTreeViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+                    <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
+                      <TreeViewItem IsExpanded="False">
+                        <Grid>
+                          <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="40" />
+                            <ColumnDefinition />
+                          </Grid.ColumnDefinitions>
+
+                          <Viewbox Grid.Column="0"
+                                   Height="16"
+                                   Width="16">
+                            <ImageIcon Source="{x:Bind Navigation.IconImage}" />
+                          </Viewbox>
+
+                          <TextBlock Grid.Column="1"
+                                     Text="{x:Bind Navigation.Title}" />
                         </Grid>
                       </TreeViewItem>
                     </DataTemplate>

@@ -365,3 +365,4 @@ FodyWeavers.xsd
 # Windows System File
 desktop.ini
 Thumbs.db
+/favorites.json
