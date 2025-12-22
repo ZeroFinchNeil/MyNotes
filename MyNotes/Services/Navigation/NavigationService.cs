@@ -260,6 +260,16 @@ internal sealed partial class NavigationService : IDisposable
         entity.RestoreNext = node.FindNextNode()?.Id.Value;
         entity.IsDeleted = true;
       });
+      if (node is NavigationUserCompositeNode compositeNode)
+      {
+        var childNodes = compositeNode.ChildNodes;
+        for (int i = childNodes.Count - 1; i >= 0; i--)
+        {
+          var childNode = childNodes[i];
+          await DeleteUserNode(childNode, deleteMode);
+          childNodes.RemoveAt(i);
+        }
+      }
       node.PropertyChanged -= UserNode_PropertyChanged;
       node.Parent.ChildNodes.Remove(node);
     }
