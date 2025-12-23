@@ -142,6 +142,7 @@ internal sealed partial class NavigationService : IDisposable
           await UpdateNavigationEntity(node, entity => entity.Parent = node.Parent.Id.Value);
           break;
         case nameof(NavigationUserNode.Position):
+          Console.WriteLine("{0}: {1}", node.Title, node.Position);
           await UpdateNavigationEntity(node, entity => entity.Position = node.Position);
           break;
         case nameof(NavigationUserNode.Title):
@@ -263,11 +264,10 @@ internal sealed partial class NavigationService : IDisposable
       if (node is NavigationUserCompositeNode compositeNode)
       {
         var childNodes = compositeNode.ChildNodes;
-        for (int i = childNodes.Count - 1; i >= 0; i--)
+        while (childNodes.Count > 0)
         {
-          var childNode = childNodes[i];
+          var childNode = childNodes[^1];
           await DeleteUserNode(childNode, deleteMode);
-          childNodes.RemoveAt(i);
         }
       }
       node.PropertyChanged -= UserNode_PropertyChanged;

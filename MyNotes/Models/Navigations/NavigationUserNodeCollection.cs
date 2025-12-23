@@ -16,72 +16,20 @@ internal sealed class NavigationUserNodeCollection : ObservableCollection<Naviga
     }
 
     if (newIndex == 0)
+    {
       this[oldIndex].Position = this[0].Position - 1;
+      base.MoveItem(oldIndex, newIndex);
+    }
     else if (newIndex == Count - 1)
+    {
       this[oldIndex].Position = this[^1].Position + 1;
+      base.MoveItem(oldIndex, newIndex);
+    }
     else
     {
-      int offset = 1;
-      int basePosition = this[newIndex].Position;
-      int left, right;
-      int hit;
-
-      if (oldIndex < newIndex)
-      {
-        left = newIndex - 1;
-        right = newIndex;
-      }
-      else if (oldIndex > newIndex)
-      {
-        left = newIndex;
-        right = newIndex + 1;
-      }
-      else
-        return;
-
-      while (true)
-      {
-        if (basePosition - this[left].Position > offset)
-        {
-          hit = left;
-          break;
-        }
-        else if (this[right].Position - basePosition > offset)
-        {
-          hit = right;
-          break;
-        }
-
-        left--;
-        right++;
-        offset++;
-
-        if (left == -1 || left == oldIndex - 1)
-        {
-          hit = left;
-          break;
-        }
-        else if (right == oldIndex + 1 || right == Count)
-        {
-          hit = right;
-          break;
-        }
-      }
-
-      if (hit < newIndex)
-      {
-        for (int i = hit + 1; i < newIndex; i++)
-          this[i].Position--;
-        this[oldIndex].Position = basePosition - 1;
-      }
-      else if (hit > newIndex)
-      {
-        for (int i = newIndex; i < hit; i++)
-          this[i].Position++;
-        this[oldIndex].Position = basePosition;
-      }
+      base.MoveItem(oldIndex, newIndex);
+      Reposition(newIndex);
     }
-    base.MoveItem(oldIndex, newIndex);
   }
 
   protected override void InsertItem(int index, NavigationUserNode item)
@@ -96,63 +44,88 @@ internal sealed class NavigationUserNodeCollection : ObservableCollection<Naviga
     {
       if (item.Position == int.MaxValue)
         item.Position = 0;
+      base.InsertItem(index, item);
     }
     else if (index == 0)
+    {
       item.Position = this[0].Position - 1;
+      base.InsertItem(index, item);
+    }
     else if (index == Count)
+    {
       item.Position = this[^1].Position + 1;
+      base.InsertItem(index, item);
+    }
     else
     {
-      int offset = 1;
-      int basePosition = this[index].Position;
-      int left = index - 1;
-      int right = index;
-      int hit;
+      base.InsertItem(index, item);
+      Reposition(index);
+    }
+  }
 
-      while (true)
+  private void Reposition(int index)
+  {
+    if (index < 1 || index >= Count - 1)
+      throw new IndexOutOfRangeException();
+
+    int gap = 0;
+    int hit;
+    int leftIdx, rightIdx;
+    int leftPos, rightPos;
+    int midPos = this[index - 1].Position + (this[index + 1].Position - this[index - 1].Position) / 2;
+
+    while (true)
+    {
+      gap++;
+      leftIdx = index - gap;
+      rightIdx = index + gap;
+
+      if (leftIdx == -1)
       {
-        if (basePosition - this[left].Position > offset)
-        {
-          hit = left;
-          break;
-        }
-        else if (this[right].Position - basePosition > offset)
-        {
-          hit = right;
-          break;
-        }
-
-        left--;
-        right++;
-        offset++;
-
-        if (left == -1)
-        {
-          hit = left;
-          break;
-        }
-
-        if (right == Count)
-        {
-          hit = right;
-          break;
-        }
+        hit = leftIdx;
+        break;
+      }
+      else if (rightIdx == Count)
+      {
+        hit = rightIdx;
+        break;
       }
 
-      if (hit < index)
+      leftPos = this[leftIdx].Position;
+      rightPos = this[rightIdx].Position;
+
+      if (midPos - leftPos >= gap)
       {
-        for (int i = hit + 1; i < index; i++)
-          this[i].Position--;
-        item.Position = basePosition - 1;
+        hit = leftIdx;
+        break;
       }
-      else if (hit > index)
+
+      if (rightPos - midPos > gap)
       {
-        for (int i = index; i < hit; i++)
-          this[i].Position++;
-        item.Position = basePosition;
+        hit = rightIdx;
+        break;
       }
     }
 
-    base.InsertItem(index, item);
+    if (gap == 1)
+    {
+      this[index].Position = midPos;
+    }
+    else if (hit < index)
+    {
+      this[index].Position = this[index - 1].Position;
+      for (int i = hit + 1; i < index; i++)
+      {
+        this[i].Position--;
+      }
+    }
+    else if (hit > index)
+    {
+      this[index].Position = this[index + 1].Position;
+      for (int i = index + 1; i < hit; i++)
+      {
+        this[i].Position++;
+      }
+    }
   }
 }
