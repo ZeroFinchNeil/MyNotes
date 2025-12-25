@@ -1,25 +1,28 @@
-﻿using MyNotes.Common.Commands;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Navigation;
+using MyNotes.Services.Commands;
 
 namespace MyNotes.ViewModels.Navigations;
 
-internal sealed partial class UserLeafNavigationViewModel : NavigationViewModelBase
+internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewModel
 {
   public override NavigationUserLeafNode Navigation { get; }
 
-  private readonly NavigationService NavigationService;
+  private readonly NavigationCommandService NavigationCommandService;
 
-  public UserLeafNavigationViewModel(NavigationService navigationService, NavigationUserLeafNode navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NavigationUserLeafNode navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
-    NavigationService = navigationService;
+    NavigationCommandService = (NavigationCommandService)navigationCommandService;
   }
 
-  public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
-  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
-  public Command<NavigationViewModelBase>? ShowUpdateDialogCommand => NavigationService.ShowUpdateDialogCommand;
-  public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand => NavigationService.ShowConfirmDeleteDialogCommand;
+  public override Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationCommandService.DeleteCommand;
+  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
 }

@@ -84,10 +84,6 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
     return null;
   }
 
-  //public NavigationUserCompositeNode? FindParentNode() => this != NavigationUserRootNode.Instance
-  //    ? FindUserNode(node => node is NavigationUserCompositeNode composite && composite.ChildNodes.Contains(this)) as NavigationUserCompositeNode
-  //    : null;
-
   public NavigationUserNode? FindPreviousNode()
   {
     int index = Parent.ChildNodes.IndexOf(this);
@@ -99,21 +95,6 @@ internal class NavigationUserNode : ObservableObject, INavigationUserNode
     int index = Parent.ChildNodes.IndexOf(this);
     return index >= 0 && index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
   }
-
-  //public bool TryFindRelations(out NavigationUserNode? previousNode, out NavigationUserNode? nextNode)
-  //{
-  //  previousNode = null;
-  //  nextNode = null;
-
-  //  int index = Parent.ChildNodes.IndexOf(this);
-  //  if (index < 0)
-  //    return false;
-
-  //  previousNode = index > 0 ? Parent.ChildNodes[index - 1] : null;
-  //  nextNode = index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
-
-  //  return true;
-  //}
 }
 
 #region User Nodes
@@ -158,8 +139,8 @@ internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
   {
     Id = NavigationId.UserRootNode,
     Parent = null!,
-    Icon = (short)Templates.Icon.System_Notebook,
-    Title = string.Empty,
+    Icon = (short)Templates.Icon.System_Library,
+    Title = "Root",
     PageType = typeof(Page),
     Position = 0
   };

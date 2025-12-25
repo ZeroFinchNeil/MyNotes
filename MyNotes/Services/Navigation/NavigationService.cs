@@ -55,7 +55,7 @@ internal sealed partial class NavigationService : IDisposable
   private async Task BuildNavigationTree()
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
-    var entities = context.NavigationEntities.AsEnumerable();
+    var entities = await context.NavigationEntities.ToListAsync();
     var nodes = entities
       .Select<NavigationEntity, NavigationUserNode>(e => e.IsComposite
         ? new NavigationUserCompositeNode()
@@ -278,45 +278,42 @@ internal sealed partial class NavigationService : IDisposable
 
 internal sealed partial class NavigationService : IDisposable
 {
-  public Command<NavigationViewModelBase>? ShowAddListDialogCommand { get; private set; }
-  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand { get; private set; }
-  public Command<NavigationViewModelBase>? ShowUpdateDialogCommand { get; private set; }
-  public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand { get; private set; }
+  public Command<NavigationUserNode>? AddListCommand { get; private set; }
+  public Command<NavigationUserNode>? AddGroupCommand { get; private set; }
+  public Command<NavigationUserNode>? UpdateCommand { get; private set; }
+  public Command<NavigationUserNode>? DeleteCommand { get; private set; }
+  public Command<(NavigationUserNode SourceItem, NavigationUserCompositeNode TargetGroup)>? MoveToGroupCommand { get; private set; }
 
   private void SetCommands()
   {
-    ShowAddListDialogCommand = new(
-      actionToExecute: async (vm) =>
+    AddListCommand = new(
+      actionToExecute: async (targetNavigation) =>
       {
-        if (vm.Navigation is NavigationUserNode navigation
+        if (targetNavigation is NavigationUserNode navigation
             && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
             ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: false, iconName: v.Icon, title: v.Title));
         }
-      },
-      canExecuteFunc: vm => vm.Navigation is INavigationUserNode
-    );
+      });
 
-    ShowAddGroupDialogCommand = new(
-      actionToExecute: async (vm) =>
+    AddGroupCommand = new(
+      actionToExecute: async (targetNavigation) =>
       {
-        if (vm.Navigation is NavigationUserNode navigation
+        if (targetNavigation is NavigationUserNode navigation
             && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
             ChangeCurrentNavigation(await AddUserNode(targetNode: navigation, isCompositeNode: true, iconName: v.Icon, title: v.Title));
         }
-      },
-      canExecuteFunc: vm => vm.Navigation is INavigationUserNode
-    );
+      });
 
-    ShowUpdateDialogCommand = new(
-      actionToExecute: async (vm) =>
+    UpdateCommand = new(
+      actionToExecute: async (targetNavigation) =>
       {
-        if (vm.Navigation is NavigationUserNode navigation
+        if (targetNavigation is NavigationUserNode navigation
             && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
@@ -336,13 +333,12 @@ internal sealed partial class NavigationService : IDisposable
             });
           }
         }
-      }
-    );
+      });
 
-    ShowConfirmDeleteDialogCommand = new(
-      actionToExecute: async (vm) =>
+    DeleteCommand = new(
+      actionToExecute: async (targetNavigation) =>
       {
-        if (vm.Navigation is NavigationUserNode navigation
+        if (targetNavigation is NavigationUserNode navigation
             && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var targetTypeName = navigation switch
@@ -357,7 +353,20 @@ internal sealed partial class NavigationService : IDisposable
             await DeleteUserNode(navigation, deleteMode);
           }
         }
-      }
-    );
+      });
+
+    MoveToGroupCommand = new(
+      actionToExecute: (parameter) =>
+      {
+        NavigationUserNode sourceItem = parameter.SourceItem;
+        NavigationUserCompositeNode targetGroup = parameter.TargetGroup;
+
+        if (sourceItem.Parent != targetGroup)
+        {
+          sourceItem.Parent.ChildNodes.Remove(sourceItem);
+          targetGroup.ChildNodes.Add(sourceItem);
+        }
+
+      });
   }
 }

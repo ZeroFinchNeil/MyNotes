@@ -70,6 +70,10 @@
 
           <templates:AnimatedIconButton.ContextFlyout>
             <MenuFlyout Placement="BottomEdgeAlignedLeft">
+              <MenuFlyoutItem x:Name="MainWindow_SeparatorMenuFlyoutItem"
+                              Text="Separator"
+                              Click="MainWindow_SeparatorMenuFlyoutItem_Click" />
+              <MenuFlyoutSeparator />
               <MenuFlyoutItem x:Name="MainWindow_DebugMenuFlyoutItem"
                               Text="Debug"
                               Click="MainWindow_DebugMenuFlyoutItem_Click" />
@@ -119,9 +123,7 @@
                       MenuItemsSource="{x:Bind ViewModel.MenuItems.View}"
                       FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
                       SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=OneWay}"
-                      SelectionChanged="MainWindow_NavigationView_SelectionChanged"
-                      SizeChanged="MainWindow_NavigationView_SizeChanged"
-                      AllowDrop="True">
+                      SelectionChanged="MainWindow_NavigationView_SelectionChanged">
         <NavigationView.Resources>
           <SolidColorBrush x:Key="NavigationViewContentBackground"
                            Color="{ThemeResource ControlFillColorTransparent}" />
@@ -156,6 +158,7 @@
                                                        CanDrag="True"
                                                        AllowDrop="True"
                                                        DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                       DragEnter="DraggableNavigationViewItem_DragEnter"
                                                        DragOver="DraggableNavigationViewItem_DragOver"
                                                        Drop="DraggableNavigationViewItem_Drop">
                   <templates:DraggableNavigationViewItem.Icon>
@@ -163,34 +166,43 @@
                   </templates:DraggableNavigationViewItem.Icon>
 
                   <templates:DraggableNavigationViewItem.ContextFlyout>
-                    <MenuFlyout Placement="BottomEdgeAlignedLeft">
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
+                    <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
+                      <CommandBarFlyout.SecondaryCommands>
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_UpdateAppBarButton"
                                       Icon="Rename"
-                                      Command="{x:Bind ShowUpdateDialogCommand}"
+                                      Command="{x:Bind UpdateCommand}"
                                       CommandParameter="{x:Bind}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="F2" />
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                      </MenuFlyoutItem>
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddListMenuFlyoutItem"
+                          <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="F2" />
+                          </AppBarButton.KeyboardAccelerators>
+                        </AppBarButton>
+                        <AppBarButton Label="Move to group">
+                          <AppBarButton.Flyout>
+                            <MenuFlyout helpers:DataContextHelper.DataContext="{x:Bind}"
+                                        Opening="CommandBarFlyout_Opening" />
+                          </AppBarButton.Flyout>
+                        </AppBarButton>
+                        <AppBarSeparator />
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_AddListAppBarButton"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddListDialogCommand}"
+                                      Command="{x:Bind AddListCommand}"
                                       CommandParameter="{x:Bind}" />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddGroupMenuFlyoutItem"
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_AddGroupAppBarButton"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddGroupDialogCommand}"
+                                      Command="{x:Bind AddGroupCommand}"
                                       CommandParameter="{x:Bind}" />
-                      <MenuFlyoutSeparator />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_DeleteMenuFlyoutItem"
+                        <AppBarSeparator />
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_DeleteAppBarButton"
                                       Icon="Delete"
-                                      Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"
-                                      Command="{x:Bind ShowConfirmDeleteDialogCommand}"
+                                      Style="{StaticResource EmphasisCriticalCommandBarFlyoutAppBarButtonStyle}"
+                                      Command="{x:Bind DeleteCommand}"
                                       CommandParameter="{x:Bind}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="Delete" />
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                      </MenuFlyoutItem>
-                    </MenuFlyout>
+                          <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Delete" />
+                          </AppBarButton.KeyboardAccelerators>
+                        </AppBarButton>
+                      </CommandBarFlyout.SecondaryCommands>
+                    </CommandBarFlyout>
                   </templates:DraggableNavigationViewItem.ContextFlyout>
                 </templates:DraggableNavigationViewItem>
               </DataTemplate>
@@ -204,6 +216,7 @@
                                                        CanDrag="True"
                                                        AllowDrop="True"
                                                        DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                       DragEnter="DraggableNavigationViewItem_DragEnter"
                                                        DragOver="DraggableNavigationViewItem_DragOver"
                                                        Drop="DraggableNavigationViewItem_Drop">
                   <templates:DraggableNavigationViewItem.Icon>
@@ -211,34 +224,43 @@
                   </templates:DraggableNavigationViewItem.Icon>
 
                   <templates:DraggableNavigationViewItem.ContextFlyout>
-                    <MenuFlyout>
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_UpdateMenuFlyoutItem"
+                    <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
+                      <CommandBarFlyout.SecondaryCommands>
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_UpdateAppBarButton"
                                       Icon="Rename"
-                                      Command="{x:Bind ShowUpdateDialogCommand}"
+                                      Command="{x:Bind UpdateCommand}"
                                       CommandParameter="{x:Bind}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="F2" />
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                      </MenuFlyoutItem>
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddListMenuFlyoutItem"
+                          <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="F2" />
+                          </AppBarButton.KeyboardAccelerators>
+                        </AppBarButton>
+                        <AppBarButton Label="Move to group">
+                          <AppBarButton.Flyout>
+                            <MenuFlyout helpers:DataContextHelper.DataContext="{x:Bind}"
+                                        Opening="CommandBarFlyout_Opening" />
+                          </AppBarButton.Flyout>
+                        </AppBarButton>
+                        <AppBarSeparator />
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_AddListAppBarButton"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddListDialogCommand}"
+                                      Command="{x:Bind AddListCommand}"
                                       CommandParameter="{x:Bind}" />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_AddGroupMenuFlyoutItem"
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_AddGroupAppBarButton"
                                       Icon="Add"
-                                      Command="{x:Bind ShowAddGroupDialogCommand}"
+                                      Command="{x:Bind AddGroupCommand}"
                                       CommandParameter="{x:Bind}" />
-                      <MenuFlyoutSeparator />
-                      <MenuFlyoutItem x:Uid="/MainWindow/NavigationUserNode_DeleteMenuFlyoutItem"
+                        <AppBarSeparator />
+                        <AppBarButton x:Uid="/MainWindow/NavigationUserNode_DeleteAppBarButton"
                                       Icon="Delete"
-                                      Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"
-                                      Command="{x:Bind ShowConfirmDeleteDialogCommand}"
+                                      Style="{StaticResource EmphasisCriticalCommandBarFlyoutAppBarButtonStyle}"
+                                      Command="{x:Bind DeleteCommand}"
                                       CommandParameter="{x:Bind}">
-                        <MenuFlyoutItem.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="Delete" />
-                        </MenuFlyoutItem.KeyboardAccelerators>
-                      </MenuFlyoutItem>
-                    </MenuFlyout>
+                          <AppBarButton.KeyboardAccelerators>
+                            <KeyboardAccelerator Key="Delete" />
+                          </AppBarButton.KeyboardAccelerators>
+                        </AppBarButton>
+                      </CommandBarFlyout.SecondaryCommands>
+                    </CommandBarFlyout>
                   </templates:DraggableNavigationViewItem.ContextFlyout>
                 </templates:DraggableNavigationViewItem>
               </DataTemplate>
@@ -262,10 +284,10 @@
                                    MinWidth="200"
                                    Height="40">
                   <MenuFlyoutItem Text="to root"
-                                  Command="{x:Bind ViewModel.ShowAddListDialogCommand}"
+                                  Command="{x:Bind ViewModel.AddListCommand}"
                                   CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
                   <MenuFlyoutItem Text="at selected position"
-                                  Command="{x:Bind ViewModel.ShowAddListDialogCommand}"
+                                  Command="{x:Bind ViewModel.AddListCommand}"
                                   CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddGroupMunuFlyoutSubItem"
@@ -274,19 +296,12 @@
                                    MinWidth="200"
                                    Height="40">
                   <MenuFlyoutItem Text="to root"
-                                  Command="{x:Bind ViewModel.ShowAddGroupDialogCommand}"
+                                  Command="{x:Bind ViewModel.AddGroupCommand}"
                                   CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
                   <MenuFlyoutItem Text="at selected position"
-                                  Command="{x:Bind ViewModel.ShowAddGroupDialogCommand}"
+                                  Command="{x:Bind ViewModel.AddGroupCommand}"
                                   CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
-                <MenuFlyoutSeparator />
-                <MenuFlyoutItem x:Name="MainWindow_PaneFooter_MoveListsMenuFlyoutItem"
-                                x:Uid="/MainWindow/PaneFooter_MoveListsMenuFlyoutItem"
-                                Icon="Switch"
-                                MinWidth="200"
-                                Height="40"
-                                Click="MainWindow_PaneFooter_MoveListsMenuFlyoutItem_Click" />
               </MenuFlyout>
             </templates:SubtleIconLabelButton.Flyout>
           </templates:SubtleIconLabelButton>
@@ -295,60 +310,6 @@
         <!-- 내비게이션 뷰 콘텐츠 프레임 -->
         <Frame x:Name="MainWindow_NavigationFrame" />
       </NavigationView>
-      <!--#endregion -->
-
-      <!--#region 사용자 내비게이션 이동 팝업 -->
-      <Popup x:Name="MainWindow_MoveListsPopup"
-             Grid.Row="1"
-             Canvas.ZIndex="12"
-             HorizontalAlignment="Left"
-             IsLightDismissEnabled="True"
-             IsOpen="False">
-
-        <Grid x:Name="MainWindow_MoveListsInnerGrid"
-              Width="320"
-              VerticalAlignment="Stretch"
-              CornerRadius="{ThemeResource ControlCornerRadius}">
-          <Grid.RowDefinitions>
-            <RowDefinition Height="92" />
-            <RowDefinition />
-            <RowDefinition Height="92" />
-          </Grid.RowDefinitions>
-          <Grid Grid.Row="1"
-                Padding="4"
-                Margin="3,0"
-                Background="{ThemeResource ControlSolidFillColorDefault}"
-                CornerRadius="4"
-                BorderBrush="{ThemeResource ControlStrokeColorDefault}"
-                BorderThickness="1"
-                Translation="0,0,12">
-            <Grid.Shadow>
-              <ThemeShadow />
-            </Grid.Shadow>
-
-            <Grid.RowDefinitions>
-              <RowDefinition />
-              <RowDefinition Height="Auto" />
-              <RowDefinition Height="Auto" />
-            </Grid.RowDefinitions>
-
-            <Rectangle Grid.Row="1"
-                       Fill="{ThemeResource CardStrokeColorDefault}"
-                       Height="1"
-                       Margin="0,4"
-                       Stretch="UniformToFill" />
-
-            <templates:SubtleIconLabelButton x:Name="MainWindow_MoveListsApplyButton"
-                                             x:Uid="/MainWindow/MoveListsApplyButton"
-                                             Grid.Row="2"
-                                             Icon="Accept"
-                                             Padding="8"
-                                             HorizontalAlignment="Right"
-                                             Click="MainWindow_MoveListsApplyButton_Click" />
-          </Grid>
-
-        </Grid>
-      </Popup>
       <!--#endregion -->
 
       <!--#region Visual States -->
@@ -365,16 +326,6 @@
                       Value="{ThemeResource WindowCaptionForegroundDisabled}" />
               <Setter Target="MainWindow_SearchAutoSuggestBox.IsEnabled"
                       Value="False" />
-            </VisualState.Setters>
-          </VisualState>
-        </VisualStateGroup>
-
-        <VisualStateGroup x:Name="MoveListsPopupVisibilityStates">
-          <VisualState x:Name="MoveListsPopupCollapsed" />
-          <VisualState x:Name="MoveListsPopupVisible">
-            <VisualState.Setters>
-              <Setter Target="MainWindow_MoveListsPopup.IsOpen"
-                      Value="True" />
             </VisualState.Setters>
           </VisualState>
         </VisualStateGroup>

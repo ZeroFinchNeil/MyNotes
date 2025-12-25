@@ -1,0 +1,12 @@
+﻿using MyNotes.Common.Commands;
+
+namespace MyNotes.ViewModels.Navigations;
+
+internal abstract partial class UserNavigationViewModel : NavigationViewModelBase
+{
+  public virtual Command<NavigationViewModelBase>? AddListCommand { get; }
+  public virtual Command<NavigationViewModelBase>? AddGroupCommand { get; }
+  public virtual Command<NavigationViewModelBase>? UpdateCommand { get; }
+  public virtual Command<NavigationViewModelBase>? DeleteCommand { get; }
+  public virtual Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand { get; }
+}

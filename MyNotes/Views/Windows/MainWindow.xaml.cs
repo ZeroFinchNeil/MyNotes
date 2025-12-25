@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.UI;
 using MyNotes.Resources;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialog;
@@ -108,6 +110,9 @@ internal sealed partial class MainWindow : Window
 
     // 메신저 등록
     RegisterMessengers();
+
+    // 드래그 UI 타이머 등록
+    SetDraggableNavigationTimer();
   }
 
   private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
@@ -124,12 +129,16 @@ internal sealed partial class MainWindow : Window
     // 창 위치 및 디스플레이 저장
     SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(AppWindow.Position.X, AppWindow.Position.Y));
     SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+
+    // CanGoBackProperty에 등록한 콜백 해제
+    MainWindow_BackButton.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, BackButtonVisibilityPropertyChangedToken);
+
+    // 타이머 해제
+    ReleaseDraggableNavigationTimer();
   }
 
   private void AppWindow_Destroying(AppWindow sender, object args)
   {
-    // CanGoBackProperty에 등록한 콜백 해제
-    MainWindow_BackButton.UnregisterPropertyChangedCallback(UIElement.VisibilityProperty, BackButtonVisibilityPropertyChangedToken);
   }
 
   private void MainWindow_Closed(object sender, WindowEventArgs args)
@@ -229,7 +238,7 @@ internal sealed partial class MainWindow : Window
     {
       _preventNavigation = true;
       MainWindow_NavigationFrame.GoBack();
-      ViewModel.NavigationService.PopNavigationBackStack();
+      ViewModel.PopNavigationBackStack();
       _preventNavigation = false;
     }
   }
@@ -249,25 +258,10 @@ internal sealed partial class MainWindow : Window
     if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
       MainWindow_NavigationFrame.Navigate(navigation.PageType);
-      ViewModel.ShowAddListDialogCommand?.RaiseCanExecuteChanged();
-      ViewModel.ShowAddGroupDialogCommand?.RaiseCanExecuteChanged();
-      ViewModel.NavigationService.PushNavigationBackStack(navigation);
+      ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+      ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
+      ViewModel.PushNavigationBackStack(navigation);
     }
-  }
-
-  private void MainWindow_NavigationView_SizeChanged(object sender, SizeChangedEventArgs e)
-  {
-    MainWindow_MoveListsInnerGrid.Height = e.NewSize.Height;
-  }
-
-  private void MainWindow_PaneFooter_MoveListsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupVisible", false);
-  }
-
-  private void MainWindow_MoveListsApplyButton_Click(object sender, RoutedEventArgs e)
-  {
-    VisualStateManager.GoToState(MainWindow_RootControl, "MoveListsPopupCollapsed", false);
   }
 
   private void SetAppTheme(ElementTheme theme)
@@ -282,6 +276,7 @@ internal sealed partial class MainWindow : Window
     };
   }
 
+
   private NavigationViewModelBase? _sourceNavigationViewModel;
   private void DraggableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
   {
@@ -292,50 +287,142 @@ internal sealed partial class MainWindow : Window
     }
   }
 
+  private DispatcherTimer _dispatcherTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+  private void SetDraggableNavigationTimer()
+  {
+    _dispatcherTimer.Tick += DraggableUIDispatcherTimer_Tick;
+  }
+
+  private void ReleaseDraggableNavigationTimer()
+  {
+    _dispatcherTimer.Stop();
+    _dispatcherTimer.Tick -= DraggableUIDispatcherTimer_Tick;
+  }
+
+  private void DraggableUIDispatcherTimer_Tick(object? sender, object e)
+  {
+    _dispatcherTimer.Stop();
+    _exapndableNavigation?.IsExpanded = !_exapndableNavigation.IsExpanded;
+    _exapndableNavigation = null;
+  }
+
+  private readonly string _navigationFormatId = $"{App.PackageFamilyName}.NavigationUserNode.Id";
+  private DragUISession? _dragUISession;
+  private NavigationUserCompositeNode? _exapndableNavigation;
+
+  private async void DraggableNavigationViewItem_DragEnter(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+    if (await e.DataView.GetDataAsync(_navigationFormatId) is string id)
+    {
+      if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
+      {
+        _dragUISession = new()
+        {
+          FormatId = _navigationFormatId,
+          DataView = id,
+          DataPackageOperation = DataPackageOperation.Move,
+          DragUIOverrideCaption = navigation is NavigationUserLeafNode ? "Move to this position" : "Move as a child of this item"
+        };
+
+        _dispatcherTimer.Stop();
+        if (navigation is NavigationUserCompositeNode compositeNode)
+        {
+          _exapndableNavigation = compositeNode;
+          _dispatcherTimer.Start();
+        }
+      }
+    }
+  }
+
+  private void DraggableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+
+    if (_dragUISession is DragUISession dragUISession && !dragUISession.IsExpired)
+    {
+      e.AcceptedOperation = dragUISession.DataPackageOperation;
+      e.DragUIOverride.Caption = dragUISession.DragUIOverrideCaption;
+      dragUISession.Dispose();
+    }
+  }
+
   private async void DraggableNavigationViewItem_Drop(object sender, DragEventArgs e)
   {
-    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } targetViewModel } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    e.Handled = true;
+    _dispatcherTimer.Stop();
+
+    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
       if (sourceNavigation == targetNavigation)
         return;
       var sourceParentNavigation = sourceNavigation.Parent;
-      switch (targetNavigation)
-      {
-        case NavigationUserLeafNode targetLeafNavigation:
-          var targetParentNavigation = targetLeafNavigation.Parent;
-          int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
-          if (sourceParentNavigation == targetParentNavigation)
-          {
-            int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
-            targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
-          }
-          else
-          {
-            sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
-            targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
-          }
-          break;
-        case NavigationUserCompositeNode targetCompositeNavigation:
-          if (sourceParentNavigation != targetCompositeNavigation)
-          {
-            sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
-            targetCompositeNavigation.ChildNodes.Insert(targetCompositeNavigation.ChildNodes.Count, sourceNavigation);
-          }
-          break;
-      }
-    }
-    //Console.WriteLine(string.Join(", ", e.DataView.AvailableFormats));
+      var targetParentNavigation = targetNavigation.Parent;
+      int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
 
-    e.Handled = true;
+      if (sourceParentNavigation == targetParentNavigation)
+      {
+        int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
+        targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
+      }
+      else
+      {
+        sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+        targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+      }
+      //switch (targetNavigation)
+      //{
+      //  case NavigationUserLeafNode targetLeafNavigation:
+      //    var targetParentNavigation = targetLeafNavigation.Parent;
+      //    int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
+      //    if (sourceParentNavigation == targetParentNavigation)
+      //    {
+      //      int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
+      //      targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
+      //    }
+      //    else
+      //    {
+      //      sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+      //      targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+      //    }
+      //    break;
+      //  case NavigationUserCompositeNode targetCompositeNavigation:
+      //    if (sourceParentNavigation != targetCompositeNavigation)
+      //    {
+      //      sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+      //      targetCompositeNavigation.ChildNodes.Insert(targetCompositeNavigation.ChildNodes.Count, sourceNavigation);
+      //    }
+      //    break;
+      //}
+    }
   }
 
-  private async void DraggableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  private void CommandBarFlyout_Opening(object sender, object e)
   {
-    if (await e.DataView.GetDataAsync($"{App.PackageFamilyName}.NavigationUserNode.Id") is string id)
+    if (sender is MenuFlyout flyout
+      && flyout.GetValue(DataContextHelper.DataContextProperty) is UserNavigationViewModel currentVM)
     {
-      e.AcceptedOperation = DataPackageOperation.Move;
+      NavigationUserNode? currentGroup = currentVM switch
+      {
+        UserLeafNavigationViewModel leaf => leaf.Navigation.Parent,
+        UserCompositeNavigationViewModel composite => composite.Navigation,
+        _ => null
+      };
+
+      flyout.Items.Clear();
+      foreach (var targetVM in ViewModel.GroupNavigationViewModels)
+      {
+        if (targetVM.Navigation == currentGroup)
+          continue;
+        flyout.Items.Add(new MenuFlyoutItem
+        {
+          Text = targetVM.Navigation.Title,
+          Icon = new ImageIcon() { Source = targetVM.Navigation.IconImage },
+          Command = currentVM.MoveToGroupCommand,
+          CommandParameter = (currentVM as NavigationViewModelBase, targetVM as NavigationViewModelBase)
+        });
+      }
     }
-    e.Handled = true;
   }
 }
 
@@ -355,6 +442,13 @@ internal sealed partial class MainWindow : Window
 // DEBUG
 internal sealed partial class MainWindow : Window
 {
+  private async void MainWindow_SeparatorMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    Console.WriteLine();
+    Console.WriteLine("--------------------");
+    Console.WriteLine();
+  }
+
   private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
@@ -386,3 +480,4 @@ internal sealed partial class MainWindow : Window
     GC.Collect();
   }
 }
+

@@ -1,5 +1,6 @@
 ﻿using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
+using MyNotes.Services.Commands;
 using MyNotes.Services.Navigation;
 using MyNotes.ViewModels.Navigations;
 
@@ -7,14 +8,16 @@ namespace MyNotes.ViewModels;
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public NavigationService NavigationService { get; }
-  private readonly NavigationViewModelFactory NavigationViewModelFactory;
+  private readonly NavigationService NavigationService;
+  private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly NavigationCommandService NavigationCommandService;
 
   public CollectionViewSource MenuItems { get; private set; } = new() { IsSourceGrouped = true };
   public IReadOnlyList<NavigationViewModelBase>? HeaderMenuItems { get; }
-  public UserCompositeNavigationViewModel? UserRootNavigationViewModel { get; }
+  public UserCompositeNavigationViewModel UserRootNavigationViewModel { get; }
   public IReadOnlyList<NavigationViewModelBase>? UserNavigationViewModels => UserRootNavigationViewModel?.ChildNodeViewModels;
   public IReadOnlyList<NavigationViewModelBase>? FooterMenuItems { get; }
+  public IReadOnlyList<UserCompositeNavigationViewModel> GroupNavigationViewModels => FindAllGroupNavigationViewModel();
 
   public NavigationViewModelBase? CurrentNavigationViewModel
   {
@@ -25,14 +28,33 @@ internal sealed partial class MainViewModel : ViewModelBase
     }
   }
 
-  public MainViewModel(NavigationService navigationService, NavigationViewModelFactory navigationViewModelFactory)
+  private List<UserCompositeNavigationViewModel> FindAllGroupNavigationViewModel()
+  {
+    List<UserCompositeNavigationViewModel> viewmodels = new();
+    Queue<UserCompositeNavigationViewModel> queue = new();
+    queue.Enqueue(UserRootNavigationViewModel);
+    while (queue.Count > 0)
+    {
+      var viewmodel = queue.Dequeue();
+      viewmodels.Add(viewmodel);
+      foreach (var childViewModel in viewmodel.ChildNodeViewModels)
+      {
+        if (childViewModel is UserCompositeNavigationViewModel compositeViewModel)
+          queue.Enqueue(compositeViewModel);
+      }
+    }
+    return viewmodels;
+  }
+
+  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, CommandServiceFactory commandServiceFactory)
   {
     NavigationService = navigationService;
-    NavigationViewModelFactory = navigationViewModelFactory;
+    NavigationViewModelProvider = navigationViewModelProvider;
+    NavigationCommandService = (NavigationCommandService)commandServiceFactory.Resolve(CommandServiceType.Navigation);
 
-    HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelFactory.Resolve(n))];
-    UserRootNavigationViewModel = NavigationViewModelFactory.Resolve(NavigationService.UserRootNavigation) as UserCompositeNavigationViewModel;
-    FooterMenuItems = [.. NavigationService.SecondaryCoreNavigations.Select(n => NavigationViewModelFactory.Resolve(n))];
+    HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
+    UserRootNavigationViewModel = (UserCompositeNavigationViewModel)NavigationViewModelProvider.Resolve(NavigationService.UserRootNavigation);
+    FooterMenuItems = [.. NavigationService.SecondaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
     IReadOnlyList<IReadOnlyList<NavigationViewModelBase>?> MenuItemsSource = [HeaderMenuItems, UserNavigationViewModels];
     MenuItems.Source = MenuItemsSource;
 
@@ -44,9 +66,18 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   private void NavigationService_CurrentNavigationChanged(object sender, INavigation args)
   {
-    if (NavigationViewModelFactory.ResolvedViewModels.TryGetValue(args, out var wr)
-      && wr.TryGetTarget(out var vm))
-      CurrentNavigationViewModel = vm;
+    if (NavigationViewModelProvider.TryResolve(args, out var viewmodel))
+      CurrentNavigationViewModel = viewmodel;
+  }
+
+  public void PushNavigationBackStack(INavigation navigation)
+  {
+    NavigationService.PushNavigationBackStack(navigation);
+  }
+
+  public void PopNavigationBackStack()
+  {
+    NavigationService.PopNavigationBackStack();
   }
 
   protected override void Dispose(bool disposing)
@@ -65,8 +96,8 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
-  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
+  public Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
+  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
   public Command<NavigationUserNode>? ExitUserNodeEditCommand { get; private set; }
 
   private void SetCommands()

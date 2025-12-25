@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialog;
 using MyNotes.Services.Navigation;
@@ -49,7 +50,7 @@ public partial class App : Application
     services.AddSingleton<MainViewModel>();
     services.AddSingleton<SettingsViewModel>();
 
-    services.AddSingleton<NavigationViewModelFactory>();
+    services.AddSingleton<NavigationViewModelProvider>();
     services.AddSingleton<DialogViewModelFactory>();
 
     // Service
@@ -57,6 +58,15 @@ public partial class App : Application
     services.AddSingleton<NavigationService>();
     services.AddSingleton<SettingsService>();
     services.AddSingleton<WindowService>();
+
+    services.AddKeyedSingleton<ICommandService, NavigationCommandService>(CommandServiceType.Navigation);
+    services.AddSingleton<CommandServiceFactory>(sp => new(sp)
+    {
+      ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()
+      {
+        { CommandServiceType.Navigation, sp.GetKeyedService<ICommandService>(CommandServiceType.Navigation) }
+      }
+    });
 
     // DbContext
     services.AddSingleton<AppDbContextTaskDispatcher>();

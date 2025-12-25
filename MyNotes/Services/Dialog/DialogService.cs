@@ -10,7 +10,7 @@ using MyNotes.Views.Dialogs;
 
 namespace MyNotes.Services.Dialog;
 
-internal sealed partial class DialogService
+internal sealed class DialogService
 {
   private readonly DialogViewModelFactory ViewModelFactory;
 

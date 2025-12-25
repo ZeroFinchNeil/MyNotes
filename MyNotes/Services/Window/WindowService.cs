@@ -4,7 +4,7 @@ using XamlWindow = Microsoft.UI.Xaml.Window;
 
 namespace MyNotes.Services.Window;
 
-internal sealed partial class WindowService
+internal sealed class WindowService
 {
   public MainWindow MainWindow => field ??= new();
 }

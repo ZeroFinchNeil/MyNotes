@@ -26,7 +26,8 @@
           <ImageIcon Source="{x:Bind CreateUserNodeDialog_IconPicker.IconImage, Mode=OneWay, FallbackValue='System_Board'}" />
         </templates:SubtleIconButton.Icon>
         <templates:SubtleIconButton.Flyout>
-          <Flyout Placement="Bottom">
+          <Flyout Placement="Bottom"
+                  ShouldConstrainToRootBounds="False">
             <templates:IconPicker x:Name="CreateUserNodeDialog_IconPicker"
                                   Icon="{x:Bind ViewModel.Icon, Mode=TwoWay}"
                                   DecodePixelWidth="40"

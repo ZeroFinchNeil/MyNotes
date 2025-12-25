@@ -1,26 +1,28 @@
-﻿using MyNotes.Common.Commands;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Navigation;
+using MyNotes.Services.Commands;
 
 namespace MyNotes.ViewModels.Navigations;
 
-internal sealed partial class UserCompositeNavigationViewModel : NavigationViewModelBase
+internal sealed partial class UserCompositeNavigationViewModel : UserNavigationViewModel
 {
   public override NavigationUserCompositeNode Navigation { get; }
   public ObservableCollection<NavigationViewModelBase> ChildNodeViewModels { get; }
 
-  private readonly NavigationViewModelFactory NavigationViewModelFactory;
-  private readonly NavigationService NavigationService;
+  private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly NavigationCommandService NavigationCommandService;
 
-  public UserCompositeNavigationViewModel(NavigationViewModelFactory factory, NavigationService navigationService, NavigationUserCompositeNode navigation)
+  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NavigationUserCompositeNode navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
-    NavigationViewModelFactory = factory;
-    NavigationService = navigationService;
+    NavigationViewModelProvider = provider;
+    NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
-    ChildNodeViewModels = [.. Navigation.ChildNodes.Select(NavigationViewModelFactory.Resolve)];
+    ChildNodeViewModels = [.. Navigation.ChildNodes.Select(NavigationViewModelProvider.Resolve)];
     Navigation.ChildNodes.CollectionChanged += ChildNodes_CollectionChanged;
   }
 
@@ -31,11 +33,11 @@ internal sealed partial class UserCompositeNavigationViewModel : NavigationViewM
       case NotifyCollectionChangedAction.Add:
         if (e.NewItems is IList { Count: > 0 } addedItems && addedItems[0] is INavigation addedItem)
         {
-          ChildNodeViewModels.Insert(e.NewStartingIndex, NavigationViewModelFactory.Resolve(addedItem));
+          ChildNodeViewModels.Insert(e.NewStartingIndex, NavigationViewModelProvider.Resolve(addedItem));
         }
         break;
       case NotifyCollectionChangedAction.Remove:
-        if (e.OldItems is IList { Count: > 0 } removedItems)
+        if (e.OldItems is IList { Count: > 0 })
         {
           ChildNodeViewModels.RemoveAt(e.OldStartingIndex);
         }
@@ -44,7 +46,7 @@ internal sealed partial class UserCompositeNavigationViewModel : NavigationViewM
         if (e.NewItems is IList { Count: > 0 } replacedItems && replacedItems[0] is INavigation replacedItem
           && e.NewStartingIndex < ChildNodeViewModels.Count)
         {
-          ChildNodeViewModels[e.NewStartingIndex] = NavigationViewModelFactory.Resolve(replacedItem);
+          ChildNodeViewModels[e.NewStartingIndex] = NavigationViewModelProvider.Resolve(replacedItem);
         }
         break;
       case NotifyCollectionChangedAction.Move:
@@ -72,8 +74,27 @@ internal sealed partial class UserCompositeNavigationViewModel : NavigationViewM
     _disposed = true;
   }
 
-  public Command<NavigationViewModelBase>? ShowAddListDialogCommand => NavigationService.ShowAddListDialogCommand;
-  public Command<NavigationViewModelBase>? ShowAddGroupDialogCommand => NavigationService.ShowAddGroupDialogCommand;
-  public Command<NavigationViewModelBase>? ShowUpdateDialogCommand => NavigationService.ShowUpdateDialogCommand;
-  public Command<NavigationViewModelBase>? ShowConfirmDeleteDialogCommand => NavigationService.ShowConfirmDeleteDialogCommand;
+  public void ForEachDescendant(Action<NavigationViewModelBase> action)
+  {
+    Stack<NavigationViewModelBase> stack = new();
+    stack.Push(this);
+
+    while (stack.Count > 0)
+    {
+      var viewmodel = stack.Pop();
+      action.Invoke(viewmodel);
+
+      if (viewmodel is UserCompositeNavigationViewModel compositeViewModel)
+      {
+        foreach (var childViewModel in compositeViewModel.ChildNodeViewModels)
+          stack.Push(childViewModel);
+      }
+    }
+  }
+
+  public override Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationCommandService.DeleteCommand;
+  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
 }
