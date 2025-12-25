@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.Models.Navigations;
 
-internal class NavigationId : IEquatable<NavigationId>
+internal readonly record struct NavigationId
 {
   public static NavigationId Empty { get; } = new(Guid.Empty);
   public static NavigationId UserRootNode { get; } = new(Guid.Parse("00000000-0000-0000-0000-000000000001"));
@@ -22,20 +22,12 @@ internal class NavigationId : IEquatable<NavigationId>
     }
     return new(id);
   }
-  private NavigationId(Guid id) => Value = id;
-
-  public static NavigationId Create(Guid id) => IsValidId(id) ? new(id) : throw new ArgumentException("");
-  public static NavigationId Create(string id) => Create(Guid.Parse(id));
 
   public Guid Value { get; init; }
 
-  public static bool operator ==(NavigationId id1, NavigationId id2) => id1.Equals(id2);
-  public static bool operator !=(NavigationId id1, NavigationId id2) => !id1.Equals(id2);
+  private NavigationId(Guid id) => Value = id;
+  public NavigationId() => throw new InvalidOperationException("NavigationId has not been properly initialized.");
 
-  public bool Equals(NavigationId? other) => other is not null && other.Value == Value;
-  public override bool Equals(object? obj) => obj is NavigationId navigationId && navigationId.Value == Value;
-
-  public override int GetHashCode() => Value.GetHashCode();
-
-  public override string ToString() => Value.ToString();
+  public static NavigationId Create(Guid id) => IsValidId(id) ? new(id) : throw new ArgumentException("");
+  public static NavigationId Create(string id) => Create(Guid.Parse(id));
 }

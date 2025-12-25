@@ -201,7 +201,7 @@
               <Border Width="24"
                       Height="24"
                       CornerRadius="{ThemeResource ControlCornerRadius}" 
-                      Background="{x:Bind helpers:ColorHelper.ColorToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
+                      Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
               <SplitButton.Flyout>
                 <Flyout Placement="BottomEdgeAlignedRight"
                         ShouldConstrainToRootBounds="False">

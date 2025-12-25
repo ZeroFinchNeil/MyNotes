@@ -101,9 +101,9 @@ internal sealed partial class MainWindow : Window
         Height = monitor.rcWork.Bottom,
       });
     }
-    PointInt32 position = new((int)windowPosition.X, (int)windowPosition.Y);
+    PointInt32 position = windowPosition.PointInt32;
     if (ContainsPointInAreas(areas, position))
-      AppWindow.Move(new(position.X, position.Y));
+      AppWindow.Move(position);
 
     // 앱 테마 설정
     SetAppTheme((ElementTheme)SettingsService.Load<int>(SettingsDescriptors.AppTheme.Key));
@@ -189,22 +189,14 @@ internal sealed partial class MainWindow : Window
       var PaneToggleButtonPosition = MainWindow_PaneToggleButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_PaneToggleButton.ActualWidth, MainWindow_PaneToggleButton.ActualHeight));
       var SearchBoxPosition = MainWindow_SearchAutoSuggestBox.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_SearchAutoSuggestBox.ActualWidth, MainWindow_SearchAutoSuggestBox.ActualHeight));
 
-      RectInt32 BackButtonRect = GetRect(BackButtonPosition, scaleFactor);
-      RectInt32 PaneToggleButtonRect = GetRect(PaneToggleButtonPosition, scaleFactor);
-      RectInt32 SearchBoxRect = GetRect(SearchBoxPosition, scaleFactor);
+      RectInt32 BackButtonRect = BackButtonPosition.ToScaledRectInt32(scaleFactor);
+      RectInt32 PaneToggleButtonRect = PaneToggleButtonPosition.ToScaledRectInt32(scaleFactor);
+      RectInt32 SearchBoxRect = SearchBoxPosition.ToScaledRectInt32(scaleFactor);
 
       // 제목 표시줄 드래그 제외할 영역 설정
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
     }
   }
-
-  private static RectInt32 GetRect(Rect bounds, double scale) =>
-    new(
-      _X: (int)Math.Round(bounds.X * scale),
-      _Y: (int)Math.Round(bounds.Y * scale),
-      _Width: (int)Math.Round(bounds.Width * scale),
-      _Height: (int)Math.Round(bounds.Height * scale)
-    );
   #endregion
 
   public static bool ContainsPointInAreas(List<RectInt32> areas, PointInt32 point)
