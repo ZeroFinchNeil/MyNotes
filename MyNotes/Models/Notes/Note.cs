@@ -1,0 +1,73 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Helpers;
+
+using Microsoft.UI.Xaml.Documents;
+
+using MyNotes.Helpers;
+using MyNotes.Models.Navigations;
+using MyNotes.Services.Settings;
+
+namespace MyNotes.Models.Notes;
+
+internal sealed class Note : ObservableObject
+{
+  public required NoteId Id { get; init; }
+  public required NavigationId NavigationId { get; set; }
+  public required DateTimeOffset Created { get; init; }
+
+  public DateTimeOffset Modified
+  {
+    get => field;
+    private set => SetProperty(ref field, value);
+  }
+
+  public string Title
+  {
+    get => field;
+    set => SetProperty(ref field, value);
+  } = string.Empty;
+
+  public string Body
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = string.Empty;
+
+  public List<TextRange> HighlighterRanges { get; } = new();
+
+  public Color Background
+  {
+    get => field;
+    set => SetProperty(ref field, value);
+  } = SettingsDescriptors.NoteBackground.DefaultValue.ToColor();
+
+  public BackdropKind Backdrop
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = (BackdropKind)SettingsDescriptors.NoteBackdrop.DefaultValue;
+
+  public SizeInt32 Size
+  {
+    get => field;
+    set => SetProperty(ref field, value);
+  } = SettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
+
+  public PointInt32 Position
+  {
+    get => field;
+    set => SetProperty(ref field, value);
+  } = SettingsDescriptors.NotePosition.DefaultValue.PointInt32;
+
+  public bool IsBookmarked
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public bool IsDeleted
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+}
