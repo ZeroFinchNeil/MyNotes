@@ -26,4 +26,15 @@ internal sealed class SettingsService
     LocalSettings.Values.TryGetValue(settingsKey, out var value);
     return value is T TValue ? TValue : default;
   }
+
+  public void Save<T>(SettingsDescriptor<T> settings, T settingsValue)
+  {
+    LocalSettings.Values[settings.Key] = settingsValue;
+  }
+
+  public T Load<T>(SettingsDescriptor<T> settings)
+  {
+    LocalSettings.Values.TryGetValue(settings.Key, out var value);
+    return value is T TValue ? TValue : settings.DefaultValue;
+  }
 }

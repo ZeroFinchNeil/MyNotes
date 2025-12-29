@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace MyNotes.ViewModels;
 
-namespace MyNotes.ViewModels;
-
-internal interface IViewModelProvider
+internal interface IViewModelProvider<TModel, TViewModel> where TViewModel : class
 {
+  public TViewModel Resolve(TModel model);
+  public bool TryResolve(TModel model, out TViewModel? viewmodel);
 }

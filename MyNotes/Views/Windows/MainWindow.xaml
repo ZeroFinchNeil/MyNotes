@@ -6,7 +6,7 @@
         xmlns:models="using:MyNotes.Models"
         xmlns:navigationvm="using:MyNotes.ViewModels.Navigations"
         xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-        xmlns:templates="using:MyNotes.Templates"
+        xmlns:tmpls="using:MyNotes.Templates"
         xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
         xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
         xmlns:helpers="using:MyNotes.Helpers"
@@ -48,49 +48,26 @@
                             Width="0" />
         </Grid.ColumnDefinitions>
 
-        <templates:AnimatedIconButton x:Name="MainWindow_BackButton"
-                                      x:Uid="/MainWindow/BackButton"
-                                      Grid.Column="1"
-                                      Content="&#xE72B;"
-                                      Visibility="{x:Bind MainWindow_NavigationFrame.CanGoBack, Mode=OneWay}"
-                                      Click="MainWindow_BackButton_Click">
-          <templates:AnimatedIconButton.AnimatedIconSource>
+        <tmpls:AnimatedIconButton x:Name="MainWindow_BackButton"
+                                  x:Uid="/MainWindow/BackButton"
+                                  Grid.Column="1"
+                                  Content="&#xE72B;"
+                                  Visibility="{x:Bind MainWindow_NavigationFrame.CanGoBack, Mode=OneWay}"
+                                  Click="MainWindow_BackButton_Click">
+          <tmpls:AnimatedIconButton.AnimatedIconSource>
             <animatedvisuals:AnimatedBackVisualSource />
-          </templates:AnimatedIconButton.AnimatedIconSource>
-        </templates:AnimatedIconButton>
+          </tmpls:AnimatedIconButton.AnimatedIconSource>
+        </tmpls:AnimatedIconButton>
 
-        <templates:AnimatedIconButton x:Name="MainWindow_PaneToggleButton"
-                                      x:Uid="/MainWindow/PaneToggleButton"
-                                      Grid.Column="2"
-                                      Content="&#xE700;"
-                                      Click="MainWindow_PaneToggleButton_Click">
-          <templates:AnimatedIconButton.AnimatedIconSource>
+        <tmpls:AnimatedIconButton x:Name="MainWindow_PaneToggleButton"
+                                  x:Uid="/MainWindow/PaneToggleButton"
+                                  Grid.Column="2"
+                                  Content="&#xE700;"
+                                  Click="MainWindow_PaneToggleButton_Click">
+          <tmpls:AnimatedIconButton.AnimatedIconSource>
             <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
-          </templates:AnimatedIconButton.AnimatedIconSource>
-
-          <templates:AnimatedIconButton.ContextFlyout>
-            <MenuFlyout Placement="BottomEdgeAlignedLeft">
-              <MenuFlyoutItem x:Name="MainWindow_SeparatorMenuFlyoutItem"
-                              Text="Separator"
-                              Click="MainWindow_SeparatorMenuFlyoutItem_Click" />
-              <MenuFlyoutSeparator />
-              <MenuFlyoutItem x:Name="MainWindow_DebugMenuFlyoutItem"
-                              Text="Debug"
-                              Click="MainWindow_DebugMenuFlyoutItem_Click" />
-              <MenuFlyoutSeparator />
-              <MenuFlyoutItem x:Name="MainWindow_ClearDatabaseMenuFlyoutItem"
-                              Text="Clear DB"
-                              Click="MainWindow_ClearDatabaseMenuFlyoutItem_Click" />
-              <MenuFlyoutItem x:Name="MainWindow_CreateDatabaseMenuFlyoutItem"
-                              Text="Create DB"
-                              Click="MainWindow_CreateDatabaseMenuFlyoutItem_Click" />
-              <MenuFlyoutSeparator />
-              <MenuFlyoutItem x:Name="MainWindow_GCMenuFlyoutItem"
-                              Text="GC"
-                              Click="MainWindow_GCMenuFlyoutItem_Click" />
-            </MenuFlyout>
-          </templates:AnimatedIconButton.ContextFlyout>
-        </templates:AnimatedIconButton>
+          </tmpls:AnimatedIconButton.AnimatedIconSource>
+        </tmpls:AnimatedIconButton>
 
         <ImageIcon Grid.Column="3"
                    Source="/Assets/AppIcon.ico"
@@ -151,21 +128,21 @@
             <!-- 사용자 그룹 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
               <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
-                <templates:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                       MenuItemsSource="{x:Bind ChildNodeViewModels}"
-                                                       IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
-                                                       DataContext="{x:Bind}"
-                                                       CanDrag="True"
-                                                       AllowDrop="True"
-                                                       DragStarting="DraggableNavigationViewItem_DragStarting"
-                                                       DragEnter="DraggableNavigationViewItem_DragEnter"
-                                                       DragOver="DraggableNavigationViewItem_DragOver"
-                                                       Drop="DraggableNavigationViewItem_Drop">
-                  <templates:DraggableNavigationViewItem.Icon>
+                <tmpls:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                   MenuItemsSource="{x:Bind ChildNodeViewModels}"
+                                                   IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
+                                                   DataContext="{x:Bind}"
+                                                   CanDrag="True"
+                                                   AllowDrop="True"
+                                                   DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                   DragEnter="DraggableNavigationViewItem_DragEnter"
+                                                   DragOver="DraggableNavigationViewItem_DragOver"
+                                                   Drop="DraggableNavigationViewItem_Drop">
+                  <tmpls:DraggableNavigationViewItem.Icon>
                     <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                  </templates:DraggableNavigationViewItem.Icon>
+                  </tmpls:DraggableNavigationViewItem.Icon>
 
-                  <templates:DraggableNavigationViewItem.ContextFlyout>
+                  <tmpls:DraggableNavigationViewItem.ContextFlyout>
                     <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
                       <CommandBarFlyout.SecondaryCommands>
                         <AppBarButton x:Uid="/MainWindow/NavigationUserNode_UpdateAppBarButton"
@@ -203,27 +180,27 @@
                         </AppBarButton>
                       </CommandBarFlyout.SecondaryCommands>
                     </CommandBarFlyout>
-                  </templates:DraggableNavigationViewItem.ContextFlyout>
-                </templates:DraggableNavigationViewItem>
+                  </tmpls:DraggableNavigationViewItem.ContextFlyout>
+                </tmpls:DraggableNavigationViewItem>
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
 
             <!-- 사용자 목록 내비게이션 템플릿 -->
             <local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
               <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
-                <templates:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                       DataContext="{x:Bind}"
-                                                       CanDrag="True"
-                                                       AllowDrop="True"
-                                                       DragStarting="DraggableNavigationViewItem_DragStarting"
-                                                       DragEnter="DraggableNavigationViewItem_DragEnter"
-                                                       DragOver="DraggableNavigationViewItem_DragOver"
-                                                       Drop="DraggableNavigationViewItem_Drop">
-                  <templates:DraggableNavigationViewItem.Icon>
+                <tmpls:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                   DataContext="{x:Bind}"
+                                                   CanDrag="True"
+                                                   AllowDrop="True"
+                                                   DragStarting="DraggableNavigationViewItem_DragStarting"
+                                                   DragEnter="DraggableNavigationViewItem_DragEnter"
+                                                   DragOver="DraggableNavigationViewItem_DragOver"
+                                                   Drop="DraggableNavigationViewItem_Drop">
+                  <tmpls:DraggableNavigationViewItem.Icon>
                     <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                  </templates:DraggableNavigationViewItem.Icon>
+                  </tmpls:DraggableNavigationViewItem.Icon>
 
-                  <templates:DraggableNavigationViewItem.ContextFlyout>
+                  <tmpls:DraggableNavigationViewItem.ContextFlyout>
                     <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
                       <CommandBarFlyout.SecondaryCommands>
                         <AppBarButton x:Uid="/MainWindow/NavigationUserNode_UpdateAppBarButton"
@@ -261,8 +238,8 @@
                         </AppBarButton>
                       </CommandBarFlyout.SecondaryCommands>
                     </CommandBarFlyout>
-                  </templates:DraggableNavigationViewItem.ContextFlyout>
-                </templates:DraggableNavigationViewItem>
+                  </tmpls:DraggableNavigationViewItem.ContextFlyout>
+                </tmpls:DraggableNavigationViewItem>
               </DataTemplate>
             </local:MainWindowNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
           </local:MainWindowNavigationViewDataTemplateSelector>
@@ -271,12 +248,12 @@
 
         <!-- 내비게이션 뷰 하단 -->
         <NavigationView.PaneFooter>
-          <templates:SubtleIconLabelButton x:Name="MainWindow_PaneFooter_EditListsButton"
-                                           x:Uid="/MainWindow/PaneFooter_EditListsButton"
-                                           Margin="3,0"
-                                           Icon="Edit">
+          <tmpls:SubtleIconLabelButton x:Name="MainWindow_PaneFooter_EditListsButton"
+                                       x:Uid="/MainWindow/PaneFooter_EditListsButton"
+                                       Margin="3,0"
+                                       Icon="Edit">
 
-            <templates:SubtleIconLabelButton.Flyout>
+            <tmpls:SubtleIconLabelButton.Flyout>
               <MenuFlyout Placement="Top">
                 <MenuFlyoutSubItem x:Name="MainWindow_PaneFooter_AddListMunuFlyoutSubItem"
                                    x:Uid="/MainWindow/PaneFooter_AddListMunuFlyoutSubItem"
@@ -303,8 +280,8 @@
                                   CommandParameter="{x:Bind MainWindow_NavigationView.SelectedItem, Mode=OneWay}" />
                 </MenuFlyoutSubItem>
               </MenuFlyout>
-            </templates:SubtleIconLabelButton.Flyout>
-          </templates:SubtleIconLabelButton>
+            </tmpls:SubtleIconLabelButton.Flyout>
+          </tmpls:SubtleIconLabelButton>
         </NavigationView.PaneFooter>
 
         <!-- 내비게이션 뷰 콘텐츠 프레임 -->

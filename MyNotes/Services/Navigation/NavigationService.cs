@@ -1,15 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 using MyNotes.Common.Commands;
+using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Dialog;
-using MyNotes.Templates;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.Views.Navigations;
-using MyNotes.Models.Modes;
 using MyNotes.Services.Window;
+using MyNotes.Templates;
+using MyNotes.Views.Navigations;
 
 namespace MyNotes.Services.Navigation;
 
@@ -290,7 +289,9 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
+            && WindowService.MainWindow is not null
+            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
@@ -302,7 +303,9 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
+            && WindowService.MainWindow is not null
+            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
@@ -314,7 +317,9 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
+            && WindowService.MainWindow is not null
+            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
@@ -339,7 +344,9 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow.Content.XamlRoot is XamlRoot xamlRoot)
+            && WindowService.MainWindow is not null
+            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var targetTypeName = navigation switch
           {

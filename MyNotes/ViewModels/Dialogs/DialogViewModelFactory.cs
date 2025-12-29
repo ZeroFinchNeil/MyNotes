@@ -2,7 +2,7 @@
 
 namespace MyNotes.ViewModels.Dialogs;
 
-internal sealed class DialogViewModelFactory(IServiceProvider serviceProvider) : IViewModelFactory
+internal sealed class DialogViewModelFactory(IServiceProvider serviceProvider) : IViewModelFactory<DialogType, DialogViewModelBase>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 

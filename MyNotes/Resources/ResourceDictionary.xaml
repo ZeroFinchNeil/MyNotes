@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ResourceDictionary
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:MyNotes.Resources">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:MyNotes.Resources"
+                    xmlns:templates="using:MyNotes.Templates">
 
   <x:Boolean x:Key="BooleanTrue">True</x:Boolean>
   <x:Boolean x:Key="BooleanFalse">False</x:Boolean>
@@ -541,4 +541,257 @@
     <Setter Property="Foreground"
             Value="{ThemeResource SystemAccentColor}" />
   </Style>
+
+  <!--#region EmphasisSubtleIconButton Style -->
+  <Style x:Key="EmphasisSubtleIconButtonStyle"
+         TargetType="templates:SubtleIconButton">
+
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="templates:SubtleIconButton">
+          <Border x:Name="RootBorder"
+                  Width="{TemplateBinding Width}"
+                  Height="{TemplateBinding Height}"
+                  Background="{TemplateBinding Background}"
+                  BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  AutomationProperties.AccessibilityView="Raw">
+            <Border.BackgroundTransition>
+              <BrushTransition Duration="0:0:0.083" />
+            </Border.BackgroundTransition>
+            <Viewbox Height="16"
+                     Width="16">
+              <ContentControl x:Name="IconPresenter"
+                              Content="{TemplateBinding Icon}"
+                              Foreground="{TemplateBinding Foreground}"
+                              AnimatedIcon.State="Normal" />
+            </Viewbox>
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+
+                <VisualState x:Name="PointerOver">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="PointerOver" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Pressed">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Pressed" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Disabled">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Normal" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+              </VisualStateGroup>
+
+            </VisualStateManager.VisualStateGroups>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <!--endregion -->
+
+  <!--#region EmphasisSubtleIconLabelButton Style -->
+  <Style x:Key="EmphasisSubtleIconLabelButtonStyle"
+         TargetType="templates:SubtleIconLabelButton">
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="templates:SubtleIconLabelButton">
+          <Border x:Name="RootBorder"
+                  Background="{TemplateBinding Background}"
+                  BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  AutomationProperties.AccessibilityView="Raw">
+            <Border.BackgroundTransition>
+              <BrushTransition Duration="0:0:0.083" />
+            </Border.BackgroundTransition>
+
+            <Grid HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="40" />
+                <ColumnDefinition />
+              </Grid.ColumnDefinitions>
+
+              <Viewbox Grid.Column="0"
+                       Height="16"
+                       Width="16">
+                <ContentControl x:Name="IconPresenter"
+                                Content="{TemplateBinding Icon}"
+                                Foreground="{TemplateBinding Foreground}"
+                                AnimatedIcon.State="Normal" />
+              </Viewbox>
+
+              <ContentPresenter x:Name="ContentPresenter"
+                                Grid.Column="1"
+                                Foreground="{TemplateBinding Foreground}"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                ContentTransitions="{TemplateBinding ContentTransitions}"
+                                Margin="0,0,12,0">
+
+              </ContentPresenter>
+            </Grid>
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+
+                <VisualState x:Name="PointerOver">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="PointerOver" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Pressed">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Pressed" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Disabled">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="ContentPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Normal" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+              </VisualStateGroup>
+
+            </VisualStateManager.VisualStateGroups>
+
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
+  <!--endregion -->
+
+  <DataTemplate x:Key="ControlTextHeaderTemplate">
+    <ContentPresenter Content="{Binding}"
+                      FontSize="{StaticResource BodyStrongTextBlockFontSize}"
+                      FontWeight="SemiBold"
+                      OpticalMarginAlignment="TrimSideBearings"
+                      TextWrapping="NoWrap" />
+  </DataTemplate>
 </ResourceDictionary>

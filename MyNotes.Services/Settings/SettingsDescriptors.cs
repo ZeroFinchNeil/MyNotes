@@ -22,10 +22,14 @@ internal static class SettingsDescriptors
   public static readonly SettingsDescriptor<Guid> InitialPageId = new("InitialPageId", Guid.Parse("00000000-0000-0000-0000-000000000008"));
 
   // Settings - Note
+  public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMininumSize", new Size(400.0, 300.0));
+
   public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");
   public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", 0);
-  public static readonly SettingsDescriptor<Size> NoteSize = new("NoteSize", new Size(300.0, 200.0));
+  public static readonly SettingsDescriptor<Size> NoteSize = new("NoteSize", new Size(500.0, 500.0));
   public static readonly SettingsDescriptor<Point> NotePosition = new("NotePosition", new Point(0, 0));
+
+  public static readonly SettingsDescriptor<int> NoteBodyUpdateFrequency = new("NoteBodyUpdateFrequency", 2);
 
   // Settings - List
   public static readonly SettingsDescriptor<bool> ShowNoteCount = new("ShowNoteCount", true);

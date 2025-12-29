@@ -1,9 +1,11 @@
 ﻿param([switch]$RunAfterBuild = $false, [string]$SolutionDir, [string]$Configuration = "Debug", [string]$Platform = "x64")
 
 $projectPath = "."
+$debugPath = ".\obj\x64\Debug"
 $configPath = ".\obj\x64\Debug\priconfig.xml"
 $outputPath = ".\bin\x64\Debug\resources.pri"
-$appxPath = ".\bin\x64\Debug\AppX\resources.pri"
+$bidDebugPath = ".\bin\x64\Debug"
+$appxPath = ".\bin\x64\Debug\AppX"
 
 Push-Location
 . "C:\Program Files\Microsoft Visual Studio\18\Community\Common7\Tools\Launch-VsDevShell.ps1"
@@ -18,7 +20,10 @@ if($RunAfterBuild) {
 }
 
 Remove-Item $outputPath -ErrorAction SilentlyContinue
-Remove-Item $appxPath -ErrorAction SilentlyContinue
+Remove-Item "$appxPath\resources.pri" -ErrorAction SilentlyContinue
+Copy-Item "$bidDebugPath\MyNotes.Templates\Themes\Generic.xbf" -Destination "$appxPath\MyNotes.Templates\Themes" -Force -ErrorAction SilentlyContinue
+#Get-ChildItem $appxPath -Recurse -Filter "*.pri" -File | Remove-Item -ErrorAction SilentlyContinue
+#Get-ChildItem $appxPath -Recurse -Filter "*.xbf" -File | Remove-Item -ErrorAction SilentlyContinue
 makepri new /pr $projectPath /cf $configPath /of $outputPath /overwrite
 
 if ($LASTEXITCODE -eq 0) {

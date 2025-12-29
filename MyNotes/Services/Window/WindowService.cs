@@ -1,10 +1,14 @@
-﻿using MyNotes.Views.Windows;
-
-using XamlWindow = Microsoft.UI.Xaml.Window;
+﻿using MyNotes.Debugging;
+using MyNotes.Models.Notes;
+using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Window;
 
 internal sealed class WindowService
 {
-  public MainWindow MainWindow => field ??= new();
+  public WeakReference<MainWindow>? MainWindow;
+
+  public Dictionary<Note, WeakReference<NoteWindow>> NoteWindows { get; } = new();
+
+  public Dictionary<Guid, WeakReference<BlankWindow>> BlankWindows { get; } = new();
 }

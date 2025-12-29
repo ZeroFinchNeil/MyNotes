@@ -64,15 +64,25 @@ public class Program
 
   private static void LaunchAppSingleInstance()
   {
+#if DEBUG
+    NativeMethods.SetConsole();
+#endif
+    App? app = null;
     if (!DecideRedirection())
     {
       Application.Start((p) =>
       {
         var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
         SynchronizationContext.SetSynchronizationContext(context);
-        _ = new App();
+        app = new App();
       });
+      app?.Dispose();
     }
+
+#if DEBUG
+    Thread.Sleep(2000);
+    NativeMethods.FreeConsole();
+#endif
   }
 
   private static bool DecideRedirection()

@@ -8,14 +8,17 @@
 
   <StackPanel>
     <TextBlock Text="Home Page" />
-    <templates:SubtleIconButton>
+    <Button Content="Note Window"
+            Click="Button_Click" />
+    <templates:SubtleIconButton >
       <templates:SubtleIconButton.Icon>
-        <FontIcon Glyph="{x:Bind IconPicker.Glyph, Mode=OneWay}"
-                  FontFamily="Segoe UI Emoji" />
+        <ImageIcon Source="{x:Bind HomePage_HeaderIconPicker.IconImage, Mode=OneWay}"/>
       </templates:SubtleIconButton.Icon>
       <templates:SubtleIconButton.Flyout>
         <Flyout Placement="BottomEdgeAlignedLeft">
-          <templates:IconPicker x:Name="IconPicker" />
+          <templates:IconPicker x:Name="HomePage_HeaderIconPicker" 
+                                DecodePixelWidth="40"
+                                DecodePixelHeight="40"/>
         </Flyout>
       </templates:SubtleIconButton.Flyout>
     </templates:SubtleIconButton>

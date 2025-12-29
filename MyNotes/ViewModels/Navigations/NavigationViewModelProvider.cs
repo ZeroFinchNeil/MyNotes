@@ -4,7 +4,7 @@ using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations;
 
-internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider
+internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigation, NavigationViewModelBase>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 

@@ -9,8 +9,6 @@ using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Resources;
-using MyNotes.Services.Database;
-using MyNotes.Services.Dialog;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
@@ -24,7 +22,6 @@ internal sealed partial class MainWindow : Window
   // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
-  private readonly DialogService DialogService;
 
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
@@ -35,7 +32,6 @@ internal sealed partial class MainWindow : Window
     InitializeComponent();
     ViewModel = App.Instance.Services.GetRequiredService<MainViewModel>();
     SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
-    DialogService = App.Instance.Services.GetRequiredService<DialogService>();
 
     this.ExtendsContentIntoTitleBar = true;
     this.SetTitleBar(MainWindow_TitleBarGrid);
@@ -82,14 +78,14 @@ internal sealed partial class MainWindow : Window
     AppWindow.Destroying += AppWindow_Destroying;
 
     // 창 초기 크기 지정
-    var windowSize = SettingsService.Load<Size>(SettingsDescriptors.MainWindowSize.Key);
+    var windowSize = SettingsService.Load(SettingsDescriptors.MainWindowSize);
     if (windowSize.Width < minimumWindowSize.Width && windowSize.Height < minimumWindowSize.Height)
       windowSize = SettingsDescriptors.MainWindowSize.DefaultValue;
 
     AppWindow.Resize(new((int)(windowSize.Width * scaleFactor), (int)(windowSize.Height * scaleFactor)));
 
     // 창 초기 위치 지정
-    var windowPosition = SettingsService.Load<Point>(SettingsDescriptors.MainWindowPosition.Key);
+    var windowPosition = SettingsService.Load(SettingsDescriptors.MainWindowPosition);
     List<RectInt32> areas = new();
     foreach (var monitor in NativeMethods.GetActiveMonitorsInfo())
     {
@@ -106,7 +102,7 @@ internal sealed partial class MainWindow : Window
       AppWindow.Move(position);
 
     // 앱 테마 설정
-    SetAppTheme((ElementTheme)SettingsService.Load<int>(SettingsDescriptors.AppTheme.Key));
+    SetAppTheme((ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme));
 
     // 메신저 등록
     RegisterMessengers();
@@ -122,6 +118,8 @@ internal sealed partial class MainWindow : Window
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
   {
+    Console.WriteLine("{0}: {1}", "AppWindow_Closing", "");
+
     // 창 크기 저장
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
     SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(AppWindow.Size.Width / scaleFactor, AppWindow.Size.Height / scaleFactor));
@@ -139,17 +137,19 @@ internal sealed partial class MainWindow : Window
 
   private void AppWindow_Destroying(AppWindow sender, object args)
   {
+    Console.WriteLine("{0}: {1}", "AppWindow_Destroying", "");
+    // 바인딩 해제
+    Bindings.StopTracking();
   }
 
   private void MainWindow_Closed(object sender, WindowEventArgs args)
   {
+    Console.WriteLine("{0}: {1}", "MainWindow_Closed", "");
+
     this.Activated -= MainWindow_Activated;
 
     // 메신저 해제
     UnregisterMessengers();
-
-    // 바인딩 해제
-    Bindings.StopTracking();
 
     // 뷰모델 해제
     ViewModel.Dispose();
@@ -189,9 +189,9 @@ internal sealed partial class MainWindow : Window
       var PaneToggleButtonPosition = MainWindow_PaneToggleButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_PaneToggleButton.ActualWidth, MainWindow_PaneToggleButton.ActualHeight));
       var SearchBoxPosition = MainWindow_SearchAutoSuggestBox.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainWindow_SearchAutoSuggestBox.ActualWidth, MainWindow_SearchAutoSuggestBox.ActualHeight));
 
-      RectInt32 BackButtonRect = BackButtonPosition.ToScaledRectInt32(scaleFactor);
-      RectInt32 PaneToggleButtonRect = PaneToggleButtonPosition.ToScaledRectInt32(scaleFactor);
-      RectInt32 SearchBoxRect = SearchBoxPosition.ToScaledRectInt32(scaleFactor);
+      RectInt32 BackButtonRect = BackButtonPosition.AsScaledRectInt32(scaleFactor);
+      RectInt32 PaneToggleButtonRect = PaneToggleButtonPosition.AsScaledRectInt32(scaleFactor);
+      RectInt32 SearchBoxRect = SearchBoxPosition.AsScaledRectInt32(scaleFactor);
 
       // 제목 표시줄 드래그 제외할 영역 설정
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
@@ -430,46 +430,3 @@ internal sealed partial class MainWindow : Window
     WeakReferenceMessenger.Default.UnregisterAll(this);
   }
 }
-
-// DEBUG
-internal sealed partial class MainWindow : Window
-{
-  private async void MainWindow_SeparatorMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    Console.WriteLine();
-    Console.WriteLine("--------------------");
-    Console.WriteLine();
-  }
-
-  private async void MainWindow_DebugMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    foreach (var entity in await context.NavigationEntities.ToListAsync())
-    {
-      Console.WriteLine(entity.ToString());
-      Console.WriteLine();
-    }
-  }
-
-  private async void MainWindow_ClearDatabaseMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    await context.Database.EnsureDeletedAsync();
-    ViewModel.UserRootNavigationViewModel?.Navigation.ChildNodes.Clear();
-  }
-
-  private async void MainWindow_CreateDatabaseMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    await context.Database.EnsureCreatedAsync();
-  }
-
-  private void MainWindow_GCMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    GC.Collect();
-  }
-}
-

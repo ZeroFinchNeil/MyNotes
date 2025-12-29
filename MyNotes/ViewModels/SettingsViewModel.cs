@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
@@ -22,22 +23,22 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
   public SettingsViewModel(SettingsService settingsService)
   {
     SettingsService = settingsService;
-    _initalLanguage = new(SettingsService.Load<string>(SettingsDescriptors.AppLanguage.Key) ?? SettingsDescriptors.AppLanguage.DefaultValue);
+    _initalLanguage = new(SettingsService.Load(SettingsDescriptors.AppLanguage));
 
-    AppTheme = SettingsService.Load<int?>(SettingsDescriptors.AppTheme.Key) ?? SettingsDescriptors.AppTheme.DefaultValue;
+    AppTheme = SettingsService.Load(SettingsDescriptors.AppTheme);
     AppLanguage = _initalLanguage;
 
-    InitialPageType = SettingsService.Load<int?>(SettingsDescriptors.InitialPageType.Key) ?? SettingsDescriptors.InitialPageType.DefaultValue;
-    InitialPageId = SettingsService.Load<Guid?>(SettingsDescriptors.InitialPageId.Key) ?? SettingsDescriptors.InitialPageId.DefaultValue;
+    InitialPageType = SettingsService.Load(SettingsDescriptors.InitialPageType);
+    InitialPageId = SettingsService.Load(SettingsDescriptors.InitialPageId);
 
-    NoteBackground = ToolkitColorHelper.ToColor(SettingsService.Load<string>(SettingsDescriptors.NoteBackground.Key) ?? SettingsDescriptors.NoteBackground.DefaultValue);
-    NoteBackdrop = SettingsService.Load<int?>(SettingsDescriptors.NoteBackdrop.Key) ?? SettingsDescriptors.NoteBackdrop.DefaultValue;
+    NoteBackground = SettingsService.Load(SettingsDescriptors.NoteBackground).ToColor();
+    NoteBackdrop = SettingsService.Load(SettingsDescriptors.NoteBackdrop);
 
-    var noteSize = SettingsService.Load<Size?>(SettingsDescriptors.NoteSize.Key) ?? SettingsDescriptors.NoteSize.DefaultValue;
+    var noteSize = SettingsService.Load(SettingsDescriptors.NoteSize);
     NoteWidth = (int)noteSize.Width;
     NoteHeight = (int)noteSize.Height;
 
-    ShowNoteCount = SettingsService.Load<bool?>(SettingsDescriptors.ShowNoteCount.Key) ?? SettingsDescriptors.ShowNoteCount.DefaultValue;
+    ShowNoteCount = SettingsService.Load(SettingsDescriptors.ShowNoteCount);
   }
 
   #region Appearance
@@ -56,7 +57,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
           _ => new(ElementTheme.Default)
         };
         WeakReferenceMessenger.Default.Send(msg, MessageTokens.ChangeAppTheme);
-        SettingsService.Save(SettingsDescriptors.AppTheme.Key, value);
+        SettingsService.Save(SettingsDescriptors.AppTheme, value);
       }
     }
   }
@@ -74,7 +75,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
         SetProperty(ref field, value);
         string language = value.Language;
 
-        SettingsService.Save(SettingsDescriptors.AppLanguage.Key, language);
+        SettingsService.Save(SettingsDescriptors.AppLanguage, language);
 
         try
         {
@@ -114,7 +115,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
           3 => NavigationId.Empty.Value,
           _ => NavigationId.Home.Value
         };
-        SettingsService.Save(SettingsDescriptors.InitialPageType.Key, value);
+        SettingsService.Save(SettingsDescriptors.InitialPageType, value);
       }
     }
   }
@@ -127,7 +128,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.InitialPageId.Key, value);
+        SettingsService.Save(SettingsDescriptors.InitialPageId, value);
       }
     }
   }
@@ -142,7 +143,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteBackground.Key, value.ToString());
+        SettingsService.Save(SettingsDescriptors.NoteBackground, value.ToString());
       }
     }
   }
@@ -155,7 +156,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteBackdrop.Key, value);
+        SettingsService.Save(SettingsDescriptors.NoteBackdrop, value);
       }
     }
   }
@@ -168,7 +169,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSize.Key, new Size(value, NoteHeight));
+        SettingsService.Save(SettingsDescriptors.NoteSize, new Size(value, NoteHeight));
       }
     }
   }
@@ -181,7 +182,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSize.Key, new Size(NoteWidth, value));
+        SettingsService.Save(SettingsDescriptors.NoteSize, new Size(NoteWidth, value));
       }
     }
   }
@@ -196,7 +197,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       if (field != value)
       {
         SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.ShowNoteCount.Key, value);
+        SettingsService.Save(SettingsDescriptors.ShowNoteCount, value);
       }
     }
   }

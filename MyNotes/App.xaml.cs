@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Interop;
+using MyNotes.Debugging;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialog;
@@ -10,12 +10,14 @@ using MyNotes.Services.Window;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Notes;
+using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel;
 
 namespace MyNotes;
 
-public partial class App : Application
+public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
   internal static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
@@ -32,12 +34,13 @@ public partial class App : Application
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
   {
-    NativeMethods.SetConsole();
-
+#if DEBUG
+    new DebugWindow().Activate();
+#endif
     var windowService = Services.GetRequiredService<WindowService>();
-    var mainWindow = windowService.MainWindow;
+    var mainWindow = new MainWindow();
     mainWindow.Activate();
-    mainWindow.Closed += (s, e) => NativeMethods.FreeConsole();
+    windowService.MainWindow = new WeakReference<MainWindow>(mainWindow);
   }
 
   internal ServiceProvider Services { get; } = ConfigureServices();
@@ -52,6 +55,7 @@ public partial class App : Application
 
     services.AddSingleton<NavigationViewModelProvider>();
     services.AddSingleton<DialogViewModelFactory>();
+    services.AddSingleton<NoteViewModelProvider>();
 
     // Service
     services.AddSingleton<DialogService>();
@@ -75,5 +79,26 @@ public partial class App : Application
 
 
     return services.BuildServiceProvider();
+  }
+
+  private bool _disposed;
+
+  private void Dispose(bool disposing)
+  {
+    if (!_disposed)
+    {
+      if (disposing)
+      {
+        Services.Dispose();
+        Console.WriteLine("{0}: {1}", "App Closing...", "");
+      }
+      _disposed = true;
+    }
+  }
+
+  public void Dispose()
+  {
+    Dispose(disposing: true);
+    GC.SuppressFinalize(this);
   }
 }
