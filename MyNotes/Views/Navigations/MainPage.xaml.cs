@@ -1,0 +1,399 @@
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Content;
+
+using MyNotes.Common.Messages;
+using MyNotes.Debugging;
+using MyNotes.Helpers;
+using MyNotes.Models.Navigations;
+using MyNotes.Models.UI;
+using MyNotes.Resources;
+using MyNotes.Services.Settings;
+using MyNotes.Services.Window;
+using MyNotes.Templates;
+using MyNotes.ViewModels;
+using MyNotes.ViewModels.Navigations;
+using MyNotes.Views.Windows;
+
+using Windows.ApplicationModel.DataTransfer;
+
+using WinRT.Interop;
+
+namespace MyNotes.Views.Navigations;
+
+internal sealed partial class MainPage : Page
+{
+  // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드
+  private readonly MainViewModel ViewModel;
+  private readonly SettingsService SettingsService;
+  private readonly WindowService WindowService;
+
+  public MainPage(MainWindow mainWindow)
+  {
+#if DEBUG
+    ReferenceTracker.MainPageReference.Add(this, mainWindow.AppWindow.Id.Value);
+#endif
+
+    InitializeComponent();
+
+    ViewModel = App.Instance.Services.GetRequiredService<MainViewModel>();
+    SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
+    WindowService = App.Instance.Services.GetRequiredService<WindowService>();
+
+    mainWindow.SetTitleBar(MainPage_TitleBarGrid);
+
+    // 타이틀 바에 캡션 컨트롤 여백 및 드래그 제외 영역 지정
+
+    MainPage_TitleBarGrid.Loaded += MainPage_TitleBarGrid_Loaded;
+    MainPage_TitleBarGrid.SizeChanged += MainPage_TitleBarGrid_SizeChanged;
+
+
+    // 앱 테마 설정 
+    var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
+    this.RequestedTheme = theme;
+
+    // 메신저 등록
+    RegisterMessengers();
+
+    // 드래그 UI 타이머 등록
+    SetDraggableNavigationTimer();
+
+    // 뷰모델 속성 변경 알림
+    ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+    this.Unloaded += MainPage_Unloaded;
+  }
+
+  private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
+  {
+    MainPage_BackButton.LayoutUpdated -= MainPage_BackButton_LayoutUpdated;
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (e.PropertyName == nameof(MainViewModel.CanGoBack))
+    {
+      MainPage_BackButton.LayoutUpdated += MainPage_BackButton_LayoutUpdated;
+    }
+  }
+
+  private void GetWindowInfo(out IntPtr hWnd, out AppWindow? appWindow)
+  {
+    try
+    {
+      if (WindowService.MainWindow is not null
+        && WindowService.MainWindow.TryGetTarget(out var mainWindow))
+      {
+        hWnd = WindowNative.GetWindowHandle(mainWindow);
+        appWindow = mainWindow.AppWindow;
+      }
+      else if (this.XamlRoot is XamlRoot xamlRoot
+        && xamlRoot.ContentIslandEnvironment is ContentIslandEnvironment env)
+      {
+        var windowId = env.AppWindowId;
+        hWnd = Win32Interop.GetWindowFromWindowId(windowId);
+        appWindow = AppWindow.GetFromWindowId(windowId);
+      }
+      else
+      {
+        hWnd = IntPtr.Zero;
+        appWindow = null;
+      }
+    }
+    catch
+    {
+      hWnd = IntPtr.Zero;
+      appWindow = null;
+    }
+  }
+
+  private void MainPage_Unloaded(object sender, RoutedEventArgs e)
+  {
+    ViewModel.UserRootNavigationViewModel.ForEachDescendantAndSelf((viewmodel) =>
+    {
+      if (MainPage_NavigationView.ContainerFromMenuItem(viewmodel) is DraggableNavigationViewItem container)
+      {
+        container.DragStarting -= DraggableNavigationViewItem_DragStarting;
+        container.DragEnter -= DraggableNavigationViewItem_DragEnter;
+        container.DragOver -= DraggableNavigationViewItem_DragOver;
+        container.Drop -= DraggableNavigationViewItem_Drop;
+      }
+    });
+
+    // 타이머 해제
+    ReleaseDraggableNavigationTimer();
+
+    // 메신저 해제
+    UnregisterMessengers();
+
+    // 뷰모델 해제
+    ViewModel.Dispose();
+
+    // 바인딩 해제
+    Bindings.StopTracking();
+  }
+
+  #region 타이틀바 드래그 영역 조정
+  private void MainPage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
+  {
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void MainPage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+  {
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void SetRegionsForCustomTitleBar()
+  {
+    GetWindowInfo(out _, out var appWindow);
+    if (appWindow is not null && this.XamlRoot is XamlRoot xamlRoot)
+    {
+      double scaleFactor = xamlRoot.RasterizationScale;
+
+      // FlowDirection에 따른 캡션 컨트롤 여백 지정
+      RightPaddingColumn.Width = new GridLength(Math.Max(0, appWindow.TitleBar.RightInset) / scaleFactor);
+      LeftPaddingColumn.Width = new GridLength(Math.Max(0, appWindow.TitleBar.LeftInset) / scaleFactor);
+
+      // 뒤로 가기 버튼, 메뉴 버튼, 검색 상자 영역 위치와 크기 계산
+      var BackButtonPosition = MainPage_BackButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_BackButton.ActualWidth, MainPage_BackButton.ActualHeight));
+      var PaneToggleButtonPosition = MainPage_PaneToggleButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_PaneToggleButton.ActualWidth, MainPage_PaneToggleButton.ActualHeight));
+      var SearchBoxPosition = MainPage_SearchAutoSuggestBox.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_SearchAutoSuggestBox.ActualWidth, MainPage_SearchAutoSuggestBox.ActualHeight));
+
+      RectInt32 BackButtonRect = BackButtonPosition.AsScaledRectInt32(scaleFactor);
+      RectInt32 PaneToggleButtonRect = PaneToggleButtonPosition.AsScaledRectInt32(scaleFactor);
+      RectInt32 SearchBoxRect = SearchBoxPosition.AsScaledRectInt32(scaleFactor);
+
+      // 제목 표시줄 드래그 제외할 영역 설정
+      var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
+      _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
+    }
+  }
+  #endregion
+
+  private void MainPage_BackButton_Click(object sender, RoutedEventArgs e)
+  {
+    if (MainPage_NavigationFrame.CanGoBack)
+    {
+      _preventNavigation = true;
+      MainPage_NavigationFrame.GoBack();
+      ViewModel.PopNavigation();
+      _preventNavigation = false;
+    }
+  }
+
+  private void MainPage_PaneToggleButton_Click(object sender, RoutedEventArgs e)
+  {
+    MainPage_NavigationView.IsPaneOpen = !MainPage_NavigationView.IsPaneOpen;
+  }
+
+  private bool _preventNavigation = false;
+
+  private void MainPage_NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+  {
+    if (_preventNavigation)
+      return;
+
+    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
+    {
+      MainPage_NavigationFrame.Navigate(navigation.PageType);
+      ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+      ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
+      ViewModel.PushNavigation(navigation);
+    }
+  }
+
+  private void SetAppTheme(ElementTheme theme)
+  {
+    this.RequestedTheme = theme;
+
+    GetWindowInfo(out _, out var appWindow);
+    appWindow?.TitleBar.PreferredTheme = theme switch
+    {
+      ElementTheme.Light => TitleBarTheme.Light,
+      ElementTheme.Dark => TitleBarTheme.Dark,
+      _ => TitleBarTheme.UseDefaultAppMode
+    };
+  }
+
+
+  private NavigationViewModelBase? _sourceNavigationViewModel;
+  private void DraggableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
+  {
+    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
+    {
+      _sourceNavigationViewModel = sourceViewModel;
+      args.Data.SetData($"{App.PackageFamilyName}.NavigationUserNode.Id", sourceNavigation.Id.Value.ToString());
+    }
+  }
+
+  private DispatcherTimer _dispatcherTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+  private void SetDraggableNavigationTimer()
+  {
+    _dispatcherTimer.Tick += DraggableUIDispatcherTimer_Tick;
+  }
+
+  private void ReleaseDraggableNavigationTimer()
+  {
+    _dispatcherTimer.Stop();
+    _dispatcherTimer.Tick -= DraggableUIDispatcherTimer_Tick;
+  }
+
+  private void DraggableUIDispatcherTimer_Tick(object? sender, object e)
+  {
+    _dispatcherTimer.Stop();
+    _exapndableNavigation?.IsExpanded = !_exapndableNavigation.IsExpanded;
+    _exapndableNavigation = null;
+  }
+
+  private readonly string _navigationFormatId = $"{App.PackageFamilyName}.NavigationUserNode.Id";
+  private DragUISession? _dragUISession;
+  private NavigationUserCompositeNode? _exapndableNavigation;
+
+  private async void DraggableNavigationViewItem_DragEnter(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+    if (await e.DataView.GetDataAsync(_navigationFormatId) is string id)
+    {
+      if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
+      {
+        _dragUISession = new()
+        {
+          FormatId = _navigationFormatId,
+          DataView = id,
+          DataPackageOperation = DataPackageOperation.Move,
+          DragUIOverrideCaption = navigation is NavigationUserLeafNode ? "Move to this position" : "Move as a child of this item"
+        };
+
+        _dispatcherTimer.Stop();
+        if (navigation is NavigationUserCompositeNode compositeNode)
+        {
+          _exapndableNavigation = compositeNode;
+          _dispatcherTimer.Start();
+        }
+      }
+    }
+  }
+
+  private void DraggableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+
+    if (_dragUISession is DragUISession dragUISession && !dragUISession.IsExpired)
+    {
+      e.AcceptedOperation = dragUISession.DataPackageOperation;
+      e.DragUIOverride.Caption = dragUISession.DragUIOverrideCaption;
+      dragUISession.Dispose();
+    }
+  }
+
+  private async void DraggableNavigationViewItem_Drop(object sender, DragEventArgs e)
+  {
+    e.Handled = true;
+    _dispatcherTimer.Stop();
+
+    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    {
+      if (sourceNavigation == targetNavigation)
+        return;
+      var sourceParentNavigation = sourceNavigation.Parent;
+      var targetParentNavigation = targetNavigation.Parent;
+      int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
+
+      if (sourceParentNavigation == targetParentNavigation)
+      {
+        int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
+        targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
+      }
+      else
+      {
+        sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+        targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+      }
+    }
+  }
+
+  private void CommandBarFlyout_Opening(object sender, object e)
+  {
+    if (sender is MenuFlyout flyout
+      && flyout.GetValue(DataContextHelper.DataContextProperty) is UserNavigationViewModel currentVM)
+    {
+      NavigationUserNode? currentGroup = currentVM switch
+      {
+        UserLeafNavigationViewModel leaf => leaf.Navigation.Parent,
+        UserCompositeNavigationViewModel composite => composite.Navigation,
+        _ => null
+      };
+
+      flyout.Items.Clear();
+      foreach (var targetVM in ViewModel.GroupNavigationViewModels)
+      {
+        if (targetVM.Navigation == currentGroup)
+          continue;
+        flyout.Items.Add(new MenuFlyoutItem
+        {
+          Text = targetVM.Navigation.Title,
+          Icon = new ImageIcon() { Source = targetVM.Navigation.IconImage },
+          Command = currentVM.MoveToGroupCommand,
+          CommandParameter = (currentVM as NavigationViewModelBase, targetVM as NavigationViewModelBase)
+        });
+      }
+    }
+  }
+}
+
+internal sealed partial class MainPage : Page
+{
+  private void RegisterMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, MessageTokens.AppThmeChangedToken, new((recipient, message) => SetAppTheme(message.Value)));
+
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowActivationState>, MessageToken>(this, MessageTokens.MainWindowActivationChangedToken, new((recipient, message) =>
+    {
+      if (message.Value == WindowActivationState.Deactivated)
+      {
+        GetWindowInfo(out _, out var appWindow);
+        if (appWindow is not null)
+        {
+          var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
+          _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
+        }
+        VisualStateManager.GoToState(this, "WindowDeactivated", false);
+      }
+      else
+      {
+        SetRegionsForCustomTitleBar();
+        VisualStateManager.GoToState(this, "WindowActivated", false);
+      }
+
+    }));
+  }
+
+  private void UnregisterMessengers()
+  {
+    WeakReferenceMessenger.Default.UnregisterAll(this);
+  }
+}
+
+internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataTemplateSelector
+{
+  public DataTemplate? NavigationCoreNodeTemplate { get; set; }
+  public DataTemplate? NavigationSeparatorTemplate { get; set; }
+  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
+  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
+
+  protected override DataTemplate? SelectTemplateCore(object item)
+  {
+    return item switch
+    {
+      CoreNavigationViewModel => NavigationCoreNodeTemplate,
+      SeparatorNavigationViewModel => NavigationSeparatorTemplate,
+      UserCompositeNavigationViewModel => NavigationUserCompositeNodeTemplate,
+      UserLeafNavigationViewModel => NavigationUserLeafNodeTemplate,
+      _ => null
+    };
+  }
+}

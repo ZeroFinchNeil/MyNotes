@@ -58,24 +58,30 @@ internal sealed partial class MainViewModel : ViewModelBase
     IReadOnlyList<IReadOnlyList<NavigationViewModelBase>?> MenuItemsSource = [HeaderMenuItems, UserNavigationViewModels];
     MenuItems.Source = MenuItemsSource;
 
-    CurrentNavigationViewModel = HeaderMenuItems[0];
-
     NavigationService.CurrentNavigationChanged += NavigationService_CurrentNavigationChanged;
+    CurrentNavigationViewModel = HeaderMenuItems[0];
     SetCommands();
   }
+
+  public bool CanGoBack
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = false;
 
   private void NavigationService_CurrentNavigationChanged(object sender, INavigation args)
   {
     if (NavigationViewModelProvider.TryResolve(args, out var viewmodel))
       CurrentNavigationViewModel = viewmodel;
+    CanGoBack = NavigationService.NavigationBackStack.Count > 0;
   }
 
-  public void PushNavigationBackStack(INavigation navigation)
+  public void PushNavigation(INavigation navigation)
   {
     NavigationService.PushNavigationBackStack(navigation);
   }
 
-  public void PopNavigationBackStack()
+  public void PopNavigation()
   {
     NavigationService.PopNavigationBackStack();
   }
@@ -87,6 +93,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     if (disposing)
     {
+      NavigationViewModelProvider.ReleaseAll();
       NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
     }
 

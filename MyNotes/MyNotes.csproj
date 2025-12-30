@@ -14,6 +14,8 @@
   <ItemGroup>
     <None Remove="Debugging\BlankWindow.xaml" />
     <None Remove="Debugging\DebugWindow.xaml" />
+    <None Remove="Views\Navigations\MainPage.xaml" />
+    <None Remove="Views\Notes\NotePage.xaml" />
   </ItemGroup>
   
   <ItemGroup>
@@ -52,6 +54,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Views\Navigations\MainPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="Debugging\DebugWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -59,6 +67,12 @@
 
   <ItemGroup>
     <Page Update="Debugging\BlankWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Notes\NotePage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

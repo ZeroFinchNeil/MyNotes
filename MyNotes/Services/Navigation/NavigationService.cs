@@ -34,7 +34,6 @@ internal sealed partial class NavigationService : IDisposable
     DialogService = dialogService;
 
     BuildNavigationTask = BuildNavigationTree();
-    CurrentNavigation = PrimaryCoreNavigations[0];
 
     SetCommands();
   }

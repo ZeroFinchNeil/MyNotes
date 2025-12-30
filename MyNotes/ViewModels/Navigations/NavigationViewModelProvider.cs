@@ -44,4 +44,27 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     viewmodelbase = null;
     return false;
   }
+
+  public bool Release(INavigation navigation)
+  {
+    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
+      && wr.TryGetTarget(out var viewmodel))
+    {
+      viewmodel.Dispose();
+      ResolvedViewModels.Remove(navigation);
+    }
+    return false;
+  }
+
+  public void ReleaseAll()
+  {
+    foreach (var wr in ResolvedViewModels.Values)
+    {
+      if (wr.TryGetTarget(out var viewmodel))
+      {
+        viewmodel.Dispose();
+      }
+    }
+    ResolvedViewModels.Clear();
+  }
 }

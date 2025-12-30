@@ -5,7 +5,6 @@ namespace MyNotes.Resources;
 internal class LocalizedStrings
 {
   public static ResourceLoader DefaultResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse();
-  public static ResourceLoader MainWindowResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("MainWindow");
   public static ResourceLoader SettingsPageResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("SettingsPage");
   public static ResourceLoader CreateUserNavigationDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("CreateUserNavigationDialog");
   public static ResourceLoader UpdateUserNavigationDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("UpdateUserNavigationDialog");

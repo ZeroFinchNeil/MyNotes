@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,7 +16,7 @@ public sealed partial class DebugWindow : Window
   public DebugWindow()
   {
     InitializeComponent();
-    this.AppWindow.Resize(new(500, 500));
+    this.AppWindow.MoveAndResize(new(0, 0, 300, 300));
   }
 
   private async void DebugWindow_SeparatorButton_Click(object sender, RoutedEventArgs e)
@@ -26,13 +28,50 @@ public sealed partial class DebugWindow : Window
 
   private async void DebugWindow_DebugButton_Click(object sender, RoutedEventArgs e)
   {
-    var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    foreach (var entity in await context.NavigationEntities.ToListAsync())
+    WindowService windowService = App.Instance.Services.GetRequiredService<WindowService>();
+    Console.WriteLine();
+    Console.WriteLine("--------------------");
+    PrintReference(ReferenceTracker.MainWindowReference, "Main Windows");
+    PrintReference(ReferenceTracker.MainPageReference, "Main Pages");
+    PrintReference(ReferenceTracker.NoteWindowReference, "Note Windows");
+    PrintReference(ReferenceTracker.NotePageReference, "Note Pages");
+    PrintReference(ReferenceTracker.BlankWindowReference, "Blank Windows");
+    Console.WriteLine();
+    Console.WriteLine("--------------------");
+    Console.WriteLine();
+  }
+
+  private static void PrintReference<T>(ConditionalWeakTable<T, object?> table, string title) where T : class
+  {
+    Console.WriteLine();
+    Console.BackgroundColor = ConsoleColor.Yellow;
+    Console.WriteLine($"++ {title} ++");
+    Console.BackgroundColor = ConsoleColor.White;
+    foreach (var kv in table)
     {
-      Console.WriteLine(entity.ToString());
-      Console.WriteLine();
+      Console.WriteLine(kv.Value);
     }
+  }
+
+  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e)
+  {
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
+  }
+
+  private void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
+  {
+    Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
+    new NoteWindow(note).Activate();
+
+  }
+
+  private void DebugWindow_BlankWindowButton_Click(object sender, RoutedEventArgs e)
+  {
+    var window = new BlankWindow();
+    window.Activate();
+    ReferenceTracker.BlankWindowReference.Add(window, window.AppWindow.Id.Value);
   }
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)
@@ -47,50 +86,5 @@ public sealed partial class DebugWindow : Window
     var factory = App.Instance.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
     await using var context = await factory.CreateDbContextAsync();
     await context.Database.EnsureCreatedAsync();
-  }
-
-  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e)
-  {
-    GC.Collect();
-    WindowService windowService = App.Instance.Services.GetRequiredService<WindowService>();
-    Console.WriteLine();
-    Console.WriteLine("--------------------");
-    Console.WriteLine("Main Window");
-    if (windowService.MainWindow is not null && windowService.MainWindow.TryGetTarget(out var mainWindow))
-      Console.WriteLine("{0}: {1}", mainWindow, "True");
-
-    Console.WriteLine();
-    Console.WriteLine("Note Windows");
-    foreach (var kv in windowService.NoteWindows)
-    {
-      bool res = kv.Value.TryGetTarget(out var noteWindow);
-      Console.WriteLine("{0}: {1}", kv.Key.Id.Value, res);
-    }
-
-    Console.WriteLine();
-    Console.WriteLine("Blank Windows");
-    foreach (var kv in windowService.BlankWindows)
-    {
-      bool res = kv.Value.TryGetTarget(out var blankWindow);
-      Console.WriteLine("{0}: {1}", kv.Key, res);
-    }
-
-    Console.WriteLine("--------------------");
-    Console.WriteLine();
-  }
-
-  private void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
-  {
-    Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
-    new NoteWindow(note).Activate();
-
-  }
-
-  private void DebugWindow_BlankWindowButton_Click(object sender, RoutedEventArgs e)
-  {
-    var window = new BlankWindow();
-    window.Activate();
-    WindowService windowService = App.Instance.Services.GetRequiredService<WindowService>();
-    windowService.BlankWindows.Add(Guid.NewGuid(), new(window));
   }
 }

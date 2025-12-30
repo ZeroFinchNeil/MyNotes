@@ -12,36 +12,36 @@
     <MicaBackdrop />
   </Window.SystemBackdrop>
 
-  <StackPanel Spacing="8"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center">
-    <Button x:Name="DebugWindow_SeparatorButton"
-            Content="Separator"
-            Click="DebugWindow_SeparatorButton_Click" />
-    <MenuFlyoutSeparator />
-    <Button x:Name="DebugWindow_DebugButton"
-            Content="Debug"
-            Click="DebugWindow_DebugButton_Click" />
+  <ScrollView ContentOrientation="Vertical"
+              Padding="12">
+    <StackPanel Spacing="8"
+                HorizontalAlignment="Center">
+      <Button x:Name="DebugWindow_SeparatorButton"
+              Content="Separator"
+              Click="DebugWindow_SeparatorButton_Click" />
+      <MenuFlyoutSeparator />
+      <Button x:Name="DebugWindow_GCButton"
+              Content="GC"
+              Click="DebugWindow_GCButton_Click" />
+      <Button x:Name="DebugWindow_DebugButton"
+              Content="Show references"
+              Click="DebugWindow_DebugButton_Click" />
+      <MenuFlyoutSeparator />
+      <Button x:Name="DebugWindow_NewNoteButton"
+              Content="New note"
+              Click="DebugWindow_NewNoteButton_Click" />
+      <Button x:Name="DebugWindow_BlankWindowButton"
+              Content="Blank window"
+              Click="DebugWindow_BlankWindowButton_Click" />
 
-    <MenuFlyoutSeparator />
-    <Button x:Name="DebugWindow_GCButton"
-            Content="GC"
-            Click="DebugWindow_GCButton_Click" />
-    <MenuFlyoutSeparator />
-    <Button x:Name="DebugWindow_NewNoteButton"
-            Content="New note"
-            Click="DebugWindow_NewNoteButton_Click" />
-    <Button x:Name="DebugWindow_BlankWindowButton"
-            Content="Blank window"
-            Click="DebugWindow_BlankWindowButton_Click" />
-
-    <MenuFlyoutSeparator />
-    <MenuFlyoutSeparator />
-    <Button x:Name="DebugWindow_ClearDatabaseButton"
-            Content="Clear DB"
-            Click="DebugWindow_ClearDatabaseButton_Click" />
-    <Button x:Name="DebugWindow_CreateDatabaseButton"
-            Content="Create DB"
-            Click="DebugWindow_CreateDatabaseButton_Click" />
-  </StackPanel>
+      <MenuFlyoutSeparator />
+      <MenuFlyoutSeparator />
+      <Button x:Name="DebugWindow_ClearDatabaseButton"
+              Content="Clear DB"
+              Click="DebugWindow_ClearDatabaseButton_Click" />
+      <Button x:Name="DebugWindow_CreateDatabaseButton"
+              Content="Create DB"
+              Click="DebugWindow_CreateDatabaseButton_Click" />
+    </StackPanel>
+  </ScrollView>
 </Window>

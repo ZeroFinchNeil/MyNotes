@@ -41,11 +41,15 @@ public sealed partial class DraggableNavigationViewItem : NavigationViewItem
       OnEventAction = (instance, source, args) => instance?.DropCompleted?.Invoke(instance, args),
       OnDetachAction = (weakEventListener) => Presenter?.DropCompleted -= weakEventListener.OnEvent
     };
-
-    Presenter?.DragStarting += DragStartingEventListner.OnEvent;
     Presenter?.DropCompleted += DropCompletedEventListner.OnEvent;
     
     Presenter?.DragEnter += (s, e) => VisualStateManager.GoToState(Presenter, "PointerOver", false);
     Presenter?.DragLeave += (s, e) => VisualStateManager.GoToState(Presenter, "Normal", false);
+
+    //this.Unloaded += (s, e) =>
+    //{
+    //  Presenter?.DragStarting -= DragStartingEventListner.OnEvent;
+    //  Presenter?.DropCompleted -= DropCompletedEventListner.OnEvent;
+    //};
   }
 }

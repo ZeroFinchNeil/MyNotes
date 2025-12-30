@@ -74,7 +74,7 @@ internal sealed partial class UserCompositeNavigationViewModel : UserNavigationV
     _disposed = true;
   }
 
-  public void ForEachDescendant(Action<NavigationViewModelBase> action)
+  public void ForEachDescendantAndSelf(Action<NavigationViewModelBase> action)
   {
     Stack<NavigationViewModelBase> stack = new();
     stack.Push(this);

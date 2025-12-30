@@ -23,8 +23,8 @@ namespace MyNotes.Debugging;
 /// </summary>
 public sealed partial class BlankWindow : Window
 {
-    public BlankWindow()
-    {
-        InitializeComponent();
-    }
+  public BlankWindow()
+  {
+    InitializeComponent();
+  }
 }

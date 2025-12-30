@@ -56,7 +56,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
           2 => new(ElementTheme.Dark),
           _ => new(ElementTheme.Default)
         };
-        WeakReferenceMessenger.Default.Send(msg, MessageTokens.ChangeAppTheme);
+        WeakReferenceMessenger.Default.Send(msg, MessageTokens.AppThmeChangedToken);
         SettingsService.Save(SettingsDescriptors.AppTheme, value);
       }
     }
