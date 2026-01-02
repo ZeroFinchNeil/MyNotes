@@ -18,14 +18,13 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       return viewmodel;
     }
 
-    var scope = ServiceProvider.CreateScope();
     NavigationViewModelBase newViewModel = navigation switch
     {
-      NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(scope.ServiceProvider, scope, navigation),
-      NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(scope.ServiceProvider, scope, navigation),
-      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootNavigationViewModel>(scope.ServiceProvider, scope, navigation),
-      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(scope.ServiceProvider, scope, navigation),
-      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(scope.ServiceProvider, scope, navigation),
+      NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
+      NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(ServiceProvider, navigation),
       _ => throw new ArgumentException("Invalid navigation")
     };
 

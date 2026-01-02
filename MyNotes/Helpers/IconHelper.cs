@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Templates;
+using MyNotes.Models.Settings;
 
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
@@ -13,14 +13,20 @@ internal static class IconHelper
 
   private static readonly float PrimaryIconScale = 1.0f;
   private static readonly float BadgeIconScale = 0.5f;
-  public static async Task<BitmapImage> GetIconImage(short icon, short badge, bool showBadge)
+  public static async Task<BitmapImage> GetIconImage(short icon, GroupIconBadge groupIconBadge, bool showBadge)
   {
     var iconUri = GetMainUri(icon);
 
     var bitmapImage = new BitmapImage() { DecodePixelType = DecodePixelType.Logical, DecodePixelWidth = 40, DecodePixelHeight = 40 };
-    if (showBadge)
+
+    if (showBadge && groupIconBadge != GroupIconBadge.None)
     {
       var iconFile = await StorageFile.GetFileFromApplicationUriAsync(iconUri);
+      short badge = groupIconBadge switch
+      {
+        GroupIconBadge.Folder => (short)Templates.Icon.Emoji_OpenFileFolder,
+        _ => throw new ArgumentException("")
+      };
       var badgeFile = await StorageFile.GetFileFromApplicationUriAsync(GetMainUri(badge));
       using var iconStream = await iconFile.OpenReadAsync();
       using var badgeStream = await badgeFile.OpenReadAsync();

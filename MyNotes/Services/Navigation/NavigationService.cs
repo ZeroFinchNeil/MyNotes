@@ -240,8 +240,6 @@ internal sealed partial class NavigationService : IDisposable
 
     newNode.PropertyChanged += UserNode_PropertyChanged;
 
-    newNode.IsEditable = true;
-
     return newNode;
   }
 

@@ -168,14 +168,20 @@
   <data name="General_SubTitleTextBlock.Text" xml:space="preserve">
     <value>General</value>
   </data>
-  <data name="List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
+  <data name="ListAndGroup_GroupIconBadgeFolderComboBoxItem.Content" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="ListAndGroup_GroupIconBadgeNoneComboBoxItem.Content" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="ListAndGroup_ShowNoteCountSettingsCard.Description" xml:space="preserve">
     <value>Display the number of notes on the list.</value>
   </data>
-  <data name="List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
+  <data name="ListAndGroup_ShowNoteCountSettingsCard.Header" xml:space="preserve">
     <value>Show note count</value>
   </data>
-  <data name="List_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>List</value>
+  <data name="ListAndGroup_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>List and group</value>
   </data>
   <data name="Note_BackdropAcrylicComboBoxItem.Content" xml:space="preserve">
     <value>Acrylic</value>

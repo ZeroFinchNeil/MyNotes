@@ -18,6 +18,7 @@ internal class LocalizedStrings
 
   public static readonly string NavigationUserCompositeNode_DisplayName = DefaultResourceLoader.GetString("NavigationUserCompositeNode_DisplayName");
   public static readonly string NavigationUserLeafNodeDisplayName = DefaultResourceLoader.GetString("NavigationUserLeafNode_DisplayName");
+  public static readonly string NavigationUserRootNodeDisplayName = DefaultResourceLoader.GetString("NavigationUserRootNode_DisplayName");
 
   public static readonly string CreateUserNavigationDialogTitleText = CreateUserNavigationDialogResourceLoader.GetString("ContentDialog_TitleText");
   public static readonly string CreateUserNavigationDialogSubTitleTextBlockText = CreateUserNavigationDialogResourceLoader.GetString("SubTitleTextBlock_Text");

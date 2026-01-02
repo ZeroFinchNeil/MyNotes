@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using Microsoft.UI.Xaml.Media.Imaging;
-
 using MyNotes.Helpers;
+using MyNotes.Models.Settings;
+using MyNotes.Resources;
 
 namespace MyNotes.Models.Navigations;
 
@@ -19,20 +19,7 @@ internal partial class NavigationUserNode : ObservableObject, INavigationUserNod
   public required short Icon
   {
     get;
-    set
-    {
-      if (field != value)
-      {
-        SetProperty(ref field, value);
-        _ = ChangeIconImage(value);
-      }
-    }
-  }
-
-  public BitmapImage? IconImage
-  {
-    get;
-    private set => SetProperty(ref field, value);
+    set => SetProperty(ref field, value);
   }
 
   public required string Title
@@ -53,16 +40,8 @@ internal partial class NavigationUserNode : ObservableObject, INavigationUserNod
     set => SetProperty(ref field, value);
   }
 
-  public bool IsEditable
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = false;
-
   public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
   public override int GetHashCode() => Id.GetHashCode();
-
-  private async Task ChangeIconImage(short icon) => IconImage = await IconHelper.GetIconImage(icon, (short)Templates.Icon.Emoji_OpenFileFolder, this is NavigationUserCompositeNode);
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {
@@ -140,12 +119,12 @@ internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
     Id = NavigationId.UserRootNode,
     Parent = null!,
     Icon = (short)Templates.Icon.System_Library,
-    Title = "Root",
+    Title = LocalizedStrings.NavigationUserRootNodeDisplayName,
     PageType = typeof(Page),
     Position = 0
   };
 
-  private NavigationUserRootNode() 
+  private NavigationUserRootNode()
   {
     Parent = this;
   }

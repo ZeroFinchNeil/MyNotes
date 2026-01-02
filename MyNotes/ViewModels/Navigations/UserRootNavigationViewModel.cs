@@ -7,13 +7,14 @@ using MyNotes.Common.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Resources;
 using MyNotes.Services.Commands;
+using MyNotes.Services.Settings;
 
 namespace MyNotes.ViewModels.Navigations;
 
 internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewModel
 {
-  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, IServiceScope serviceScope, NavigationUserRootNode navigation)
-    : base(provider, navigationCommandService, serviceScope, navigation)
+  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
+    : base(provider, navigationCommandService, settingsService, navigation)
   {
     RegisterMessenger();
   }

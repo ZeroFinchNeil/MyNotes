@@ -16,4 +16,7 @@ internal static class MessageTokens
 
   // UserNavigationViewModel -> UserRootNavigationViewModel
   public static MessageToken GetAllGroupNavigationViewModelsToken = new() { Key = "GetAllGroupNavigationViewModels" };
+
+  // SettingsViewModel -> UserNavigationViewModel(s)
+  public static MessageToken ChangeNavigationViewModelIconImageToken = new() { Key = "ChangeNavigationViewModelIconImage" };
 }

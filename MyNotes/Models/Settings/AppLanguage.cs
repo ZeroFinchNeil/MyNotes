@@ -4,7 +4,7 @@ using Microsoft.Windows.Globalization;
 
 using MyNotes.Resources;
 
-namespace MyNotes.Models;
+namespace MyNotes.Models.Settings;
 
 internal sealed record AppLanguage
 {

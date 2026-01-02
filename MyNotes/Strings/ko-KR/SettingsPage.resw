@@ -168,14 +168,20 @@
   <data name="General_SubTitleTextBlock.Text" xml:space="preserve">
     <value>일반</value>
   </data>
-  <data name="List_ShowNoteCountSettingsCard.Description" xml:space="preserve">
+  <data name="ListAndGroup_GroupIconBadgeFolderComboBoxItem.Content" xml:space="preserve">
+    <value>폴더</value>
+  </data>
+  <data name="ListAndGroup_GroupIconBadgeNoneComboBoxItem.Content" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="ListAndGroup_ShowNoteCountSettingsCard.Description" xml:space="preserve">
     <value>목록 안에 포함된 노트의 개수를 표시합니다.</value>
   </data>
-  <data name="List_ShowNoteCountSettingsCard.Header" xml:space="preserve">
+  <data name="ListAndGroup_ShowNoteCountSettingsCard.Header" xml:space="preserve">
     <value>노트 개수 표시</value>
   </data>
-  <data name="List_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>목록</value>
+  <data name="ListAndGroup_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>목록 및 그룹</value>
   </data>
   <data name="Note_BackdropAcrylicComboBoxItem.Content" xml:space="preserve">
     <value>아크릴</value>

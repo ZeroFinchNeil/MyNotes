@@ -5,7 +5,7 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal abstract class NavigationViewModelBase : ViewModelBase
 {
-  public virtual INavigation? Navigation { get; }
+  public abstract INavigation Navigation { get; }
 
 #if DEBUG
   public NavigationViewModelBase()

@@ -6,12 +6,10 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 {
-  private readonly IServiceScope ServiceScope;
   public override NavigationCoreNode Navigation { get; }
 
-  public CoreNavigationViewModel(IServiceScope serviceScope, NavigationCoreNode navigation)
+  public CoreNavigationViewModel(NavigationCoreNode navigation)
   {
-    ServiceScope = serviceScope;
     Navigation = navigation;
   }
 
@@ -22,7 +20,6 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 
     if (disposing)
     {
-      ServiceScope.Dispose();
     }
 
     _disposed = true;

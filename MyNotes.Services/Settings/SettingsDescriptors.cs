@@ -31,6 +31,7 @@ internal static class SettingsDescriptors
 
   public static readonly SettingsDescriptor<int> NoteBodyUpdateFrequency = new("NoteBodyUpdateFrequency", 2);
 
-  // Settings - List
+  // Settings - List and Group
   public static readonly SettingsDescriptor<bool> ShowNoteCount = new("ShowNoteCount", true);
+  public static readonly SettingsDescriptor<int> GroupIconBadge = new("GroupIconBadge", 1);
 }

@@ -141,4 +141,7 @@
   <data name="NavigationUserLeafNode_DisplayName" xml:space="preserve">
     <value>목록</value>
   </data>
+  <data name="NavigationUserRootNode_DisplayName" xml:space="preserve">
+    <value>[최상위 그룹]</value>
+  </data>
 </root>

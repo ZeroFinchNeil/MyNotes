@@ -3,7 +3,7 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MyNotes.Views.Navigations"
-      xmlns:models="using:MyNotes.Models"
+      xmlns:models="using:MyNotes.Models.Settings"
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
@@ -259,18 +259,30 @@
         </StackPanel>
         <!--#endregion-->
 
-        <!--#region List -->
+        <!--#region List and group -->
         <StackPanel Spacing="4">
-          <TextBlock x:Uid="/SettingsPage/List_SubTitleTextBlock"
+          <TextBlock x:Uid="/SettingsPage/ListAndGroup_SubTitleTextBlock"
                      Padding="4"
                      Style="{ThemeResource BaseTextBlockStyle}" />
 
           <!-- Show Note Count SettingsCard -->
-          <controls:SettingsCard x:Uid="/SettingsPage/List_ShowNoteCountSettingsCard">
+          <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_ShowNoteCountSettingsCard">
             <controls:SettingsCard.HeaderIcon>
               <ImageIcon Source="/Assets/Icons/FluentUISystem/Document10016Regular.svg" />
             </controls:SettingsCard.HeaderIcon>
             <ToggleSwitch IsOn="{x:Bind ViewModel.ShowNoteCount, Mode=TwoWay}" />
+          </controls:SettingsCard>
+
+          <!-- Group Icon Badge SettingsCard -->
+          <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeSettingsCard">
+            <controls:SettingsCard.HeaderIcon>
+              <ImageIcon Source="/Assets/Icons/FluentUISystem/Document10016Regular.svg" />
+            </controls:SettingsCard.HeaderIcon>
+            <ComboBox SelectedIndex="{x:Bind ViewModel.GroupIconBadge, Mode=TwoWay}"
+                      MinWidth="160">
+              <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeNoneComboBoxItem" />
+              <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeFolderComboBoxItem"/>
+            </ComboBox>
           </controls:SettingsCard>
         </StackPanel>
         <!--#endregion -->

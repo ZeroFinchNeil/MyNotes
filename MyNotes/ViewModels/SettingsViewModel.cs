@@ -4,15 +4,13 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
-using MyNotes.Models;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Settings;
 using MyNotes.Resources;
 using MyNotes.Services.Settings;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
-
-using ToolkitColorHelper = CommunityToolkit.WinUI.Helpers.ColorHelper;
 
 namespace MyNotes.ViewModels;
 
@@ -39,6 +37,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
     NoteHeight = (int)noteSize.Height;
 
     ShowNoteCount = SettingsService.Load(SettingsDescriptors.ShowNoteCount);
+    _groupIconBadge = SettingsService.Load(SettingsDescriptors.GroupIconBadge);
   }
 
   #region Appearance
@@ -65,6 +64,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
   public List<AppLanguage> AppLanguages { get; } = new(AppLanguage.ManifestLanguages.Keys.Select(lang => new AppLanguage(lang)));
 
   private readonly AppLanguage _initalLanguage;
+
   public AppLanguage AppLanguage
   {
     get;
@@ -198,6 +198,21 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.ShowNoteCount, value);
+      }
+    }
+  }
+
+  private int _groupIconBadge;
+  public int GroupIconBadge
+  {
+    get => _groupIconBadge;
+    set
+    {
+      if (_groupIconBadge != value)
+      {
+        SetProperty(ref _groupIconBadge, value);
+        SettingsService.Save(SettingsDescriptors.GroupIconBadge, value);
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>((GroupIconBadge)value), MessageTokens.ChangeNavigationViewModelIconImageToken);
       }
     }
   }

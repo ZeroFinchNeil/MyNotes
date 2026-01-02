@@ -6,12 +6,10 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal sealed partial class SeparatorNavigationViewModel : NavigationViewModelBase
 {
-  private readonly IServiceScope ServiceScope;
   public override NavigationSeparator Navigation { get; }
 
-  public SeparatorNavigationViewModel(IServiceScope serviceScope, NavigationSeparator navigation)
+  public SeparatorNavigationViewModel(NavigationSeparator navigation)
   {
-    ServiceScope = serviceScope;
     Navigation = navigation;
   }
 
@@ -22,7 +20,6 @@ internal sealed partial class SeparatorNavigationViewModel : NavigationViewModel
 
     if (disposing)
     {
-      ServiceScope.Dispose();
     }
 
     _disposed = true;

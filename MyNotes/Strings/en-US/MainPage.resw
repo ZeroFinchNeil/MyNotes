@@ -120,32 +120,17 @@
   <data name="BackButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Back</value>
   </data>
-  <data name="MoveListsApplyButton.Content" xml:space="preserve">
-    <value>Apply</value>
-  </data>
-  <data name="NavigationUserNode_AddGroupAppBarButton.Label" xml:space="preserve">
-    <value>Add a group</value>
-  </data>
   <data name="NavigationUserNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
     <value>Add a group</value>
   </data>
-  <data name="NavigationUserNode_AddListAppBarButton.Label" xml:space="preserve">
-    <value>Add a list</value>
-  </data>
   <data name="NavigationUserNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
     <value>Add a list</value>
-  </data>
-  <data name="NavigationUserNode_DeleteAppBarButton.Label" xml:space="preserve">
-    <value>Delete</value>
   </data>
   <data name="NavigationUserNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>Delete</value>
   </data>
   <data name="NavigationUserNode_MoveToGroupMenuFlyoutSubItem.Text" xml:space="preserve">
     <value>Move to group</value>
-  </data>
-  <data name="NavigationUserNode_UpdateAppBarButton.Label" xml:space="preserve">
-    <value>Edit name and icon</value>
   </data>
   <data name="NavigationUserNode_UpdateMenuFlyoutItem.Text" xml:space="preserve">
     <value>Edit name and icon</value>
@@ -156,16 +141,22 @@
   <data name="PaneFooter_AddListMunuFlyoutSubItem.Text" xml:space="preserve">
     <value>Add a list</value>
   </data>
-  <data name="PaneFooter_EditListsButton.Content" xml:space="preserve">
-    <value>Edit lists</value>
-  </data>
-  <data name="PaneFooter_MoveListsMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Move lists</value>
+  <data name="PaneFooter_NewItemButton.Content" xml:space="preserve">
+    <value>New item</value>
   </data>
   <data name="PaneToggleButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Toggle Navigation</value>
   </data>
   <data name="SearchAutoSuggestBox.PlaceholderText" xml:space="preserve">
     <value>Search Notes.</value>
+  </data>
+  <data name="PaneFooter_NewItemButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Create a user list or group.</value>
+  </data>
+  <data name="PaneFooter_AddItemToRootMenuFlyoutItem.Text" xml:space="preserve">
+    <value>to top-level group</value>
+  </data>
+  <data name="PaneFooter_AddItemAtSelectedMenuFlyoutItem.Text" xml:space="preserve">
+    <value>at selected position</value>
   </data>
 </root>

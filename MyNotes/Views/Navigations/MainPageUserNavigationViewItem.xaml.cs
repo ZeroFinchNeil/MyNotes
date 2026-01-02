@@ -61,7 +61,7 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
           MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
           {
             Text = targetVM.Navigation.Title,
-            Icon = new ImageIcon() { Source = targetVM.Navigation.IconImage },
+            Icon = new ImageIcon() { Source = targetVM.IconImage },
             Command = ViewModel.MoveToGroupCommand,
             CommandParameter = (ViewModel as NavigationViewModelBase, targetVM as NavigationViewModelBase)
           });
