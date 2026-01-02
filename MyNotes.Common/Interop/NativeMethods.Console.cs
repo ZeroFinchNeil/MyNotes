@@ -72,13 +72,15 @@ internal static partial class NativeMethods
     public short Y;
   }
 
-  public static void SetConsole()
+  public static void SetConsole(int posX = -1, int posY = -1, int width = -1, int height = -1)
   {
     AllocConsole();
     IntPtr consoleHwnd = GetConsoleWindow();
     if (consoleHwnd == IntPtr.Zero)
       return;
 
+    if (posX >= 0 && posY >= 0 && width >= 0 && height >= 0)
+      MoveWindow(consoleHwnd, posX, posY, width, height, true);
     //uint SWP_NOMOVE = 0x0002;
     //uint SWP_NOSIZE = 0x0001;
     //uint SWP_SHOWWINDOW = 0x0040;

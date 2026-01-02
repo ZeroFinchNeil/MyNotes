@@ -50,7 +50,7 @@ public sealed partial class App : Application, IDisposable
     ServiceCollection services = new();
 
     // ViewModel
-    services.AddTransient<MainViewModel>();
+    services.AddScoped<MainViewModel>();
     services.AddSingleton<SettingsViewModel>();
 
     services.AddSingleton<NavigationViewModelProvider>();

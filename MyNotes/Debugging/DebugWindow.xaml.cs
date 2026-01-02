@@ -33,8 +33,11 @@ public sealed partial class DebugWindow : Window
     Console.WriteLine("--------------------");
     PrintReference(ReferenceTracker.MainWindowReference, "Main Windows");
     PrintReference(ReferenceTracker.MainPageReference, "Main Pages");
+    PrintReference(ReferenceTracker.MainViewModelReference, "Main ViewModels");
+    PrintReference(ReferenceTracker.NavigationViewModelReference, "Navigation ViewModels");
     PrintReference(ReferenceTracker.NoteWindowReference, "Note Windows");
     PrintReference(ReferenceTracker.NotePageReference, "Note Pages");
+    PrintReference(ReferenceTracker.NoteViewModelReference, "Note ViewModels");
     PrintReference(ReferenceTracker.BlankWindowReference, "Blank Windows");
     Console.WriteLine();
     Console.WriteLine("--------------------");

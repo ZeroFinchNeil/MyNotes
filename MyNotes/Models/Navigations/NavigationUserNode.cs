@@ -6,7 +6,7 @@ using MyNotes.Helpers;
 
 namespace MyNotes.Models.Navigations;
 
-internal class NavigationUserNode : ObservableObject, INavigationUserNode
+internal partial class NavigationUserNode : ObservableObject, INavigationUserNode
 {
   public required NavigationId Id { get; init; }
 

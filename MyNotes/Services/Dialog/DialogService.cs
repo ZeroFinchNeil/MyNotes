@@ -30,7 +30,8 @@ internal sealed class DialogService
         _ => throw new ArgumentException("Invalid edit mode")
       };
       dialog.XamlRoot = xamlRoot;
-      var dialogResult = await dialog.ShowAsync();
+      var dialogResult = await ShowNewDialog(dialog);
+
       return (dialogResult, viewModel.Result);
     }
     return (ContentDialogResult.None, null);
@@ -38,11 +39,27 @@ internal sealed class DialogService
 
   public async Task<ContentDialogResult> ShowConfirmDeleteDialogAsync(XamlRoot xamlRoot, string targetTypeName, string targetName, DeleteMode deleteMode)
   {
-    if(ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewModel)
+    if (ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewModel)
     {
       var dialog = new ConfirmDeleteDialog(viewModel) { XamlRoot = xamlRoot };
-      return await dialog.ShowAsync();
+      return await ShowNewDialog(dialog);
     }
     return ContentDialogResult.None;
+  }
+
+  private ContentDialog? _currentDialog;
+
+  private async Task<ContentDialogResult> ShowNewDialog(ContentDialog dialog)
+  {
+    if (_currentDialog is ContentDialog previousDialog)
+    {
+      previousDialog.Hide();
+    }
+
+    _currentDialog = dialog;
+    var result = await dialog.ShowAsync();
+    _currentDialog = null;
+
+    return result;
   }
 }

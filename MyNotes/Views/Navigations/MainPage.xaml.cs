@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.WinUI;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,6 +31,7 @@ internal sealed partial class MainPage : Page
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
+  private readonly IServiceScope ServiceScope;
 
   public MainPage(MainWindow mainWindow)
   {
@@ -39,17 +41,12 @@ internal sealed partial class MainPage : Page
 
     InitializeComponent();
 
-    ViewModel = App.Instance.Services.GetRequiredService<MainViewModel>();
-    SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
-    WindowService = App.Instance.Services.GetRequiredService<WindowService>();
+    ServiceScope = App.Instance.Services.CreateScope();
+    ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
+    SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
+    WindowService = ServiceScope.ServiceProvider.GetRequiredService<WindowService>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
-
-    // 타이틀 바에 캡션 컨트롤 여백 및 드래그 제외 영역 지정
-
-    MainPage_TitleBarGrid.Loaded += MainPage_TitleBarGrid_Loaded;
-    MainPage_TitleBarGrid.SizeChanged += MainPage_TitleBarGrid_SizeChanged;
-
 
     // 앱 테마 설정 
     var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
@@ -61,8 +58,6 @@ internal sealed partial class MainPage : Page
     // 드래그 UI 타이머 등록
     SetDraggableNavigationTimer();
 
-    // 뷰모델 속성 변경 알림
-    ViewModel.PropertyChanged += ViewModel_PropertyChanged;
     this.Unloaded += MainPage_Unloaded;
   }
 
@@ -72,10 +67,13 @@ internal sealed partial class MainPage : Page
     SetRegionsForCustomTitleBar();
   }
 
-  private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  private bool _canGoBack = false;
+  private void MainPage_NavigationFrame_Navigated(object sender, NavigationEventArgs e)
   {
-    if (e.PropertyName == nameof(MainViewModel.CanGoBack))
+    bool canGoBack = MainPage_NavigationFrame.CanGoBack;
+    if (_canGoBack != canGoBack)
     {
+      _canGoBack = canGoBack;
       MainPage_BackButton.LayoutUpdated += MainPage_BackButton_LayoutUpdated;
     }
   }
@@ -114,12 +112,12 @@ internal sealed partial class MainPage : Page
   {
     ViewModel.UserRootNavigationViewModel.ForEachDescendantAndSelf((viewmodel) =>
     {
-      if (MainPage_NavigationView.ContainerFromMenuItem(viewmodel) is DraggableNavigationViewItem container)
+      if (MainPage_NavigationView.ContainerFromMenuItem(viewmodel) is MainPageUserNavigationViewItem container)
       {
-        container.DragStarting -= DraggableNavigationViewItem_DragStarting;
-        container.DragEnter -= DraggableNavigationViewItem_DragEnter;
-        container.DragOver -= DraggableNavigationViewItem_DragOver;
-        container.Drop -= DraggableNavigationViewItem_Drop;
+        container.PresenterDragStarting -= MainPageUserNavigationViewItem_PresenterDragStarting;
+        container.DragEnter -= MainPageUserNavigationViewItem_DragEnter;
+        container.DragOver -= MainPageUserNavigationViewItem_DragOver;
+        container.Drop -= MainPageUserNavigationViewItem_Drop;
       }
     });
 
@@ -131,6 +129,9 @@ internal sealed partial class MainPage : Page
 
     // 뷰모델 해제
     ViewModel.Dispose();
+
+    // 서비스 스코프 해제
+    ServiceScope.Dispose();
 
     // 바인딩 해제
     Bindings.StopTracking();
@@ -221,16 +222,16 @@ internal sealed partial class MainPage : Page
 
 
   private NavigationViewModelBase? _sourceNavigationViewModel;
-  private void DraggableNavigationViewItem_DragStarting(UIElement sender, DragStartingEventArgs args)
+  private void MainPageUserNavigationViewItem_PresenterDragStarting(UIElement sender, DragStartingEventArgs args)
   {
-    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
+    if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
     {
       _sourceNavigationViewModel = sourceViewModel;
-      args.Data.SetData($"{App.PackageFamilyName}.NavigationUserNode.Id", sourceNavigation.Id.Value.ToString());
+      args.Data.SetData(_navigationFormatId, sourceNavigation.Id.Value.ToString());
     }
   }
 
-  private DispatcherTimer _dispatcherTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
+  private readonly DispatcherTimer _dispatcherTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
   private void SetDraggableNavigationTimer()
   {
     _dispatcherTimer.Tick += DraggableUIDispatcherTimer_Tick;
@@ -253,12 +254,13 @@ internal sealed partial class MainPage : Page
   private DragUISession? _dragUISession;
   private NavigationUserCompositeNode? _exapndableNavigation;
 
-  private async void DraggableNavigationViewItem_DragEnter(object sender, DragEventArgs e)
+  private async void MainPageUserNavigationViewItem_DragEnter(object sender, DragEventArgs e)
   {
     e.Handled = true;
-    if (await e.DataView.GetDataAsync(_navigationFormatId) is string id)
+
+    if (e.DataView.Contains(_navigationFormatId) && await e.DataView.GetDataAsync(_navigationFormatId) is string id)
     {
-      if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
+      if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
       {
         _dragUISession = new()
         {
@@ -278,7 +280,7 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private void DraggableNavigationViewItem_DragOver(object sender, DragEventArgs e)
+  private void MainPageUserNavigationViewItem_DragOver(object sender, DragEventArgs e)
   {
     e.Handled = true;
 
@@ -290,12 +292,12 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private async void DraggableNavigationViewItem_Drop(object sender, DragEventArgs e)
+  private async void MainPageUserNavigationViewItem_Drop(object sender, DragEventArgs e)
   {
     e.Handled = true;
     _dispatcherTimer.Stop();
 
-    if (sender is FrameworkElement { DataContext: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
       if (sourceNavigation == targetNavigation)
         return;
@@ -312,34 +314,6 @@ internal sealed partial class MainPage : Page
       {
         sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
         targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
-      }
-    }
-  }
-
-  private void CommandBarFlyout_Opening(object sender, object e)
-  {
-    if (sender is MenuFlyout flyout
-      && flyout.GetValue(DataContextHelper.DataContextProperty) is UserNavigationViewModel currentVM)
-    {
-      NavigationUserNode? currentGroup = currentVM switch
-      {
-        UserLeafNavigationViewModel leaf => leaf.Navigation.Parent,
-        UserCompositeNavigationViewModel composite => composite.Navigation,
-        _ => null
-      };
-
-      flyout.Items.Clear();
-      foreach (var targetVM in ViewModel.GroupNavigationViewModels)
-      {
-        if (targetVM.Navigation == currentGroup)
-          continue;
-        flyout.Items.Add(new MenuFlyoutItem
-        {
-          Text = targetVM.Navigation.Title,
-          Icon = new ImageIcon() { Source = targetVM.Navigation.IconImage },
-          Command = currentVM.MoveToGroupCommand,
-          CommandParameter = (currentVM as NavigationViewModelBase, targetVM as NavigationViewModelBase)
-        });
       }
     }
   }

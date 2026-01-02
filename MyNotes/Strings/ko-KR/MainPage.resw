@@ -126,13 +126,28 @@
   <data name="NavigationUserNode_AddGroupAppBarButton.Label" xml:space="preserve">
     <value>그룹 추가</value>
   </data>
+  <data name="NavigationUserNode_AddGroupMenuFlyoutItem.Text" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
   <data name="NavigationUserNode_AddListAppBarButton.Label" xml:space="preserve">
+    <value>목록 추가</value>
+  </data>
+  <data name="NavigationUserNode_AddListMenuFlyoutItem.Text" xml:space="preserve">
     <value>목록 추가</value>
   </data>
   <data name="NavigationUserNode_DeleteAppBarButton.Label" xml:space="preserve">
     <value>삭제</value>
   </data>
+  <data name="NavigationUserNode_DeleteMenuFlyoutItem.Text" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="NavigationUserNode_MoveToGroupMenuFlyoutSubItem.Text" xml:space="preserve">
+    <value>다른 그룹으로 이동</value>
+  </data>
   <data name="NavigationUserNode_UpdateAppBarButton.Label" xml:space="preserve">
+    <value>이름과 아이콘 변경</value>
+  </data>
+  <data name="NavigationUserNode_UpdateMenuFlyoutItem.Text" xml:space="preserve">
     <value>이름과 아이콘 변경</value>
   </data>
   <data name="PaneFooter_AddGroupMunuFlyoutSubItem.Text" xml:space="preserve">

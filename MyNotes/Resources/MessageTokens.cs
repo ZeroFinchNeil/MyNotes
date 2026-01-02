@@ -13,4 +13,7 @@ internal static class MessageTokens
 
   // NoteWindow -> NotePage
   public static MessageToken<NoteId> NoteWindowActivationChangedToken(NoteId id) => new() { Key = "NoteWindowActivationChanged", Context = id };
+
+  // UserNavigationViewModel -> UserRootNavigationViewModel
+  public static MessageToken GetAllGroupNavigationViewModelsToken = new() { Key = "GetAllGroupNavigationViewModels" };
 }

@@ -65,7 +65,7 @@ public class Program
   private static void LaunchAppSingleInstance()
   {
 #if DEBUG
-    NativeMethods.SetConsole();
+    NativeMethods.SetConsole(0, 300, 800, 1000);
 #endif
     App? app = null;
     if (!DecideRedirection())

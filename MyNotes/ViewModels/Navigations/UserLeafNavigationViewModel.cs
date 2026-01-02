@@ -11,13 +11,28 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   public override NavigationUserLeafNode Navigation { get; }
 
   private readonly NavigationCommandService NavigationCommandService;
+  private readonly IServiceScope ServiceScope;
 
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NavigationUserLeafNode navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, IServiceScope serviceScope, NavigationUserLeafNode navigation)
   {
+    ServiceScope = serviceScope;
     Navigation = navigation;
 
     // Dependency Injection
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
+  }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (_disposed)
+      return;
+
+    if (disposing)
+    {
+      ServiceScope.Dispose();
+    }
+
+    _disposed = true;
   }
 
   public override Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;

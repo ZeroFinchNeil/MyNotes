@@ -8,15 +8,15 @@ using Windows.Foundation;
 
 namespace MyNotes.Templates;
 
-public sealed partial class DraggableNavigationViewItem : NavigationViewItem
+public partial class DraggableNavigationViewItem : NavigationViewItem
 {
   public DraggableNavigationViewItem()
   {
     DefaultStyleKey = typeof(NavigationViewItem);
   }
 
-  public new event TypedEventHandler<UIElement, DragStartingEventArgs>? DragStarting;
-  public new event TypedEventHandler<UIElement, DropCompletedEventArgs>? DropCompleted;
+  public event TypedEventHandler<UIElement, DragStartingEventArgs>? PresenterDragStarting;
+  public event TypedEventHandler<UIElement, DropCompletedEventArgs>? PresenterDropCompleted;
 
   private NavigationViewItemPresenter? Presenter;
   
@@ -31,25 +31,19 @@ public sealed partial class DraggableNavigationViewItem : NavigationViewItem
 
     WeakEventListener<DraggableNavigationViewItem, UIElement, DragStartingEventArgs> DragStartingEventListner = new(this)
     {
-      OnEventAction = (instance, source, args) => instance.DragStarting?.Invoke(instance, args),
+      OnEventAction = (instance, source, args) => instance.PresenterDragStarting?.Invoke(instance, args),
       OnDetachAction = (weakEventListener) => Presenter?.DragStarting -= weakEventListener.OnEvent
     };
     Presenter?.DragStarting += DragStartingEventListner.OnEvent;
 
     WeakEventListener<DraggableNavigationViewItem, UIElement, DropCompletedEventArgs> DropCompletedEventListner = new(this)
     {
-      OnEventAction = (instance, source, args) => instance?.DropCompleted?.Invoke(instance, args),
+      OnEventAction = (instance, source, args) => instance?.PresenterDropCompleted?.Invoke(instance, args),
       OnDetachAction = (weakEventListener) => Presenter?.DropCompleted -= weakEventListener.OnEvent
     };
     Presenter?.DropCompleted += DropCompletedEventListner.OnEvent;
     
     Presenter?.DragEnter += (s, e) => VisualStateManager.GoToState(Presenter, "PointerOver", false);
     Presenter?.DragLeave += (s, e) => VisualStateManager.GoToState(Presenter, "Normal", false);
-
-    //this.Unloaded += (s, e) =>
-    //{
-    //  Presenter?.DragStarting -= DragStartingEventListner.OnEvent;
-    //  Presenter?.DropCompleted -= DropCompletedEventListner.OnEvent;
-    //};
   }
 }

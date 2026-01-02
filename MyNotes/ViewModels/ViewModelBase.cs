@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Debugging;
+
 namespace MyNotes.ViewModels;
 
 internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposable

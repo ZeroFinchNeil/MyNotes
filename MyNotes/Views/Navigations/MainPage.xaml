@@ -9,8 +9,14 @@
       xmlns:tmpls="using:MyNotes.Templates"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:helpers="using:MyNotes.Helpers">
+      xmlns:helpers="using:MyNotes.Helpers"
+      xmlns:debug="using:MyNotes.Debugging">
 
+  <Page.Resources>
+    <CollectionViewSource x:Name="MainPage_CollectionViewSource"
+                          IsSourceGrouped="True"
+                          Source="{x:Bind ViewModel.MenuItemsSource}" />
+  </Page.Resources>
   <Grid x:Name="MainPage_RootGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
@@ -19,7 +25,9 @@
 
     <!--#region 타이틀 바 -->
     <Grid x:Name="MainPage_TitleBarGrid"
-          Height="48">
+          Height="48"
+          Loaded="MainPage_TitleBarGrid_Loaded"
+          SizeChanged="MainPage_TitleBarGrid_SizeChanged">
       <Grid.ColumnDefinitions>
         <ColumnDefinition x:Name="LeftPaddingColumn"
                           Width="0" />
@@ -46,7 +54,7 @@
                                 x:Uid="/MainPage/BackButton"
                                 Grid.Column="1"
                                 Content="&#xE72B;"
-                                Visibility="{x:Bind ViewModel.CanGoBack, Mode=OneWay}"
+                                Visibility="{x:Bind MainPage_NavigationFrame.CanGoBack, Mode=OneWay}"
                                 Click="MainPage_BackButton_Click">
         <tmpls:AnimatedIconButton.AnimatedIconSource>
           <animatedvisuals:AnimatedBackVisualSource />
@@ -91,7 +99,7 @@
                     IsBackButtonVisible="Collapsed"
                     IsPaneToggleButtonVisible="False"
                     IsSettingsVisible="False"
-                    MenuItemsSource="{x:Bind ViewModel.MenuItems.View}"
+                    MenuItemsSource="{x:Bind MainPage_CollectionViewSource.View}"
                     FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
                     SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=OneWay}"
                     SelectionChanged="MainPage_NavigationView_SelectionChanged">
@@ -119,122 +127,42 @@
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
 
-          <!-- 사용자 그룹 내비게이션 템플릿 -->
           <local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
             <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
-              <tmpls:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                 MenuItemsSource="{x:Bind ChildNodeViewModels}"
-                                                 IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
-                                                 DataContext="{x:Bind}"
-                                                 CanDrag="True"
-                                                 AllowDrop="True"
-                                                 DragStarting="DraggableNavigationViewItem_DragStarting"
-                                                 DragEnter="DraggableNavigationViewItem_DragEnter"
-                                                 DragOver="DraggableNavigationViewItem_DragOver"
-                                                 Drop="DraggableNavigationViewItem_Drop">
-                <tmpls:DraggableNavigationViewItem.Icon>
+              <local:MainPageUserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                    MenuItemsSource="{x:Bind ChildNodeViewModels}"
+                                                    IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
+                                                    ViewModel="{x:Bind}"
+                                                    CanDrag="True"
+                                                    AllowDrop="True"
+                                                    IsTabStop="True"
+                                                    PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
+                                                    DragEnter="MainPageUserNavigationViewItem_DragEnter"
+                                                    DragOver="MainPageUserNavigationViewItem_DragOver"
+                                                    Drop="MainPageUserNavigationViewItem_Drop">
+                <local:MainPageUserNavigationViewItem.Icon>
                   <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                </tmpls:DraggableNavigationViewItem.Icon>
-
-                <tmpls:DraggableNavigationViewItem.ContextFlyout>
-                  <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
-                    <CommandBarFlyout.SecondaryCommands>
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_UpdateAppBarButton"
-                                    Icon="Rename"
-                                    Command="{x:Bind UpdateCommand}"
-                                    CommandParameter="{x:Bind}">
-                        <AppBarButton.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="F2" />
-                        </AppBarButton.KeyboardAccelerators>
-                      </AppBarButton>
-                      <AppBarButton Label="Move to group">
-                        <AppBarButton.Flyout>
-                          <MenuFlyout helpers:DataContextHelper.DataContext="{x:Bind}"
-                                      Opening="CommandBarFlyout_Opening" />
-                        </AppBarButton.Flyout>
-                      </AppBarButton>
-                      <AppBarSeparator />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_AddListAppBarButton"
-                                    Icon="Add"
-                                    Command="{x:Bind AddListCommand}"
-                                    CommandParameter="{x:Bind}" />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_AddGroupAppBarButton"
-                                    Icon="Add"
-                                    Command="{x:Bind AddGroupCommand}"
-                                    CommandParameter="{x:Bind}" />
-                      <AppBarSeparator />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_DeleteAppBarButton"
-                                    Icon="Delete"
-                                    Style="{StaticResource EmphasisCriticalCommandBarFlyoutAppBarButtonStyle}"
-                                    Command="{x:Bind DeleteCommand}"
-                                    CommandParameter="{x:Bind}">
-                        <AppBarButton.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="Delete" />
-                        </AppBarButton.KeyboardAccelerators>
-                      </AppBarButton>
-                    </CommandBarFlyout.SecondaryCommands>
-                  </CommandBarFlyout>
-                </tmpls:DraggableNavigationViewItem.ContextFlyout>
-              </tmpls:DraggableNavigationViewItem>
+                </local:MainPageUserNavigationViewItem.Icon>
+              </local:MainPageUserNavigationViewItem>
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
 
-          <!-- 사용자 목록 내비게이션 템플릿 -->
+          <!--사용자 목록 내비게이션 템플릿-->
           <local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
             <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
-            <!--<DataTemplate>-->
-              <tmpls:DraggableNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                 DataContext="{x:Bind}"
-                                                 CanDrag="True"
-                                                 AllowDrop="True"
-                                                 DragStarting="DraggableNavigationViewItem_DragStarting"
-                                                 DragEnter="DraggableNavigationViewItem_DragEnter"
-                                                 DragOver="DraggableNavigationViewItem_DragOver"
-                                                 Drop="DraggableNavigationViewItem_Drop">
-                <tmpls:DraggableNavigationViewItem.Icon>
+              <local:MainPageUserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                                    ViewModel="{x:Bind}"
+                                                    CanDrag="True"
+                                                    AllowDrop="True"
+                                                    IsTabStop="True"
+                                                    PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
+                                                    DragEnter="MainPageUserNavigationViewItem_DragEnter"
+                                                    DragOver="MainPageUserNavigationViewItem_DragOver"
+                                                    Drop="MainPageUserNavigationViewItem_Drop">
+                <local:MainPageUserNavigationViewItem.Icon>
                   <ImageIcon Source="{x:Bind Navigation.IconImage, Mode=OneWay}" />
-                </tmpls:DraggableNavigationViewItem.Icon>
-
-                <tmpls:DraggableNavigationViewItem.ContextFlyout>
-                  <CommandBarFlyout Placement="BottomEdgeAlignedLeft">
-                    <CommandBarFlyout.SecondaryCommands>
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_UpdateAppBarButton"
-                                    Icon="Rename"
-                                    Command="{x:Bind UpdateCommand}"
-                                    CommandParameter="{x:Bind}">
-                        <AppBarButton.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="F2" />
-                        </AppBarButton.KeyboardAccelerators>
-                      </AppBarButton>
-                      <AppBarButton Label="Move to group">
-                        <AppBarButton.Flyout>
-                          <MenuFlyout helpers:DataContextHelper.DataContext="{x:Bind}"
-                                      Opening="CommandBarFlyout_Opening" />
-                        </AppBarButton.Flyout>
-                      </AppBarButton>
-                      <AppBarSeparator />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_AddListAppBarButton"
-                                    Icon="Add"
-                                    Command="{x:Bind AddListCommand}"
-                                    CommandParameter="{x:Bind}" />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_AddGroupAppBarButton"
-                                    Icon="Add"
-                                    Command="{x:Bind AddGroupCommand}"
-                                    CommandParameter="{x:Bind}" />
-                      <AppBarSeparator />
-                      <AppBarButton x:Uid="/MainPage/NavigationUserNode_DeleteAppBarButton"
-                                    Icon="Delete"
-                                    Style="{StaticResource EmphasisCriticalCommandBarFlyoutAppBarButtonStyle}"
-                                    Command="{x:Bind DeleteCommand}"
-                                    CommandParameter="{x:Bind}">
-                        <AppBarButton.KeyboardAccelerators>
-                          <KeyboardAccelerator Key="Delete" />
-                        </AppBarButton.KeyboardAccelerators>
-                      </AppBarButton>
-                    </CommandBarFlyout.SecondaryCommands>
-                  </CommandBarFlyout>
-                </tmpls:DraggableNavigationViewItem.ContextFlyout>
-              </tmpls:DraggableNavigationViewItem>
+                </local:MainPageUserNavigationViewItem.Icon>
+              </local:MainPageUserNavigationViewItem>
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
         </local:MainPageNavigationViewDataTemplateSelector>
@@ -280,7 +208,8 @@
       </NavigationView.PaneFooter>
 
       <!-- 내비게이션 뷰 콘텐츠 프레임 -->
-      <Frame x:Name="MainPage_NavigationFrame" />
+      <Frame x:Name="MainPage_NavigationFrame"
+             Navigated="MainPage_NavigationFrame_Navigated" />
     </NavigationView>
     <!--#endregion -->
 

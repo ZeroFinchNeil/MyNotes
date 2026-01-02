@@ -1,5 +1,8 @@
 ﻿using System.Runtime.CompilerServices;
 
+using MyNotes.ViewModels;
+using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Navigations;
 using MyNotes.Views.Notes;
 using MyNotes.Views.Windows;
@@ -13,4 +16,8 @@ internal static class ReferenceTracker
   public static ConditionalWeakTable<NoteWindow, object?> NoteWindowReference = new();
   public static ConditionalWeakTable<MainPage, object?> MainPageReference = new();
   public static ConditionalWeakTable<NotePage, object?> NotePageReference = new();
+
+  public static ConditionalWeakTable<MainViewModel, object?> MainViewModelReference = new();
+  public static ConditionalWeakTable<NoteViewModel, object?> NoteViewModelReference = new();
+  public static ConditionalWeakTable<NavigationViewModelBase, object?> NavigationViewModelReference = new();
 }

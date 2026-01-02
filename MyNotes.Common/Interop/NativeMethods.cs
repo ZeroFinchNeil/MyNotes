@@ -29,6 +29,10 @@ internal static partial class NativeMethods
   [return: MarshalAs(UnmanagedType.Bool)]
   public static partial bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int cx, int cy, uint uFlags);
 
+  [LibraryImport("user32.dll", SetLastError = true)]
+  [return: MarshalAs(UnmanagedType.Bool)]
+  public static partial bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, [MarshalAs(UnmanagedType.Bool)] bool bRepaint);
+
   [StructLayout(LayoutKind.Sequential)]
   public struct WINDOWINFO
   {
