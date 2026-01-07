@@ -1,6 +1,7 @@
+using System.Diagnostics.CodeAnalysis;
+
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
-using CommunityToolkit.WinUI;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,6 @@ using MyNotes.Models.UI;
 using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
-using MyNotes.Templates;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
@@ -78,34 +78,40 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private void GetWindowInfo(out IntPtr hWnd, out AppWindow? appWindow)
+  private bool TryGetWindowInfo(out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {
+    hWnd = IntPtr.Zero;
+    appWindow = null;
+
     try
     {
-      if (WindowService.MainWindow is not null
-        && WindowService.MainWindow.TryGetTarget(out var mainWindow))
-      {
-        hWnd = WindowNative.GetWindowHandle(mainWindow);
-        appWindow = mainWindow.AppWindow;
-      }
-      else if (this.XamlRoot is XamlRoot xamlRoot
+      if (this.XamlRoot is XamlRoot xamlRoot
         && xamlRoot.ContentIslandEnvironment is ContentIslandEnvironment env)
       {
         var windowId = env.AppWindowId;
         hWnd = Win32Interop.GetWindowFromWindowId(windowId);
         appWindow = AppWindow.GetFromWindowId(windowId);
       }
-      else
+      else if (WindowService.TryGetCurrentMainWindow(out var mainWindow))
       {
-        hWnd = IntPtr.Zero;
-        appWindow = null;
+        hWnd = WindowNative.GetWindowHandle(mainWindow);
+        appWindow = mainWindow.AppWindow;
       }
     }
     catch
+    { }
+
+    return hWnd != IntPtr.Zero && appWindow is not null;
+  }
+
+  private bool TryExecuteOnWindow(Action<MainWindow> action)
+  {
+    if (WindowService.TryGetCurrentMainWindow(out var mainWindow))
     {
-      hWnd = IntPtr.Zero;
-      appWindow = null;
+      action.Invoke(mainWindow);
+      return true;
     }
+    return false;
   }
 
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
@@ -150,8 +156,7 @@ internal sealed partial class MainPage : Page
 
   private void SetRegionsForCustomTitleBar()
   {
-    GetWindowInfo(out _, out var appWindow);
-    if (appWindow is not null && this.XamlRoot is XamlRoot xamlRoot)
+    if (TryGetWindowInfo(out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -211,13 +216,15 @@ internal sealed partial class MainPage : Page
   {
     this.RequestedTheme = theme;
 
-    GetWindowInfo(out _, out var appWindow);
-    appWindow?.TitleBar.PreferredTheme = theme switch
+    if (TryGetWindowInfo(out _, out var appWindow))
     {
-      ElementTheme.Light => TitleBarTheme.Light,
-      ElementTheme.Dark => TitleBarTheme.Dark,
-      _ => TitleBarTheme.UseDefaultAppMode
-    };
+      appWindow.TitleBar.PreferredTheme = theme switch
+      {
+        ElementTheme.Light => TitleBarTheme.Light,
+        ElementTheme.Dark => TitleBarTheme.Dark,
+        _ => TitleBarTheme.UseDefaultAppMode
+      };
+    }
   }
 
 
@@ -329,7 +336,7 @@ internal sealed partial class MainPage : Page
     {
       if (message.Value == WindowActivationState.Deactivated)
       {
-        GetWindowInfo(out _, out var appWindow);
+        TryGetWindowInfo(out _, out var appWindow);
         if (appWindow is not null)
         {
           var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);

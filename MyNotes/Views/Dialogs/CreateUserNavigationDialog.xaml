@@ -22,9 +22,9 @@
       </Grid.ColumnDefinitions>
 
       <templates:SubtleIconButton x:Uid="IconPickerButton">
-        <templates:SubtleIconButton.Icon>
+        <templates:SubtleIconButton.Content>
           <ImageIcon Source="{x:Bind CreateUserNodeDialog_IconPicker.IconImage, Mode=OneWay, FallbackValue='System_Board'}" />
-        </templates:SubtleIconButton.Icon>
+        </templates:SubtleIconButton.Content>
         <templates:SubtleIconButton.Flyout>
           <Flyout Placement="Bottom"
                   ShouldConstrainToRootBounds="False">

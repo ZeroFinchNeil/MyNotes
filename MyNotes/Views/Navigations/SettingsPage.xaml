@@ -274,10 +274,8 @@
           </controls:SettingsCard>
 
           <!-- Group Icon Badge SettingsCard -->
-          <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeSettingsCard">
-            <controls:SettingsCard.HeaderIcon>
-              <ImageIcon Source="/Assets/Icons/FluentUISystem/Document10016Regular.svg" />
-            </controls:SettingsCard.HeaderIcon>
+          <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeSettingsCard"
+                                 HeaderIcon="{ui:FontIcon Glyph=&#xF89A;}">
             <ComboBox SelectedIndex="{x:Bind ViewModel.GroupIconBadge, Mode=TwoWay}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeNoneComboBoxItem" />

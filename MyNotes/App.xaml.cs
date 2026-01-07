@@ -11,7 +11,6 @@ using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
-using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel;
 
@@ -34,13 +33,13 @@ public sealed partial class App : Application, IDisposable
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
   {
+    // XAML 라이브 미리 보기를 활성화하려면 창을 하나만 띄워야 함
 #if DEBUG
     new DebugWindow().Activate();
 #endif
     var windowService = Services.GetRequiredService<WindowService>();
-    var mainWindow = new MainWindow();
+    var mainWindow = windowService.MainWindow;
     mainWindow.Activate();
-    windowService.MainWindow = new WeakReference<MainWindow>(mainWindow);
   }
 
   internal ServiceProvider Services { get; } = ConfigureServices();

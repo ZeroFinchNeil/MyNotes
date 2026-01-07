@@ -11,7 +11,7 @@ using MyNotes.Views.Windows;
 
 namespace MyNotes.Debugging;
 
-public sealed partial class DebugWindow : Window
+internal sealed partial class DebugWindow : Window
 {
   public DebugWindow()
   {
@@ -66,15 +66,14 @@ public sealed partial class DebugWindow : Window
   private void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
   {
     Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
+    note.Title = $"New note {note.Id.Value}";
     new NoteWindow(note).Activate();
-
   }
 
-  private void DebugWindow_BlankWindowButton_Click(object sender, RoutedEventArgs e)
+  private void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
   {
-    var window = new BlankWindow();
-    window.Activate();
-    ReferenceTracker.BlankWindowReference.Add(window, window.AppWindow.Id.Value);
+    var windowService = App.Instance.Services.GetRequiredService<WindowService>();
+    windowService.MainWindow.Activate();
   }
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)

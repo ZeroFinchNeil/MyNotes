@@ -7,6 +7,7 @@ using MyNotes.Common.Interop;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
+using MyNotes.Models.UI;
 using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
@@ -20,7 +21,6 @@ internal sealed partial class NoteWindow : Window
   private readonly WindowService WindowService;
 
   private readonly IntPtr _hWnd;
-  private readonly OverlappedPresenter? _presenter;
   private readonly NoteId NoteId;
 
   public NoteWindow(Note note)
@@ -33,7 +33,7 @@ internal sealed partial class NoteWindow : Window
 
     var provider = App.Instance.Services.GetRequiredService<NoteViewModelProvider>();
     WindowService = App.Instance.Services.GetRequiredService<WindowService>();
-    
+
     NoteId = note.Id;
     WindowService.NoteWindows.Add(NoteId, new WeakReference<NoteWindow>(this));
 
@@ -43,12 +43,13 @@ internal sealed partial class NoteWindow : Window
 
     // 창 최소 크기 지정
     var minimumWindowSize = SettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
-    _presenter = AppWindow.Presenter as OverlappedPresenter;
-    _presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
-    _presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
-    _presenter?.SetBorderAndTitleBar(true, false);
+    var presenter = AppWindow.Presenter as OverlappedPresenter;
+    presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
+    presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
+    presenter?.SetBorderAndTitleBar(true, false);
 
-    AppWindow.Resize(new((int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
+    //AppWindow.Resize(new((int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
+    AppWindow.MoveAndResize(new(30, 850, (int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
 
     // 창 활성화 변경 시
     this.Activated += NoteWindow_Activated;
@@ -70,6 +71,10 @@ internal sealed partial class NoteWindow : Window
 
   private void NoteWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
-    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowActivationState>(args.WindowActivationState), MessageTokens.NoteWindowActivationChangedToken(NoteId));
+    if (AppWindow.Presenter is OverlappedPresenter presenter)
+    {
+      WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };
+      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowPresenterState>(state), MessageTokens.NoteWindowActivationChangedToken(NoteId));
+    }
   }
 }

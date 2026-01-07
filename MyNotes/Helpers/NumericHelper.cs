@@ -67,4 +67,29 @@ internal static class NumericHelper
   {
     public Rect Rect => ToRect(rect);
   }
+
+  extension(float f)
+  {
+    public int GreaterThanNearestMultiple(uint n, bool exclusive = true)
+    {
+      if (n == 0)
+        throw new DivideByZeroException();
+
+      int quotient = (int)Math.Ceiling(f / n);
+      if (exclusive && Math.Abs(f % n) < 1.0e-6f)
+        quotient++;
+      return quotient * (int)n;
+    }
+
+    public int LessThanNearestMultiple(uint n, bool exclusive = true)
+    {
+      if (n == 0)
+        throw new DivideByZeroException();
+
+      int quotient = (int)Math.Floor(f / n);
+      if (exclusive && Math.Abs(f % n) < 1.0e-6f)
+        quotient--;
+      return quotient * (int)n;
+    }
+  }
 }

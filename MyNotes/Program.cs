@@ -67,16 +67,15 @@ public class Program
 #if DEBUG
     NativeMethods.SetConsole(0, 300, 800, 1000);
 #endif
-    App? app = null;
+
     if (!DecideRedirection())
     {
       Application.Start((p) =>
       {
         var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
         SynchronizationContext.SetSynchronizationContext(context);
-        app = new App();
+        _ = new App();
       });
-      app?.Dispose();
     }
 
 #if DEBUG

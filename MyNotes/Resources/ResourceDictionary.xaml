@@ -3,6 +3,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates">
+  <ResourceDictionary.MergedDictionaries>
+    <ResourceDictionary Source="/MyNotes.Templates/Themes/Generic.xaml" />
+  </ResourceDictionary.MergedDictionaries>
 
   <x:Boolean x:Key="BooleanTrue">True</x:Boolean>
   <x:Boolean x:Key="BooleanFalse">False</x:Boolean>
@@ -794,4 +797,8 @@
                       OpticalMarginAlignment="TrimSideBearings"
                       TextWrapping="NoWrap" />
   </DataTemplate>
+
+  <Style x:Key="SubtleIconRepeatButtonStyle"
+         TargetType="RepeatButton"
+         BasedOn="{StaticResource SubtleIconButtonBaseStyle}" />
 </ResourceDictionary>

@@ -286,8 +286,7 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow is not null
-            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
@@ -300,8 +299,7 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow is not null
-            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
@@ -314,8 +312,7 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow is not null
-            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
@@ -341,8 +338,7 @@ internal sealed partial class NavigationService : IDisposable
       actionToExecute: async (targetNavigation) =>
       {
         if (targetNavigation is NavigationUserNode navigation
-            && WindowService.MainWindow is not null
-            && WindowService.MainWindow.TryGetTarget(out var mainWindow)
+            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var targetTypeName = navigation switch

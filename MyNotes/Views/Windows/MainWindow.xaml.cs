@@ -20,7 +20,6 @@ internal sealed partial class MainWindow : Window
 
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
-  private readonly OverlappedPresenter? _presenter;
 
   public MainWindow()
   {
@@ -41,9 +40,9 @@ internal sealed partial class MainWindow : Window
 
     // 창 최소 크기 지정
     var minimumWindowSize = SettingsDescriptors.MainWindowMinimumSize.DefaultValue;
-    _presenter = AppWindow.Presenter as OverlappedPresenter;
-    _presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
-    _presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
+    var presenter = AppWindow.Presenter as OverlappedPresenter;
+    presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
+    presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
 
     // 높은(48epx) 캡션 컨트롤 지원
     AppWindow.TitleBar.PreferredHeightOption = TitleBarHeightOption.Tall;
@@ -65,7 +64,8 @@ internal sealed partial class MainWindow : Window
     if (windowSize.Width < minimumWindowSize.Width && windowSize.Height < minimumWindowSize.Height)
       windowSize = SettingsDescriptors.MainWindowSize.DefaultValue;
 
-    AppWindow.Resize(new((int)(windowSize.Width * scaleFactor), (int)(windowSize.Height * scaleFactor)));
+    _windowSize = windowSize.SizeInt32;
+    AppWindow.Resize(new((int)(_windowSize.Width * scaleFactor), (int)(_windowSize.Height * scaleFactor)));
 
     // 창 초기 위치 지정
     var windowPosition = SettingsService.Load(SettingsDescriptors.MainWindowPosition);
@@ -80,9 +80,12 @@ internal sealed partial class MainWindow : Window
         Height = monitor.rcWork.Bottom,
       });
     }
-    PointInt32 position = windowPosition.PointInt32;
-    if (ContainsPointInAreas(areas, position))
-      AppWindow.Move(position);
+   _windowPosition = windowPosition.PointInt32;
+
+    if (ContainsPointInAreas(areas, _windowPosition))
+      AppWindow.Move(_windowPosition);
+
+    AppWindow.Changed += AppWindow_Changed;
 
     // 제목 표시줄 테마 설정
     var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
@@ -96,19 +99,45 @@ internal sealed partial class MainWindow : Window
     this.Content = new MainPage(this);
   }
 
+  private SizeInt32 _windowSize;
+  private PointInt32 _windowPosition;
+  private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+  {
+    if (args.DidSizeChange)
+    {
+      if (AppWindow.Presenter is OverlappedPresenter presenter
+        && presenter.State is OverlappedPresenterState.Restored)
+      {
+        _windowSize = AppWindow.Size;
+      }
+    }
+    else if (args.DidPositionChange)
+    {
+      if (AppWindow.Presenter is OverlappedPresenter presenter
+        && presenter.State is OverlappedPresenterState.Restored)
+      {
+        _windowPosition = AppWindow.Position;
+      }
+    }
+  }
+
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
   {
     // 창 크기 저장
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
-    SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(AppWindow.Size.Width / scaleFactor, AppWindow.Size.Height / scaleFactor));
+    SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(_windowSize.Width / scaleFactor, _windowSize.Height / scaleFactor));
 
     // 창 위치 및 디스플레이 저장
-    SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(AppWindow.Position.X, AppWindow.Position.Y));
+    SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(_windowPosition.X, _windowPosition.Y));
     SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
   }
 
+  public bool IsClosed { get; private set; } = false;
+
   private void MainWindow_Closed(object sender, WindowEventArgs args)
   {
+    IsClosed = true;
+    AppWindow.Changed -= AppWindow_Changed;
     this.Activated -= MainWindow_Activated;
     AppWindow.Closing -= AppWindow_Closing;
     this.Closed -= MainWindow_Closed;

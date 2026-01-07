@@ -10,10 +10,10 @@ public sealed partial class SubtleIconLabelButton : Button
     DefaultStyleKey = typeof(SubtleIconLabelButton);
   }
 
-  public static readonly DependencyProperty IconProperty = DependencyProperty.Register("Icon", typeof(IconElement), typeof(SubtleIconLabelButton), new PropertyMetadata(null));
-  public IconElement Icon
+  public static readonly DependencyProperty IconProperty = DependencyProperty.Register("Icon", typeof(UIElement), typeof(SubtleIconLabelButton), new PropertyMetadata(null));
+  public UIElement Icon
   {
-    get => (IconElement)GetValue(IconProperty);
+    get => (UIElement)GetValue(IconProperty);
     set => SetValue(IconProperty, value);
   }
 }

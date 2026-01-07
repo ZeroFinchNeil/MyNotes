@@ -7,6 +7,7 @@
       xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
       xmlns:tmpls="using:MyNotes.Templates"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+      xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:debug="using:MyNotes.Debugging">
@@ -172,7 +173,7 @@
       <NavigationView.PaneFooter>
         <tmpls:SubtleIconLabelButton x:Uid="/MainPage/PaneFooter_NewItemButton"
                                      Margin="3,0"
-                                     Icon="Add">
+                                     Icon="{ui:SymbolIcon Symbol=Add}">
 
           <tmpls:SubtleIconLabelButton.Flyout>
             <MenuFlyout Placement="Top">
