@@ -338,7 +338,7 @@
   <!--endregion -->
 
   <!--#region SubtleIconButtonBase Style -->
-  <Style x:Key="SubtleIconButtonBaseStyle"
+  <Style x:Key="SubtleIconButtonBaseStyle" 
          TargetType="ButtonBase">
     <Setter Property="Width"
             Value="40" />
@@ -355,11 +355,11 @@
     <Setter Property="BorderThickness"
             Value="{ThemeResource ButtonBorderThemeThickness}" />
     <Setter Property="Padding"
-            Value="0,8" />
+            Value="0" />
     <Setter Property="HorizontalAlignment"
             Value="Stretch" />
     <Setter Property="HorizontalContentAlignment"
-            Value="Left" />
+            Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
     <Setter Property="FontFamily"
@@ -388,8 +388,8 @@
             <Border.BackgroundTransition>
               <BrushTransition Duration="0:0:0.083" />
             </Border.BackgroundTransition>
-            <Viewbox Height="16"
-                     Width="16">
+            <Viewbox Width="16"
+                     Height="16">
               <ContentPresenter x:Name="IconPresenter"
                                 Content="{TemplateBinding Content}"
                                 Foreground="{TemplateBinding Foreground}"
@@ -488,9 +488,162 @@
       </Setter.Value>
     </Setter>
   </Style>
+  <!--endregion -->
 
-  <Style TargetType="local:SubtleIconButton"
-         BasedOn="{StaticResource SubtleIconButtonBaseStyle}" />
+  <!--#region SubtleIconButton Style -->
+  <Style TargetType="local:SubtleIconButton">
+    <Setter Property="Width"
+            Value="40" />
+    <Setter Property="Height"
+            Value="40" />
+    <Setter Property="IconWidth"
+            Value="16" />
+    <Setter Property="IconHeight"
+            Value="16" />
+    <Setter Property="Background"
+            Value="{ThemeResource SubtleButtonBackground}" />
+    <Setter Property="BackgroundSizing"
+            Value="InnerBorderEdge" />
+    <Setter Property="Foreground"
+            Value="{ThemeResource SubtleButtonForeground}" />
+    <Setter Property="BorderBrush"
+            Value="{ThemeResource SubtleButtonBorderBrush}" />
+    <Setter Property="BorderThickness"
+            Value="{ThemeResource ButtonBorderThemeThickness}" />
+    <Setter Property="Padding"
+            Value="0" />
+    <Setter Property="HorizontalAlignment"
+            Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment"
+            Value="Center" />
+    <Setter Property="VerticalAlignment"
+            Value="Center" />
+    <Setter Property="FontFamily"
+            Value="{ThemeResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontWeight"
+            Value="Normal" />
+    <Setter Property="FontSize"
+            Value="{ThemeResource ControlContentThemeFontSize}" />
+    <Setter Property="UseSystemFocusVisuals"
+            Value="{StaticResource UseSystemFocusVisuals}" />
+    <Setter Property="FocusVisualMargin"
+            Value="-3" />
+    <Setter Property="CornerRadius"
+            Value="{ThemeResource ControlCornerRadius}" />
+
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="local:SubtleIconButton">
+          <Border x:Name="RootBorder"
+                  Background="{TemplateBinding Background}"
+                  BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <Border.BackgroundTransition>
+              <BrushTransition Duration="0:0:0.083" />
+            </Border.BackgroundTransition>
+            <Viewbox Width="{TemplateBinding IconWidth}"
+                     Height="{TemplateBinding IconHeight}">
+              <ContentPresenter x:Name="IconPresenter"
+                                Content="{TemplateBinding Content}"
+                                Foreground="{TemplateBinding Foreground}"
+                                AnimatedIcon.State="Normal"
+                                AutomationProperties.AccessibilityView="Raw" />
+            </Viewbox>
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="CommonStates">
+                <VisualState x:Name="Normal" />
+
+                <VisualState x:Name="PointerOver">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundPointerOver}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="PointerOver" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Pressed">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundPressed}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Pressed" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+                <VisualState x:Name="Disabled">
+
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="Background">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBackgroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="RootBorder"
+                                                   Storyboard.TargetProperty="BorderBrush">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonBorderBrushDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="IconPresenter"
+                                                   Storyboard.TargetProperty="Foreground">
+                      <DiscreteObjectKeyFrame KeyTime="0"
+                                              Value="{ThemeResource SubtleButtonForegroundDisabled}" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                  <VisualState.Setters>
+                    <!-- DisabledVisual Should be handled by the control, not the animated icon. -->
+                    <Setter Target="IconPresenter.(AnimatedIcon.State)"
+                            Value="Normal" />
+
+                  </VisualState.Setters>
+                </VisualState>
+
+              </VisualStateGroup>
+
+            </VisualStateManager.VisualStateGroups>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
   <!--endregion -->
 
   <!--#region SubtleIconLabelButton Style -->
@@ -670,11 +823,11 @@
     <Setter Property="BorderBrush"
             Value="{ThemeResource SubtleButtonBorderBrush}" />
     <Setter Property="Padding"
-            Value="0,8" />
+            Value="0" />
     <Setter Property="HorizontalAlignment"
             Value="Stretch" />
     <Setter Property="HorizontalContentAlignment"
-            Value="Left" />
+            Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
     <Setter Property="Template">
@@ -952,11 +1105,11 @@
     <Setter Property="BorderBrush"
             Value="{ThemeResource SubtleButtonBorderBrush}" />
     <Setter Property="Padding"
-            Value="0,8" />
+            Value="0" />
     <Setter Property="HorizontalAlignment"
             Value="Stretch" />
     <Setter Property="HorizontalContentAlignment"
-            Value="Left" />
+            Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
     <Setter Property="Template">
@@ -1302,11 +1455,11 @@
     <Setter Property="BorderBrush"
             Value="{ThemeResource SubtleButtonBorderBrush}" />
     <Setter Property="Padding"
-            Value="0,8" />
+            Value="0" />
     <Setter Property="HorizontalAlignment"
             Value="Stretch" />
     <Setter Property="HorizontalContentAlignment"
-            Value="Left" />
+            Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
     <Setter Property="Template">
@@ -1577,11 +1730,11 @@
     <Setter Property="BorderBrush"
             Value="{ThemeResource SubtleButtonBorderBrush}" />
     <Setter Property="Padding"
-            Value="0,8" />
+            Value="0" />
     <Setter Property="HorizontalAlignment"
             Value="Stretch" />
     <Setter Property="HorizontalContentAlignment"
-            Value="Left" />
+            Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
     <Setter Property="Template">
@@ -2435,7 +2588,7 @@
                   <Setter Property="HorizontalAlignment"
                           Value="Stretch" />
                   <Setter Property="HorizontalContentAlignment"
-                          Value="Left" />
+                          Value="Center" />
                   <Setter Property="VerticalAlignment"
                           Value="Center" />
                   <Setter Property="Template">

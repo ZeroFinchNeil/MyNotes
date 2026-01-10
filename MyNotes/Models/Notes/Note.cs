@@ -24,13 +24,27 @@ internal sealed class Note : ObservableObject
   public string Title
   {
     get => field;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        Modified = DateTimeOffset.UtcNow;
+      }
+    }
   } = string.Empty;
 
   public string Body
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        Modified = DateTimeOffset.UtcNow;
+      }
+    }
   } = string.Empty;
 
   public List<TextRange> HighlighterRanges { get; } = new();
@@ -38,13 +52,27 @@ internal sealed class Note : ObservableObject
   public Color Background
   {
     get => field;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        Modified = DateTimeOffset.UtcNow;
+      }
+    }
   } = SettingsDescriptors.NoteBackground.DefaultValue.ToColor();
 
   public BackdropKind Backdrop
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        Modified = DateTimeOffset.UtcNow;
+      }
+    }
   } = (BackdropKind)SettingsDescriptors.NoteBackdrop.DefaultValue;
 
   public SizeInt32 Size

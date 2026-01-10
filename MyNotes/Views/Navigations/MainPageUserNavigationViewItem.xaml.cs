@@ -14,10 +14,9 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
   public MainPageUserNavigationViewItem()
   {
     InitializeComponent();
-    //this.Loaded += MainPageUserNavigationViewItem_Loaded;
+    this.Loaded += MainPageUserNavigationViewItem_Loaded;
     this.Unloaded += MainPageUserNavigationViewItem_Unloaded;
   }
-
 
   public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(UserNavigationViewModel), typeof(MainPageUserNavigationViewItem), new PropertyMetadata(null));
   public UserNavigationViewModel ViewModel
@@ -26,11 +25,10 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
     set => SetValue(ViewModelProperty, value);
   }
 
-  //private void MainPageUserNavigationViewItem_Loaded(object sender, RoutedEventArgs e)
-  //{
-  //  Console.WriteLine("{0}: {1}", "DataContext Type", DataContext.GetType());
-  //  ViewModel = DataContext as UserNavigationViewModel;
-  //}
+  private void MainPageUserNavigationViewItem_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
 
   private void MainPageUserNavigationViewItem_Unloaded(object sender, RoutedEventArgs e)
   {

@@ -1,23 +1,19 @@
 ﻿using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Notes;
 using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Notes;
-using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Commands;
 
-internal class NavigationViewModelCommandService : ICommandService
+internal sealed class NavigationViewModelCommandService : ICommandService
 {
   private readonly NavigationService NavigationService;
 
-  public Command<NavigationViewModelBase>? AddListCommand { get; }
-  public Command<NavigationViewModelBase>? AddGroupCommand { get; }
-  public Command<NavigationViewModelBase>? UpdateCommand { get; }
-  public Command<NavigationViewModelBase>? DeleteCommand { get; }
-  public Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand { get; }
+  public Command<NavigationViewModelBase> AddListCommand { get; }
+  public Command<NavigationViewModelBase> AddGroupCommand { get; }
+  public Command<NavigationViewModelBase> UpdateCommand { get; }
+  public Command<NavigationViewModelBase> DeleteCommand { get; }
+  public Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)> MoveToGroupCommand { get; }
 
   public NavigationViewModelCommandService(NavigationService navigationService)
   {

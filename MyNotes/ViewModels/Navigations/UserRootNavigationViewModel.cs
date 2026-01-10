@@ -13,7 +13,7 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewModel
 {
-  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationViewModelCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
+  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
     : base(provider, navigationViewModelCommandService, settingsService, navigation)
   {
     RegisterMessenger();

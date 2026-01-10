@@ -11,15 +11,25 @@ public sealed partial class UserListPage : Page
 
   public UserListPage()
   {
-    InitializeComponent();
+    InitializeComponent(); 
   }
 
-  protected override void OnNavigatedTo(NavigationEventArgs e)
+  protected override async void OnNavigatedTo(NavigationEventArgs e)
   {
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
       var provider = App.Instance.Services.GetRequiredService<NavigationViewModelProvider>();
       ViewModel = provider.Resolve(navigation) as UserLeafNavigationViewModel;
+      if (ViewModel is not null)
+      {
+        await ViewModel.LoadNoteViewModels();
+        this.Unloaded += UserListPage_Unloaded;
+      }
     }
+  }
+
+  private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
+  {
+    ViewModel?.UnloadNoteViewModels();
   }
 }

@@ -60,7 +60,7 @@ internal sealed partial class NavigationService : IDisposable
         {
           Id = NavigationId.Create(e.Id),
           Parent = null!,
-          Icon = e.Icon,
+          Icon = (Icon)e.Icon,
           Title = e.Title,
           Position = e.Position,
           IsExpanded = e.IsExpanded
@@ -69,7 +69,7 @@ internal sealed partial class NavigationService : IDisposable
       {
         Id = NavigationId.Create(e.Id),
         Parent = null!,
-        Icon = e.Icon,
+        Icon = (Icon)e.Icon,
         Title = e.Title,
         Position = e.Position
       })
@@ -128,12 +128,14 @@ internal sealed partial class NavigationService : IDisposable
         case nameof(NavigationUserNode.Parent):
           await UpdateNavigationEntityAsync(node, entity => entity.Parent = node.Parent.Id.Value);
           break;
-        case nameof(NavigationUserNode.Position):
-          Console.WriteLine("{0}: {1}", node.Title, node.Position);
-          await UpdateNavigationEntityAsync(node, entity => entity.Position = node.Position);
+        case nameof(NavigationUserNode.Icon):
+          await UpdateNavigationEntityAsync(node, entity => entity.Icon = (short)node.Icon);
           break;
         case nameof(NavigationUserNode.Title):
           await UpdateNavigationEntityAsync(node, entity => entity.Title = node.Title);
+          break;
+        case nameof(NavigationUserNode.Position):
+          await UpdateNavigationEntityAsync(node, entity => entity.Position = node.Position);
           break;
         case nameof(NavigationUserCompositeNode.IsExpanded):
           if (node is NavigationUserCompositeNode compositeNode)
@@ -174,7 +176,7 @@ internal sealed partial class NavigationService : IDisposable
   private async Task UpdateNavigationEntityAsync(NavigationUserNode node, Action<NavigationEntity> action)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
-    if (context.NavigationEntities.FirstOrDefault(e => e.Id == node.Id.Value) is NavigationEntity entity)
+    if (context.NavigationEntities.Find(node.Id.Value) is NavigationEntity entity)
     {
       action.Invoke(entity);
       await context.SaveChangesAsync();
@@ -182,7 +184,7 @@ internal sealed partial class NavigationService : IDisposable
   }
 
   // Navigation 인스턴스 생성 및 DB 테이블에 추가
-  private async Task<NavigationUserNode?> AddUserNodeAsync(INavigationNode? targetNode, bool isCompositeNode, Icon iconName, string title)
+  private async Task<NavigationUserNode?> AddUserNodeAsync(INavigationNode? targetNode, bool isCompositeNode, Icon icon, string title)
   {
     NavigationUserNode? beforeNode = targetNode switch
     {
@@ -205,7 +207,7 @@ internal sealed partial class NavigationService : IDisposable
       {
         Id = NavigationId.NewId(),
         Parent = parentNode,
-        Icon = (short)iconName,
+        Icon = icon,
         Title = title,
         Position = int.MaxValue,
         IsExpanded = true
@@ -214,7 +216,7 @@ internal sealed partial class NavigationService : IDisposable
       {
         Id = NavigationId.NewId(),
         Parent = parentNode,
-        Icon = (short)iconName,
+        Icon = icon,
         Title = title,
         Position = int.MaxValue
       };
@@ -231,7 +233,7 @@ internal sealed partial class NavigationService : IDisposable
         {
           Id = newNode.Id.Value,
           Title = newNode.Title,
-          Icon = newNode.Icon,
+          Icon = (short)newNode.Icon,
           Parent = newNode.Parent.Id.Value,
           Position = newNode.Position,
           IsComposite = isCompositeNode,
@@ -240,7 +242,7 @@ internal sealed partial class NavigationService : IDisposable
         };
 
         await context.NavigationEntities.AddAsync(entity);
-        await context.SaveChangesAsync().ConfigureAwait(true);
+        await context.SaveChangesAsync();
 
         return newNode;
       }
@@ -300,7 +302,7 @@ internal sealed partial class NavigationService : IDisposable
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
           if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, iconName: v.Icon, title: v.Title) is INavigation newNavigation)
+              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, icon: v.Icon, title: v.Title) is INavigation newNavigation)
           {
             ChangeCurrentNavigation(newNavigation);
           }
@@ -316,7 +318,7 @@ internal sealed partial class NavigationService : IDisposable
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
           if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, iconName: v.Icon, title: v.Title) is INavigation newNavigation)
+              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
           {
             ChangeCurrentNavigation(newNavigation);
           }
@@ -333,18 +335,10 @@ internal sealed partial class NavigationService : IDisposable
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
           if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
           {
-            short icon = (short)v.Icon;
             string title = v.Title;
 
-
-            navigation.Icon = icon;
+            navigation.Icon = v.Icon;
             navigation.Title = title;
-
-            await UpdateNavigationEntityAsync(navigation, e =>
-            {
-              e.Icon = icon;
-              e.Title = title;
-            });
           }
         }
       });

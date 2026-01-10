@@ -12,7 +12,7 @@ internal sealed class NoteEntity : IEquatable<NoteEntity>
 
   public required DateTimeOffset Created { get; init; }
 
-  public required DateTimeOffset Modified { get; init; }
+  public required DateTimeOffset Modified { get; set; }
 
   public required string Title { get; set; }
 

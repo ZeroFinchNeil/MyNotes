@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using MyNotes.Resources;
+using MyNotes.Templates;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
@@ -15,7 +16,7 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
     set => SetProperty(ref field, value);
   }
 
-  public required short Icon
+  public required Icon Icon
   {
     get;
     set => SetProperty(ref field, value);
@@ -117,7 +118,7 @@ internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
   {
     Id = NavigationId.UserRootNode,
     Parent = null!,
-    Icon = (short)Templates.Icon.System_Library,
+    Icon = Icon.System_Library,
     Title = LocalizedStrings.NavigationUserRootNodeDisplayName,
     PageType = typeof(Page),
     Position = 0

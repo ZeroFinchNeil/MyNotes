@@ -64,12 +64,14 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<WindowService>();
     services.AddSingleton<NoteService>();
 
-    services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.Navigation);
+    services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.NavigationViewModel);
+    services.AddKeyedSingleton<ICommandService, NoteViewModelCommandService>(CommandServiceType.NoteViewModel);
     services.AddSingleton<CommandServiceFactory>(sp => new(sp)
     {
       ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()
       {
-        { CommandServiceType.Navigation, sp.GetKeyedService<ICommandService>(CommandServiceType.Navigation) }
+        { CommandServiceType.NavigationViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NavigationViewModel) },
+        { CommandServiceType.NoteViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NoteViewModel) }
       }
     });
 

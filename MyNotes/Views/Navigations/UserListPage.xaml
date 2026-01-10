@@ -4,20 +4,83 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MyNotes.Views.Navigations"
       xmlns:notevm="using:MyNotes.ViewModels.Notes"
-      xmlns:helpers="using:MyNotes.Helpers">
+      xmlns:helpers="using:MyNotes.Helpers"
+      xmlns:templates="using:MyNotes.Templates">
 
-  <StackPanel Spacing="12">
-    <Button Content="New note"
-            Command="{x:Bind ViewModel.AddNoteCommand}"/>
+  <Page.Resources>
+    <Style x:Key="MainPage_GridViewItemContainerStyle"
+           TargetType="GridViewItem"
+           BasedOn="{StaticResource DefaultGridViewItemStyle}">
+      <Setter Property="HorizontalContentAlignment"
+              Value="Stretch" />
+      <Setter Property="VerticalContentAlignment"
+              Value="Stretch" />
+      <Setter Property="Width"
+              Value="240" />
+      <Setter Property="Height"
+              Value="240" />
+    </Style>
 
-    <GridView ItemsSource="{x:Bind ViewModel.NoteViewModels}">
+    <ItemsPanelTemplate x:Key="MainPage_GridViewItemsPanel">
+      <ItemsWrapGrid Orientation="Horizontal" />
+    </ItemsPanelTemplate>
+  </Page.Resources>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="64" />
+      <RowDefinition />
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0"
+          VerticalAlignment="Center"
+          Padding="24,12"
+          ColumnSpacing="12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <templates:SubtleIconButton Grid.Column="0"
+                                  x:Uid="IconPickerButton"
+                                  Style="{StaticResource SubtleIconButtonStyle_40x24}">
+        <templates:SubtleIconButton.Content>
+          <ImageIcon Source="{x:Bind ViewModel.IconImage, Mode=OneWay}" />
+        </templates:SubtleIconButton.Content>
+        <templates:SubtleIconButton.Flyout>
+          <Flyout Placement="Bottom"
+                  ShouldConstrainToRootBounds="False">
+            <templates:IconPicker x:Name="UpdateUserNodeDialog_IconPicker"
+                                  Icon="{x:Bind ViewModel.Navigation.Icon, Mode=TwoWay}"
+                                  DecodePixelWidth="40"
+                                  DecodePixelHeight="40" />
+          </Flyout>
+        </templates:SubtleIconButton.Flyout>
+      </templates:SubtleIconButton>
+
+      <TextBlock Grid.Column="1"
+                 Style="{StaticResource TitleTextBlockStyle}"
+                 Text="{x:Bind ViewModel.Navigation.Title, Mode=OneWay}" />
+
+      <Button Grid.Column="2"
+              Content="New note"
+              Command="{x:Bind ViewModel.AddNoteCommand}" />
+    </Grid>
+
+    <GridView Grid.Row="1"
+              ItemsSource="{x:Bind ViewModel.NoteViewModels}"
+              ItemContainerStyle="{StaticResource MainPage_GridViewItemContainerStyle}"
+              ItemsPanel="{StaticResource MainPage_GridViewItemsPanel}"
+              SelectionMode="None"
+              AllowFocusOnInteraction="False"
+              ScrollViewer.VerticalScrollMode="Enabled"
+              ScrollViewer.VerticalScrollBarVisibility="Visible">
       <GridView.ItemTemplate>
         <DataTemplate x:DataType="notevm:NoteViewModel">
-          <Grid Background="{x:Bind helpers:ColorHelper.ToBrush(Note.Background), Mode=OneWay}">
-            <TextBlock Text="{x:Bind Note.Id.ToString()}" />
-          </Grid>
+          <local:UserListPageNoteItemGridContainer ViewModel="{x:Bind}"
+                                                   Margin="6" />
         </DataTemplate>
       </GridView.ItemTemplate>
     </GridView>
-  </StackPanel>
+  </Grid>
 </Page>

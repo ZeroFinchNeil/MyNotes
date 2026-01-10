@@ -4,11 +4,13 @@
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates">
   <ResourceDictionary.MergedDictionaries>
-    <ResourceDictionary Source="/MyNotes.Templates/Themes/Generic.xaml" />
+    <ResourceDictionary Source="ms-appx:///MyNotes.Templates/Themes/Generic.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
   <x:Boolean x:Key="BooleanTrue">True</x:Boolean>
   <x:Boolean x:Key="BooleanFalse">False</x:Boolean>
+
+  <!--#region EmphasisMenuFlyoutItem Style -->
   <Style x:Key="EmphasisMenuFlyoutItemStyle"
          TargetType="MenuFlyoutItem"
          BasedOn="{StaticResource DefaultMenuFlyoutItemStyle}">
@@ -544,7 +546,8 @@
     <Setter Property="Foreground"
             Value="{ThemeResource SystemAccentColor}" />
   </Style>
-
+  <!--#endregion -->
+  
   <!--#region EmphasisSubtleIconButton Style -->
   <Style x:Key="EmphasisSubtleIconButtonStyle"
          TargetType="templates:SubtleIconButton">
@@ -801,4 +804,31 @@
   <Style x:Key="SubtleIconRepeatButtonStyle"
          TargetType="RepeatButton"
          BasedOn="{StaticResource SubtleIconButtonBaseStyle}" />
+
+  <Style x:Key="SubtleIconButtonDefaultStyle"
+         TargetType="templates:SubtleIconButton" />
+
+  <Style x:Key="SubtleIconButtonStyle_40x24"
+         TargetType="templates:SubtleIconButton">
+    <Setter Property="IconWidth"
+            Value="24" />
+    <Setter Property="IconHeight"
+            Value="24" />
+  </Style>
+
+  <Style x:Key="SubtleIconButtonStyle_40x20"
+         TargetType="templates:SubtleIconButton">
+    <Setter Property="IconWidth"
+            Value="20" />
+    <Setter Property="IconHeight"
+            Value="20" />
+  </Style>
+
+  <Style x:Key="SubtleIconButtonStyle_32x16"
+         TargetType="templates:SubtleIconButton">
+    <Setter Property="Width"
+            Value="32" />
+    <Setter Property="Height"
+            Value="32" />
+  </Style>
 </ResourceDictionary>

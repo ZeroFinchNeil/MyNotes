@@ -21,7 +21,8 @@
         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
 
-      <templates:SubtleIconButton x:Uid="IconPickerButton">
+      <templates:SubtleIconButton x:Uid="IconPickerButton"
+                                  Style="{StaticResource SubtleIconButtonStyle_40x20}">
         <templates:SubtleIconButton.Content>
           <ImageIcon Source="{x:Bind UpdateUserNodeDialog_IconPicker.IconImage, Mode=OneWay, FallbackValue='System_Board'}" />
         </templates:SubtleIconButton.Content>

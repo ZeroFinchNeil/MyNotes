@@ -43,7 +43,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandServiceFactory.Resolve(CommandServiceType.Navigation);
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandServiceFactory.Resolve(CommandServiceType.NavigationViewModel);
 
     // Header
     HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];

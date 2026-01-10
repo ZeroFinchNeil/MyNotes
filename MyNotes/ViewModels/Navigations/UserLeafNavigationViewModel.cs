@@ -28,15 +28,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   private readonly NoteService NoteService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
 
-  public ObservableCollection<NoteViewModel> NoteViewModels { get; } = new();
-
-  public NoteViewModelSortOrder NoteViewModelSortOrder
-  {dddddddddddddddddddd
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationViewModelCommandService, WindowService windowService, NoteService noteService, NoteViewModelProvider noteViewModelProvider, NavigationUserLeafNode navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, WindowService windowService, NoteService noteService, NoteViewModelProvider noteViewModelProvider, NavigationUserLeafNode navigation)
   {
     Navigation = navigation;
 
@@ -48,22 +40,11 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
     SetIconImage();
     Navigation.PropertyChanged += Navigation_PropertyChanged;
-    
-    _ = GetNoteViewModels();
 
     SetCommands();
 
     // Messengers
     RegisterMessenger();
-  }
-
-  private async Task GetNoteViewModels()
-  {
-    var notes = await NoteService.GetNotesAsync(Navigation);
-    foreach(var note in notes)
-    {
-      NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
-    }
   }
 
   private async void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -76,7 +57,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     }
   }
 
-  private void SetIconImage() => IconImage = new BitmapImage() { UriSource = IconHelper.GetMainUri(Navigation.Icon) };
+  private void SetIconImage() => IconImage = new BitmapImage() { UriSource = IconHelper.GetMainUri((short)Navigation.Icon) };
 
   protected override void Dispose(bool disposing)
   {
@@ -85,12 +66,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
     if (disposing)
     {
-      foreach (var noteViewModel in NoteViewModels)
-      {
-        if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
-          noteViewModel.Dispose();
-      }
-
+      UnloadNoteViewModels();
       Navigation.PropertyChanged -= Navigation_PropertyChanged;
       UnregisterMessenger();
     }
@@ -103,6 +79,46 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   public override Command<NavigationViewModelBase>? UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
   public override Command<NavigationViewModelBase>? DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
   public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
+
+  private void RegisterMessenger()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, MessageTokens.ChangeNavigationViewModelIconImageToken, (recipient, message) => SetIconImage());
+  }
+
+  private void UnregisterMessenger()
+  {
+    WeakReferenceMessenger.Default.UnregisterAll(this);
+  }
+}
+
+internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewModel
+{
+  public ObservableCollection<NoteViewModel> NoteViewModels { get; } = new();
+
+  public NoteViewModelSortOrder NoteViewModelSortOrder
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public async Task LoadNoteViewModels()
+  {
+    var notes = await NoteService.GetNotesAsync(Navigation);
+    foreach (var note in notes)
+    {
+      NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+    }
+  }
+
+  public void UnloadNoteViewModels()
+  {
+    foreach (var noteViewModel in NoteViewModels)
+    {
+      if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
+        noteViewModel.Dispose();
+    }
+    NoteViewModels.Clear();
+  }
 
   public Command? AddNoteCommand { get; private set; }
 
@@ -121,19 +137,9 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
         }
       });
   }
-
-  private void RegisterMessenger()
-  {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, MessageTokens.ChangeNavigationViewModelIconImageToken, (recipient, message) => SetIconImage());
-  }
-
-  private void UnregisterMessenger()
-  {
-    WeakReferenceMessenger.Default.UnregisterAll(this);
-  }
 }
 
-internal enum NoteViewModelSortOrder
+  internal enum NoteViewModelSortOrder
 {
   Title,
   Modified,

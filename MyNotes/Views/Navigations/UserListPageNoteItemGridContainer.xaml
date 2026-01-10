@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="MyNotes.Views.Navigations.UserListPageNoteItemGridContainer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:MyNotes.Views.Navigations"
+             xmlns:templates="using:MyNotes.Templates"
+             xmlns:helpers="using:MyNotes.Helpers"
+             xmlns:ui="using:CommunityToolkit.WinUI"
+             xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
+
+  <Grid x:Name="NoteItem_RootGrid"
+        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.Background), Mode=OneWay}"
+        CornerRadius="{ThemeResource OverlayCornerRadius}"
+        BorderThickness="1"
+        BorderBrush="{ThemeResource ControlStrokeColorDefault}"
+        BackgroundSizing="InnerBorderEdge"
+        Translation="0,0,12"
+        PointerEntered="NoteItem_RootGrid_PointerEntered"
+        PointerExited="NoteItem_RootGrid_PointerExited">
+    <Grid.Shadow>
+      <ThemeShadow />
+    </Grid.Shadow>
+
+    <Grid.RowDefinitions>
+      <RowDefinition Height="32" />
+      <RowDefinition />
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="Auto" />
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+
+      <!-- Bookmark Button -->
+      <templates:SubtleIconButton x:Name="NoteItem_BookmarkButton"
+                                  Grid.Column="0"
+                                  Content="{ui:SymbolIcon Symbol=Favorite}"
+                                  Visibility="Collapsed"
+                                  Style="{StaticResource SubtleIconButtonStyle_32x16}" />
+
+      <!-- Title -->
+      <TextBlock Grid.Column="1"
+                 Padding="6,0"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Text="{x:Bind ViewModel.Note.Title, Mode=OneWay}"
+                 TextTrimming="CharacterEllipsis"
+                 TextWrapping="NoWrap"
+                 Style="{StaticResource BodyStrongTextBlockStyle}">
+        <interactivity:Interaction.Behaviors>
+          <interactivity:EventTriggerBehavior EventName="DoubleTapped">
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
+                                               CommandParameter="{x:Bind ViewModel}"/>
+          </interactivity:EventTriggerBehavior>
+        </interactivity:Interaction.Behaviors>
+      </TextBlock>
+
+      <!-- More Button -->
+      <templates:SubtleIconButton x:Name="NoteItem_MoreButton"
+                                  Grid.Column="2"
+                                  Content="{ui:FontIcon Glyph=&#xE712;}"
+                                  Visibility="Collapsed"
+                                  Style="{StaticResource SubtleIconButtonStyle_32x16}">
+        <templates:SubtleIconButton.Flyout>
+          <CommandBarFlyout Placement="Bottom"
+                            AlwaysExpanded="True">
+            <AppBarButton Label="View"
+                          Icon="{ui:FontIcon Glyph=&#xE8AD;}"
+                          Command="{x:Bind ViewModel.OpenWindowCommand}"
+                          CommandParameter="{x:Bind ViewModel}" />
+            <AppBarButton Label="Share"
+                          Icon="Share" />
+            <AppBarButton Label="Remove"
+                          Icon="Delete" />
+            <CommandBarFlyout.SecondaryCommands>
+              <AppBarButton Label="Move to board"
+                            Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
+              <AppBarButton Label="Rename title"
+                            Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
+              <AppBarButton x:Name="Template_EditTagsButton"
+                            Label="Edit tags"
+                            Icon="{ui:FontIcon Glyph=&#xE932;}" />
+              <AppBarSeparator />
+              <AppBarButton Label="About"
+                            Icon="{ui:FontIcon Glyph=&#xE946;}" />
+            </CommandBarFlyout.SecondaryCommands>
+          </CommandBarFlyout>
+        </templates:SubtleIconButton.Flyout>
+      </templates:SubtleIconButton>
+    </Grid>
+
+    <!-- Body -->
+    <TextBlock Grid.Row="1"
+               Margin="6"
+               Text="{x:Bind ViewModel.Note.Body, Mode=OneWay}"
+               TextWrapping="Wrap">
+      <interactivity:Interaction.Behaviors>
+        <interactivity:EventTriggerBehavior EventName="DoubleTapped">
+          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
+                                             CommandParameter="{x:Bind ViewModel}" />
+        </interactivity:EventTriggerBehavior>
+      </interactivity:Interaction.Behaviors>
+    </TextBlock>
+
+    <VisualStateManager.VisualStateGroups>
+      <VisualStateGroup x:Name="PointerStates">
+        <VisualState x:Name="PointerExited" />
+        <VisualState x:Name="PointerEntered">
+          <Storyboard>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_RootGrid"
+                                           Storyboard.TargetProperty="BorderBrush">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="{ThemeResource AccentFillColorDefaultBrush}" />
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_BookmarkButton"
+                                           Storyboard.TargetProperty="Visibility">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="Visible" />
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_MoreButton"
+                                           Storyboard.TargetProperty="Visibility">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="Visible" />
+            </ObjectAnimationUsingKeyFrames>
+          </Storyboard>
+        </VisualState>
+      </VisualStateGroup>
+    </VisualStateManager.VisualStateGroups>
+  </Grid>
+</UserControl>

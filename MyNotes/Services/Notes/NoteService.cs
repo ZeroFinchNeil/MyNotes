@@ -2,10 +2,12 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
+using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Notes;
 
@@ -16,8 +18,6 @@ internal sealed partial class NoteService : IDisposable
   public NoteService(IDbContextFactory<AppDbContext> dbContextFactory)
   {
     DbContextFactory = dbContextFactory;
-
-    SetCommands();
   }
 
   private bool _disposed;
@@ -32,17 +32,26 @@ internal sealed partial class NoteService : IDisposable
 
 internal sealed partial class NoteService : IDisposable
 {
-  // Navigation 리스트에 해당하는 Note를 DB에서 가져오기
+  private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
+
+  // 내비게이션 사용자 목록에 해당하는 노트를 DB에서 가져오기
   public async Task<IReadOnlyList<Note>> GetNotesAsync(NavigationUserLeafNode navigation)
   {
     List<Note> notes;
-    await using (var context = await DbContextFactory.CreateDbContextAsync())
+
+    Note NoteEntityToNote(NoteEntity e)
     {
-      notes = [.. context.NoteEntities
-        .Where(e => e.Parent == navigation.Id.Value)
-        .Select(e => new Note()
+      NoteId noteId = NoteId.Create(e.Id);
+      if (NoteCache.TryGetValue(noteId, out var wr)
+          && wr.TryGetTarget(out var existingNote))
+      {
+        return existingNote;
+      }
+      else
+      {
+        Note newNote = new()
         {
-          Id = NoteId.Create(e.Id),
+          Id = noteId,
           NavigationId = navigation.Id,
           Created = e.Created,
           Title = e.Title,
@@ -53,12 +62,34 @@ internal sealed partial class NoteService : IDisposable
           Position = new PointInt32(e.PositionX, e.PositionY),
           IsBookmarked = e.IsBookmarked,
           IsDeleted = e.IsDeleted
-        })];
+        };
+        NoteCache[noteId] = new WeakReference<Note>(newNote);
+        return newNote;
+      }
+    }
+
+    await using (var context = await DbContextFactory.CreateDbContextAsync())
+    {
+      notes = [.. context.NoteEntities
+        .Where(e => e.Parent == navigation.Id.Value)
+        .Select(NoteEntityToNote)];
     }
     return notes;
   }
 
-  // Note를 DB에 반영
+  // 노트 업데이트
+  public async Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    if (context.NoteEntities.Find(note.Id.Value) is NoteEntity entity)
+    {
+      action.Invoke(entity);
+      await context.SaveChangesAsync();
+    }
+  }
+
+
+  // 새 노트 추가 및 DB에 반영
   public async Task<Note?> AddNoteAsync(NavigationUserLeafNode navigation)
   {
     Note note = new()
@@ -90,7 +121,7 @@ internal sealed partial class NoteService : IDisposable
           IsDeleted = note.IsDeleted
         };
         await context.NoteEntities.AddAsync(entity);
-        await context.SaveChangesAsync().ConfigureAwait(true);
+        await context.SaveChangesAsync();
         return note;
       }
     }
@@ -101,8 +132,9 @@ internal sealed partial class NoteService : IDisposable
 
 internal sealed partial class NoteService : IDisposable
 {
-  private void SetCommands()
-  {
-
-  }
+  public Command<Note> OpenWindowCommand { get; } = new(
+    actionToExecute: (note) =>
+    {
+      new NoteWindow(note).Activate();
+    });
 }

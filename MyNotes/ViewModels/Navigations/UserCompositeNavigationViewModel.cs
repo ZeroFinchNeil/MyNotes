@@ -23,7 +23,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
   private readonly SettingsService SettingsService;
 
-  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation)
+  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation)
   {
     Navigation = navigation;
 
@@ -55,7 +55,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
 
   private async Task SetIconImage()
   {
-    IconImage = await IconHelper.GetIconImage(Navigation.Icon, (GroupIconBadge)SettingsService.Load(SettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
+    IconImage = await IconHelper.GetIconImage((short)Navigation.Icon, (GroupIconBadge)SettingsService.Load(SettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
   }
 
   private void ChildNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
