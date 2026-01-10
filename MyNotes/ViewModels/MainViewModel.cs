@@ -2,7 +2,7 @@
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Navigation;
+using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.ViewModels;
@@ -11,7 +11,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationService NavigationService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly NavigationCommandService NavigationCommandService;
+  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
 
   // Header
   public IReadOnlyList<NavigationViewModelBase> HeaderMenuItems { get; }
@@ -43,7 +43,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    NavigationCommandService = (NavigationCommandService)commandServiceFactory.Resolve(CommandServiceType.Navigation);
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandServiceFactory.Resolve(CommandServiceType.Navigation);
 
     // Header
     HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
@@ -88,6 +88,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     {
       NavigationViewModelProvider.ReleaseAll();
       NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
+      NavigationService.ResetCurrentNavigation();
     }
 
     _disposed = true;
@@ -96,6 +97,6 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
-  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
 }

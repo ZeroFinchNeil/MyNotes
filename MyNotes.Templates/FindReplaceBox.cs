@@ -6,6 +6,7 @@ using Microsoft.UI;
 using Microsoft.UI.Text;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 
 using Windows.UI;
 
@@ -53,14 +54,14 @@ public sealed partial class FindReplaceBox : Control
     set => SetValue(FindReplaceModeProperty, value);
   }
 
-  public static readonly DependencyProperty FindTextProperty = DependencyProperty.Register("FindText", typeof(string), typeof(FindReplaceBox), new PropertyMetadata(string.Empty));
+  public static readonly DependencyProperty FindTextProperty = DependencyProperty.Register("FindText", typeof(string), typeof(FindReplaceBox), new PropertyMetadata(string.Empty, OnFindTextChanged));
   public string FindText
   {
     get => (string)GetValue(FindTextProperty);
     private set => SetValue(FindTextProperty, value);
   }
 
-  public static readonly DependencyProperty ReplaceTextProperty = DependencyProperty.Register("ReplaceText", typeof(string), typeof(FindReplaceBox), new PropertyMetadata(string.Empty));
+  public static readonly DependencyProperty ReplaceTextProperty = DependencyProperty.Register("ReplaceText", typeof(string), typeof(FindReplaceBox), new PropertyMetadata(string.Empty, OnReplaceTextChanged));
   public string ReplaceText
   {
     get => (string)GetValue(ReplaceTextProperty);
@@ -81,18 +82,25 @@ public sealed partial class FindReplaceBox : Control
     set => SetValue(CurrentMatchColorProperty, value);
   }
 
-  public static readonly DependencyProperty IsCaseSensitiveProperty = DependencyProperty.Register("IsCaseSensitive", typeof(bool), typeof(FindReplaceBox), new PropertyMetadata(false));
+  public static readonly DependencyProperty IsCaseSensitiveProperty = DependencyProperty.Register("IsCaseSensitive", typeof(bool), typeof(FindReplaceBox), new PropertyMetadata(false, OnIsCaseSensitivehanged));
   public bool IsCaseSensitive
   {
     get => (bool)GetValue(IsCaseSensitiveProperty);
     set => SetValue(IsCaseSensitiveProperty, value);
   }
 
-  public static readonly DependencyProperty IsRegexEnabledProperty = DependencyProperty.Register("IsRegexEnabled", typeof(bool), typeof(FindReplaceBox), new PropertyMetadata(false));
+  public static readonly DependencyProperty IsRegexEnabledProperty = DependencyProperty.Register("IsRegexEnabled", typeof(bool), typeof(FindReplaceBox), new PropertyMetadata(false, OnIsRegexEnabledChanged));
   public bool IsRegexEnabled
   {
     get => (bool)GetValue(IsRegexEnabledProperty);
     set => SetValue(IsRegexEnabledProperty, value);
+  }
+
+  public static readonly DependencyProperty IsContextChangedProperty = DependencyProperty.Register("IsContextChanged", typeof(bool), typeof(FindReplaceBox), new PropertyMetadata(true, OnIsContextChanged));
+  public bool IsContextChanged
+  {
+    get => (bool)GetValue(IsContextChangedProperty);
+    private set => SetValue(IsContextChangedProperty, value);
   }
 
   private static void OnTargetChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
@@ -115,8 +123,10 @@ public sealed partial class FindReplaceBox : Control
     if (d is FindReplaceBox control && control.IsLoaded && e.NewValue is false)
     {
       control.ResetMatchResults();
+      control.FindAutoSuggestBox?.Focus(FocusState.Keyboard);
     }
   }
+
   private static void OnFindReplaceModeChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
   {
     if (d is FindReplaceBox control && control.IsLoaded)
@@ -133,6 +143,52 @@ public sealed partial class FindReplaceBox : Control
     }
   }
 
+  private static void OnFindTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is FindReplaceBox control && control.IsLoaded)
+    {
+      control.IsContextChanged = true;
+      VisualStateManager.GoToState(control, "Unmatched", true);
+    }
+  }
+
+  private static void OnReplaceTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+  }
+
+  private static void OnIsCaseSensitivehanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is FindReplaceBox control && control.IsLoaded)
+    {
+      control.IsContextChanged = true;
+    }
+  }
+
+  private static void OnIsRegexEnabledChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is FindReplaceBox control && control.IsLoaded)
+    {
+      control.IsContextChanged = true;
+    }
+  }
+
+  private static void OnIsContextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is FindReplaceBox control && control.IsLoaded)
+    {
+      if (e.NewValue is true)
+      {
+        VisualStateManager.GoToState(control, "Unmatched", true);
+      }
+      else
+      {
+        VisualStateManager.GoToState(control, "Matched", true);
+      }
+    }
+  }
+
+  private ToggleButton? CaseSensitiveToggleButton;
+  private ToggleButton? RegexToggleButton;
   private Button? CloseButton;
 
   private Button? ToggleFindReplaceButton;
@@ -145,8 +201,12 @@ public sealed partial class FindReplaceBox : Control
   private Button? ReplaceNextButton;
   private Button? ReplaceAllButton;
 
+  private TextBlock? MatchResultTextBlock;
+
   protected override void OnApplyTemplate()
   {
+    CaseSensitiveToggleButton = GetTemplateChild("CaseSensitiveToggleButton") as ToggleButton;
+    RegexToggleButton = GetTemplateChild("RegexToggleButton") as ToggleButton;
     CloseButton = GetTemplateChild("CloseButton") as Button;
 
     ToggleFindReplaceButton = GetTemplateChild("ToggleFindReplaceButton") as Button;
@@ -158,6 +218,8 @@ public sealed partial class FindReplaceBox : Control
     ReplaceAutoSuggestBox = GetTemplateChild("ReplaceAutoSuggestBox") as AutoSuggestBox;
     ReplaceNextButton = GetTemplateChild("ReplaceNextButton") as Button;
     ReplaceAllButton = GetTemplateChild("ReplaceAllButton") as Button;
+
+    MatchResultTextBlock = GetTemplateChild("MatchResultTextBlock") as TextBlock;
 
     CloseButton?.Click += CloseButton_Click;
 
@@ -174,8 +236,7 @@ public sealed partial class FindReplaceBox : Control
     ReplaceAllButton?.Click += ReplaceAllButton_Click;
   }
 
-  private readonly List<FindReplaceBoxMatchResult> _matchResults = new();
-  private int _matchIndex = -1;
+  private readonly List<int> _matchResults = new();
 
   private void CloseButton_Click(object sender, RoutedEventArgs e) => IsOpen = false;
 
@@ -191,37 +252,16 @@ public sealed partial class FindReplaceBox : Control
 
   private void FindAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
   {
-    var newText = args.QueryText ?? string.Empty;
-    if (FindText != newText)
-    {
-      FindText = newText;
-      _matchIndex = -1;
-    }
-
     FindNext();
   }
 
   private void FindNextButton_Click(object sender, RoutedEventArgs e)
   {
-    var newText = FindAutoSuggestBox?.Text ?? string.Empty;
-    if (FindText != newText)
-    {
-      FindText = newText;
-      _matchIndex = -1;
-    }
-
     FindNext();
   }
 
   private void FindPreviousButton_Click(object sender, RoutedEventArgs e)
   {
-    var newText = FindAutoSuggestBox?.Text ?? string.Empty;
-    if (FindText != newText)
-    {
-      FindText = newText;
-      _matchIndex = -1;
-    }
-
     FindPrevious();
   }
 
@@ -230,25 +270,25 @@ public sealed partial class FindReplaceBox : Control
     if (string.IsNullOrEmpty(FindText))
       return;
 
-    if (_matchIndex < 0)
+    if (IsContextChanged)
       Find(FindText);
 
     if (TargetEditor is RichEditBox box)
     {
-      if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
-      {
-        var previousMatch = _matchResults[_matchIndex];
-        box.Document.GetRange(previousMatch.Start, previousMatch.End).CharacterFormat.BackgroundColor = MatchColor;
-      }
+      int _matchIndex = _matchResults.BinarySearch(box.Document.Selection.StartPosition);
+      if (_matchIndex < 0)
+        _matchIndex = ~_matchIndex;
 
       _matchIndex++;
-      if (_matchIndex == _matchResults.Count)
+      if (_matchIndex >= _matchResults.Count)
         _matchIndex = 0;
 
       if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
       {
         var currentMatch = _matchResults[_matchIndex];
-        box.Document.GetRange(currentMatch.Start, currentMatch.End).CharacterFormat.BackgroundColor = CurrentMatchColor;
+        box.Document.Selection.SetRange(currentMatch, currentMatch + FindText.Length);
+        box.Document.Selection.ScrollIntoView(PointOptions.None);
+        MatchResultTextBlock?.Text = $"{_matchIndex + 1} / {_matchResults.Count}";
       }
     }
   }
@@ -258,25 +298,26 @@ public sealed partial class FindReplaceBox : Control
     if (string.IsNullOrEmpty(FindText))
       return;
 
-    if (_matchIndex < 0)
+    if (IsContextChanged)
       Find(FindText);
 
     if (TargetEditor is RichEditBox box)
     {
-      if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
-      {
-        var previousMatch = _matchResults[_matchIndex];
-        box.Document.GetRange(previousMatch.Start, previousMatch.End).CharacterFormat.BackgroundColor = MatchColor;
-      }
+      int _matchIndex = _matchResults.BinarySearch(box.Document.Selection.StartPosition);
+      if (_matchIndex < 0)
+        _matchIndex = ~_matchIndex;
 
       _matchIndex--;
+
       if (_matchIndex < 0)
         _matchIndex = _matchResults.Count - 1;
 
       if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
       {
         var currentMatch = _matchResults[_matchIndex];
-        box.Document.GetRange(currentMatch.Start, currentMatch.End).CharacterFormat.BackgroundColor = CurrentMatchColor;
+        box.Document.Selection.SetRange(currentMatch, currentMatch + FindText.Length);
+        box.Document.Selection.ScrollIntoView(PointOptions.None);
+        MatchResultTextBlock?.Text = $"{_matchIndex + 1} / {_matchResults.Count}";
       }
     }
   }
@@ -296,92 +337,47 @@ public sealed partial class FindReplaceBox : Control
 
           foreach (Match regexMatch in regexMatches)
           {
-            int start = regexMatch.Index;
-            int end = regexMatch.Index + regexMatch.Length;
-            var textRange = box.Document.GetRange(start, end);
-            var characterFormat = textRange.CharacterFormat;
-            FindReplaceBoxMatchResult matchResult = new()
-            {
-              Start = start,
-              End = end,
-              CharacterFormat = characterFormat.GetClone()
-            };
-
-            characterFormat.BackgroundColor = MatchColor;
-            _matchResults.Add(matchResult);
+            _matchResults.Add(regexMatch.Index);
           }
         }
         else
         {
           int idx = 0;
-          while ((idx = document.IndexOf(text, idx, IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase)) != -1)
+          var stringComparison = IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+          while ((idx = document.IndexOf(text, idx, stringComparison)) != -1)
           {
-            int start = idx;
-            int end = idx + text.Length;
-            var textRange = box.Document.GetRange(start, end);
-            var characterFormat = textRange.CharacterFormat;
-            FindReplaceBoxMatchResult matchResult = new()
-            {
-              Start = start,
-              End = end,
-              CharacterFormat = characterFormat.GetClone()
-            };
-
-            characterFormat.BackgroundColor = MatchColor;
-            _matchResults.Add(matchResult);
-
-            idx = end;
+            _matchResults.Add(idx);
+            idx += text.Length;
           }
         }
       }
     }
+    IsContextChanged = false;
   }
 
   private void ResetMatchResults()
   {
     if (TargetEditor is RichEditBox box)
     {
-      foreach (var matchResult in _matchResults)
-      {
-        var textRange = box.Document.GetRange(matchResult.Start, matchResult.End);
-        if (textRange.Length > 0)
-          textRange.CharacterFormat.SetClone(matchResult.CharacterFormat);
-      }
+      box.Document.Selection.Collapse(true);
     }
     _matchResults.Clear();
-    _matchIndex = -1;
+    MatchResultTextBlock?.Text = string.Empty;
+    IsContextChanged = true;
   }
 
   private void ReplaceAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
   {
-    var newText = args.QueryText ?? string.Empty;
-    if (ReplaceText != newText)
-    {
-      ReplaceText = newText;
-    }
-
     ReplaceNext();
   }
 
   private void ReplaceNextButton_Click(object sender, RoutedEventArgs e)
   {
-    var newText = ReplaceAutoSuggestBox?.Text ?? string.Empty;
-    if (ReplaceText != newText)
-    {
-      ReplaceText = newText;
-    }
-
     ReplaceNext();
   }
 
   private void ReplaceAllButton_Click(object sender, RoutedEventArgs e)
   {
-    var newText = ReplaceAutoSuggestBox?.Text ?? string.Empty;
-    if (ReplaceText != newText)
-    {
-      ReplaceText = newText;
-    }
-
     ReplaceAll();
   }
 
@@ -400,11 +396,4 @@ public enum FindReplaceMode
 {
   Find,
   Replace
-}
-
-public record FindReplaceBoxMatchResult
-{
-  public required int Start { get; init; }
-  public required int End { get; init; }
-  public required ITextCharacterFormat CharacterFormat { get; init; }
 }

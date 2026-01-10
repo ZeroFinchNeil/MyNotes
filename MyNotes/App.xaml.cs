@@ -3,8 +3,9 @@
 using MyNotes.Debugging;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
-using MyNotes.Services.Dialog;
-using MyNotes.Services.Navigation;
+using MyNotes.Services.Dialogs;
+using MyNotes.Services.Navigations;
+using MyNotes.Services.Notes;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels;
@@ -61,8 +62,9 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NavigationService>();
     services.AddSingleton<SettingsService>();
     services.AddSingleton<WindowService>();
+    services.AddSingleton<NoteService>();
 
-    services.AddKeyedSingleton<ICommandService, NavigationCommandService>(CommandServiceType.Navigation);
+    services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.Navigation);
     services.AddSingleton<CommandServiceFactory>(sp => new(sp)
     {
       ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()

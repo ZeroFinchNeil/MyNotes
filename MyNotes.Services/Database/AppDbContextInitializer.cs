@@ -6,9 +6,7 @@ internal sealed class AppDbContextInitializer
 {
   public AppDbContextInitializer(IDbContextFactory<AppDbContext> factory)
   {
-    using (var context = factory.CreateDbContext())
-    {
-      context.Database.EnsureCreated();
-    }
+    using var context = factory.CreateDbContext();
+    context.Database.EnsureCreated();
   }
 }

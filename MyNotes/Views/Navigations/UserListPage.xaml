@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="MyNotes.Views.Navigations.UserListPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:MyNotes.Views.Navigations"
+      xmlns:notevm="using:MyNotes.ViewModels.Notes"
+      xmlns:helpers="using:MyNotes.Helpers">
+
+  <StackPanel Spacing="12">
+    <Button Content="New note"
+            Command="{x:Bind ViewModel.AddNoteCommand}"/>
+
+    <GridView ItemsSource="{x:Bind ViewModel.NoteViewModels}">
+      <GridView.ItemTemplate>
+        <DataTemplate x:DataType="notevm:NoteViewModel">
+          <Grid Background="{x:Bind helpers:ColorHelper.ToBrush(Note.Background), Mode=OneWay}">
+            <TextBlock Text="{x:Bind Note.Id.ToString()}" />
+          </Grid>
+        </DataTemplate>
+      </GridView.ItemTemplate>
+    </GridView>
+  </StackPanel>
+</Page>

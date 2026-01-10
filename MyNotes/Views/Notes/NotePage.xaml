@@ -229,16 +229,17 @@
                            Color="{StaticResource ControlFillColorTransparent}" />
         </RichEditBox.Resources>
       </RichEditBox>
-      
-      <tmpls:FindReplaceBox x:Name="NotePage_FindReplaceBox" 
-                            TargetEditor="{x:Bind NotePage_TextEditorRichEditBox}"
-                            IsOpen="False"
-                            VerticalAlignment="Top"
-                            HorizontalAlignment="Right"
-                            RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
-                            Margin="12"/>
     </Grid>
     <!--#endregion -->
+
+    <tmpls:FindReplaceBox x:Name="NotePage_FindReplaceBox"
+                          Grid.Row="1"
+                          VerticalAlignment="Top"
+                          HorizontalAlignment="Right"
+                          TargetEditor="{x:Bind NotePage_TextEditorRichEditBox}"
+                          IsOpen="False"
+                          RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
+                          Margin="12" />
 
     <!--#region Command Bar -->
     <ScrollViewer x:Name="NotePage_CommandBarScrollViewer"

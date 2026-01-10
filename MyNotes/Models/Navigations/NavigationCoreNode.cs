@@ -7,7 +7,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal abstract class NavigationCoreNode : ObservableObject, INavigationCoreNode
+internal abstract class NavigationCoreNode : ObservableObject, INavigationNode
 {
   public required NavigationId Id { get; init; }
 
@@ -23,11 +23,9 @@ internal abstract class NavigationCoreNode : ObservableObject, INavigationCoreNo
     set => SetProperty(ref field, value);
   }
 
-  public required Type PageType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  public Type PageType { get; init; }
+
+  public NavigationCoreNode(Type pageType) => PageType = pageType;
 }
 
 #region Core Nodes
@@ -38,11 +36,10 @@ internal sealed class NavigationHome : NavigationCoreNode
   {
     Id = NavigationId.Home,
     Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Home } },
-    Title = LocalizedStrings.NavigationHomeTitle,
-    PageType = typeof(HomePage)
+    Title = LocalizedStrings.NavigationHomeTitle
   };
 
-  private NavigationHome() { }
+  private NavigationHome() : base(typeof(HomePage)) { }
 }
 
 internal sealed class NavigationBookmarks : NavigationCoreNode
@@ -52,10 +49,9 @@ internal sealed class NavigationBookmarks : NavigationCoreNode
     Id = NavigationId.Bookmarks,
     Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Bookmarks } },
     Title = LocalizedStrings.NavigationBookmarksTitle,
-    PageType = typeof(HomePage)
   };
 
-  private NavigationBookmarks() { }
+  private NavigationBookmarks() : base(typeof(HomePage)) { }
 }
 
 internal sealed class NavigationTrash : NavigationCoreNode
@@ -64,11 +60,10 @@ internal sealed class NavigationTrash : NavigationCoreNode
   {
     Id = NavigationId.Empty,
     Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Delete } },
-    Title = LocalizedStrings.NavigationTrashTitle,
-    PageType = typeof(HomePage)
+    Title = LocalizedStrings.NavigationTrashTitle
   };
 
-  private NavigationTrash() { }
+  private NavigationTrash() : base(typeof(HomePage)) { }
 }
 
 internal sealed class NavigationSettings : NavigationCoreNode
@@ -77,10 +72,9 @@ internal sealed class NavigationSettings : NavigationCoreNode
   {
     Id = NavigationId.Empty,
     Icon = new AnimatedIcon() { Source = new AnimatedSettingsVisualSource() },
-    Title = LocalizedStrings.NavigationSettingsTitle,
-    PageType = typeof(SettingsPage)
+    Title = LocalizedStrings.NavigationSettingsTitle
   };
 
-  private NavigationSettings() { }
+  private NavigationSettings() : base(typeof(SettingsPage)) { }
 }
 #endregion

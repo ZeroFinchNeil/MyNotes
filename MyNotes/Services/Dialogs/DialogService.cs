@@ -2,13 +2,13 @@
 
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Navigation;
+using MyNotes.Services.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.Views.Dialogs;
 
-namespace MyNotes.Services.Dialog;
+namespace MyNotes.Services.Dialogs;
 
 internal sealed class DialogService
 {

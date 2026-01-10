@@ -2702,6 +2702,7 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
               </Grid.RowDefinitions>
 
               <Grid.Shadow>
@@ -2724,6 +2725,7 @@
                            Margin="0,4,0,0"
                            Style="{StaticResource BodyStrongTextBlockStyle}"
                            TextWrapping="NoWrap" />
+
                 <ToggleButton x:Name="CaseSensitiveToggleButton"
                               Grid.Column="1"
                               Style="{StaticResource ToggleButtonStyle}"
@@ -2777,7 +2779,8 @@
                 <AutoSuggestBox x:Name="FindAutoSuggestBox"
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
-                                MinWidth="150" />
+                                MinWidth="150"
+                                Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=FindText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
 
                 <Button x:Name="FindNextButton"
                         Grid.Column="2"
@@ -2818,7 +2821,8 @@
                 <AutoSuggestBox x:Name="ReplaceAutoSuggestBox"
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
-                                MinWidth="150" />
+                                MinWidth="150"
+                                Text="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=ReplaceText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
 
                 <Button x:Name="ReplaceNextButton"
                         Grid.Column="2"
@@ -2842,6 +2846,23 @@
                   </Button.Content>
                 </Button>
               </Grid>
+
+              <Grid x:Name="MatchResultGrid"
+                    Grid.Row="3"
+                    ColumnSpacing="6"
+                    Margin="0,8,0,0"
+                    Visibility="Collapsed">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="32" />
+                  <ColumnDefinition />
+                  <ColumnDefinition Width="32" />
+                  <ColumnDefinition Width="32" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock x:Name="MatchResultTextBlock"
+                           Grid.Column="1"
+                           TextAlignment="Right" />
+              </Grid>
             </Grid>
 
             <VisualStateManager.VisualStateGroups>
@@ -2863,6 +2884,19 @@
                                                    Storyboard.TargetProperty="Glyph">
                       <DiscreteObjectKeyFrame KeyTime="0:0:0"
                                               Value="&#xE70E;" />
+                    </ObjectAnimationUsingKeyFrames>
+                  </Storyboard>
+                </VisualState>
+              </VisualStateGroup>
+
+              <VisualStateGroup x:Name="MatchResultState">
+                <VisualState x:Name="Unmatched" />
+                <VisualState x:Name="Matched">
+                  <Storyboard>
+                    <ObjectAnimationUsingKeyFrames Storyboard.TargetName="MatchResultGrid"
+                                                   Storyboard.TargetProperty="Visibility">
+                      <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                              Value="Visible" />
                     </ObjectAnimationUsingKeyFrames>
                   </Storyboard>
                 </VisualState>

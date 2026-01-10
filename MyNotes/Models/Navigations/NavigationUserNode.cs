@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Helpers;
-using MyNotes.Models.Settings;
 using MyNotes.Resources;
+using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal partial class NavigationUserNode : ObservableObject, INavigationUserNode
+internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode
 {
   public required NavigationId Id { get; init; }
 
@@ -28,11 +27,9 @@ internal partial class NavigationUserNode : ObservableObject, INavigationUserNod
     set => SetProperty(ref field, value);
   }
 
-  public required Type PageType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  public Type PageType { get; init; }
+
+  public NavigationUserNode(Type pageType) { PageType = pageType; }
 
   public required int Position
   {
@@ -82,7 +79,7 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 {
   public NavigationUserNodeCollection ChildNodes { get; }
 
-  public NavigationUserCompositeNode() { ChildNodes = new(this); }
+  public NavigationUserCompositeNode() : base(typeof(HomePage)) { ChildNodes = new(this); }
 
   public bool IsExpanded
   {
@@ -110,7 +107,9 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 }
 
 internal class NavigationUserLeafNode : NavigationUserNode
-{ }
+{
+  public NavigationUserLeafNode() : base(typeof(HomePage)) { PageType = typeof(UserListPage); }
+}
 
 internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
 {

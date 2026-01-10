@@ -8,9 +8,14 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
 using MyNotes.Resources;
 using MyNotes.Services.Commands;
+using MyNotes.Services.Notes;
+using MyNotes.Services.Window;
+using MyNotes.ViewModels.Notes;
+using MyNotes.Views.Windows;
 
 namespace MyNotes.ViewModels.Navigations;
 
@@ -18,20 +23,47 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 {
   public override NavigationUserLeafNode Navigation { get; }
 
-  private readonly NavigationCommandService NavigationCommandService;
+  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
+  private readonly WindowService WindowService;
+  private readonly NoteService NoteService;
+  private readonly NoteViewModelProvider NoteViewModelProvider;
 
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService,  NavigationUserLeafNode navigation)
+  public ObservableCollection<NoteViewModel> NoteViewModels { get; } = new();
+
+  public NoteViewModelSortOrder NoteViewModelSortOrder
+  {dddddddddddddddddddd
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationViewModelCommandService, WindowService windowService, NoteService noteService, NoteViewModelProvider noteViewModelProvider, NavigationUserLeafNode navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
-    NavigationCommandService = (NavigationCommandService)navigationCommandService;
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
+    WindowService = windowService;
+    NoteService = noteService;
+    NoteViewModelProvider = noteViewModelProvider;
 
     SetIconImage();
     Navigation.PropertyChanged += Navigation_PropertyChanged;
+    
+    _ = GetNoteViewModels();
+
+    SetCommands();
 
     // Messengers
     RegisterMessenger();
+  }
+
+  private async Task GetNoteViewModels()
+  {
+    var notes = await NoteService.GetNotesAsync(Navigation);
+    foreach(var note in notes)
+    {
+      NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+    }
   }
 
   private async void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -53,6 +85,12 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
     if (disposing)
     {
+      foreach (var noteViewModel in NoteViewModels)
+      {
+        if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
+          noteViewModel.Dispose();
+      }
+
       Navigation.PropertyChanged -= Navigation_PropertyChanged;
       UnregisterMessenger();
     }
@@ -60,11 +98,29 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     _disposed = true;
   }
 
-  public override Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationCommandService.DeleteCommand;
-  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
+  public override Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
+  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
+
+  public Command? AddNoteCommand { get; private set; }
+
+  private void SetCommands()
+  {
+    AddNoteCommand = new(
+      actionToExecute: async () =>
+      {
+        if (await NoteService.AddNoteAsync(Navigation) is Note note)
+        {
+          NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
+          NoteViewModels.Add(noteViewModel);
+
+          NoteWindow noteWindow = new(note);
+          noteWindow.Activate();
+        }
+      });
+  }
 
   private void RegisterMessenger()
   {
@@ -75,4 +131,11 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   {
     WeakReferenceMessenger.Default.UnregisterAll(this);
   }
+}
+
+internal enum NoteViewModelSortOrder
+{
+  Title,
+  Modified,
+  Created,
 }

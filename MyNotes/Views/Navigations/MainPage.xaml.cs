@@ -205,7 +205,7 @@ internal sealed partial class MainPage : Page
 
     if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
-      MainPage_NavigationFrame.Navigate(navigation.PageType);
+      MainPage_NavigationFrame.Navigate(navigation.PageType, navigation);
       ViewModel.AddListCommand?.RaiseCanExecuteChanged();
       ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
       ViewModel.PushNavigation(navigation);

@@ -20,7 +20,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   public ObservableCollection<NavigationViewModelBase> ChildNodeViewModels { get; }
 
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly NavigationCommandService NavigationCommandService;
+  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
   private readonly SettingsService SettingsService;
 
   public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation)
@@ -29,7 +29,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
 
     // Dependency Injection
     NavigationViewModelProvider = provider;
-    NavigationCommandService = (NavigationCommandService)commandService;
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandService;
     SettingsService = settingsService;
 
     ChildNodeViewModels = [.. Navigation.ChildNodes.Select(NavigationViewModelProvider.Resolve)];
@@ -130,11 +130,11 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     }
   }
 
-  public override Command<NavigationViewModelBase>? AddListCommand => NavigationCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationCommandService.DeleteCommand;
-  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
+  public override Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
+  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
 
   private void RegisterMessenger()
   {

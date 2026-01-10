@@ -10,9 +10,11 @@ using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
+using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Resources;
+using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels.Notes;
@@ -140,7 +142,12 @@ internal sealed partial class NotePage : Page
   {
     UnregisterMessengers();
 
-    ViewModel.Dispose();
+    var navigationService = App.Instance.Services.GetRequiredService<NavigationService>();
+    if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
+          && navigation.Id != ViewModel.Note.NavigationId))
+    {
+      ViewModel.Dispose();
+    }
 
     Bindings.StopTracking();
   }

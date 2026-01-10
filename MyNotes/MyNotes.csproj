@@ -16,6 +16,7 @@
     <None Remove="Debugging\DebugWindow.xaml" />
     <None Remove="Views\Navigations\MainPage.xaml" />
     <None Remove="Views\Navigations\MainPageUserNavigationViewItem.xaml" />
+    <None Remove="Views\Navigations\UserListPage.xaml" />
     <None Remove="Views\Notes\NotePage.xaml" />
   </ItemGroup>
   
@@ -52,6 +53,12 @@
     <Compile Update="ViewModels\MainViewModel.*.cs">
       <DependentUpon>ViewModels\MainViewModel.cs</DependentUpon>
     </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Navigations\UserListPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>

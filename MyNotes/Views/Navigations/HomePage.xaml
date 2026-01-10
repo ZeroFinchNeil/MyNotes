@@ -8,8 +8,6 @@
 
   <StackPanel>
     <TextBlock Text="Home Page" />
-    <Button Content="Note Window"
-            Click="Button_Click" />
     <templates:SubtleIconButton >
       <templates:SubtleIconButton.Content>
         <ImageIcon Source="{x:Bind HomePage_HeaderIconPicker.IconImage, Mode=OneWay}"/>

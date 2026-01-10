@@ -14,6 +14,7 @@ namespace MyNotes.Services.Database;
 internal sealed class AppDbContext(AppDbContextTaskDispatcher channelService) : DbContext
 {
   public DbSet<NavigationEntity> NavigationEntities => Set<NavigationEntity>();
+  public DbSet<NoteEntity> NoteEntities => Set<NoteEntity>();
 
   private readonly AppDbContextTaskDispatcher _channelService = channelService;
 
@@ -31,7 +32,7 @@ internal sealed class AppDbContext(AppDbContextTaskDispatcher channelService) : 
 
   public override int SaveChanges() => _channelService.EnqueueAsync(Task.Run(base.SaveChanges)).GetAwaiter().GetResult();
 
-  public override int SaveChanges(bool acceptAllChangesOnSuccess)=> _channelService.EnqueueAsync(Task.Run(() => base.SaveChanges(acceptAllChangesOnSuccess))).GetAwaiter().GetResult();
+  public override int SaveChanges(bool acceptAllChangesOnSuccess) => _channelService.EnqueueAsync(Task.Run(() => base.SaveChanges(acceptAllChangesOnSuccess))).GetAwaiter().GetResult();
 
   public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) => _channelService.EnqueueAsync(base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken), cancellationToken);
 
