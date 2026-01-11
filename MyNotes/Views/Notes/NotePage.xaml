@@ -213,7 +213,8 @@
                    MaxLength="100000"
                    IsSpellCheckEnabled="False"
                    TextWrapping="Wrap"
-                   SelectionChanged="NotePage_TextEditorRichEditBox_SelectionChanged">
+                   SelectionChanged="NotePage_TextEditorRichEditBox_SelectionChanged"
+                   TextChanged="NotePage_TextEditorRichEditBox_TextChanged">
         <RichEditBox.Resources>
           <SolidColorBrush x:Key="TextControlBorderBrush"
                            Color="{StaticResource ControlFillColorTransparent}" />

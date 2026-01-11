@@ -43,8 +43,8 @@
       <!-- Title -->
       <TextBlock Grid.Column="1"
                  Padding="6,0"
-                 HorizontalAlignment="Center"
                  VerticalAlignment="Center"
+                 HorizontalTextAlignment="Center"
                  Text="{x:Bind ViewModel.Note.Title, Mode=OneWay}"
                  TextTrimming="CharacterEllipsis"
                  TextWrapping="NoWrap"
@@ -52,7 +52,7 @@
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
             <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                               CommandParameter="{x:Bind ViewModel}"/>
+                                               CommandParameter="{x:Bind ViewModel}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
       </TextBlock>
@@ -92,17 +92,34 @@
     </Grid>
 
     <!-- Body -->
-    <TextBlock Grid.Row="1"
-               Margin="6"
-               Text="{x:Bind ViewModel.Note.Body, Mode=OneWay}"
-               TextWrapping="Wrap">
+    <RichEditBox x:Name="NoteItem_PreviewRichEditBox"
+                 Grid.Row="1"
+                 MaxLength="500"
+                 IsSpellCheckEnabled="False"
+                 TextWrapping="NoWrap"
+                 IsReadOnly="True">
+      <RichEditBox.Resources>
+        <SolidColorBrush x:Key="TextControlBorderBrush"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+        <SolidColorBrush x:Key="TextControlBackground"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+        <SolidColorBrush x:Key="TextControlBackgroundPointerOver"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+        <SolidColorBrush x:Key="TextControlBorderBrushFocused"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+        <SolidColorBrush x:Key="TextControlBackgroundFocused"
+                         Color="{StaticResource ControlFillColorTransparent}" />
+      </RichEditBox.Resources>
+      
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
           <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
                                              CommandParameter="{x:Bind ViewModel}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
-    </TextBlock>
+    </RichEditBox>
 
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="PointerStates">

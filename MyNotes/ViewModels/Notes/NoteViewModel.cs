@@ -11,10 +11,35 @@ namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteViewModel : ViewModelBase
 {
+  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
+    {
+      { nameof(Note.Modified), note => e => e.Modified = note.Modified },
+      { nameof(Note.Title), note => e => e.Title = note.Title },
+      { nameof(Note.Body), note => e => e.Body = note.Body },
+      { nameof(Note.Background), note => e => e.Background = note.Background.ToString() },
+      { nameof(Note.Backdrop), note => e => e.Backdrop = (int)note.Backdrop },
+      { nameof(Note.Size), note => e =>
+        {
+          e.Width = note.Size.Width;
+          e.Height = note.Size.Height;
+        }
+      },
+      { nameof(Note.Position), note => e =>
+        {
+          e.PositionX = note.Position.X;
+          e.PositionY = note.Position.Y;
+        }
+      },
+      { nameof(Note.IsBookmarked), note =>e => e.IsBookmarked = note.IsBookmarked },
+      { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
+    });
+
   private readonly NoteViewModelCommandService NoteViewModelCommandService;
   private readonly NoteService NoteService;
+
   public Note Note { get; }
 
+  // 생성자
   public NoteViewModel([FromKeyedServices(CommandServiceType.NoteViewModel)] ICommandService commandService, NoteService noteService, Note note)
   {
 #if DEBUG
@@ -28,60 +53,38 @@ internal sealed partial class NoteViewModel : ViewModelBase
     Note = note;
     SetCommand();
 
-    NotePropertyDbActions = ImmutableDictionary.CreateRange(new Dictionary<string, Action<NoteEntity>>()
-    {
-      { nameof(Note.Modified), e => e.Modified = Note.Modified },
-      { nameof(Note.Title), e => e.Title = Note.Title },
-      { nameof(Note.Body), e => e.Body = Note.Body },
-      { nameof(Note.Background), e => e.Background = Note.Background.ToString() },
-      { nameof(Note.Backdrop), e => e.Backdrop = (int)Note.Backdrop },
-      { nameof(Note.Size), e =>
-        {
-          e.Width = Note.Size.Width;
-          e.Height = Note.Size.Height;
-        }
-      },
-      { nameof(Note.Position), e =>
-        {
-          e.PositionX = Note.Position.X;
-          e.PositionY = Note.Position.Y;
-        }
-      },
-      { nameof(Note.IsBookmarked), e => e.IsBookmarked = Note.IsBookmarked },
-      { nameof(Note.IsDeleted), e => e.IsDeleted = Note.IsDeleted },
-    });
-
-    _notePropertyChangedDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
+    _notePropertyDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
     Note.PropertyChanged += Note_PropertyChanged;
   }
 
-  private readonly ImmutableDictionary<string, Action<NoteEntity>> NotePropertyDbActions;
-
-  private readonly HashSet<string> ChangedNoteProperties = new();
+  private readonly HashSet<string> _changedNoteProperties = new();
 
   private async void NotePropertyChangedDebounceTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e) => await UpdateNoteEntity();
 
   private async Task UpdateNoteEntity()
   {
     Action<NoteEntity>? actions = null;
-    foreach (var propertyName in ChangedNoteProperties)
+    foreach (var propertyName in _changedNoteProperties)
     {
-      if (NotePropertyDbActions.TryGetValue(propertyName, out var action))
+      if (_notePropertyToEntityActions.TryGetValue(propertyName, out var action))
       {
-        actions += action;
+        actions += action(Note);
       }
     }
 
     if (actions is not null)
+    {
       await NoteService.UpdateNoteEntityAsync(Note, actions);
+      _changedNoteProperties.Clear();
+    }
   }
 
-  private static readonly double _notePropertyChangedDebounceTimerInterval = 2000;
-  private readonly System.Timers.Timer _notePropertyChangedDebounceTimer = new() { Interval = _notePropertyChangedDebounceTimerInterval, AutoReset = false };
+  private static readonly double _notePropertyDebounceTimerInterval = 500;
+  private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
 
   private void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    _notePropertyChangedDebounceTimer.Start();
+    _notePropertyDebounceTimer.Start();
     // 뷰에 반영
     switch (e.PropertyName)
     {
@@ -92,7 +95,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     if (!string.IsNullOrEmpty(e.PropertyName))
     {
-      ChangedNoteProperties.Add(e.PropertyName);
+      _changedNoteProperties.Add(e.PropertyName);
     }
   }
 
@@ -116,7 +119,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     if (disposing)
     {
-      _notePropertyChangedDebounceTimer.Dispose();
+      _notePropertyDebounceTimer.Dispose();
       Note.PropertyChanged -= Note_PropertyChanged;
       _ = UpdateNoteEntity();
     }

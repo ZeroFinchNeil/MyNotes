@@ -30,6 +30,7 @@ internal sealed partial class NotePage : Page
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
 
+  // 생성자
   internal NotePage(NoteWindow noteWindow, Note note)
   {
 #if DEBUG
@@ -50,10 +51,13 @@ internal sealed partial class NotePage : Page
 
     RegisterMessengers();
 
+    _editorDebounceTimer.Tick += EditorDebounceTimer_Tick;
+
     this.SizeChanged += NotePage_SizeChanged;
     this.Unloaded += NotePage_Unloaded;
   }
 
+  // NoteWindow 접근
   private bool TryGetWindowInfo(out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {
     hWnd = IntPtr.Zero;
@@ -92,26 +96,7 @@ internal sealed partial class NotePage : Page
     return false;
   }
 
-  private void NotePage_SizeChanged(object sender, SizeChangedEventArgs e)
-  {
-    if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
-      && focusedElement == NotePage_TextEditorRichEditBox)
-    {
-      NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
-    }
-  }
-
-  #region 타이틀바 드래그 영역 조정
-  private void NotePage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
-  {
-    SetRegionsForCustomTitleBar();
-  }
-
-  private void NotePage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
-  {
-    SetRegionsForCustomTitleBar();
-  }
-
+  // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
     if (TryGetWindowInfo(out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
@@ -136,11 +121,58 @@ internal sealed partial class NotePage : Page
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [PinButtonRect, MoreButtonRect, TitleRenameTextBoxRect, MinimizeButtonRect, CloseButtonRect]);
     }
   }
-  #endregion
+
+  // 테마 관련
+  private void ChangeWindowTheme(Color color)
+  {
+    color = color.CompositeAlphaWith(Colors.White);
+
+    double preferLight = color.ContrastRatioTo(Colors.Black);
+    double preferDark = color.ContrastRatioTo(Colors.White);
+
+    var theme = preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
+    if (this.RequestedTheme != theme)
+      this.RequestedTheme = theme;
+  }
+
+  private void ChangeFlyoutTheme(ElementTheme theme)
+  {
+    switch (theme)
+    {
+      case ElementTheme.Default:
+        VisualStateManager.GoToState(this, "FlyoutThemeDefault", false);
+        break;
+      case ElementTheme.Light:
+        VisualStateManager.GoToState(this, "FlyoutThemeLight", false);
+        break;
+      case ElementTheme.Dark:
+        VisualStateManager.GoToState(this, "FlyoutThemeDark", false);
+        break;
+    }
+  }
+
+  // 본문 텍스트 변경 시 뷰모델 및 DB 업데이트
+  private void UpdateEditorBodyText()
+  {
+    NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.FormatRtf, out var editorText);
+    ViewModel.Note.Body = editorText;
+  }
+
+  private void NotePage_SizeChanged(object sender, SizeChangedEventArgs e)
+  {
+    if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
+      && focusedElement == NotePage_TextEditorRichEditBox)
+    {
+      NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
+    }
+  }
 
   private void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
     UnregisterMessengers();
+
+    _editorDebounceTimer.Tick -= EditorDebounceTimer_Tick;
+    UpdateEditorBodyText();
 
     var navigationService = App.Instance.Services.GetRequiredService<NavigationService>();
     if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
@@ -150,6 +182,21 @@ internal sealed partial class NotePage : Page
     }
 
     Bindings.StopTracking();
+  }
+}
+
+#region 상단 타이틀 바 영역
+internal sealed partial class NotePage : Page
+{
+  // 타이틀바 드래그 영역 조정(로드 및 크기 변경 시)
+  private void NotePage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
+  {
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void NotePage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+  {
+    SetRegionsForCustomTitleBar();
   }
 
   private void NotePage_PinButton_Click(object sender, RoutedEventArgs e)
@@ -178,37 +225,51 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  #region Keyboard Accelerators
-  private void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-  {
-    args.Handled = true;
-    Console.WriteLine("{0}: {1}", "KeyboardAccelerator", sender.Modifiers + " + " + sender.Key);
-    ViewModel.SaveCommand?.Execute();
-  }
-
-  private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-  {
-    if (NotePage_FindReplaceBox.IsOpen)
-      VisualStateManager.GoToState(this, "EditorSearchNone", false);
-    else
-      VisualStateManager.GoToState(this, "EditorSearching", false);
-  }
-
-  private void NotePage_ReplaceKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
-  {
-    if (NotePage_FindReplaceBox.IsOpen)
-      VisualStateManager.GoToState(this, "EditorSearchNone", false);
-    else
-      VisualStateManager.GoToState(this, "EditorSearching", false);
-  }
-
-  private void NotePage_RenameTitleKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+  private void NotePage_RenameMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     VisualStateManager.GoToState(this, "TitleBarTitleRename", false);
     NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
     NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
   }
-  #endregion
+
+  private void NotePage_TitleRenameTextBox_LayoutUpdated(object? sender, object e)
+  {
+    NotePage_TitleRenameTextBox.LayoutUpdated -= NotePage_TitleRenameTextBox_LayoutUpdated;
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void NotePage_TitleRenameTextBox_LostFocus(object sender, RoutedEventArgs e)
+  {
+    VisualStateManager.GoToState(this, "TitleBarTitleNormal", false);
+    NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
+  }
+}
+#endregion
+
+#region 에디터 영역
+internal sealed partial class NotePage : Page
+{
+  private readonly DispatcherTimer _editorDebounceTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+
+  private void EditorDebounceTimer_Tick(object? sender, object e)
+  {
+    _editorDebounceTimer.Stop();
+    UpdateEditorBodyText();
+  }
+
+  private static readonly byte _editorDebounceCountThreshold = 20;
+  private byte _editorDebounceCount = 0;
+  private void NotePage_TextEditorRichEditBox_TextChanged(object sender, RoutedEventArgs e)
+  {
+    _editorDebounceTimer.Stop();
+    _editorDebounceTimer.Start();
+
+    if (_editorDebounceCount++ >= _editorDebounceCountThreshold)
+    {
+      UpdateEditorBodyText();
+      _editorDebounceCount = 0;
+    }
+  }
 
   private void NotePage_TextEditorRichEditBox_SelectionChanged(object sender, RoutedEventArgs e)
   {
@@ -219,7 +280,12 @@ internal sealed partial class NotePage : Page
     NotePage_StrikethroughButton.IsChecked = characterFormat.Strikethrough is FormatEffect.On;
     NotePage_FontSizeComboBox.Text = characterFormat.Size > 0 ? characterFormat.Size.ToString() : string.Empty;
   }
+}
+#endregion
 
+#region 하단 커맨드 바 영역
+internal sealed partial class NotePage : Page
+{
   private void NotePage_BoldButton_Click(object sender, RoutedEventArgs e)
   {
     var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
@@ -247,34 +313,6 @@ internal sealed partial class NotePage : Page
   private void NotePage_BackgroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
   {
     ChangeWindowTheme(args.NewColor);
-  }
-
-  private void ChangeWindowTheme(Color color)
-  {
-    color = color.CompositeAlphaWith(Colors.White);
-
-    double preferLight = color.ContrastRatioTo(Colors.Black);
-    double preferDark = color.ContrastRatioTo(Colors.White);
-
-    var theme = preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
-    if (this.RequestedTheme != theme)
-      this.RequestedTheme = theme;
-  }
-
-  private void ChangeFlyoutTheme(ElementTheme theme)
-  {
-    switch (theme)
-    {
-      case ElementTheme.Default:
-        VisualStateManager.GoToState(this, "FlyoutThemeDefault", false);
-        break;
-      case ElementTheme.Light:
-        VisualStateManager.GoToState(this, "FlyoutThemeLight", false);
-        break;
-      case ElementTheme.Dark:
-        VisualStateManager.GoToState(this, "FlyoutThemeDark", false);
-        break;
-    }
   }
 
   private void NotePage_BackdropRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -358,12 +396,12 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  private static readonly float MininumEditorFontSize = 5.0f;
-  private static readonly float MaximumEditorFontSize = 512.0f;
+  private static readonly float _minEditorFontSize = 5.0f;
+  private static readonly float _maxEditorFontSize = 512.0f;
 
   private static bool ValidateEditorFontSize(float fontSize)
   {
-    if (fontSize >= MininumEditorFontSize && fontSize <= MaximumEditorFontSize)
+    if (fontSize >= _minEditorFontSize && fontSize <= _maxEditorFontSize)
     {
       float eps = 1e-6f;
       float truncated = (float)Math.Truncate(fontSize * 100) / 100f;
@@ -402,26 +440,45 @@ internal sealed partial class NotePage : Page
     _ => 0
   };
 
-  private void NotePage_RenameMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+}
+#endregion
+
+#region Keyboard Accelerators
+internal sealed partial class NotePage : Page
+{
+  private void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+  {
+    args.Handled = true;
+    Console.WriteLine("{0}: {1}", "KeyboardAccelerator", sender.Modifiers + " + " + sender.Key);
+    ViewModel.SaveCommand?.Execute();
+  }
+
+  private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+  {
+    if (NotePage_FindReplaceBox.IsOpen)
+      VisualStateManager.GoToState(this, "EditorSearchNone", false);
+    else
+      VisualStateManager.GoToState(this, "EditorSearching", false);
+  }
+
+  private void NotePage_ReplaceKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+  {
+    if (NotePage_FindReplaceBox.IsOpen)
+      VisualStateManager.GoToState(this, "EditorSearchNone", false);
+    else
+      VisualStateManager.GoToState(this, "EditorSearching", false);
+  }
+
+  private void NotePage_RenameTitleKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     VisualStateManager.GoToState(this, "TitleBarTitleRename", false);
     NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
     NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
   }
-
-  private void NotePage_TitleRenameTextBox_LayoutUpdated(object? sender, object e)
-  {
-    NotePage_TitleRenameTextBox.LayoutUpdated -= NotePage_TitleRenameTextBox_LayoutUpdated;
-    SetRegionsForCustomTitleBar();
-  }
-
-  private void NotePage_TitleRenameTextBox_LostFocus(object sender, RoutedEventArgs e)
-  {
-    VisualStateManager.GoToState(this, "TitleBarTitleNormal", false);
-    NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
-  }
 }
+#endregion
 
+#region 메신저 및 커맨드
 internal sealed partial class NotePage : Page
 {
   private void RegisterMessengers()
@@ -458,3 +515,4 @@ internal sealed partial class NotePage : Page
     WeakReferenceMessenger.Default.UnregisterAll(this);
   }
 }
+#endregion

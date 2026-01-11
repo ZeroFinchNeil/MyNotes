@@ -81,13 +81,12 @@ internal sealed partial class NoteService : IDisposable
   public async Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
-    if (context.NoteEntities.Find(note.Id.Value) is NoteEntity entity)
+    if (await context.NoteEntities.FindAsync(note.Id.Value) is NoteEntity entity)
     {
       action.Invoke(entity);
       await context.SaveChangesAsync();
     }
   }
-
 
   // 새 노트 추가 및 DB에 반영
   public async Task<Note?> AddNoteAsync(NavigationUserLeafNode navigation)
