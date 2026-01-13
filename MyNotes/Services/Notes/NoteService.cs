@@ -2,11 +2,11 @@
 
 using Microsoft.EntityFrameworkCore;
 
-using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
+using MyNotes.Services.Window;
 using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Notes;
@@ -14,10 +14,13 @@ namespace MyNotes.Services.Notes;
 internal sealed partial class NoteService : IDisposable
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
+  private readonly WindowService WindowService;
 
-  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory)
+  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, WindowService windowService)
   {
+    // DI
     DbContextFactory = dbContextFactory;
+    WindowService = windowService;
   }
 
   private bool _disposed;
@@ -27,6 +30,21 @@ internal sealed partial class NoteService : IDisposable
       return;
 
     _disposed = true;
+  }
+
+  public NoteWindow OpenNoteWindow(Note note, bool activate = true)
+  {
+    NoteWindow noteWindow = 
+      WindowService.NoteWindows.TryGetValue(note.Id, out var wr)
+      && wr.TryGetTarget(out var existingNoteWindow)
+      && !existingNoteWindow.IsClosed
+      ? existingNoteWindow
+      : new(note);
+
+    if (activate)
+      noteWindow.Activate();
+
+    return noteWindow;
   }
 }
 
@@ -127,13 +145,4 @@ internal sealed partial class NoteService : IDisposable
 
     return null;
   }
-}
-
-internal sealed partial class NoteService : IDisposable
-{
-  public Command<Note> OpenWindowCommand { get; } = new(
-    actionToExecute: (note) =>
-    {
-      new NoteWindow(note).Activate();
-    });
 }

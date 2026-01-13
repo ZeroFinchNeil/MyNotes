@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-using MyNotes.Common.Commands;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Database;
@@ -33,8 +32,6 @@ internal sealed partial class NavigationService : IDisposable
     DialogService = dialogService;
 
     BuildNavigationTask = BuildNavigationTree();
-
-    SetCommands();
   }
 
   private bool _disposed;
@@ -145,7 +142,7 @@ internal sealed partial class NavigationService : IDisposable
     }
   }
 
-  private void ChangeCurrentNavigation(INavigation navigation)
+  public void ChangeCurrentNavigation(INavigation navigation)
   {
     CurrentNavigation = navigation;
     CurrentNavigationChanged?.Invoke(this, navigation);
@@ -173,7 +170,7 @@ internal sealed partial class NavigationService : IDisposable
 internal sealed partial class NavigationService : IDisposable
 {
   // Navigation 속성 변경 사항 DB에 반영
-  private async Task UpdateNavigationEntityAsync(NavigationUserNode node, Action<NavigationEntity> action)
+  public async Task UpdateNavigationEntityAsync(NavigationUserNode node, Action<NavigationEntity> action)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
     if (context.NavigationEntities.Find(node.Id.Value) is NavigationEntity entity)
@@ -184,7 +181,7 @@ internal sealed partial class NavigationService : IDisposable
   }
 
   // Navigation 인스턴스 생성 및 DB 테이블에 추가
-  private async Task<NavigationUserNode?> AddUserNodeAsync(INavigationNode? targetNode, bool isCompositeNode, Icon icon, string title)
+  public async Task<NavigationUserNode?> AddUserNodeAsync(INavigationNode? targetNode, bool isCompositeNode, Icon icon, string title)
   {
     NavigationUserNode? beforeNode = targetNode switch
     {
@@ -252,7 +249,7 @@ internal sealed partial class NavigationService : IDisposable
   }
 
   // Navigation 삭제 및 DB 테이블에 반영
-  private async Task DeleteUserNodeAsync(NavigationUserNode node, DeleteMode deleteMode)
+  public async Task DeleteUserNodeAsync(NavigationUserNode node, DeleteMode deleteMode)
   {
     if (deleteMode == DeleteMode.Permanent)
     {
@@ -278,105 +275,6 @@ internal sealed partial class NavigationService : IDisposable
       node.PropertyChanged -= UserNode_PropertyChanged;
       node.Parent.ChildNodes.Remove(node);
     }
-  }
-}
-#endregion
-
-#region Commands
-internal sealed partial class NavigationService : IDisposable
-{
-  public Command<NavigationUserNode>? AddListCommand { get; private set; }
-  public Command<NavigationUserNode>? AddGroupCommand { get; private set; }
-  public Command<NavigationUserNode>? UpdateCommand { get; private set; }
-  public Command<NavigationUserNode>? DeleteCommand { get; private set; }
-  public Command<(NavigationUserNode SourceItem, NavigationUserCompositeNode TargetGroup)>? MoveToGroupCommand { get; private set; }
-
-  private void SetCommands()
-  {
-    AddListCommand = new(
-      actionToExecute: async (targetNavigation) =>
-      {
-        if (targetNavigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
-            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
-        {
-          var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
-          if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, icon: v.Icon, title: v.Title) is INavigation newNavigation)
-          {
-            ChangeCurrentNavigation(newNavigation);
-          }
-        }
-      });
-
-    AddGroupCommand = new(
-      actionToExecute: async (targetNavigation) =>
-      {
-        if (targetNavigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
-            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
-        {
-          var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
-          if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
-          {
-            ChangeCurrentNavigation(newNavigation);
-          }
-        }
-      });
-
-    UpdateCommand = new(
-      actionToExecute: async (targetNavigation) =>
-      {
-        if (targetNavigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
-            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
-        {
-          var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
-          if (result.ContentDialogResult == ContentDialogResult.Primary && result.Value is (Icon, string) v)
-          {
-            string title = v.Title;
-
-            navigation.Icon = v.Icon;
-            navigation.Title = title;
-          }
-        }
-      });
-
-    DeleteCommand = new(
-      actionToExecute: async (targetNavigation) =>
-      {
-        if (targetNavigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
-            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
-        {
-          var targetTypeName = navigation switch
-          {
-            NavigationUserLeafNode => "List",
-            NavigationUserCompositeNode => "Group",
-            _ => string.Empty
-          };
-          var deleteMode = DeleteMode.MoveToTrash;
-          if (await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetTypeName, navigation.Title, deleteMode) == ContentDialogResult.Primary)
-          {
-            await DeleteUserNodeAsync(navigation, deleteMode);
-          }
-        }
-      });
-
-    MoveToGroupCommand = new(
-      actionToExecute: (parameter) =>
-      {
-        NavigationUserNode sourceItem = parameter.SourceItem;
-        NavigationUserCompositeNode targetGroup = parameter.TargetGroup;
-
-        if (sourceItem.Parent != targetGroup)
-        {
-          sourceItem.Parent.ChildNodes.Remove(sourceItem);
-          targetGroup.ChildNodes.Add(sourceItem);
-        }
-
-      });
   }
 }
 #endregion

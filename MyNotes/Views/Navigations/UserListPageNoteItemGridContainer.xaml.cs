@@ -1,4 +1,10 @@
-using MyNotes.Models.Notes;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using MyNotes.Common.Structures;
+using MyNotes.Models.Navigations;
+using MyNotes.Resources;
+using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Navigations;
@@ -16,48 +22,16 @@ internal sealed partial class UserListPageNoteItemGridContainer : UserControl
   public NoteViewModel ViewModel
   {
     get => (NoteViewModel)GetValue(ViewModelProperty);
-    set
-    {
-      if (IsLoaded)
-      {
-        SetNotePropertyChangedEventHandler(GetValue(ViewModelProperty) as NoteViewModel, value);
-      }
-
-      SetValue(ViewModelProperty, value);
-    }
-  }
-
-  private void SetNotePropertyChangedEventHandler(NoteViewModel? oldViewModel, NoteViewModel? newViewModel)
-  {
-    oldViewModel?.Note.PropertyChanged -= Note_PropertyChanged;
-    newViewModel?.Note.PropertyChanged += Note_PropertyChanged;
-  }
-
-  private void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-  {
-    if (e.PropertyName == nameof(Note.Body))
-    {
-      SetPreview();
-    }
-  }
-
-  private void SetPreview()
-  {
-    NoteItem_PreviewRichEditBox.IsReadOnly = false;
-    NoteItem_PreviewRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
-    NoteItem_PreviewRichEditBox.IsReadOnly = true;
+    set => SetValue(ViewModelProperty, value);
   }
 
   private void UserListPageNoteItemGridContainer_Loaded(object sender, RoutedEventArgs e)
   {
-    SetPreview();
-    ViewModel.Note.PropertyChanged += Note_PropertyChanged;
     Bindings.Update();
   }
 
   private void UserListPageNoteItemGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
-    ViewModel.Note.PropertyChanged -= Note_PropertyChanged;
     Bindings.StopTracking();
   }
 
@@ -69,5 +43,41 @@ internal sealed partial class UserListPageNoteItemGridContainer : UserControl
   private void NoteItem_RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
   {
     VisualStateManager.GoToState(this, "PointerExited", false);
+  }
+
+  private void MenuFlyout_Opening(object sender, object e)
+  {
+    if (sender is MenuFlyout && ViewModel is not null)
+    {
+      NoteItem_MoveToListMenuFlyoutSubItem.Items.Clear();
+      RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+      WeakReferenceMessenger.Default.Send(message, MessageTokens.GetAllListNavigationViewModelsToken);
+
+      if (message.HasReceivedResponse)
+      {
+        foreach (var targetVM in message.Response)
+        {
+          if (targetVM.Navigation.Id == ViewModel.Note.NavigationId)
+            continue;
+          NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
+          {
+            Text = targetVM.Navigation.Title,
+            Icon = new ImageIcon() { Source = targetVM.IconImage },
+            Command = ViewModel.MoveToListCommand,
+            CommandParameter = new SourceTargetPair<NavigationId, NavigationId> { Source = ViewModel.Note.NavigationId, Target = targetVM.Navigation.Id }
+          });
+        }
+
+        NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
+      }
+      else
+        NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = false;
+    }
+  }
+
+  private void NoteItem_RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)
+  {
+    args.TryGetPosition(sender, out var position);
+    NoteItem_MoreButtonMenuFlyout.ShowAt(this, position);
   }
 }

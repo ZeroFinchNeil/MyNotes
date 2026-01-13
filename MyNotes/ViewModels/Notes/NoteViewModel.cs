@@ -1,11 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
+using MyNotes.Common.Structures;
 using MyNotes.Debugging;
+using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Notes;
+using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -13,6 +16,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 {
   private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
     {
+      { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
       { nameof(Note.Modified), note => e => e.Modified = note.Modified },
       { nameof(Note.Title), note => e => e.Title = note.Title },
       { nameof(Note.Body), note => e => e.Body = note.Body },
@@ -54,6 +58,10 @@ internal sealed partial class NoteViewModel : ViewModelBase
     SetCommand();
 
     _notePropertyDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
+
+    _backdrop = (int)Note.Backdrop;
+    _preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
+
     Note.PropertyChanged += Note_PropertyChanged;
   }
 
@@ -82,10 +90,21 @@ internal sealed partial class NoteViewModel : ViewModelBase
   private static readonly double _notePropertyDebounceTimerInterval = 500;
   private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
 
+  private readonly RichEditBox _previewRichEditBox = new();
+  public string GetPreview(string body, int start, int end)
+  {
+    var document = _previewRichEditBox.Document;
+    document.SetText(TextSetOptions.FormatRtf, body);
+    document.Selection.SetRange(start, end);
+    document.Selection.GetText(TextGetOptions.FormatRtf, out var preview);
+    return preview;
+  }
+
   private void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     _notePropertyDebounceTimer.Start();
-    // 뷰에 반영
+
+    // 뷰에 반영(타입이 다른 TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
       case nameof(Note.Backdrop):
@@ -99,18 +118,32 @@ internal sealed partial class NoteViewModel : ViewModelBase
     }
   }
 
+  private int _backdrop;
   public int Backdrop
   {
-    get;
+    get => _backdrop;
     set
     {
-      if (field != value)
+      if (_backdrop != value)
       {
-        SetProperty(ref field, value);
+        SetProperty(ref _backdrop, value);
         Note.Backdrop = (BackdropKind)value;
       }
     }
   }
+
+  private string _preview;
+  public string Preview
+  {
+    get => _preview;
+    set => SetProperty(ref _preview, value);
+  }
+
+  public int PreviewTextMaxLength
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = 100;
 
   protected override void Dispose(bool disposing)
   {
@@ -132,6 +165,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 {
   public Command? SaveCommand { get; private set; }
   public Command<NoteViewModel> OpenWindowCommand => NoteViewModelCommandService.OpenWindowCommand;
+  public Command<SourceTargetPair<NavigationId, NavigationId>> MoveToListCommand { get; private set; }
 
   private void SetCommand()
   {
@@ -139,6 +173,25 @@ internal sealed partial class NoteViewModel : ViewModelBase
       actionToExecute: () =>
       {
         Console.WriteLine("{0}: {1}", "Save Note.", "");
+      });
+
+    MoveToListCommand = new(
+      actionToExecute: async (pair) =>
+      {
+        Console.WriteLine("{0}: {1} {2}", "MoveToList", pair.Source.Value, pair.Target.Value);
+
+        if (pair.Source == pair.Target)
+          return;
+
+        Note.NavigationId = pair.Target;
+        await UpdateNoteEntity();
+
+        var NavigationViewModelProvider = App.Instance.Services.GetRequiredService<NavigationViewModelProvider>();
+        if (NavigationViewModelProvider.TryResolve(pair.Source, out var s)
+            && s is UserLeafNavigationViewModel sourceViewModel)
+        {
+          sourceViewModel.NoteViewModels?.Remove(this);
+        }
       });
   }
 }

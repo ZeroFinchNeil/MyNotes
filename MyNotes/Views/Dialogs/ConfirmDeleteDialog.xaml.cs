@@ -10,5 +10,18 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
   {
     InitializeComponent();
     ViewModel = viewModel;
+
+    this.Loaded += ConfirmDeleteDialog_Loaded;
+    this.Unloaded += ConfirmDeleteDialog_Unloaded;
+  }
+
+  private void ConfirmDeleteDialog_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
+
+  private void ConfirmDeleteDialog_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 }

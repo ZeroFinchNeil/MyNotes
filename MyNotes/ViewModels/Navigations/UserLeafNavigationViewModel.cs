@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
+using MyNotes.Common.Structures;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -15,7 +16,6 @@ using MyNotes.Services.Commands;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels.Notes;
-using MyNotes.Views.Windows;
 
 namespace MyNotes.ViewModels.Navigations;
 
@@ -74,11 +74,11 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     _disposed = true;
   }
 
-  public override Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
-  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
+  public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase> UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase> DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
+  public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
 
   private void RegisterMessenger()
   {
@@ -93,7 +93,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
 internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewModel
 {
-  public ObservableCollection<NoteViewModel> NoteViewModels { get; } = new();
+  public ObservableCollection<NoteViewModel>? NoteViewModels { get; private set; }
 
   public NoteViewModelSortOrder NoteViewModelSortOrder
   {
@@ -103,6 +103,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   public async Task LoadNoteViewModels()
   {
+    NoteViewModels = new();
     var notes = await NoteService.GetNotesAsync(Navigation);
     foreach (var note in notes)
     {
@@ -112,12 +113,16 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   public void UnloadNoteViewModels()
   {
+    if (NoteViewModels is null)
+      return;
+
     foreach (var noteViewModel in NoteViewModels)
     {
       if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
         noteViewModel.Dispose();
     }
     NoteViewModels.Clear();
+    NoteViewModels = null;
   }
 
   public Command? AddNoteCommand { get; private set; }
@@ -130,16 +135,15 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
         if (await NoteService.AddNoteAsync(Navigation) is Note note)
         {
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
-          NoteViewModels.Add(noteViewModel);
+          NoteViewModels?.Add(noteViewModel);
 
-          NoteWindow noteWindow = new(note);
-          noteWindow.Activate();
+          NoteService.OpenNoteWindow(note);
         }
       });
   }
 }
 
-  internal enum NoteViewModelSortOrder
+internal enum NoteViewModelSortOrder
 {
   Title,
   Modified,

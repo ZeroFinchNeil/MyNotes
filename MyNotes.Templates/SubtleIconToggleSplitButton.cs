@@ -19,6 +19,7 @@ public sealed partial class SubtleIconToggleSplitButton : ToggleButton
 
   protected override void OnApplyTemplate()
   {
+    base.OnApplyTemplate();
     Flyout?.Opened += Flyout_Opened;
     Flyout?.Closed += Flyout_Closed;
   }

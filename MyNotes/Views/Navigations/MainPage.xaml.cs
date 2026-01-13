@@ -58,7 +58,13 @@ internal sealed partial class MainPage : Page
     // 드래그 UI 타이머 등록
     SetDraggableNavigationTimer();
 
+    this.Loaded += MainPage_Loaded;
     this.Unloaded += MainPage_Unloaded;
+  }
+
+  private void MainPage_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
   }
 
   private void MainPage_BackButton_LayoutUpdated(object? sender, object e)

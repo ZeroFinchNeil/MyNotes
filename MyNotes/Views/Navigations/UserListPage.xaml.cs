@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 
@@ -11,7 +12,8 @@ public sealed partial class UserListPage : Page
 
   public UserListPage()
   {
-    InitializeComponent(); 
+    InitializeComponent();
+    this.Loaded += UserListPage_Loaded;
   }
 
   protected override async void OnNavigatedTo(NavigationEventArgs e)
@@ -25,11 +27,21 @@ public sealed partial class UserListPage : Page
         await ViewModel.LoadNoteViewModels();
         this.Unloaded += UserListPage_Unloaded;
       }
+
+#if DEBUG
+      ReferenceTracker.UserListPageReference.Add(this, ViewModel?.GetHashCode());
+#endif
     }
+  }
+
+  private void UserListPage_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
   }
 
   private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
     ViewModel?.UnloadNoteViewModels();
+    Bindings.StopTracking();
   }
 }

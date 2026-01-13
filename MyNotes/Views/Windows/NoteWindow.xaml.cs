@@ -34,8 +34,9 @@ internal sealed partial class NoteWindow : Window
     var provider = App.Instance.Services.GetRequiredService<NoteViewModelProvider>();
     WindowService = App.Instance.Services.GetRequiredService<WindowService>();
 
+    // WindowService에 등록
     NoteId = note.Id;
-    WindowService.NoteWindows.Add(NoteId, new WeakReference<NoteWindow>(this));
+    WindowService.NoteWindows[NoteId] = new WeakReference<NoteWindow>(this);
 
     // DPI 스케일 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -58,9 +59,11 @@ internal sealed partial class NoteWindow : Window
     this.Content = new NotePage(this, note);
   }
 
+  public bool IsClosed { get; set; } = false;
+
   private void NoteWindow_Closed(object sender, WindowEventArgs args)
   {
-    Console.WriteLine("{0}: {1}", "NoteWindow_Closed", "");
+    IsClosed = true;
 
     this.Activated -= NoteWindow_Activated;
     this.Closed -= NoteWindow_Closed;

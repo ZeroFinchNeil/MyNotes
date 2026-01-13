@@ -1,8 +1,7 @@
 ﻿namespace MyNotes.Services.Commands;
 
-internal class CommandServiceFactory(IServiceProvider serviceProvider) : IServiceFactory
+internal class CommandServiceFactory() : IServiceFactory
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
   public required Dictionary<CommandServiceType, ICommandService?> ResolveMap { get; init; }
 
   public ICommandService Resolve(CommandServiceType serviceType)

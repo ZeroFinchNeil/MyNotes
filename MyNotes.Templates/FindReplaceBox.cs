@@ -205,6 +205,8 @@ public sealed partial class FindReplaceBox : Control
 
   protected override void OnApplyTemplate()
   {
+    base.OnApplyTemplate();
+
     CaseSensitiveToggleButton = GetTemplateChild("CaseSensitiveToggleButton") as ToggleButton;
     RegexToggleButton = GetTemplateChild("RegexToggleButton") as ToggleButton;
     CloseButton = GetTemplateChild("CloseButton") as Button;

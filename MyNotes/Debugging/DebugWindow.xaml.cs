@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
+using MyNotes.Services.Notes;
 using MyNotes.Services.Window;
 using MyNotes.Views.Windows;
 
@@ -35,6 +36,7 @@ internal sealed partial class DebugWindow : Window
     PrintReference(ReferenceTracker.MainPageReference, "Main Pages");
     PrintReference(ReferenceTracker.MainViewModelReference, "Main ViewModels");
     PrintReference(ReferenceTracker.NavigationViewModelReference, "Navigation ViewModels");
+    PrintReference(ReferenceTracker.UserListPageReference, "UserList Pages");
     PrintReference(ReferenceTracker.NoteWindowReference, "Note Windows");
     PrintReference(ReferenceTracker.NotePageReference, "Note Pages");
     PrintReference(ReferenceTracker.NoteViewModelReference, "Note ViewModels");
@@ -67,7 +69,8 @@ internal sealed partial class DebugWindow : Window
   {
     Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
     note.Title = $"New note {note.Id.Value}";
-    new NoteWindow(note).Activate();
+    var noteService = App.Instance.Services.GetRequiredService<NoteService>();
+    noteService.OpenNoteWindow(note);
   }
 
   private void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)

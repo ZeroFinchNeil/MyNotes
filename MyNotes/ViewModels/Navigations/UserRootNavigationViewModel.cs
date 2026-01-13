@@ -39,6 +39,32 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
     return viewmodels;
   }
 
+  private List<UserLeafNavigationViewModel> GetAllListNavigationViewModels()
+  {
+    List<UserLeafNavigationViewModel> viewmodels = new();
+    Queue<UserCompositeNavigationViewModel> queue = new();
+
+    queue.Enqueue(this);
+    while (queue.Count > 0)
+    {
+      var viewmodel = queue.Dequeue();
+      foreach(var childViewModel in viewmodel.ChildNodeViewModels)
+      {
+        switch(childViewModel)
+        {
+          case UserLeafNavigationViewModel leaf:
+            viewmodels.Add(leaf);
+            break;
+          case UserCompositeNavigationViewModel composite:
+            queue.Enqueue(composite);
+            break;
+        }
+      }
+    }
+
+    return viewmodels;
+  }
+
   protected override void Dispose(bool disposing)
   {
     if (_disposed)
@@ -58,6 +84,11 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
     WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>>, MessageToken>(this, MessageTokens.GetAllGroupNavigationViewModelsToken, (recipient, message) =>
     {
       message.Reply(GetAllGroupNavigationViewModels());
+    });
+
+    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>>, MessageToken>(this, MessageTokens.GetAllListNavigationViewModelsToken, (recipient, message) =>
+    {
+      message.Reply(GetAllListNavigationViewModels());
     });
   }
 

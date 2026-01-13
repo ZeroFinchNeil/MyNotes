@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 
@@ -33,10 +35,23 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     return newViewModel;
   }
 
-  public bool TryResolve(INavigation navigation, out NavigationViewModelBase? viewmodelbase)
+  public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelbase)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
       && wr.TryGetTarget(out var viewmodel))
+    {
+      viewmodelbase = viewmodel;
+      return true;
+    }
+
+    viewmodelbase = null;
+    return false;
+  }
+
+  public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelbase)
+  {
+    if (ResolvedViewModels.Keys.FirstOrDefault(k => k is INavigationNode n && n.Id == navigationId) is INavigation navigation
+      && ResolvedViewModels[navigation].TryGetTarget(out var viewmodel))
     {
       viewmodelbase = viewmodel;
       return true;

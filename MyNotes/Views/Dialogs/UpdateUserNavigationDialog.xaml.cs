@@ -17,5 +17,18 @@ internal sealed partial class UpdateUserNavigationDialog : ContentDialog
     UpdateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.UpdateUserNavigationDialogTitleText, nodeType);
 
     UpdateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.UpdateUserNavigationDialogSubTitleTextBlockText, viewModel.Target.Title);
+
+    this.Loaded += UpdateUserNavigationDialog_Loaded;
+    this.Unloaded += UpdateUserNavigationDialog_Unloaded;
+  }
+
+  private void UpdateUserNavigationDialog_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
+
+  private void UpdateUserNavigationDialog_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 }

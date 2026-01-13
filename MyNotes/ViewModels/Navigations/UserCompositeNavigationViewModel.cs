@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
+using MyNotes.Common.Structures;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;
@@ -130,11 +131,11 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     }
   }
 
-  public override Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase>? UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase>? DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
-  public override Command<(NavigationViewModelBase SourceItemViewModel, NavigationViewModelBase TargetGroupViewModel)>? MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
+  public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public override Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public override Command<NavigationViewModelBase> UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
+  public override Command<NavigationViewModelBase> DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
+  public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
 
   private void RegisterMessenger()
   {

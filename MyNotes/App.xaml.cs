@@ -66,14 +66,15 @@ public sealed partial class App : Application, IDisposable
 
     services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.NavigationViewModel);
     services.AddKeyedSingleton<ICommandService, NoteViewModelCommandService>(CommandServiceType.NoteViewModel);
-    services.AddSingleton<CommandServiceFactory>(sp => new(sp)
-    {
-      ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()
-      {
-        { CommandServiceType.NavigationViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NavigationViewModel) },
-        { CommandServiceType.NoteViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NoteViewModel) }
-      }
-    });
+
+    //services.AddSingleton<CommandServiceFactory>(sp => new()
+    //{
+    //  ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()
+    //  {
+    //    { CommandServiceType.NavigationViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NavigationViewModel) },
+    //    { CommandServiceType.NoteViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NoteViewModel) }
+    //  }
+    //});
 
     // DbContext
     services.AddSingleton<AppDbContextTaskDispatcher>();

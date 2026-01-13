@@ -17,8 +17,7 @@ internal sealed class NoteViewModelCommandService : ICommandService
     OpenWindowCommand = new(
       actionToExecute: (noteViewModel) =>
       {
-        Console.WriteLine("{0}: {1}", "Command", true);
-        NoteService.OpenWindowCommand?.Execute(noteViewModel.Note);
+        NoteService.OpenNoteWindow(noteViewModel.Note);
       }
     );
   }

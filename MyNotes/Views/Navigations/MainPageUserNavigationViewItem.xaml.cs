@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.Common.Structures;
 using MyNotes.Models.Navigations;
 using MyNotes.Resources;
 using MyNotes.Templates;
@@ -61,10 +62,14 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
             Text = targetVM.Navigation.Title,
             Icon = new ImageIcon() { Source = targetVM.IconImage },
             Command = ViewModel.MoveToGroupCommand,
-            CommandParameter = (ViewModel as NavigationViewModelBase, targetVM as NavigationViewModelBase)
+            CommandParameter = new SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase> { Source = ViewModel, Target = targetVM }
           });
         }
+
+        MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = MainPage_MoveToGroupMenuFlyoutSubItem.Items.Count > 0;
       }
+      else
+        MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = false;
     }
   }
 }

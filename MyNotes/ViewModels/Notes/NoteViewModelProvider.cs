@@ -15,7 +15,6 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
     if (ResolvedViewModels.TryGetValue(note, out var wr)
       && wr.TryGetTarget(out var viewmodel))
     {
-      Console.WriteLine("{0}: {1}", "Existing", note.Id.Value);
       return viewmodel;
     }
 

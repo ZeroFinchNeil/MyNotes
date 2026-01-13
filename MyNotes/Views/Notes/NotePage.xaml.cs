@@ -45,6 +45,7 @@ internal sealed partial class NotePage : Page
 
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
+    SetEditorText();
     ChangeWindowTheme(ViewModel.Note.Background);
 
     ChangeFlyoutTheme((ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme));
@@ -122,6 +123,12 @@ internal sealed partial class NotePage : Page
     }
   }
 
+  // 본문
+  private void SetEditorText()
+  {
+    NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
+  }
+
   // 테마 관련
   private void ChangeWindowTheme(Color color)
   {
@@ -156,6 +163,12 @@ internal sealed partial class NotePage : Page
   {
     NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.FormatRtf, out var editorText);
     ViewModel.Note.Body = editorText;
+
+    if (_changePreview)
+    {
+      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, _previewTextMaxLength);
+      _changePreview = false;
+    }
   }
 
   private void NotePage_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -261,6 +274,9 @@ internal sealed partial class NotePage : Page
   private byte _editorDebounceCount = 0;
   private void NotePage_TextEditorRichEditBox_TextChanged(object sender, RoutedEventArgs e)
   {
+    if (!IsLoaded)
+      return;
+
     _editorDebounceTimer.Stop();
     _editorDebounceTimer.Start();
 
@@ -271,14 +287,27 @@ internal sealed partial class NotePage : Page
     }
   }
 
+  private int _previousSelectionIndex = 0;
+  private int _currentSelectionIndex = 0;
   private void NotePage_TextEditorRichEditBox_SelectionChanged(object sender, RoutedEventArgs e)
   {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
+    var selection = NotePage_TextEditorRichEditBox.Document.Selection;
+    _previousSelectionIndex = selection.GetIndex(0);
+
+    var characterFormat = selection.CharacterFormat;
     NotePage_BoldButton.IsChecked = characterFormat.Bold is FormatEffect.On;
     NotePage_ItalicButton.IsChecked = characterFormat.Italic is FormatEffect.On;
     NotePage_UnderlineButton.IsChecked = characterFormat.Underline is UnderlineType.Single;
     NotePage_StrikethroughButton.IsChecked = characterFormat.Strikethrough is FormatEffect.On;
     NotePage_FontSizeComboBox.Text = characterFormat.Size > 0 ? characterFormat.Size.ToString() : string.Empty;
+  }
+
+  private bool _changePreview = false;
+  private readonly int _previewTextMaxLength = 100;
+  private void NotePage_TextEditorRichEditBox_TextChanging(RichEditBox sender, RichEditBoxTextChangingEventArgs args)
+  {
+    _currentSelectionIndex = NotePage_TextEditorRichEditBox.Document.Selection.GetIndex(0);
+    _changePreview = _previousSelectionIndex <= _previewTextMaxLength && _currentSelectionIndex <= _previewTextMaxLength;
   }
 }
 #endregion

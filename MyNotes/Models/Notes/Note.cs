@@ -12,7 +12,13 @@ namespace MyNotes.Models.Notes;
 internal sealed class Note : ObservableObject
 {
   public required NoteId Id { get; init; }
-  public required NavigationId NavigationId { get; set; }
+
+  public required NavigationId NavigationId
+  {
+    get => field;
+    set => SetProperty(ref field, value);
+  }
+
   public required DateTimeOffset Created { get; init; }
 
   public DateTimeOffset Modified

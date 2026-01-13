@@ -20,6 +20,7 @@ public sealed partial class SubtleIconSplitButton : Button
 
   protected override void OnApplyTemplate()
   {
+    base.OnApplyTemplate();
     SecondaryFlyout?.Opened += SubtleIconSplitButton_Opened;
     SecondaryFlyout?.Closed += SubtleIconSplitButton_Closed;
   }

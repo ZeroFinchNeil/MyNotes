@@ -18,5 +18,18 @@ internal sealed partial class CreateUserNavigationDialog : ContentDialog
     CreateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.CreateUserNavigationDialogTitleText, nodeType);
 
     CreateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.CreateUserNavigationDialogSubTitleTextBlockText, StringHelper.Inflect(nodeType), viewModel.Target.Title);
+
+    this.Loaded += CreateUserNavigationDialog_Loaded;
+    this.Unloaded += CreateUserNavigationDialog_Unloaded;
+  }
+
+  private void CreateUserNavigationDialog_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
+
+  private void CreateUserNavigationDialog_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 }

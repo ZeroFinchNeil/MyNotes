@@ -16,7 +16,8 @@
         BackgroundSizing="InnerBorderEdge"
         Translation="0,0,12"
         PointerEntered="NoteItem_RootGrid_PointerEntered"
-        PointerExited="NoteItem_RootGrid_PointerExited">
+        PointerExited="NoteItem_RootGrid_PointerExited"
+        ContextRequested="NoteItem_RootGrid_ContextRequested">
     <Grid.Shadow>
       <ThemeShadow />
     </Grid.Shadow>
@@ -64,62 +65,57 @@
                                   Visibility="Collapsed"
                                   Style="{StaticResource SubtleIconButtonStyle_32x16}">
         <templates:SubtleIconButton.Flyout>
-          <CommandBarFlyout Placement="Bottom"
-                            AlwaysExpanded="True">
-            <AppBarButton Label="View"
-                          Icon="{ui:FontIcon Glyph=&#xE8AD;}"
-                          Command="{x:Bind ViewModel.OpenWindowCommand}"
-                          CommandParameter="{x:Bind ViewModel}" />
-            <AppBarButton Label="Share"
-                          Icon="Share" />
-            <AppBarButton Label="Remove"
-                          Icon="Delete" />
-            <CommandBarFlyout.SecondaryCommands>
-              <AppBarButton Label="Move to board"
-                            Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
-              <AppBarButton Label="Rename title"
+          <MenuFlyout x:Name="NoteItem_MoreButtonMenuFlyout"
+                      Placement="Bottom"
+                      Opening="MenuFlyout_Opening">
+            <templates:MenuFlyoutElementContainer>
+              <StackPanel Orientation="Horizontal">
+                <AppBarButton Label="View"
+                              Icon="{ui:FontIcon Glyph=&#xE8AD;}"
+                              Command="{x:Bind ViewModel.OpenWindowCommand}"
+                              CommandParameter="{x:Bind ViewModel}" />
+                <AppBarButton Label="Share"
+                              Icon="Share" />
+                <AppBarButton Label="Remove"
+                              Icon="Delete" />
+              </StackPanel>
+            </templates:MenuFlyoutElementContainer>
+            
+            <MenuFlyoutSeparator />
+            
+            <MenuFlyoutSubItem x:Name="NoteItem_MoveToListMenuFlyoutSubItem"
+                               Text="Move to list"
+                               Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
+
+            <MenuFlyoutItem Text="Rename title"
                             Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
-              <AppBarButton x:Name="Template_EditTagsButton"
-                            Label="Edit tags"
+            <MenuFlyoutItem Text="Edit tags"
                             Icon="{ui:FontIcon Glyph=&#xE932;}" />
-              <AppBarSeparator />
-              <AppBarButton Label="About"
+            <MenuFlyoutItem Text="Bookmark"
+                            Icon="Favorite" />
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="About"
                             Icon="{ui:FontIcon Glyph=&#xE946;}" />
-            </CommandBarFlyout.SecondaryCommands>
-          </CommandBarFlyout>
+          </MenuFlyout>
         </templates:SubtleIconButton.Flyout>
       </templates:SubtleIconButton>
     </Grid>
 
     <!-- Body -->
-    <RichEditBox x:Name="NoteItem_PreviewRichEditBox"
-                 Grid.Row="1"
-                 MaxLength="500"
-                 IsSpellCheckEnabled="False"
-                 TextWrapping="NoWrap"
-                 IsReadOnly="True">
-      <RichEditBox.Resources>
-        <SolidColorBrush x:Key="TextControlBorderBrush"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-        <SolidColorBrush x:Key="TextControlBackground"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-        <SolidColorBrush x:Key="TextControlBorderBrushPointerOver"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-        <SolidColorBrush x:Key="TextControlBackgroundPointerOver"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-        <SolidColorBrush x:Key="TextControlBorderBrushFocused"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-        <SolidColorBrush x:Key="TextControlBackgroundFocused"
-                         Color="{StaticResource ControlFillColorTransparent}" />
-      </RichEditBox.Resources>
-      
+    <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
+                                   Grid.Row="1"
+                                   MaxLength="{x:Bind ViewModel.PreviewTextMaxLength, Mode=OneWay}"
+                                   RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}" />
+    <Border x:Name="NoteItem_PreviewCoverBorder"
+            Grid.Row="1"
+            Background="Transparent">
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
           <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
                                              CommandParameter="{x:Bind ViewModel}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
-    </RichEditBox>
+    </Border>
 
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="PointerStates">

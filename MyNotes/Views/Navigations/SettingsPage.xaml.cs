@@ -24,7 +24,13 @@ internal sealed partial class SettingsPage : Page
     if (ViewModel.IsAppLanguageChanged)
       VisualStateManager.GoToState(this, "SettingsPage_LanguageSettingsWarningState", false);
 
+    this.Loaded += SettingsPage_Loaded;
     this.Unloaded += SettingsPage_Unloaded;
+  }
+
+  private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
   }
 
   private void SettingsPage_Unloaded(object sender, RoutedEventArgs e)

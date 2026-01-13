@@ -1,4 +1,6 @@
-﻿using MyNotes.Common.Commands;
+﻿using Microsoft.Extensions.DependencyInjection;
+
+using MyNotes.Common.Commands;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
@@ -35,7 +37,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     }
   }
 
-  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, CommandServiceFactory commandServiceFactory)
+  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService)
   {
 #if DEBUG
     ReferenceTracker.MainViewModelReference.Add(this, GetHashCode());
@@ -43,7 +45,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandServiceFactory.Resolve(CommandServiceType.NavigationViewModel);
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandService;
 
     // Header
     HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
@@ -97,6 +99,6 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationViewModelBase>? AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public Command<NavigationViewModelBase>? AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
+  public Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
 }
