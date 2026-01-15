@@ -3,13 +3,13 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.UI.Xaml.Documents;
 
+using MyNotes.Constants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Settings;
 
 namespace MyNotes.Models.Notes;
 
-internal sealed class Note : ObservableObject
+internal sealed class Note : ObservableObject, IComparable<Note>
 {
   public required NoteId Id { get; init; }
 
@@ -104,4 +104,6 @@ internal sealed class Note : ObservableObject
     get;
     set => SetProperty(ref field, value);
   }
+
+  public int CompareTo(Note? other) => other is null ? 1 : Created.CompareTo(other.Created);
 }

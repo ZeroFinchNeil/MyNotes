@@ -7,11 +7,11 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
-using MyNotes.Resources;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Window;
@@ -51,7 +51,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   {
     switch (e.PropertyName)
     {
-      case nameof(NavigationUserCompositeNode.Icon):
+      case nameof(NavigationUserLeafNode.Icon):
         SetIconImage();
         break;
     }
@@ -93,36 +93,73 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
 internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewModel
 {
-  public ObservableCollection<NoteViewModel>? NoteViewModels { get; private set; }
-
-  public NoteViewModelSortOrder NoteViewModelSortOrder
+  public NoteViewModelCollection? NoteViewModels
   {
     get;
-    set => SetProperty(ref field, value);
+    private set => SetProperty(ref field, value);
   }
+
+  private static Comparer<Note> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
+  {
+    (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Modified.CompareTo(y.Modified)),
+    (NoteSortKey.Modified, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Modified.CompareTo(x.Modified)),
+    (NoteSortKey.Created, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Created.CompareTo(y.Created)),
+    (NoteSortKey.Created, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Created.CompareTo(x.Created)),
+    (NoteSortKey.Title, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Title.CompareTo(y.Title)),
+    (NoteSortKey.Title, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Title.CompareTo(x.Title)),
+    _ => throw new ArgumentException("Invalid sorting")
+  };
 
   public async Task LoadNoteViewModels()
   {
-    NoteViewModels = new();
+    Navigation.PropertyChanged += Navigation_PropertyChanged_WhileActive;
+    NoteViewModels = new(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
     var notes = await NoteService.GetNotesAsync(Navigation);
     foreach (var note in notes)
     {
+      note.PropertyChanged += Note_PropertyChanged_WhileActive;
       NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
     }
   }
 
   public void UnloadNoteViewModels()
   {
+    Navigation.PropertyChanged -= Navigation_PropertyChanged_WhileActive;
+
     if (NoteViewModels is null)
       return;
 
     foreach (var noteViewModel in NoteViewModels)
     {
+      noteViewModel.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
       if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
         noteViewModel.Dispose();
     }
     NoteViewModels.Clear();
     NoteViewModels = null;
+  }
+
+  private void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
+  {
+    if (sender is Note note)
+    {
+      if (e.PropertyName == nameof(Note.Title))
+      {
+        var viewmodel = NoteViewModelProvider.Resolve(note);
+        NoteViewModels?.ReorderItem(viewmodel);
+      }
+    }
+  }
+
+  private async void Navigation_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
+  {
+    switch (e.PropertyName)
+    {
+      case nameof(NavigationUserLeafNode.NoteSortKey) or nameof(NavigationUserLeafNode.NoteSortDirection):
+        var comparer = GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection);
+        NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
+        break;
+    }
   }
 
   public Command? AddNoteCommand { get; private set; }
@@ -141,11 +178,4 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
         }
       });
   }
-}
-
-internal enum NoteViewModelSortOrder
-{
-  Title,
-  Modified,
-  Created,
 }

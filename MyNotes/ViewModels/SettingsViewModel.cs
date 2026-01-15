@@ -4,9 +4,9 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
+using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;
-using MyNotes.Resources;
 using MyNotes.Services.Settings;
 
 using Windows.ApplicationModel;

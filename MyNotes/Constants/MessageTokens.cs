@@ -1,7 +1,7 @@
 ﻿using MyNotes.Common.Messages;
 using MyNotes.Models.Notes;
 
-namespace MyNotes.Resources;
+namespace MyNotes.Constants;
 
 internal static class MessageTokens
 {

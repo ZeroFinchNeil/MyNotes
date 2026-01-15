@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Common.Structures;
+using MyNotes.Models.Notes;
 using MyNotes.Resources;
 using MyNotes.Templates;
 using MyNotes.Views.Navigations;
@@ -110,6 +112,18 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 internal class NavigationUserLeafNode : NavigationUserNode
 {
   public NavigationUserLeafNode() : base(typeof(HomePage)) { PageType = typeof(UserListPage); }
+
+  public required NoteSortKey NoteSortKey
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public required SortDirection NoteSortDirection
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
 }
 
 internal sealed class NavigationUserRootNode : NavigationUserCompositeNode

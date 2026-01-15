@@ -2,8 +2,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Models.Navigations;
-using MyNotes.Resources;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
 
@@ -37,16 +37,23 @@ internal sealed partial class UserListPageNoteItemGridContainer : UserControl
 
   private void NoteItem_RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
   {
-    VisualStateManager.GoToState(this, "PointerEntered", false);
+    _commandOverlayPersistenceTCS?.TrySetResult(true);
+    VisualStateManager.GoToState(this, "CommandOverlayVisible", false);
   }
 
   private void NoteItem_RootGrid_PointerExited(object sender, PointerRoutedEventArgs e)
   {
-    VisualStateManager.GoToState(this, "PointerExited", false);
+    _commandOverlayPersistenceTCS?.TrySetResult(false);
+    if (!_preventCommandOverlayCollapse)
+      VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
   }
 
-  private void MenuFlyout_Opening(object sender, object e)
+  private bool _preventCommandOverlayCollapse = false;
+  private void NoteItem_MoreButtonMenuFlyout_Opening(object sender, object e)
   {
+    _preventCommandOverlayCollapse = true;
+    VisualStateManager.GoToState(this, "CommandOverlayVisible", false);
+
     if (sender is MenuFlyout && ViewModel is not null)
     {
       NoteItem_MoveToListMenuFlyoutSubItem.Items.Clear();
@@ -73,6 +80,27 @@ internal sealed partial class UserListPageNoteItemGridContainer : UserControl
       else
         NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = false;
     }
+  }
+
+  private TaskCompletionSource<bool>? _commandOverlayPersistenceTCS;
+  private async void NoteItem_MoreButtonMenuFlyout_Closing(FlyoutBase sender, FlyoutBaseClosingEventArgs args)
+  {
+    _preventCommandOverlayCollapse = false;
+    _commandOverlayPersistenceTCS = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    try
+    {
+      if (!await _commandOverlayPersistenceTCS.Task.WaitAsync(TimeSpan.FromMilliseconds(250)))
+      {
+        VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
+      }
+    }
+    catch(TimeoutException)
+    {
+      VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
+    }
+
+    _commandOverlayPersistenceTCS = null;
   }
 
   private void NoteItem_RootGrid_ContextRequested(UIElement sender, ContextRequestedEventArgs args)

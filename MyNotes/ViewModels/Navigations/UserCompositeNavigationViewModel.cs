@@ -6,10 +6,10 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;
-using MyNotes.Resources;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
 

@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Debugging;
-
 namespace MyNotes.ViewModels;
 
 internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposable
 {
+  public bool IsDisposed => _disposed;
+
   protected bool _disposed;
 
   public void Dispose()

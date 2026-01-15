@@ -14,34 +14,34 @@ internal sealed class DialogService
 {
   private readonly DialogViewModelFactory ViewModelFactory;
 
-  public DialogService(DialogViewModelFactory viewModelFactory)
+  public DialogService(DialogViewModelFactory viewmodelFactory)
   {
-    ViewModelFactory = viewModelFactory;
+    ViewModelFactory = viewmodelFactory;
   }
 
   public async Task<(ContentDialogResult ContentDialogResult, (Icon Icon, string Title)? Value)> ShowEditUserNavigationDialogAsync(XamlRoot xamlRoot, NavigationUserNode targetNavigation, EditMode editMode, bool isCompositeNode)
   {
-    if (ViewModelFactory.Resolve(DialogType.SetNode, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewModel)
+    if (ViewModelFactory.Resolve(DialogType.SetNode, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewmodel)
     {
       ContentDialog dialog = editMode switch
       {
-        EditMode.Create => new CreateUserNavigationDialog(viewModel),
-        EditMode.Update => new UpdateUserNavigationDialog(viewModel),
+        EditMode.Create => new CreateUserNavigationDialog(viewmodel),
+        EditMode.Update => new UpdateUserNavigationDialog(viewmodel),
         _ => throw new ArgumentException("Invalid edit mode")
       };
       dialog.XamlRoot = xamlRoot;
       var dialogResult = await ShowNewDialog(dialog);
 
-      return (dialogResult, viewModel.Result);
+      return (dialogResult, viewmodel.Result);
     }
     return (ContentDialogResult.None, null);
   }
 
   public async Task<ContentDialogResult> ShowConfirmDeleteDialogAsync(XamlRoot xamlRoot, string targetTypeName, string targetName, DeleteMode deleteMode)
   {
-    if (ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewModel)
+    if (ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewmodel)
     {
-      var dialog = new ConfirmDeleteDialog(viewModel) { XamlRoot = xamlRoot };
+      var dialog = new ConfirmDeleteDialog(viewmodel) { XamlRoot = xamlRoot };
       return await ShowNewDialog(dialog);
     }
     return ContentDialogResult.None;

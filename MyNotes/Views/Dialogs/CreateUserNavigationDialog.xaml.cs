@@ -8,16 +8,16 @@ internal sealed partial class CreateUserNavigationDialog : ContentDialog
 {
   private readonly EditUserNavigationDialogViewModel ViewModel;
 
-  public CreateUserNavigationDialog(EditUserNavigationDialogViewModel viewModel)
+  public CreateUserNavigationDialog(EditUserNavigationDialogViewModel viewmodel)
   {
     InitializeComponent();
-    ViewModel = viewModel;
+    ViewModel = viewmodel;
 
-    string nodeType = (viewModel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
+    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
 
     CreateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.CreateUserNavigationDialogTitleText, nodeType);
 
-    CreateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.CreateUserNavigationDialogSubTitleTextBlockText, StringHelper.Inflect(nodeType), viewModel.Target.Title);
+    CreateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.CreateUserNavigationDialogSubTitleTextBlockText, StringHelper.Inflect(nodeType), viewmodel.Target.Title);
 
     this.Loaded += CreateUserNavigationDialog_Loaded;
     this.Unloaded += CreateUserNavigationDialog_Unloaded;

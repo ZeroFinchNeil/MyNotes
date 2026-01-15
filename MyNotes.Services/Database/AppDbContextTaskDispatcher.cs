@@ -46,6 +46,8 @@ internal sealed class AppDbContextTaskDispatcher : IDisposable
     }
   });
 
+  public bool IsDisposed => _disposed;
+
   private bool _disposed;
 
   private void Dispose(bool disposing)

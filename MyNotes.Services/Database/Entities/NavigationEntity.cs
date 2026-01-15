@@ -27,6 +27,10 @@ internal sealed class NavigationEntity : IEquatable<NavigationEntity>
 
   public Guid? RestoreNext { get; set; }
 
+  public int? NoteSortKey { get; set; }
+
+  public int? NoteSortDirection { get; set; }
+
   private static string ToStringValue(string name, object? value) => string.Format("{0,12} | {1}", name, value?.ToString() ?? "Null");
   public override string ToString()
   {

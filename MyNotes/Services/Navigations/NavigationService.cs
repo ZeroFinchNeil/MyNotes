@@ -1,11 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
+using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
-using MyNotes.Services.Dialogs;
-using MyNotes.Services.Window;
+using MyNotes.Services.Settings;
 using MyNotes.Templates;
 
 namespace MyNotes.Services.Navigations;
@@ -13,8 +15,7 @@ namespace MyNotes.Services.Navigations;
 internal sealed partial class NavigationService : IDisposable
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
-  private readonly WindowService WindowService;
-  private readonly DialogService DialogService;
+  private readonly SettingsService SettingsService;
 
   public ImmutableList<INavigation> PrimaryCoreNavigations { get; } = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
   public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
@@ -25,14 +26,15 @@ internal sealed partial class NavigationService : IDisposable
 
   public event TypedEventHandler<object, INavigation>? CurrentNavigationChanged;
 
-  public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory, WindowService windowService, DialogService dialogService)
+  public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService)
   {
     DbContextFactory = dbContextFactory;
-    WindowService = windowService;
-    DialogService = dialogService;
+    SettingsService = settingsService;
 
     BuildNavigationTask = BuildNavigationTree();
   }
+
+  public bool IsDisposed => _disposed;
 
   private bool _disposed;
   public void Dispose()
@@ -68,7 +70,9 @@ internal sealed partial class NavigationService : IDisposable
         Parent = null!,
         Icon = (Icon)e.Icon,
         Title = e.Title,
-        Position = e.Position
+        Position = e.Position,
+        NoteSortKey = (NoteSortKey)(e.NoteSortKey ?? SettingsService.Load(SettingsDescriptors.NoteSortKey)),
+        NoteSortDirection = (SortDirection)(e.NoteSortDirection ?? SettingsService.Load(SettingsDescriptors.NoteSortDirection))
       })
      .ToDictionary(n => n.Id.Value);
 
@@ -135,8 +139,16 @@ internal sealed partial class NavigationService : IDisposable
           await UpdateNavigationEntityAsync(node, entity => entity.Position = node.Position);
           break;
         case nameof(NavigationUserCompositeNode.IsExpanded):
-          if (node is NavigationUserCompositeNode compositeNode)
-            await UpdateNavigationEntityAsync(compositeNode, entity => entity.IsExpanded = compositeNode.IsExpanded);
+          if (node is NavigationUserCompositeNode compositeNodeIE)
+            await UpdateNavigationEntityAsync(compositeNodeIE, entity => entity.IsExpanded = compositeNodeIE.IsExpanded);
+          break;
+        case nameof(NavigationUserLeafNode.NoteSortKey):
+          if (node is NavigationUserLeafNode leafNodeNSK)
+            await UpdateNavigationEntityAsync(leafNodeNSK, entity => entity.NoteSortKey = (int)leafNodeNSK.NoteSortKey);
+          break;
+        case nameof(NavigationUserLeafNode.NoteSortDirection):
+          if (node is NavigationUserLeafNode leafNodeNSD)
+            await UpdateNavigationEntityAsync(leafNodeNSD, entity => entity.NoteSortDirection = (int)leafNodeNSD.NoteSortDirection);
           break;
       }
     }
@@ -215,7 +227,9 @@ internal sealed partial class NavigationService : IDisposable
         Parent = parentNode,
         Icon = icon,
         Title = title,
-        Position = int.MaxValue
+        Position = int.MaxValue,
+        NoteSortKey = (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey),
+        NoteSortDirection = (SortDirection)SettingsService.Load(SettingsDescriptors.NoteSortDirection)
       };
 
     await using (var context = await DbContextFactory.CreateDbContextAsync())

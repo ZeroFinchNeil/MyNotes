@@ -67,7 +67,8 @@
         <templates:SubtleIconButton.Flyout>
           <MenuFlyout x:Name="NoteItem_MoreButtonMenuFlyout"
                       Placement="Bottom"
-                      Opening="MenuFlyout_Opening">
+                      Opening="NoteItem_MoreButtonMenuFlyout_Opening"
+                      Closing="NoteItem_MoreButtonMenuFlyout_Closing">
             <templates:MenuFlyoutElementContainer>
               <StackPanel Orientation="Horizontal">
                 <AppBarButton Label="View"
@@ -80,9 +81,9 @@
                               Icon="Delete" />
               </StackPanel>
             </templates:MenuFlyoutElementContainer>
-            
+
             <MenuFlyoutSeparator />
-            
+
             <MenuFlyoutSubItem x:Name="NoteItem_MoveToListMenuFlyoutSubItem"
                                Text="Move to list"
                                Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
@@ -118,9 +119,9 @@
     </Border>
 
     <VisualStateManager.VisualStateGroups>
-      <VisualStateGroup x:Name="PointerStates">
-        <VisualState x:Name="PointerExited" />
-        <VisualState x:Name="PointerEntered">
+      <VisualStateGroup x:Name="CommandOverlayStates">
+        <VisualState x:Name="CommandOverlayCollapsed" />
+        <VisualState x:Name="CommandOverlayVisible">
           <Storyboard>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_RootGrid"
                                            Storyboard.TargetProperty="BorderBrush">

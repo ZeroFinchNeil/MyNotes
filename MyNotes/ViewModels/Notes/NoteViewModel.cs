@@ -69,7 +69,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   private async void NotePropertyChangedDebounceTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e) => await UpdateNoteEntity();
 
-  private async Task UpdateNoteEntity()
+  public async Task UpdateNoteEntity()
   {
     Action<NoteEntity>? actions = null;
     foreach (var propertyName in _changedNoteProperties)

@@ -15,7 +15,8 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
   public NavigationViewModelBase Resolve(INavigation navigation)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+      && wr.TryGetTarget(out var viewmodel)
+      && !viewmodel.IsDisposed)
     {
       return viewmodel;
     }

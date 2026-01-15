@@ -8,11 +8,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Content;
 
 using MyNotes.Common.Messages;
+using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
-using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels;

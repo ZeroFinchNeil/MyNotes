@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Messages;
+using MyNotes.Constants;
 using MyNotes.Models.Navigations;
-using MyNotes.Resources;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
 

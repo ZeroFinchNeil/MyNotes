@@ -8,12 +8,12 @@ using Microsoft.UI.Content;
 
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
+using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Resources;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
@@ -53,6 +53,7 @@ internal sealed partial class NotePage : Page
     RegisterMessengers();
 
     _editorDebounceTimer.Tick += EditorDebounceTimer_Tick;
+    _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;
 
     this.SizeChanged += NotePage_SizeChanged;
     this.Unloaded += NotePage_Unloaded;
@@ -126,20 +127,33 @@ internal sealed partial class NotePage : Page
   // 본문
   private void SetEditorText()
   {
-    NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
+    var rtfText = ViewModel.Note.Body;
+    if (string.IsNullOrEmpty(rtfText))
+    {
+      NotePage_TextEditorRichEditBox.RequestedTheme = GetThemeForColor(ViewModel.Note.Background);
+    }
+    else
+    {
+      NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
+    }
   }
 
   // 테마 관련
   private void ChangeWindowTheme(Color color)
+  {
+    var theme = GetThemeForColor(color);
+    if (this.RequestedTheme != theme)
+      this.RequestedTheme = theme;
+  }
+
+  private ElementTheme GetThemeForColor(Color color)
   {
     color = color.CompositeAlphaWith(Colors.White);
 
     double preferLight = color.ContrastRatioTo(Colors.Black);
     double preferDark = color.ContrastRatioTo(Colors.White);
 
-    var theme = preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
-    if (this.RequestedTheme != theme)
-      this.RequestedTheme = theme;
+    return preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
   }
 
   private void ChangeFlyoutTheme(ElementTheme theme)
@@ -162,6 +176,8 @@ internal sealed partial class NotePage : Page
   private void UpdateEditorBodyText()
   {
     NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.FormatRtf, out var editorText);
+    editorText = Regexes.LastParInRtfRegex().Replace(editorText, "}");
+
     ViewModel.Note.Body = editorText;
 
     if (_changePreview)
@@ -475,11 +491,28 @@ internal sealed partial class NotePage : Page
 #region Keyboard Accelerators
 internal sealed partial class NotePage : Page
 {
-  private void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
+  private readonly DispatcherTimer _infoBarDismissTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+
+  private void OpenInfoBar()
+  {
+    NotePage_InfoBar.IsOpen = true;
+    _infoBarDismissTimer.Start();
+  }
+
+  private void InfoBarDismissTimer_Tick(object? sender, object e)
+  {
+    NotePage_InfoBar.IsOpen = false;
+    _infoBarDismissTimer.Stop();
+  }
+
+  private async void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     args.Handled = true;
-    Console.WriteLine("{0}: {1}", "KeyboardAccelerator", sender.Modifiers + " + " + sender.Key);
-    ViewModel.SaveCommand?.Execute();
+    UpdateEditorBodyText();
+    await ViewModel.UpdateNoteEntity();
+    NotePage_InfoBar.Title = "Saved";
+    NotePage_InfoBar.Severity = InfoBarSeverity.Success;
+    OpenInfoBar();
   }
 
   private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)

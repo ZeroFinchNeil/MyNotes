@@ -4,11 +4,11 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels.Notes;

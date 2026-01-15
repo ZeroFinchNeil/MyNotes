@@ -1,7 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Structures;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Notes;
 using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.Views.Navigations;
@@ -44,4 +46,40 @@ public sealed partial class UserListPage : Page
     ViewModel?.UnloadNoteViewModels();
     Bindings.StopTracking();
   }
+
+  private void UserListPage_MoreButtonMenuFlyout_Opening(object sender, object e)
+  {
+
+  }
+
+  private void UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is RadioMenuFlyoutItem item)
+    {
+      ViewModel?.Navigation.NoteSortKey = item.Tag switch
+      {
+        int intValue => (NoteSortKey)intValue,
+        NoteSortKey noteSortKey => noteSortKey,
+        _ => throw new ArgumentException("Type mismatch")
+      };
+      UserListPage_NotesListGridView.UpdateLayout();
+    }
+  }
+
+  private void UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is RadioMenuFlyoutItem item)
+    {
+      ViewModel?.Navigation.NoteSortDirection = item.Tag switch
+      {
+        int intValue => (SortDirection)intValue,
+        SortDirection sortDirection => sortDirection,
+        _ => throw new ArgumentException("Type mismatch")
+      };
+      UserListPage_NotesListGridView.UpdateLayout();
+    }
+  }
+
+  private bool Equals(NoteSortKey key1, NoteSortKey key2) => key1 == key2;
+  private bool Equals(SortDirection key1, SortDirection key2) => key1 == key2;
 }

@@ -29,6 +29,7 @@ internal class DragUISession : IDisposable
   }
 
   public bool IsExpired => _disposed;
+  public bool IsDisposed => _disposed;
 
   private bool _disposed;
   protected virtual void Dispose(bool disposing)

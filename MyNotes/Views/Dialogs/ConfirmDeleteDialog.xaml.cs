@@ -6,10 +6,10 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
 {
   private readonly ConfirmDeleteDialogViewModel ViewModel;
 
-  public ConfirmDeleteDialog(ConfirmDeleteDialogViewModel viewModel)
+  public ConfirmDeleteDialog(ConfirmDeleteDialogViewModel viewmodel)
   {
     InitializeComponent();
-    ViewModel = viewModel;
+    ViewModel = viewmodel;
 
     this.Loaded += ConfirmDeleteDialog_Loaded;
     this.Unloaded += ConfirmDeleteDialog_Unloaded;

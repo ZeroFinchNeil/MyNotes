@@ -2,8 +2,8 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Models.Navigations;
-using MyNotes.Resources;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 

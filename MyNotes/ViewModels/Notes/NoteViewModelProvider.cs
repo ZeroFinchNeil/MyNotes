@@ -13,7 +13,8 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
   public NoteViewModel Resolve(Note note)
   {
     if (ResolvedViewModels.TryGetValue(note, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+      && wr.TryGetTarget(out var viewmodel)
+      && !viewmodel.IsDisposed)
     {
       return viewmodel;
     }

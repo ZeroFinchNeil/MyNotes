@@ -126,11 +126,6 @@
                       Placement="RightEdgeAlignedTop"
                       ShouldConstrainToRootBounds="False"
                       MenuFlyoutPresenterStyle="{StaticResource DefaultThemeMenuFlyoutPresenterStyle}">
-            <MenuFlyoutItem Text="New note"
-                            Icon="Add" />
-            <MenuFlyoutItem Text="View list"
-                            Icon="{ui:FontIcon Glyph=&#xE71D;}" />
-            <MenuFlyoutSeparator />
             <MenuFlyoutItem x:Name="NotePage_RenameMenuFlyoutItem"
                             Text="Rename"
                             Icon="Rename"
@@ -139,6 +134,12 @@
                 <KeyboardAccelerator Key="F2" />
               </MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
+            <MenuFlyoutSeparator />
+            <MenuFlyoutItem Text="New note"
+                            Icon="Add" />
+            <MenuFlyoutItem Text="View list"
+                            Icon="{ui:FontIcon Glyph=&#xE71D;}" />
+            <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Edit tags"
                             Icon="Tag" />
             <MenuFlyoutItem Text="Bookmark"
@@ -207,7 +208,7 @@
     <!--#region Text Editor -->
     <Grid Grid.Row="1">
       <RichEditBox x:Name="NotePage_TextEditorRichEditBox"
-                   RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
+                   RequestedTheme="Light"
                    SelectionFlyout="{x:Null}"
                    SelectionHighlightColorWhenNotFocused="{StaticResource AccentFillColorSelectedTextBackgroundBrush}"
                    MaxLength="100000"
@@ -441,6 +442,12 @@
     </ScrollViewer>
     <!--#endregion -->
 
+    <InfoBar x:Name="NotePage_InfoBar" 
+             Grid.Row="1"
+             HorizontalAlignment="Center"
+             VerticalAlignment="Bottom"
+             IsClosable="False"/>
+    
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="FlyoutThemeStates">
         <VisualState x:Name="FlyoutThemeDefault" />

@@ -23,6 +23,8 @@ internal sealed partial class NoteService : IDisposable
     WindowService = windowService;
   }
 
+  public bool IsDisposed => _disposed;
+
   private bool _disposed;
   public void Dispose()
   {

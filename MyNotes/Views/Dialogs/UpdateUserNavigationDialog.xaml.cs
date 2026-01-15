@@ -7,16 +7,16 @@ internal sealed partial class UpdateUserNavigationDialog : ContentDialog
 {
   private readonly EditUserNavigationDialogViewModel ViewModel;
 
-  public UpdateUserNavigationDialog(EditUserNavigationDialogViewModel viewModel)
+  public UpdateUserNavigationDialog(EditUserNavigationDialogViewModel viewmodel)
   {
     InitializeComponent();
-    ViewModel = viewModel;
+    ViewModel = viewmodel;
 
-    string nodeType = (viewModel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
+    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
 
     UpdateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.UpdateUserNavigationDialogTitleText, nodeType);
 
-    UpdateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.UpdateUserNavigationDialogSubTitleTextBlockText, viewModel.Target.Title);
+    UpdateUserNavigationDialog_SubtitleTextBlock.Text = string.Format(LocalizedStrings.UpdateUserNavigationDialogSubTitleTextBlockText, viewmodel.Target.Title);
 
     this.Loaded += UpdateUserNavigationDialog_Loaded;
     this.Unloaded += UpdateUserNavigationDialog_Unloaded;

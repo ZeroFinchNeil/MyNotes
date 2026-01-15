@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Resources;
+﻿namespace MyNotes.Constants;
 
 internal static class AppStrings
 {

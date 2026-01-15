@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
-using MyNotes.Resources;
 using MyNotes.Services.Settings;
 using MyNotes.Views.Navigations;
 

@@ -1,8 +1,6 @@
-﻿using System;
+﻿using MyNotes.Services.Settings;
 
-using Windows.Foundation;
-
-namespace MyNotes.Services.Settings;
+namespace MyNotes.Constants;
 
 internal static class SettingsDescriptors
 {
@@ -14,7 +12,7 @@ internal static class SettingsDescriptors
   public static readonly SettingsDescriptor<int> WindowBorderMargin = new("WindowBorderMargin", 20);
 
   // Settings - Appearence
-  public static readonly SettingsDescriptor<int> AppTheme = new("AppTheme", 0);
+  public static readonly SettingsDescriptor<int> AppTheme = new("AppTheme", (int)ElementTheme.Default);
   public static readonly SettingsDescriptor<string> AppLanguage = new("AppLanguage", string.Empty);
 
   // Settings - General
@@ -25,7 +23,7 @@ internal static class SettingsDescriptors
   public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMininumSize", new Size(400.0, 300.0));
 
   public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");
-  public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", 0);
+  public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", (int)Models.Notes.BackdropKind.None);
   public static readonly SettingsDescriptor<Size> NoteSize = new("NoteSize", new Size(500.0, 500.0));
   public static readonly SettingsDescriptor<Point> NotePosition = new("NotePosition", new Point(0, 0));
 
@@ -33,5 +31,7 @@ internal static class SettingsDescriptors
 
   // Settings - List and Group
   public static readonly SettingsDescriptor<bool> ShowNoteCount = new("ShowNoteCount", true);
-  public static readonly SettingsDescriptor<int> GroupIconBadge = new("GroupIconBadge", 1);
+  public static readonly SettingsDescriptor<int> GroupIconBadge = new("GroupIconBadge", (int)Models.Settings.GroupIconBadge.Folder);
+  public static readonly SettingsDescriptor<int> NoteSortKey = new("NoteSortKey", (int)Models.Notes.NoteSortKey.Created);
+  public static readonly SettingsDescriptor<int> NoteSortDirection = new("NoteSortDirection", (int)Common.Structures.SortDirection.Descending);
 }
