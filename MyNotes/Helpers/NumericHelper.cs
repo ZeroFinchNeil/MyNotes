@@ -28,6 +28,8 @@ internal static class NumericHelper
 
   public static Rect ToRect(RectInt32 rect) => new(rect.X, rect.Y, rect.Width, rect.Height);
 
+  public static double ToDouble(int num) => num;
+
   // Extensions
   // 확장 메서드 및 확장 멤버(정적/인스턴스 모두 가능) 정의
   extension(Size size)
@@ -91,5 +93,10 @@ internal static class NumericHelper
         quotient--;
       return quotient * (int)n;
     }
+  }
+
+  extension(int n)
+  {
+    public double Double => n;
   }
 }

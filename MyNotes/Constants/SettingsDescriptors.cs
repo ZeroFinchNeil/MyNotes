@@ -34,4 +34,7 @@ internal static class SettingsDescriptors
   public static readonly SettingsDescriptor<int> GroupIconBadge = new("GroupIconBadge", (int)Models.Settings.GroupIconBadge.Folder);
   public static readonly SettingsDescriptor<int> NoteSortKey = new("NoteSortKey", (int)Models.Notes.NoteSortKey.Created);
   public static readonly SettingsDescriptor<int> NoteSortDirection = new("NoteSortDirection", (int)Common.Structures.SortDirection.Descending);
+  public static readonly SettingsDescriptor<int> PreviewLayoutType = new("PreviewLayoutType", (int)Models.Navigations.PreviewLayoutType.Grid);
+  public static readonly SettingsDescriptor<int> PreviewTileSize = new("PreviewTileSize", (int)Models.Navigations.PreviewTileSize.Medium);
+  public static readonly SettingsDescriptor<int> PreviewTileRatio = new("PreviewTileRatio", (int)Models.Navigations.PreviewTileRatio.Square);
 }

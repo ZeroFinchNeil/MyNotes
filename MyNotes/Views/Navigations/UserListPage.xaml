@@ -4,6 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MyNotes.Views.Navigations"
       xmlns:notes="using:MyNotes.Models.Notes"
+      xmlns:navigations="using:MyNotes.Models.Navigations"
       xmlns:notevm="using:MyNotes.ViewModels.Notes"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:templates="using:MyNotes.Templates"
@@ -17,22 +18,50 @@
     <structures:SortDirection x:Key="SortDirectionAscending">Ascending</structures:SortDirection>
     <structures:SortDirection x:Key="SortDirectionDescending">Descending</structures:SortDirection>
 
-    <Style x:Key="MainPage_GridViewItemContainerStyle"
+    <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeGrid">Grid</navigations:PreviewLayoutType>
+    <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeList">List</navigations:PreviewLayoutType>
+
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmallest">Smallest</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmaller">Smaller</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmall">Small</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeMedium">Medium</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeLarge">Large</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeLarger">Larger</navigations:PreviewTileSize>
+    <navigations:PreviewTileSize x:Key="PreviewTileSizeLargest">Largest</navigations:PreviewTileSize>
+
+    <navigations:PreviewTileRatio x:Key="PreviewTileRatioShorter">Shorter</navigations:PreviewTileRatio>
+    <navigations:PreviewTileRatio x:Key="PreviewTileRatioShort">Short</navigations:PreviewTileRatio>
+    <navigations:PreviewTileRatio x:Key="PreviewTileRatioSquare">Square</navigations:PreviewTileRatio>
+    <navigations:PreviewTileRatio x:Key="PreviewTileRatioTall">Tall</navigations:PreviewTileRatio>
+    <navigations:PreviewTileRatio x:Key="PreviewTileRatioTaller">Taller</navigations:PreviewTileRatio>
+
+    <Style x:Key="UserListPage_GridViewItemContainerStyle"
            TargetType="GridViewItem"
            BasedOn="{StaticResource DefaultGridViewItemStyle}">
       <Setter Property="HorizontalContentAlignment"
               Value="Stretch" />
       <Setter Property="VerticalContentAlignment"
               Value="Stretch" />
-      <Setter Property="Width"
-              Value="240" />
-      <Setter Property="Height"
-              Value="240" />
     </Style>
 
-    <ItemsPanelTemplate x:Key="MainPage_GridViewItemsPanel">
+    <ItemsPanelTemplate x:Key="UserListPage_GridViewItemsPanel_LayoutGrid">
       <ItemsWrapGrid Orientation="Horizontal" />
     </ItemsPanelTemplate>
+
+    <ItemsPanelTemplate x:Key="UserListPage_GridViewItemsPanel_LayoutList">
+      <ItemsStackPanel />
+    </ItemsPanelTemplate>
+
+    <DataTemplate x:Key="UserListPage_GridViewItemTemplate_LayoutGrid"
+                  x:DataType="notevm:NoteViewModel">
+      <local:UserListPageNoteItemGridContainer ViewModel="{x:Bind}"
+                                               Margin="6" />
+    </DataTemplate>
+    <DataTemplate x:Key="UserListPage_GridViewItemTemplate_LayoutList"
+                  x:DataType="notevm:NoteViewModel">
+      <local:UserListPageNoteItemListContainer ViewModel="{x:Bind}"
+                                               Margin="6" />
+    </DataTemplate>
   </Page.Resources>
   <Grid>
     <Grid.RowDefinitions>
@@ -125,113 +154,96 @@
             <!-- GridView Style -->
             <MenuFlyoutSubItem Text="View Style"
                                Icon="View">
-              <templates:MenuFlyoutElementContainer>
-                <StackPanel Spacing="12">
-                  <!--Style: Grid / List View-->
-                  <RadioButtons Header="View Style"
-                                HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
-                                MaxColumns="2">
-                    <RadioButtons.Resources>
-                      <SolidColorBrush x:Key="ToggleButtonBackground"
-                                       Color="{StaticResource SubtleFillColorTransparent}" />
-                      <SolidColorBrush x:Key="ToggleButtonBackgroundPointerOver"
-                                       Color="{StaticResource SubtleFillColorSecondary}" />
-                      <SolidColorBrush x:Key="ToggleButtonBackgroundPressed"
-                                       Color="{StaticResource SubtleFillColorTertiary}" />
-                      <SolidColorBrush x:Key="ToggleButtonBackgroundDisabled"
-                                       Color="{StaticResource SubtleFillColorDisabled}" />
-                    </RadioButtons.Resources>
 
-                    <RadioButton GroupName="Style"
-                                 Tag="Grid"
-                                 Style="{StaticResource DefaultToggleButtonStyle}">
-                      <StackPanel Orientation="Horizontal"
-                                  Spacing="8">
-                        <FontIcon Glyph="&#xF0E2;"
-                                  FontSize="18" />
-                        <TextBlock Text="Grid" />
-                      </StackPanel>
-                    </RadioButton>
+              <!--Style: Grid / List View-->
+              <templates:MenuFlyoutElementContainer Padding="8">
+                <RadioButtons Header="Layout"
+                              HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
+                              MaxColumns="2"
+                              SelectedIndex="{x:Bind PreviewLayoutTypeMap.RightFromLeft(ViewModel.Navigation.PreviewLayoutType), Mode=TwoWay, BindBack=SelectedIndexToPreviewLayoutType}">
+                  <RadioButton GroupName="Layout"
+                               Tag="{StaticResource PreviewLayoutTypeGrid}"
+                               Content="Grid" />
+                  <RadioButton GroupName="Layout"
+                               Tag="{StaticResource PreviewLayoutTypeList}"
+                               Content="List" />
+                </RadioButtons>
+              </templates:MenuFlyoutElementContainer>
+              <MenuFlyoutSeparator />
 
-                    <RadioButton GroupName="Style"
-                                 Tag="List"
-                                 Style="{StaticResource DefaultToggleButtonStyle}">
-                      <StackPanel Orientation="Horizontal"
-                                  Spacing="8">
-                        <FontIcon Glyph="&#xE71D;"
-                                  FontSize="18" />
-                        <TextBlock Text="List" />
-                      </StackPanel>
-                    </RadioButton>
-                  </RadioButtons>
-
-                  <MenuFlyoutSeparator />
-
-                  <!--Style: View Size-->
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto" />
-                      <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Slider Grid.Row="0"
-                            Header="Size"
-                            HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
-                            Orientation="Horizontal"
-                            TickFrequency="40"
-                            TickPlacement="Outside"
-                            Minimum="200"
-                            Maximum="440"
-                            Width="240"
-                            SnapsTo="Ticks"
-                            IsThumbToolTipEnabled="False" />
-                    <Grid Grid.Row="1">
-                      <TextBlock Text="Small"
-                                 HorizontalAlignment="Left"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                      <TextBlock Text="Medium"
-                                 HorizontalAlignment="Center"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                      <TextBlock Text="Large"
-                                 HorizontalAlignment="Right"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                    </Grid>
+              <!--Style: View Size-->
+              <templates:MenuFlyoutElementContainer Padding="8">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <Slider x:Name="UserListPage_ViewSizeSlider"
+                          Grid.Row="0"
+                          Header="Size"
+                          HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
+                          Orientation="Horizontal"
+                          TickFrequency="40"
+                          TickPlacement="Outside"
+                          Minimum="120"
+                          Maximum="360"
+                          Width="240"
+                          SnapsTo="Ticks"
+                          IsThumbToolTipEnabled="False"
+                          Value="{x:Bind PreviewTileSizeMap.RightFromLeft(ViewModel.Navigation.PreviewTileSize), Mode=TwoWay, BindBack=SliderValueToPreviewTileSize}" />
+                  <Grid Grid.Row="1">
+                    <TextBlock Text="Small"
+                               HorizontalAlignment="Left"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
+                    <TextBlock Text="Medium"
+                               HorizontalAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
+                    <TextBlock Text="Large"
+                               HorizontalAlignment="Right"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
                   </Grid>
+                </Grid>
+              </templates:MenuFlyoutElementContainer>
 
-                  <!--Style: View Ratio-->
-                  <Grid>
-                    <Grid.RowDefinitions>
-                      <RowDefinition Height="Auto" />
-                      <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <Slider Grid.Row="0"
-                            Header="Vertical ratio"
-                            HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
-                            Orientation="Horizontal"
-                            TickFrequency="50"
-                            TickPlacement="Outside"
-                            Minimum="0"
-                            Maximum="200"
-                            Width="240"
-                            SnapsTo="Ticks"
-                            IsThumbToolTipEnabled="False" />
-                    <Grid Grid.Row="1">
-                      <TextBlock Text="Short"
-                                 HorizontalAlignment="Left"
-                                 TextAlignment="Center"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                      <TextBlock Text="Moderate"
-                                 HorizontalAlignment="Center"
-                                 TextAlignment="Center"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                      <TextBlock Text="Tall"
-                                 HorizontalAlignment="Right"
-                                 TextAlignment="Center"
-                                 Style="{StaticResource CaptionTextBlockStyle}" />
-                    </Grid>
+              <!--Style: View Ratio-->
+              <templates:MenuFlyoutElementContainer Padding="8"
+                                                    Visibility="{x:Bind VisibleWhenEquals(ViewModel.Navigation.PreviewLayoutType, navigations:PreviewLayoutType.Grid), Mode=OneWay}">
+                <Grid>
+                  <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                  </Grid.RowDefinitions>
+                  <Slider x:Name="UserListPage_ViewRatioSlider"
+                          Grid.Row="0"
+                          Header="Vertical ratio"
+                          HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
+                          Orientation="Horizontal"
+                          TickFrequency="0.25"
+                          TickPlacement="Outside"
+                          Minimum="0.50"
+                          Maximum="1.50"
+                          Width="240"
+                          SnapsTo="Ticks"
+                          IsThumbToolTipEnabled="False"
+                          Value="{x:Bind PreviewTileRatioMap.RightFromLeft(ViewModel.Navigation.PreviewTileRatio), Mode=TwoWay, BindBack=SliderValueToPreviewTileRatio}" />
+                  <Grid Grid.Row="1">
+                    <TextBlock Text="Short"
+                               HorizontalAlignment="Left"
+                               TextAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
+                    <TextBlock Text="Sqare"
+                               HorizontalAlignment="Center"
+                               TextAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
+                    <TextBlock Text="Tall"
+                               HorizontalAlignment="Right"
+                               TextAlignment="Center"
+                               Style="{StaticResource CaptionTextBlockStyle}" />
                   </Grid>
-                </StackPanel>
+                </Grid>
               </templates:MenuFlyoutElementContainer>
             </MenuFlyoutSubItem>
+
             <MenuFlyoutSeparator />
 
             <MenuFlyoutItem Text="Edit notes"
@@ -249,8 +261,6 @@
     <GridView x:Name="UserListPage_NotesListGridView"
               Grid.Row="1"
               ItemsSource="{x:Bind ViewModel.NoteViewModels, Mode=OneWay}"
-              ItemContainerStyle="{StaticResource MainPage_GridViewItemContainerStyle}"
-              ItemsPanel="{StaticResource MainPage_GridViewItemsPanel}"
               SelectionMode="None"
               AllowFocusOnInteraction="False"
               ScrollViewer.VerticalScrollMode="Enabled"

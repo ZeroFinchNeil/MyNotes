@@ -1,10 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Common.Structures;
-using MyNotes.Models.Notes;
-using MyNotes.Resources;
 using MyNotes.Templates;
-using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
@@ -75,72 +71,3 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
     return index >= 0 && index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
   }
 }
-
-#region User Nodes
-
-internal class NavigationUserCompositeNode : NavigationUserNode
-{
-  public NavigationUserNodeCollection ChildNodes { get; }
-
-  public NavigationUserCompositeNode() : base(typeof(HomePage)) { ChildNodes = new(this); }
-
-  public bool IsExpanded
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public void ForEachDescendant(Action<NavigationUserNode> action)
-  {
-    Stack<NavigationUserNode> stack = new();
-    stack.Push(this);
-
-    while (stack.Count > 0)
-    {
-      var node = stack.Pop();
-      action.Invoke(node);
-
-      if (node is NavigationUserCompositeNode compositeNode)
-      {
-        foreach (var childNode in compositeNode.ChildNodes)
-          stack.Push(childNode);
-      }
-    }
-  }
-}
-
-internal class NavigationUserLeafNode : NavigationUserNode
-{
-  public NavigationUserLeafNode() : base(typeof(HomePage)) { PageType = typeof(UserListPage); }
-
-  public required NoteSortKey NoteSortKey
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public required SortDirection NoteSortDirection
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-}
-
-internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
-{
-  public static NavigationUserRootNode Instance => field ??= new()
-  {
-    Id = NavigationId.UserRootNode,
-    Parent = null!,
-    Icon = Icon.System_Library,
-    Title = LocalizedStrings.NavigationUserRootNodeDisplayName,
-    PageType = typeof(Page),
-    Position = 0
-  };
-
-  private NavigationUserRootNode()
-  {
-    Parent = this;
-  }
-}
-#endregion
