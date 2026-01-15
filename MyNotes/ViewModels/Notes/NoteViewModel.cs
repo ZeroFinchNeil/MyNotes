@@ -165,7 +165,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 {
   public Command? SaveCommand { get; private set; }
   public Command<NoteViewModel> OpenWindowCommand => NoteViewModelCommandService.OpenWindowCommand;
-  public Command<SourceTargetPair<NavigationId, NavigationId>> MoveToListCommand { get; private set; }
+  public Command<SourceTargetPair<NoteViewModel, NavigationId>> MoveToListCommand => NoteViewModelCommandService.MoveToListCommand;
 
   private void SetCommand()
   {
@@ -173,25 +173,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
       actionToExecute: () =>
       {
         Console.WriteLine("{0}: {1}", "Save Note.", "");
-      });
-
-    MoveToListCommand = new(
-      actionToExecute: async (pair) =>
-      {
-        Console.WriteLine("{0}: {1} {2}", "MoveToList", pair.Source.Value, pair.Target.Value);
-
-        if (pair.Source == pair.Target)
-          return;
-
-        Note.NavigationId = pair.Target;
-        await UpdateNoteEntity();
-
-        var NavigationViewModelProvider = App.Instance.Services.GetRequiredService<NavigationViewModelProvider>();
-        if (NavigationViewModelProvider.TryResolve(pair.Source, out var s)
-            && s is UserLeafNavigationViewModel sourceViewModel)
-        {
-          sourceViewModel.NoteViewModels?.Remove(this);
-        }
       });
   }
 }

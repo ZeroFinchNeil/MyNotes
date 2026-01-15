@@ -71,7 +71,7 @@ internal sealed partial class UserListPageNoteItemGridContainer : UserControl
             Text = targetVM.Navigation.Title,
             Icon = new ImageIcon() { Source = targetVM.IconImage },
             Command = ViewModel.MoveToListCommand,
-            CommandParameter = new SourceTargetPair<NavigationId, NavigationId> { Source = ViewModel.Note.NavigationId, Target = targetVM.Navigation.Id }
+            CommandParameter = new SourceTargetPair<NoteViewModel, NavigationId> { Source = ViewModel, Target = targetVM.Navigation.Id }
           });
         }
 
