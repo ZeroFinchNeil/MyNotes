@@ -8,31 +8,31 @@ internal class NavigationUserLeafNode : NavigationUserNode
 {
   public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 
-  public required NoteSortKey NoteSortKey
+  public NoteSortKey? NoteSortKey
   {
     get;
     set => SetProperty(ref field, value);
   }
 
-  public required SortDirection NoteSortDirection
+  public SortDirection? NoteSortDirection
   {
     get;
     set => SetProperty(ref field, value);
   }
 
-  public required PreviewLayoutType PreviewLayoutType
+  public PreviewLayoutType? PreviewLayoutType
   {
     get;
     set => SetProperty(ref field, value);
   }
 
-  public required PreviewTileSize PreviewTileSize
+  public PreviewTileSize? PreviewTileSize
   {
     get;
     set => SetProperty(ref field, value);
   }
 
-  public required PreviewTileRatio PreviewTileRatio
+  public PreviewTileRatio? PreviewTileRatio
   {
     get;
     set => SetProperty(ref field, value);

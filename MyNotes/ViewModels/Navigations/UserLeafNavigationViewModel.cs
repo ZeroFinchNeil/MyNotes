@@ -14,6 +14,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Notes;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels.Notes;
 
@@ -25,16 +26,18 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
   private readonly WindowService WindowService;
+  private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
 
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, WindowService windowService, NoteService noteService, NoteViewModelProvider noteViewModelProvider, NavigationUserLeafNode navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, SettingsService settingsService, WindowService windowService, NoteService noteService, NoteViewModelProvider noteViewModelProvider, NavigationUserLeafNode navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
     NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
     WindowService = windowService;
+    SettingsService = settingsService;
     NoteService = noteService;
     NoteViewModelProvider = noteViewModelProvider;
 
@@ -99,6 +102,123 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     private set => SetProperty(ref field, value);
   }
 
+  private NoteSortKey _noteSortKey;
+  public NoteSortKey NoteSortKey
+  {
+    get => _noteSortKey;
+    set
+    {
+      if (_noteSortKey != value)
+      {
+        SetProperty(ref _noteSortKey, value);
+        if (SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder))
+        {
+          Navigation.NoteSortKey = value;
+          Navigation.NoteSortDirection = NoteSortDirection;
+        }
+        else
+        {
+          SettingsService.Save(SettingsDescriptors.NoteSortKey, (int)value);
+        }
+        var comparer = GetComparer(NoteSortKey, NoteSortDirection);
+        NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
+      }
+    }
+  }
+
+  private SortDirection _noteSortDirection;
+  public SortDirection NoteSortDirection
+  {
+    get => _noteSortDirection;
+    set
+    {
+      if (_noteSortDirection != value)
+      {
+        SetProperty(ref _noteSortDirection, value);
+        if (SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder))
+        {
+          Navigation.NoteSortKey = NoteSortKey;
+          Navigation.NoteSortDirection = value;
+        }
+        else
+        {
+          SettingsService.Save(SettingsDescriptors.NoteSortDirection, (int)value);
+        }
+        var comparer = GetComparer(NoteSortKey, NoteSortDirection);
+        NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
+      }
+    }
+  }
+
+  private PreviewLayoutType _previewLayoutType;
+  public PreviewLayoutType PreviewLayoutType
+  {
+    get => _previewLayoutType;
+    set
+    {
+      if (_previewLayoutType != value)
+      {
+        SetProperty(ref _previewLayoutType, value);
+        if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+        {
+          Navigation.PreviewLayoutType = value;
+          Navigation.PreviewTileSize = PreviewTileSize;
+          Navigation.PreviewTileRatio = PreviewTileRatio;
+        }
+        else
+        {
+          SettingsService.Save(SettingsDescriptors.PreviewLayoutType, (int)value);
+        }
+      }
+    }
+  }
+
+  private PreviewTileSize _previewTileSize;
+  public PreviewTileSize PreviewTileSize
+  {
+    get => _previewTileSize;
+    set
+    {
+      if (_previewTileSize != value)
+      {
+        SetProperty(ref _previewTileSize, value);
+        if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+        {
+          Navigation.PreviewLayoutType = PreviewLayoutType;
+          Navigation.PreviewTileSize = value;
+          Navigation.PreviewTileRatio = PreviewTileRatio;
+        }
+        else
+        {
+          SettingsService.Save(SettingsDescriptors.PreviewTileSize, (int)value);
+        }
+      }
+    }
+  }
+
+  private PreviewTileRatio _previewTileRatio;
+  public PreviewTileRatio PreviewTileRatio
+  {
+    get => _previewTileRatio;
+    set
+    {
+      if (_previewTileRatio != value)
+      {
+        SetProperty(ref _previewTileRatio, value);
+        if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+        {
+          Navigation.PreviewLayoutType = PreviewLayoutType;
+          Navigation.PreviewTileSize = PreviewTileSize;
+          Navigation.PreviewTileRatio = value;
+        }
+        else
+        {
+          SettingsService.Save(SettingsDescriptors.PreviewTileRatio, (int)value);
+        }
+      }
+    }
+  }
+
   private static Comparer<Note> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
   {
     (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Modified.CompareTo(y.Modified)),
@@ -110,10 +230,42 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     _ => throw new ArgumentException("Invalid sorting")
   };
 
+  public void LoadSortOrderAndPreviewStyle()
+  {
+    var defaultNoteSortKey = (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey);
+    var defaultNoteSortDirection = (SortDirection)SettingsService.Load(SettingsDescriptors.NoteSortDirection);
+    if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+    {
+      _noteSortKey = Navigation.NoteSortKey ?? defaultNoteSortKey;
+      _noteSortDirection = Navigation.NoteSortDirection ?? defaultNoteSortDirection;
+    }
+    else
+    {
+      _noteSortKey = defaultNoteSortKey;
+      _noteSortDirection = defaultNoteSortDirection;
+    }
+
+    var defaultPreviewLayoutType = (PreviewLayoutType)SettingsService.Load(SettingsDescriptors.PreviewLayoutType);
+    var defaultPreviewTileSize = (PreviewTileSize)SettingsService.Load(SettingsDescriptors.PreviewTileSize);
+    var defaultPreviewTileRatio = (PreviewTileRatio)SettingsService.Load(SettingsDescriptors.PreviewTileRatio);
+    if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+    {
+      _previewLayoutType = Navigation.PreviewLayoutType ?? defaultPreviewLayoutType;
+      _previewTileSize = Navigation.PreviewTileSize ?? defaultPreviewTileSize;
+      _previewTileRatio = Navigation.PreviewTileRatio ?? defaultPreviewTileRatio;
+    }
+    else
+    {
+      _previewLayoutType = defaultPreviewLayoutType;
+      _previewTileSize = defaultPreviewTileSize;
+      _previewTileRatio = defaultPreviewTileRatio;
+    }
+  }
+
   public async Task LoadNoteViewModels()
   {
     Navigation.PropertyChanged += Navigation_PropertyChanged_WhileActive;
-    NoteViewModels = new(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
+    NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
     var notes = await NoteService.GetNotesAsync(Navigation);
     foreach (var note in notes)
     {
@@ -155,9 +307,8 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   {
     switch (e.PropertyName)
     {
-      case nameof(NavigationUserLeafNode.NoteSortKey) or nameof(NavigationUserLeafNode.NoteSortDirection):
-        var comparer = GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection);
-        NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
+      case nameof(NavigationUserLeafNode.NoteSortKey):
+        NoteSortKey = Navigation.NoteSortKey ?? (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey);
         break;
     }
   }

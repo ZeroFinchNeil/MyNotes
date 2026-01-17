@@ -200,15 +200,15 @@
             <SplitButton>
               <Border Width="24"
                       Height="24"
-                      CornerRadius="{ThemeResource ControlCornerRadius}" 
-                      Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.NoteBackground), Mode=OneWay}"/>
+                      CornerRadius="{ThemeResource ControlCornerRadius}"
+                      Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.NoteBackground), Mode=OneWay}" />
               <SplitButton.Flyout>
                 <Flyout Placement="BottomEdgeAlignedRight"
                         ShouldConstrainToRootBounds="False">
                   <StackPanel>
                     <ColorPicker IsAlphaEnabled="True"
                                  IsMoreButtonVisible="True"
-                                 Color="{x:Bind ViewModel.NoteBackground, Mode=TwoWay}"/>
+                                 Color="{x:Bind ViewModel.NoteBackground, Mode=TwoWay}" />
                   </StackPanel>
                 </Flyout>
               </SplitButton.Flyout>
@@ -279,9 +279,145 @@
             <ComboBox SelectedIndex="{x:Bind ViewModel.GroupIconBadge, Mode=TwoWay}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeNoneComboBoxItem" />
-              <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeFolderComboBoxItem"/>
+              <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeFolderComboBoxItem" />
             </ComboBox>
           </controls:SettingsCard>
+
+          <!-- Note Sort Order SettingsExpander -->
+          <controls:SettingsExpander Header="노트 목록의 정렬 기준"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xE8CB;}">
+            <controls:SettingsExpander.Items>
+              <controls:SettingsCard Header="기본 정렬 기준">
+                <Grid ColumnSpacing="12"
+                      RowSpacing="4">
+                  <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                  </Grid.RowDefinitions>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Row="0"
+                             Grid.Column="0"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="Order by" />
+                  <TextBlock Grid.Row="1"
+                             Grid.Column="0"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="Direction" />
+                  <ComboBox Grid.Row="0"
+                            Grid.Column="1"
+                            SelectedIndex="{x:Bind ViewModel.NoteSortKey, Mode=TwoWay}"
+                            MinWidth="140">
+                    <ComboBoxItem Content="Created" />
+                    <ComboBoxItem Content="Modified" />
+                    <ComboBoxItem Content="Title" />
+                  </ComboBox>
+
+                  <ComboBox Grid.Row="1"
+                            Grid.Column="1"
+                            SelectedIndex="{x:Bind ViewModel.NoteSortDirection, Mode=TwoWay}"
+                            MinWidth="140">
+                    <ComboBoxItem Content="Ascending" />
+                    <ComboBoxItem Content="Descending" />
+                  </ComboBox>
+                </Grid>
+              </controls:SettingsCard>
+
+              <controls:SettingsCard Header="목록별 정렬 기준 활성화"
+                                     Description="목록마다 개별적으로 정렬 기준을 지정합니다. 비활성화 시 모든 목록이 기본 정렬 기준으로 설정됩니다.">
+                <ToggleSwitch IsOn="{x:Bind ViewModel.AllowCustomNoteSortOrder, Mode=TwoWay}" />
+              </controls:SettingsCard>
+
+              <controls:SettingsCard Header="모든 목록의 정렬 기준 초기화"
+                                     Description="개별 적용된 정렬 기준을 모두 기본값으로 초기화합니다.">
+                <Button Content="초기화" />
+              </controls:SettingsCard>
+            </controls:SettingsExpander.Items>
+          </controls:SettingsExpander>
+
+          <!-- Preview Layout Style SettingsExpander -->
+          <controls:SettingsExpander Header="노트 목록의 미리보기 레이아웃 스타일"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xF246;}">
+            <controls:SettingsExpander.Items>
+              <controls:SettingsCard Header="기본 레이아웃 스타일">
+                <Grid ColumnSpacing="12"
+                      RowSpacing="4">
+                  <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                  </Grid.RowDefinitions>
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock Grid.Row="0"
+                             Grid.Column="0"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="Layout" />
+                  <TextBlock Grid.Row="1"
+                             Grid.Column="0"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="Size" />
+                  <TextBlock Grid.Row="2"
+                             Grid.Column="0"
+                             HorizontalAlignment="Right"
+                             VerticalAlignment="Center"
+                             Text="Ratio" />
+
+                  <ComboBox Grid.Row="0"
+                            Grid.Column="1"
+                            SelectedIndex="{x:Bind ViewModel.PreviewLayoutType, Mode=TwoWay}"
+                            MinWidth="140">
+                    <ComboBoxItem Content="Grid" />
+                    <ComboBoxItem Content="List" />
+                  </ComboBox>
+
+                  <ComboBox Grid.Row="1"
+                            Grid.Column="1"
+                            SelectedIndex="{x:Bind ViewModel.PreviewTileSize, Mode=TwoWay}"
+                            MinWidth="140">
+                    <ComboBoxItem Content="Smallest" />
+                    <ComboBoxItem Content="Smaller" />
+                    <ComboBoxItem Content="Small" />
+                    <ComboBoxItem Content="Medium" />
+                    <ComboBoxItem Content="Large" />
+                    <ComboBoxItem Content="Larger" />
+                    <ComboBoxItem Content="Largest" />
+                  </ComboBox>
+
+                  <ComboBox Grid.Row="2"
+                            Grid.Column="1"
+                            SelectedIndex="{x:Bind ViewModel.PreviewTileRatio, Mode=TwoWay}"
+                            MinWidth="140">
+                    <ComboBoxItem Content="Shorter" />
+                    <ComboBoxItem Content="Short" />
+                    <ComboBoxItem Content="Square" />
+                    <ComboBoxItem Content="Tall" />
+                    <ComboBoxItem Content="Taller" />
+                  </ComboBox>
+                </Grid>
+              </controls:SettingsCard>
+
+              <controls:SettingsCard Header="목록별 미리보기 레이아웃 스타일 활성화"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xE710;}"
+                                     Description="목록마다 개별적으로 레이아웃 스타일을 지정합니다. 비활성화 시 모든 목록이 기본 레이아웃 스타일로 설정됩니다.">
+                <ToggleSwitch IsOn="{x:Bind ViewModel.AllowCustomPreviewLayout, Mode=TwoWay}" />
+              </controls:SettingsCard>
+
+              <controls:SettingsCard Header="모든 목록의 미리보기 레이아웃 스타일 초기화"
+                                     HeaderIcon="{ui:FontIcon Glyph=&#xE72C;}"
+                                     Description="개별 적용된 미리보기 레이아웃 스타일을 모두 기본값으로 초기화합니다.">
+                <Button Content="초기화" />
+              </controls:SettingsCard>
+            </controls:SettingsExpander.Items>
+          </controls:SettingsExpander>
         </StackPanel>
         <!--#endregion -->
 
@@ -311,7 +447,7 @@
             <controls:SettingsExpander.HeaderIcon>
               <ImageIcon Source="/Assets/AppIcon.ico" />
             </controls:SettingsExpander.HeaderIcon>
-            
+
             <TextBlock Text="v1.0.0" />
             <controls:SettingsExpander.Items>
               <controls:SettingsCard Header="About" />

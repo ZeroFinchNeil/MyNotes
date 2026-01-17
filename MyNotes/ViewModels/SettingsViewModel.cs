@@ -38,6 +38,15 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
 
     ShowNoteCount = SettingsService.Load(SettingsDescriptors.ShowNoteCount);
     _groupIconBadge = SettingsService.Load(SettingsDescriptors.GroupIconBadge);
+
+    AllowCustomNoteSortOrder = SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder);
+    NoteSortKey = SettingsService.Load(SettingsDescriptors.NoteSortKey);
+    NoteSortDirection = SettingsService.Load(SettingsDescriptors.NoteSortDirection);
+
+    AllowCustomPreviewLayout = SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout);
+    PreviewLayoutType = SettingsService.Load(SettingsDescriptors.PreviewLayoutType);
+    PreviewTileSize = SettingsService.Load(SettingsDescriptors.PreviewTileSize);
+    PreviewTileRatio = SettingsService.Load(SettingsDescriptors.PreviewTileRatio);
   }
 
   #region Appearance
@@ -213,6 +222,83 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
         SetProperty(ref _groupIconBadge, value);
         SettingsService.Save(SettingsDescriptors.GroupIconBadge, value);
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>((GroupIconBadge)value), MessageTokens.ChangeNavigationViewModelIconImageToken);
+      }
+    }
+  }
+
+  public bool AllowCustomNoteSortOrder
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public int NoteSortKey
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.NoteSortKey, value);
+      }
+    }
+  }
+
+  public int NoteSortDirection
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.NoteSortDirection, value);
+      }
+    }
+  }
+
+  public bool AllowCustomPreviewLayout
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public int PreviewLayoutType
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.PreviewLayoutType, value);
+      }
+    }
+  }
+
+  public int PreviewTileSize
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.PreviewTileSize, value);
+      }
+    }
+  }
+
+  public int PreviewTileRatio
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.PreviewTileRatio, value);
       }
     }
   }

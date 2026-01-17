@@ -8,7 +8,6 @@ using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Notes;
-using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -34,7 +33,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
           e.PositionY = note.Position.Y;
         }
       },
-      { nameof(Note.IsBookmarked), note =>e => e.IsBookmarked = note.IsBookmarked },
+      { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
       { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
     });
 
@@ -55,7 +54,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
     NoteService = noteService;
 
     Note = note;
-    SetCommand();
 
     _notePropertyDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
 
@@ -163,16 +161,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
 internal sealed partial class NoteViewModel : ViewModelBase
 {
-  public Command? SaveCommand { get; private set; }
   public Command<NoteViewModel> OpenWindowCommand => NoteViewModelCommandService.OpenWindowCommand;
   public Command<SourceTargetPair<NoteViewModel, NavigationId>> MoveToListCommand => NoteViewModelCommandService.MoveToListCommand;
-
-  private void SetCommand()
-  {
-    SaveCommand = new(
-      actionToExecute: () =>
-      {
-        Console.WriteLine("{0}: {1}", "Save Note.", "");
-      });
-  }
 }

@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
 using MyNotes.Common.Structures;
-using MyNotes.Constants;
+using MyNotes.Helpers;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -15,7 +15,6 @@ namespace MyNotes.Services.Navigations;
 internal sealed partial class NavigationService : IDisposable
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
-  private readonly SettingsService SettingsService;
 
   public ImmutableList<INavigation> PrimaryCoreNavigations { get; } = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
   public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
@@ -26,10 +25,9 @@ internal sealed partial class NavigationService : IDisposable
 
   public event TypedEventHandler<object, INavigation>? CurrentNavigationChanged;
 
-  public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService)
+  public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory)
   {
     DbContextFactory = dbContextFactory;
-    SettingsService = settingsService;
 
     BuildNavigationTask = BuildNavigationTree();
   }
@@ -71,11 +69,11 @@ internal sealed partial class NavigationService : IDisposable
         Icon = (Icon)e.Icon,
         Title = e.Title,
         Position = e.Position,
-        NoteSortKey = (NoteSortKey)(e.NoteSortKey ?? SettingsService.Load(SettingsDescriptors.NoteSortKey)),
-        NoteSortDirection = (SortDirection)(e.NoteSortDirection ?? SettingsService.Load(SettingsDescriptors.NoteSortDirection)),
-        PreviewLayoutType = (PreviewLayoutType)(e.PreviewLayoutType?? SettingsService.Load(SettingsDescriptors.PreviewLayoutType)),
-        PreviewTileSize = (PreviewTileSize)(e.PreviewTileSize ?? SettingsService.Load(SettingsDescriptors.PreviewTileSize)),
-        PreviewTileRatio = (PreviewTileRatio)(e.PreviewTileRatio ?? SettingsService.Load(SettingsDescriptors.PreviewTileRatio))
+        NoteSortKey = e.NoteSortKey.AsEnum<NoteSortKey>(),
+        NoteSortDirection = e.NoteSortDirection.AsEnum<SortDirection>(),
+        PreviewLayoutType = e.PreviewLayoutType.AsEnum<PreviewLayoutType>(),
+        PreviewTileSize = e.PreviewTileSize.AsEnum<PreviewTileSize>(),
+        PreviewTileRatio = e.PreviewTileRatio.AsEnum<PreviewTileRatio>(),
       })
      .ToDictionary(n => n.Id.Value);
 
@@ -147,23 +145,23 @@ internal sealed partial class NavigationService : IDisposable
           break;
         case nameof(NavigationUserLeafNode.NoteSortKey):
           if (node is NavigationUserLeafNode leafNodeNSK)
-            await UpdateNavigationEntityAsync(leafNodeNSK, entity => entity.NoteSortKey = (int)leafNodeNSK.NoteSortKey);
+            await UpdateNavigationEntityAsync(leafNodeNSK, entity => entity.NoteSortKey = leafNodeNSK.NoteSortKey.AsInt());
           break;
         case nameof(NavigationUserLeafNode.NoteSortDirection):
           if (node is NavigationUserLeafNode leafNodeNSD)
-            await UpdateNavigationEntityAsync(leafNodeNSD, entity => entity.NoteSortDirection = (int)leafNodeNSD.NoteSortDirection);
+            await UpdateNavigationEntityAsync(leafNodeNSD, entity => entity.NoteSortDirection = leafNodeNSD.NoteSortDirection.AsInt());
           break;
         case nameof(NavigationUserLeafNode.PreviewLayoutType):
           if (node is NavigationUserLeafNode leafNodePLT)
-            await UpdateNavigationEntityAsync(leafNodePLT, entity => entity.PreviewLayoutType = (int)leafNodePLT.PreviewLayoutType);
+            await UpdateNavigationEntityAsync(leafNodePLT, entity => entity.PreviewLayoutType = leafNodePLT.PreviewLayoutType.AsInt());
           break;
         case nameof(NavigationUserLeafNode.PreviewTileSize):
           if (node is NavigationUserLeafNode leafNodePTS)
-            await UpdateNavigationEntityAsync(leafNodePTS, entity => entity.PreviewTileSize = (int)leafNodePTS.PreviewTileSize);
+            await UpdateNavigationEntityAsync(leafNodePTS, entity => entity.PreviewTileSize = leafNodePTS.PreviewTileSize.AsInt());
           break;
         case nameof(NavigationUserLeafNode.PreviewTileRatio):
           if (node is NavigationUserLeafNode leafNodePTR)
-            await UpdateNavigationEntityAsync(leafNodePTR, entity => entity.PreviewTileRatio = (int)leafNodePTR.PreviewTileRatio);
+            await UpdateNavigationEntityAsync(leafNodePTR, entity => entity.PreviewTileRatio = leafNodePTR.PreviewTileRatio.AsInt());
           break;
       }
     }
@@ -243,11 +241,6 @@ internal sealed partial class NavigationService : IDisposable
         Icon = icon,
         Title = title,
         Position = int.MaxValue,
-        NoteSortKey = (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey),
-        NoteSortDirection = (SortDirection)SettingsService.Load(SettingsDescriptors.NoteSortDirection),
-        PreviewLayoutType = (PreviewLayoutType)SettingsService.Load(SettingsDescriptors.PreviewLayoutType),
-        PreviewTileSize = (PreviewTileSize)SettingsService.Load(SettingsDescriptors.PreviewTileSize),
-        PreviewTileRatio = (PreviewTileRatio)SettingsService.Load(SettingsDescriptors.PreviewTileRatio)
       };
 
     await using (var context = await DbContextFactory.CreateDbContextAsync())

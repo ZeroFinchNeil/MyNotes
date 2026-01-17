@@ -26,6 +26,7 @@ public sealed partial class UserListPage : Page
       ViewModel = provider.Resolve(navigation) as UserLeafNavigationViewModel;
       if (ViewModel is not null)
       {
+        ViewModel.LoadSortOrderAndPreviewStyle();
         ChangePreviewLayout();
         await ViewModel.LoadNoteViewModels();
         this.Unloaded += UserListPage_Unloaded;
@@ -85,24 +86,9 @@ public sealed partial class UserListPage : Page
   private bool Equals(SortDirection key1, SortDirection key2) => key1 == key2;
   private Visibility VisibleWhenEquals(PreviewLayoutType key1, PreviewLayoutType key2) => key1 == key2 ? Visibility.Visible : Visibility.Collapsed;
 
-  private static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
-  {
-    { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },
-    { PreviewLayoutType.List, (int)PreviewLayoutType.List },
-  };
-  private IReadOnlyBijectiveMap<PreviewLayoutType, int> PreviewLayoutTypeMap => _previewLayoutTypeMap;
-
-  private PreviewLayoutType SelectedIndexToPreviewLayoutType(int index)
-  {
-    var previewLayoutType = PreviewLayoutTypeMap.LeftFromRight(index);
-    ViewModel?.Navigation.PreviewLayoutType = previewLayoutType;
-    ChangePreviewLayout();
-    return previewLayoutType;
-  }
-
   private void ChangePreviewLayout()
   {
-    PreviewLayoutType layoutType = ViewModel?.Navigation.PreviewLayoutType ?? PreviewLayoutType.Grid;
+    PreviewLayoutType layoutType = ViewModel?.PreviewLayoutType ?? PreviewLayoutType.Grid;
     if (layoutType is PreviewLayoutType.Grid)
     {
       UserListPage_NotesListGridView.ItemsPanel = Resources["UserListPage_GridViewItemsPanel_LayoutGrid"] as ItemsPanelTemplate;
@@ -116,49 +102,11 @@ public sealed partial class UserListPage : Page
     ChangePreviewTile();
   }
 
-  private static readonly BijectiveMap<PreviewTileSize, double> _previewTileSizeMap = new()
-  {
-    { PreviewTileSize.Smallest, 120 },
-    { PreviewTileSize.Smaller, 160 },
-    { PreviewTileSize.Small, 200 },
-    { PreviewTileSize.Medium, 240 },
-    { PreviewTileSize.Large, 280 },
-    { PreviewTileSize.Larger, 320 },
-    { PreviewTileSize.Largest, 360 },
-  };
-  private IReadOnlyBijectiveMap<PreviewTileSize, double> PreviewTileSizeMap => _previewTileSizeMap;
-
-  private PreviewTileSize SliderValueToPreviewTileSize(double value)
-  {
-    var previewTileSize = PreviewTileSizeMap.LeftFromRight(value);
-    ViewModel?.Navigation.PreviewTileSize = previewTileSize;
-    ChangePreviewTile();
-    return previewTileSize;
-  }
-
-  private readonly BijectiveMap<PreviewTileRatio, double> _previewTileRatioMap = new()
-  {
-    { PreviewTileRatio.Shorter, 0.50 },
-    { PreviewTileRatio.Short, 0.75 },
-    { PreviewTileRatio.Square, 1.00 },
-    { PreviewTileRatio.Tall, 1.25 },
-    { PreviewTileRatio.Taller, 1.50 },
-  };
-  private IReadOnlyBijectiveMap<PreviewTileRatio, double> PreviewTileRatioMap => _previewTileRatioMap;
-
-  private PreviewTileRatio SliderValueToPreviewTileRatio(double value)
-  {
-    var previewTileRatio = PreviewTileRatioMap.LeftFromRight(value);
-    ViewModel?.Navigation.PreviewTileRatio = previewTileRatio;
-    ChangePreviewTile();
-    return previewTileRatio;
-  }
-
   private void ChangePreviewTile()
   {
-    PreviewTileSize tileSize = ViewModel?.Navigation.PreviewTileSize ?? PreviewTileSize.Medium;
-    PreviewTileRatio tileRatio = ViewModel?.Navigation.PreviewTileRatio ?? PreviewTileRatio.Square;
-    PreviewLayoutType layoutType = ViewModel?.Navigation.PreviewLayoutType ?? PreviewLayoutType.Grid;
+    PreviewTileSize tileSize = ViewModel?.PreviewTileSize ?? PreviewTileSize.Medium;
+    PreviewTileRatio tileRatio = ViewModel?.PreviewTileRatio ?? PreviewTileRatio.Square;
+    PreviewLayoutType layoutType = ViewModel?.PreviewLayoutType ?? PreviewLayoutType.Grid;
 
     var size = PreviewTileSizeMap.RightFromLeft(tileSize);
     var ratio = PreviewTileRatioMap.RightFromLeft(tileRatio);
@@ -178,5 +126,60 @@ public sealed partial class UserListPage : Page
 
       UserListPage_NotesListGridView.ItemContainerStyle = style;
     }
+  }
+
+
+  private static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
+  {
+    { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },
+    { PreviewLayoutType.List, (int)PreviewLayoutType.List },
+  };
+  private IReadOnlyBijectiveMap<PreviewLayoutType, int> PreviewLayoutTypeMap => _previewLayoutTypeMap;
+
+  private static readonly BijectiveMap<PreviewTileSize, double> _previewTileSizeMap = new()
+  {
+    { PreviewTileSize.Smallest, 120 },
+    { PreviewTileSize.Smaller, 160 },
+    { PreviewTileSize.Small, 200 },
+    { PreviewTileSize.Medium, 240 },
+    { PreviewTileSize.Large, 280 },
+    { PreviewTileSize.Larger, 320 },
+    { PreviewTileSize.Largest, 360 },
+  };
+  private IReadOnlyBijectiveMap<PreviewTileSize, double> PreviewTileSizeMap => _previewTileSizeMap;
+
+  private readonly BijectiveMap<PreviewTileRatio, double> _previewTileRatioMap = new()
+  {
+    { PreviewTileRatio.Shorter, 0.50 },
+    { PreviewTileRatio.Short, 0.75 },
+    { PreviewTileRatio.Square, 1.00 },
+    { PreviewTileRatio.Tall, 1.25 },
+    { PreviewTileRatio.Taller, 1.50 },
+  };
+  private IReadOnlyBijectiveMap<PreviewTileRatio, double> PreviewTileRatioMap => _previewTileRatioMap;
+
+  // TwoWay Binding BindBack
+  private PreviewLayoutType SelectedIndexToPreviewLayoutType(int index)
+  {
+    var previewLayoutType = PreviewLayoutTypeMap.LeftFromRight(index);
+    ViewModel?.PreviewLayoutType = previewLayoutType;
+    ChangePreviewLayout();
+    return previewLayoutType;
+  }
+
+  private PreviewTileSize SliderValueToPreviewTileSize(double value)
+  {
+    var previewTileSize = PreviewTileSizeMap.LeftFromRight(value);
+    ViewModel?.PreviewTileSize = previewTileSize;
+    ChangePreviewTile();
+    return previewTileSize;
+  }
+
+  private PreviewTileRatio SliderValueToPreviewTileRatio(double value)
+  {
+    var previewTileRatio = PreviewTileRatioMap.LeftFromRight(value);
+    ViewModel?.PreviewTileRatio = previewTileRatio;
+    ChangePreviewTile();
+    return previewTileRatio;
   }
 }
