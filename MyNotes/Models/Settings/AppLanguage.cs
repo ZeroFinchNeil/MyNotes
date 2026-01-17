@@ -9,6 +9,7 @@ namespace MyNotes.Models.Settings;
 internal sealed record AppLanguage
 {
   public static SortedList<string, CultureInfo> ManifestLanguages { get; } = new();
+
   static AppLanguage()
   {
     ManifestLanguages.Add(string.Empty, new CultureInfo(string.Empty));

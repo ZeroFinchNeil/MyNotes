@@ -264,7 +264,6 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   public async Task LoadNoteViewModels()
   {
-    Navigation.PropertyChanged += Navigation_PropertyChanged_WhileActive;
     NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
     var notes = await NoteService.GetNotesAsync(Navigation);
     foreach (var note in notes)
@@ -276,8 +275,6 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   public void UnloadNoteViewModels()
   {
-    Navigation.PropertyChanged -= Navigation_PropertyChanged_WhileActive;
-
     if (NoteViewModels is null)
       return;
 
@@ -300,16 +297,6 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
         var viewmodel = NoteViewModelProvider.Resolve(note);
         NoteViewModels?.ReorderItem(viewmodel);
       }
-    }
-  }
-
-  private async void Navigation_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
-  {
-    switch (e.PropertyName)
-    {
-      case nameof(NavigationUserLeafNode.NoteSortKey):
-        NoteSortKey = Navigation.NoteSortKey ?? (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey);
-        break;
     }
   }
 

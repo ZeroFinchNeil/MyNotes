@@ -58,13 +58,12 @@ public sealed partial class UserListPage : Page
   {
     if (sender is RadioMenuFlyoutItem item)
     {
-      ViewModel?.Navigation.NoteSortKey = item.Tag switch
+      ViewModel?.NoteSortKey = item.Tag switch
       {
         int intValue => (NoteSortKey)intValue,
         NoteSortKey noteSortKey => noteSortKey,
         _ => throw new ArgumentException("Type mismatch")
       };
-      UserListPage_NotesListGridView.UpdateLayout();
     }
   }
 
@@ -72,13 +71,12 @@ public sealed partial class UserListPage : Page
   {
     if (sender is RadioMenuFlyoutItem item)
     {
-      ViewModel?.Navigation.NoteSortDirection = item.Tag switch
+      ViewModel?.NoteSortDirection = item.Tag switch
       {
         int intValue => (SortDirection)intValue,
         SortDirection sortDirection => sortDirection,
         _ => throw new ArgumentException("Type mismatch")
       };
-      UserListPage_NotesListGridView.UpdateLayout();
     }
   }
 

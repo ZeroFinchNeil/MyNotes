@@ -8,13 +8,15 @@ namespace MyNotes.Views.Navigations;
 
 internal sealed partial class SettingsPage : Page
 {
+  private readonly IServiceScope ServiceScope;
   private readonly SettingsViewModel ViewModel;
   private readonly DispatcherTimer _startupTaskTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
 
   public SettingsPage()
   {
     InitializeComponent();
-    ViewModel = App.Instance.Services.GetRequiredService<SettingsViewModel>();
+    ServiceScope = App.Instance.Services.CreateScope();
+    ViewModel = ServiceScope.ServiceProvider.GetRequiredService<SettingsViewModel>();
 
     _ = CheckStartupState();
     _startupTaskTimer.Tick += StartupTaskTimer_Tick;
@@ -39,8 +41,10 @@ internal sealed partial class SettingsPage : Page
     Bindings.StopTracking();
 
     // StartupTaskTimer 정지 및 해제
-    _startupTaskTimer.Start();
+    _startupTaskTimer.Stop();
     _startupTaskTimer.Tick -= StartupTaskTimer_Tick;
+
+    ServiceScope.Dispose();
   }
 
   private bool _preventToggleChanging = false;

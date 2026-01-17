@@ -51,7 +51,7 @@ public sealed partial class App : Application, IDisposable
 
     // ViewModel
     services.AddScoped<MainViewModel>();
-    services.AddSingleton<SettingsViewModel>();
+    services.AddScoped<SettingsViewModel>();
 
     services.AddSingleton<NavigationViewModelProvider>();
     services.AddSingleton<DialogViewModelFactory>();

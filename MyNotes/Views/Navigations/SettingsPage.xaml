@@ -312,8 +312,8 @@
                             Grid.Column="1"
                             SelectedIndex="{x:Bind ViewModel.NoteSortKey, Mode=TwoWay}"
                             MinWidth="140">
-                    <ComboBoxItem Content="Created" />
                     <ComboBoxItem Content="Modified" />
+                    <ComboBoxItem Content="Created" />
                     <ComboBoxItem Content="Title" />
                   </ComboBox>
 

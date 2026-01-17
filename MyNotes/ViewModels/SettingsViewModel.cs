@@ -14,18 +14,16 @@ using Windows.System.UserProfile;
 
 namespace MyNotes.ViewModels;
 
-internal sealed partial class SettingsViewModel : NavigationPageViewModel
+internal sealed partial class SettingsViewModel : ViewModelBase
 {
   private readonly SettingsService SettingsService;
 
   public SettingsViewModel(SettingsService settingsService)
   {
     SettingsService = settingsService;
-    _initalLanguage = new(SettingsService.Load(SettingsDescriptors.AppLanguage));
 
     AppTheme = SettingsService.Load(SettingsDescriptors.AppTheme);
-    AppLanguage = _initalLanguage;
-
+    AppLanguage = new AppLanguage(SettingsService.Load(SettingsDescriptors.AppLanguage));
     InitialPageType = SettingsService.Load(SettingsDescriptors.InitialPageType);
     InitialPageId = SettingsService.Load(SettingsDescriptors.InitialPageId);
 
@@ -47,6 +45,56 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
     PreviewLayoutType = SettingsService.Load(SettingsDescriptors.PreviewLayoutType);
     PreviewTileSize = SettingsService.Load(SettingsDescriptors.PreviewTileSize);
     PreviewTileRatio = SettingsService.Load(SettingsDescriptors.PreviewTileRatio);
+
+    SettingsService.SettingsChanged += SettingsService_SettingsChanged;
+  }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (_disposed)
+      return;
+
+    if (disposing)
+    {
+      SettingsService.SettingsChanged -= SettingsService_SettingsChanged;
+    }
+
+    _disposed = true;
+  }
+
+  private static readonly Dictionary<string, Action<SettingsViewModel, SettingsChangedEventArgs>> SettingsMap = new()
+  {
+    { SettingsDescriptors.AppTheme.Key, (v, e) => v.AppTheme = (int)e.NewSettingsValue },
+    { SettingsDescriptors.AppLanguage.Key, (v, e) => v.AppLanguage = new AppLanguage((string)e.NewSettingsValue) },
+    { SettingsDescriptors.InitialPageType.Key, (v, e) => v.InitialPageType = (int)e.NewSettingsValue },
+    { SettingsDescriptors.InitialPageId.Key, (v, e) => v.InitialPageId = (Guid)e.NewSettingsValue },
+    { SettingsDescriptors.NoteBackground.Key, (v, e) => v.NoteBackground = ((string)e.NewSettingsValue).ToColor() },
+    { SettingsDescriptors.NoteBackdrop.Key, (v, e) => v.NoteBackdrop = (int)e.NewSettingsValue },
+    { SettingsDescriptors.NoteSize.Key, (v, e) =>
+      {
+        if(e.NewSettingsValue is SizeInt32 size)
+        {
+          v.NoteWidth = size.Width;
+          v.NoteHeight = size.Height;
+        }
+      }},
+    { SettingsDescriptors.ShowNoteCount.Key, (v, e) => v.ShowNoteCount = (bool)e.NewSettingsValue },
+    { SettingsDescriptors.GroupIconBadge.Key, (v, e) => v.GroupIconBadge = (int)e.NewSettingsValue },
+    { SettingsDescriptors.AllowCustomNoteSortOrder.Key, (v, e) => v.AllowCustomNoteSortOrder = (bool)e.NewSettingsValue },
+    { SettingsDescriptors.NoteSortKey.Key, (v, e) => v.NoteSortKey = (int)e.NewSettingsValue },
+    { SettingsDescriptors.NoteSortDirection.Key, (v, e) => v.NoteSortDirection = (int)e.NewSettingsValue },
+    { SettingsDescriptors.AllowCustomPreviewLayout.Key, (v, e) => v.AllowCustomPreviewLayout = (bool)e.NewSettingsValue },
+    { SettingsDescriptors.PreviewLayoutType.Key, (v, e) => v.PreviewLayoutType = (int)e.NewSettingsValue },
+    { SettingsDescriptors.PreviewTileSize.Key, (v, e) => v.PreviewTileSize = (int)e.NewSettingsValue },
+    { SettingsDescriptors.PreviewTileRatio.Key, (v, e) => v.PreviewTileRatio = (int)e.NewSettingsValue },
+  };
+
+  private void SettingsService_SettingsChanged(object? sender, SettingsChangedEventArgs e)
+  {
+    if (SettingsMap.TryGetValue(e.SettingsKey, out var action))
+    {
+      action.Invoke(this, e);
+    }
   }
 
   #region Appearance
@@ -71,8 +119,7 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
   }
 
   public List<AppLanguage> AppLanguages { get; } = new(AppLanguage.ManifestLanguages.Keys.Select(lang => new AppLanguage(lang)));
-
-  private readonly AppLanguage _initalLanguage;
+  private static readonly AppLanguage _initalLanguage = new(ApplicationLanguages.Languages[0]);
 
   public AppLanguage AppLanguage
   {
@@ -229,7 +276,14 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
   public bool AllowCustomNoteSortOrder
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.AllowCustomNoteSortOrder, value);
+      }
+    }
   }
 
   public int NoteSortKey
@@ -261,7 +315,14 @@ internal sealed partial class SettingsViewModel : NavigationPageViewModel
   public bool AllowCustomPreviewLayout
   {
     get;
-    set => SetProperty(ref field, value);
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+        SettingsService.Save(SettingsDescriptors.AllowCustomPreviewLayout, value);
+      }
+    }
   }
 
   public int PreviewLayoutType
