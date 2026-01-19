@@ -209,8 +209,11 @@ internal sealed partial class MainPage : Page
     if (_preventNavigation)
       return;
 
-    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
+    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation } navigationViewModel)
     {
+      if (ViewModel.CurrentNavigationViewModel == navigationViewModel || navigation is NavigationUserCompositeNode)
+        return;
+
       MainPage_NavigationFrame.Navigate(navigation.PageType, navigation);
       ViewModel.AddListCommand?.RaiseCanExecuteChanged();
       ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();

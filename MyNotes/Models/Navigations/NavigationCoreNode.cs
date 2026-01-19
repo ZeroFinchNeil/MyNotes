@@ -47,7 +47,7 @@ internal sealed class NavigationBookmarks : NavigationCoreNode
   public static NavigationBookmarks Instance => field ??= new()
   {
     Id = NavigationId.Bookmarks,
-    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Bookmarks } },
+    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Favorite } },
     Title = LocalizedStrings.NavigationBookmarksTitle,
   };
 
