@@ -159,4 +159,7 @@
   <data name="PaneFooter_AddItemAtSelectedMenuFlyoutItem.Text" xml:space="preserve">
     <value>at selected position</value>
   </data>
+  <data name="NavigationUserNode_SetAsStartPageMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Set as start page</value>
+  </data>
 </root>

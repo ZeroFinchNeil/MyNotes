@@ -13,7 +13,7 @@ internal sealed partial class CreateUserNavigationDialog : ContentDialog
     InitializeComponent();
     ViewModel = viewmodel;
 
-    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
+    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNodeDisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
 
     CreateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.CreateUserNavigationDialogTitleText, nodeType);
 

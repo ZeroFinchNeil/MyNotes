@@ -159,4 +159,7 @@
   <data name="PaneFooter_AddItemAtSelectedMenuFlyoutItem.Text" xml:space="preserve">
     <value>선택된 위치에</value>
   </data>
+  <data name="NavigationUserNode_SetAsStartPageMenuFlyoutItem.Text" xml:space="preserve">
+    <value>시작 페이지로 설정</value>
+  </data>
 </root>

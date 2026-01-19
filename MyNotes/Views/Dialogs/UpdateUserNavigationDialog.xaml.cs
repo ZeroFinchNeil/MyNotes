@@ -12,7 +12,7 @@ internal sealed partial class UpdateUserNavigationDialog : ContentDialog
     InitializeComponent();
     ViewModel = viewmodel;
 
-    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNode_DisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
+    string nodeType = (viewmodel.IsCompositeNode ? LocalizedStrings.NavigationUserCompositeNodeDisplayName : LocalizedStrings.NavigationUserLeafNodeDisplayName).ToLower();
 
     UpdateUserNavigationDialog_ContentDialog.Title = string.Format(LocalizedStrings.UpdateUserNavigationDialogTitleText, nodeType);
 

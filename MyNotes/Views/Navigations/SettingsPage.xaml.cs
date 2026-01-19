@@ -81,7 +81,7 @@ internal sealed partial class SettingsPage : Page
     }
   }
 
-  private void SettingsPage_Appearance_RelaunchButton_Click(object sender, RoutedEventArgs e)
+  private void SettingsPage_Appearance_RestartButton_Click(object sender, RoutedEventArgs e)
   {
     AppInstance.Restart(string.Empty);
   }

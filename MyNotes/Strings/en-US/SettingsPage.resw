@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="About_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>About</value>
-  </data>
   <data name="Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
     <value>Dark</value>
   </data>
@@ -127,7 +124,7 @@
     <value>Use system settings</value>
   </data>
   <data name="Appearance_LanguageInfoBar.Message" xml:space="preserve">
-    <value>App need to be relaunced in order to apply your new display language.</value>
+    <value>Some elements may not reflect the selected language until you restart the app.</value>
   </data>
   <data name="Appearance_LanguageSettingsCard.Description" xml:space="preserve">
     <value>Selects a display language for this app.</value>
@@ -138,14 +135,14 @@
   <data name="Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
     <value>Light</value>
   </data>
-  <data name="Appearance_RelaunchButton.Content" xml:space="preserve">
-    <value>Relaunch</value>
+  <data name="Appearance_RestartButton.Content" xml:space="preserve">
+    <value>Restart</value>
   </data>
   <data name="Appearance_SubTitleTextBlock.Text" xml:space="preserve">
     <value>Appearence</value>
   </data>
   <data name="Appearance_ThemeSettingsCard.Description" xml:space="preserve">
-    <value>Select which app theme to display.</value>
+    <value>Selects which app theme to display.</value>
   </data>
   <data name="Appearance_ThemeSettingsCard.Header" xml:space="preserve">
     <value>App theme</value>
@@ -160,13 +157,16 @@
     <value>Startup task registration is disabled by the user.</value>
   </data>
   <data name="General_StartupSettingsCard.Description" xml:space="preserve">
-    <value>Run app at system startup.</value>
+    <value>Automatically launch app when you log in to Windows.</value>
   </data>
   <data name="General_StartupSettingsCard.Header" xml:space="preserve">
     <value>Run app at system startup</value>
   </data>
   <data name="General_SubTitleTextBlock.Text" xml:space="preserve">
     <value>General</value>
+  </data>
+  <data name="ListAndGroup_DefaultSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>Default sorting options</value>
   </data>
   <data name="ListAndGroup_GroupIconBadgeFolderComboBoxItem.Content" xml:space="preserve">
     <value>Folder</value>
@@ -177,11 +177,29 @@
   <data name="ListAndGroup_GroupIconBadgeSettingsCard.Header" xml:space="preserve">
     <value>Group icon badge</value>
   </data>
+  <data name="ListAndGroup_NoteSortKeyModifiedComboBoxItem.Content" xml:space="preserve">
+    <value>Modified</value>
+  </data>
+  <data name="ListAndGroup_NoteSortKeyCreatedComboBoxItem.Content" xml:space="preserve">
+    <value>Created</value>
+  </data>
+  <data name="ListAndGroup_NoteSortKeyTitleComboBoxItem.Content" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="ListAndGroup_OrderByTextBlock.Text" xml:space="preserve">
+    <value>Order by</value>
+  </data>
   <data name="ListAndGroup_ShowNoteCountSettingsCard.Description" xml:space="preserve">
-    <value>Display the number of notes on the list.</value>
+    <value>Displays the number of notes on the list.</value>
   </data>
   <data name="ListAndGroup_ShowNoteCountSettingsCard.Header" xml:space="preserve">
     <value>Show note count</value>
+  </data>
+  <data name="ListAndGroup_SortByTextBlock.Text" xml:space="preserve">
+    <value>Sort by</value>
+  </data>
+  <data name="ListAndGroup_SortingOptionsSettingsExpander.Header" xml:space="preserve">
+    <value>Note sorting options for lists</value>
   </data>
   <data name="ListAndGroup_SubTitleTextBlock.Text" xml:space="preserve">
     <value>List and group</value>
@@ -196,13 +214,13 @@
     <value>None</value>
   </data>
   <data name="Note_BackdropSettingsCard.Description" xml:space="preserve">
-    <value>Change the backdrop material of a new note.</value>
+    <value>Changes the backdrop material of a new note.</value>
   </data>
   <data name="Note_BackdropSettingsCard.Header" xml:space="preserve">
     <value>Backdrop material</value>
   </data>
   <data name="Note_BackgroundSettingsCard.Description" xml:space="preserve">
-    <value>Change the background color of a new note.</value>
+    <value>Changes the background color of a new note.</value>
   </data>
   <data name="Note_BackgroundSettingsCard.Header" xml:space="preserve">
     <value>Background</value>
@@ -211,7 +229,7 @@
     <value>Height</value>
   </data>
   <data name="Note_SizeSettingsExpander.Description" xml:space="preserve">
-    <value>Change the size of a new note.</value>
+    <value>Changes the size of a new note.</value>
   </data>
   <data name="Note_SizeSettingsExpander.Header" xml:space="preserve">
     <value>Size</value>
@@ -224,5 +242,101 @@
   </data>
   <data name="TitleTextBlock.Text" xml:space="preserve">
     <value>Settings</value>
+  </data>
+  <data name="ListAndGroup_NoteSortDirectionAscendingComboBoxItem.Content" xml:space="preserve">
+    <value>Ascending</value>
+  </data>
+  <data name="ListAndGroup_EnableEachSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>Enable note sorting options for each list</value>
+  </data>
+  <data name="ListAndGroup_EnableEachSortingOptionsSettingsCard.Description" xml:space="preserve">
+    <value>Specifies the note sorting options for each list individually. When disabled, all lists will follow the default sorting options.</value>
+  </data>
+  <data name="ListAndGroup_ResetSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>Reset note sorting options for all lists</value>
+  </data>
+  <data name="ListAndGroup_ResetSortingOptionsSettingsCard.Description" xml:space="preserve">
+    <value>Resets all individually applied note sorting options to the default.</value>
+  </data>
+  <data name="ListAndGroup_ResetButton.Content" xml:space="preserve">
+    <value>Reset</value>
+  </data>
+  <data name="About_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>About</value>
+  </data>
+  <data name="ListAndGroup_NoteSortDirectionDescendingComboBoxItem.Content" xml:space="preserve">
+    <value>Descending</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutSettingsExpander.Header" xml:space="preserve">
+    <value>Note preview layout for lists</value>
+  </data>
+  <data name="ListAndGroup_DefaultPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>Default preview layout</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeTextBlock.Text" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeTextBlock.Text" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTextBlock.Text" xml:space="preserve">
+    <value>Ratio</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeGridComboBoxItem.Content" xml:space="preserve">
+    <value>Grid</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeListComboBoxItem.Content" xml:space="preserve">
+    <value>List</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallestComboBoxItem.Content" xml:space="preserve">
+    <value>Smallest</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallerComboBoxItem.Content" xml:space="preserve">
+    <value>Smaller</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallComboBoxItem.Content" xml:space="preserve">
+    <value>Small</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeMediumComboBoxItem.Content" xml:space="preserve">
+    <value>Medium</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargeComboBoxItem.Content" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargerComboBoxItem.Content" xml:space="preserve">
+    <value>Larger</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargestComboBoxItem.Content" xml:space="preserve">
+    <value>Largest</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioShorterComboBoxItem.Content" xml:space="preserve">
+    <value>Shorter</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioShortComboBoxItem.Content" xml:space="preserve">
+    <value>Short</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioSquareComboBoxItem.Content" xml:space="preserve">
+    <value>Square</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTallComboBoxItem.Content" xml:space="preserve">
+    <value>Tall</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTallerComboBoxItem.Content" xml:space="preserve">
+    <value>Taller</value>
+  </data>
+  <data name="ListAndGroup_EnableEachPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>Enable note preview layout for each list</value>
+  </data>
+  <data name="ListAndGroup_EnableEachPreviewLayoutSettingsCard.Description" xml:space="preserve">
+    <value>Specifies the note preview layout for each list individually. When disabled, all lists will follow the default layout.</value>
+  </data>
+  <data name="ListAndGroup_ResetPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>Reset note preview layout for all lists</value>
+  </data>
+  <data name="ListAndGroup_ResetPreviewLayoutSettingsCard.Description" xml:space="preserve">
+    <value>Resets all individually applied note preview layout to the default.</value>
+  </data>
+  <data name="ListAndGroup_GroupIconBadgeSettingsCard.Description" xml:space="preserve">
+    <value>Selects a badge to display on the group icon to make it easier to distinguish between lists and groups.</value>
   </data>
 </root>

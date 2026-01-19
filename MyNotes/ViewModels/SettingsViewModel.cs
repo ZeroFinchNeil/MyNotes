@@ -4,9 +4,12 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
+using MyNotes.Common.Structures;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
+using MyNotes.Resources;
 using MyNotes.Services.Settings;
 
 using Windows.ApplicationModel;
@@ -273,6 +276,27 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     }
   }
 
+  public string SortOrderContentText
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = string.Empty;
+
+  private static readonly IReadOnlyDictionary<NoteSortKey, Func<string>> _noteSortKeyLocalizedStringMap = new Dictionary<NoteSortKey, Func<string>>()
+  {
+    { Models.Notes.NoteSortKey.Created, () => LocalizedStrings.NoteSortKeyCreated },
+    { Models.Notes.NoteSortKey.Modified, () => LocalizedStrings.NoteSortKeyModified },
+  };
+
+  private static readonly IReadOnlyDictionary<SortDirection, Func<string>> _noteSortDirectionLocalizedStringMap = new Dictionary<SortDirection, Func<string>>()
+  {
+    { SortDirection.Ascending, () => LocalizedStrings.SortDirectionAscending },
+    { SortDirection.Descending, () => LocalizedStrings.SortDirectionDescending },
+  };
+
+  private static string SetSortOrderContentText(NoteSortKey noteSortKey, SortDirection sortDirection) => $"{_noteSortKeyLocalizedStringMap[noteSortKey].Invoke()} • {_noteSortDirectionLocalizedStringMap[sortDirection].Invoke()}";
+  private static string SetSortOrderContentText(int noteSortKey, int sortDirection) => SetSortOrderContentText((NoteSortKey)noteSortKey, (SortDirection)sortDirection);
+
   public bool AllowCustomNoteSortOrder
   {
     get;
@@ -295,6 +319,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.NoteSortKey, value);
+        SortOrderContentText = SetSortOrderContentText(value, NoteSortDirection);
       }
     }
   }
@@ -308,6 +333,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.NoteSortDirection, value);
+        SortOrderContentText = SetSortOrderContentText(NoteSortKey, value);
       }
     }
   }
@@ -325,6 +351,44 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     }
   }
 
+  private static readonly IReadOnlyDictionary<PreviewLayoutType, Func<string>> _previewLayoutTypeLocalizedStringMap = new Dictionary<PreviewLayoutType, Func<string>>()
+  {
+    { Models.Navigations.PreviewLayoutType.Grid, () => LocalizedStrings.PreviewLayoutTypeGrid },
+    { Models.Navigations.PreviewLayoutType.List, () => LocalizedStrings.PreviewLayoutTypeList },
+  };
+
+  public IReadOnlyDictionary<PreviewLayoutType, Func<string>> PreviewLayoutTypeLocalizedStringMap => _previewLayoutTypeLocalizedStringMap;
+
+  private static readonly IReadOnlyDictionary<PreviewTileSize, Func<string>> _previewTileSizeLocalizedStringMap = new Dictionary<PreviewTileSize, Func<string>>()
+  {
+    { Models.Navigations.PreviewTileSize.Smallest, () => LocalizedStrings.PreviewTileSizeSmallest },
+    { Models.Navigations.PreviewTileSize.Smaller, () => LocalizedStrings.PreviewTileSizeSmaller  },
+    { Models.Navigations.PreviewTileSize.Small, () => LocalizedStrings.PreviewTileSizeSmall },
+    { Models.Navigations.PreviewTileSize.Medium, () => LocalizedStrings.PreviewTileSizeMedium },
+    { Models.Navigations.PreviewTileSize.Large, () => LocalizedStrings.PreviewTileSizeLarge },
+    { Models.Navigations.PreviewTileSize.Larger, () => LocalizedStrings.PreviewTileSizeLarger },
+    { Models.Navigations.PreviewTileSize.Largest, () => LocalizedStrings.PreviewTileSizeLargest},
+  };
+
+  private static readonly IReadOnlyDictionary<PreviewTileRatio, Func<string>> _previewTileRatioLocalizedStringMap = new Dictionary<PreviewTileRatio, Func<string>>()
+  {
+    { Models.Navigations.PreviewTileRatio.Shorter, () => LocalizedStrings.PreviewTileRatioShorter },
+    { Models.Navigations.PreviewTileRatio.Short, () => LocalizedStrings.PreviewTileRatioShort },
+    { Models.Navigations.PreviewTileRatio.Square, () => LocalizedStrings.PreviewTileRatioSquare },
+    { Models.Navigations.PreviewTileRatio.Tall, () => LocalizedStrings.PreviewTileRatioTall },
+    { Models.Navigations.PreviewTileRatio.Taller, () => LocalizedStrings.PreviewTileRatioTaller },
+  };
+
+  private static string SetPreviewLayoutContentText(PreviewLayoutType previewLayoutType, PreviewTileSize previewTileSize, PreviewTileRatio previewTileRatio) => $"{_previewLayoutTypeLocalizedStringMap[previewLayoutType].Invoke()} • {_previewTileSizeLocalizedStringMap[previewTileSize].Invoke()} • {_previewTileRatioLocalizedStringMap[previewTileRatio].Invoke()}";
+  private static string SetPreviewLayoutContentText(int previewLayoutType, int previewTileSize, int previewTileRatio) =>
+    SetPreviewLayoutContentText((PreviewLayoutType)previewLayoutType, (PreviewTileSize)previewTileSize, (PreviewTileRatio)previewTileRatio);
+
+  public string PreviewLayoutContentText
+  {
+    get;
+    set => SetProperty(ref field, value);
+  } = string.Empty;
+
   public int PreviewLayoutType
   {
     get;
@@ -334,6 +398,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.PreviewLayoutType, value);
+        PreviewLayoutContentText = SetPreviewLayoutContentText(value, PreviewTileSize, PreviewTileRatio);
       }
     }
   }
@@ -347,6 +412,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.PreviewTileSize, value);
+        PreviewLayoutContentText = SetPreviewLayoutContentText(PreviewLayoutType, value, PreviewTileRatio);
       }
     }
   }
@@ -360,11 +426,13 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         SetProperty(ref field, value);
         SettingsService.Save(SettingsDescriptors.PreviewTileRatio, value);
+        PreviewLayoutContentText = SetPreviewLayoutContentText(PreviewLayoutType, PreviewTileSize, value);
       }
     }
   }
   #endregion
 
+#pragma warning disable CA1822
   // StartupTask
   public async Task<bool> GetStartupTaskState()
   {
@@ -387,4 +455,5 @@ internal sealed partial class SettingsViewModel : ViewModelBase
         return await GetStartupTaskState();
     }
   }
+#pragma warning restore CA1822
 }

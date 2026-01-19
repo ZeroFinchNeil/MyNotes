@@ -12,6 +12,7 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
   public virtual Command<NavigationViewModelBase>? UpdateCommand { get; }
   public virtual Command<NavigationViewModelBase>? DeleteCommand { get; }
   public virtual Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>>? MoveToGroupCommand { get; }
+  public virtual Command<NavigationViewModelBase>? SetAsStartPageCommand { get; }
 
   public BitmapImage? IconImage
   {

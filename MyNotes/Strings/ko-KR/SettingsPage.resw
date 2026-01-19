@@ -117,9 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="About_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>정보</value>
-  </data>
   <data name="Appearance_DarkThemeComboBoxItem.Content" xml:space="preserve">
     <value>다크</value>
   </data>
@@ -127,7 +124,7 @@
     <value>시스템 설정</value>
   </data>
   <data name="Appearance_LanguageInfoBar.Message" xml:space="preserve">
-    <value>언어를 변경하려면 앱을 다시 시작하세요.</value>
+    <value>앱을 다시 시작하기 전까지 일부 요소에 선택된 언어가 적용되지 않을 수 있습니다.</value>
   </data>
   <data name="Appearance_LanguageSettingsCard.Description" xml:space="preserve">
     <value>앱 언어를 선택하세요.</value>
@@ -138,7 +135,7 @@
   <data name="Appearance_LightThemeComboBoxItem.Content" xml:space="preserve">
     <value>라이트</value>
   </data>
-  <data name="Appearance_RelaunchButton.Content" xml:space="preserve">
+  <data name="Appearance_RestartButton.Content" xml:space="preserve">
     <value>재시작</value>
   </data>
   <data name="Appearance_SubTitleTextBlock.Text" xml:space="preserve">
@@ -168,6 +165,9 @@
   <data name="General_SubTitleTextBlock.Text" xml:space="preserve">
     <value>일반</value>
   </data>
+  <data name="ListAndGroup_DefaultSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>기본 정렬 방식</value>
+  </data>
   <data name="ListAndGroup_GroupIconBadgeFolderComboBoxItem.Content" xml:space="preserve">
     <value>폴더</value>
   </data>
@@ -177,11 +177,29 @@
   <data name="ListAndGroup_GroupIconBadgeSettingsCard.Header" xml:space="preserve">
     <value>그룹 아이콘 배지</value>
   </data>
+  <data name="ListAndGroup_NoteSortKeyModifiedComboBoxItem.Content" xml:space="preserve">
+    <value>수정 시간</value>
+  </data>
+  <data name="ListAndGroup_NoteSortKeyCreatedComboBoxItem.Content" xml:space="preserve">
+    <value>만든 시간</value>
+  </data>
+  <data name="ListAndGroup_NoteSortKeyTitleComboBoxItem.Content" xml:space="preserve">
+    <value>제목</value>
+  </data>
+  <data name="ListAndGroup_OrderByTextBlock.Text" xml:space="preserve">
+    <value>정렬 순서</value>
+  </data>
   <data name="ListAndGroup_ShowNoteCountSettingsCard.Description" xml:space="preserve">
     <value>목록 안에 포함된 노트의 개수를 표시합니다.</value>
   </data>
   <data name="ListAndGroup_ShowNoteCountSettingsCard.Header" xml:space="preserve">
     <value>노트 개수 표시</value>
+  </data>
+  <data name="ListAndGroup_SortByTextBlock.Text" xml:space="preserve">
+    <value>정렬 기준</value>
+  </data>
+  <data name="ListAndGroup_SortingOptionsSettingsExpander.Header" xml:space="preserve">
+    <value>목록 내부 노트 정렬 방식</value>
   </data>
   <data name="ListAndGroup_SubTitleTextBlock.Text" xml:space="preserve">
     <value>목록 및 그룹</value>
@@ -224,5 +242,101 @@
   </data>
   <data name="TitleTextBlock.Text" xml:space="preserve">
     <value>설정</value>
+  </data>
+  <data name="ListAndGroup_NoteSortDirectionAscendingComboBoxItem.Content" xml:space="preserve">
+    <value>오름차순</value>
+  </data>
+  <data name="ListAndGroup_EnableEachSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>목록별 노트 정렬 활성화</value>
+  </data>
+  <data name="ListAndGroup_EnableEachSortingOptionsSettingsCard.Description" xml:space="preserve">
+    <value>목록마다 개별적으로 노트 정렬 방식을 지정합니다. 비활성화 시 모든 목록이 기본 정렬 방식으로 설정됩니다.</value>
+  </data>
+  <data name="ListAndGroup_ResetSortingOptionsSettingsCard.Header" xml:space="preserve">
+    <value>모든 목록의 노트 정렬 방식 초기화</value>
+  </data>
+  <data name="ListAndGroup_ResetSortingOptionsSettingsCard.Description" xml:space="preserve">
+    <value>개별 적용된 노트 정렬 방식을 모두 기본값으로 초기화합니다.</value>
+  </data>
+  <data name="ListAndGroup_ResetButton.Content" xml:space="preserve">
+    <value>초기화</value>
+  </data>
+  <data name="About_SubTitleTextBlock.Text" xml:space="preserve">
+    <value>정보</value>
+  </data>
+  <data name="ListAndGroup_NoteSortDirectionDescendingComboBoxItem.Content" xml:space="preserve">
+    <value>내림차순</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutSettingsExpander.Header" xml:space="preserve">
+    <value>목록 내부 노트 미리보기 레이아웃</value>
+  </data>
+  <data name="ListAndGroup_DefaultPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>기본 미리보기 레이아웃</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeTextBlock.Text" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeTextBlock.Text" xml:space="preserve">
+    <value>크기</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTextBlock.Text" xml:space="preserve">
+    <value>비율</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeGridComboBoxItem.Content" xml:space="preserve">
+    <value>그리드</value>
+  </data>
+  <data name="ListAndGroup_PreviewLayoutTypeListComboBoxItem.Content" xml:space="preserve">
+    <value>리스트</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallestComboBoxItem.Content" xml:space="preserve">
+    <value>매우 작음</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallerComboBoxItem.Content" xml:space="preserve">
+    <value>좀 더 작음</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeSmallComboBoxItem.Content" xml:space="preserve">
+    <value>작음</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeMediumComboBoxItem.Content" xml:space="preserve">
+    <value>보통</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargeComboBoxItem.Content" xml:space="preserve">
+    <value>큼</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargerComboBoxItem.Content" xml:space="preserve">
+    <value>좀 더 큼</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileSizeLargestComboBoxItem.Content" xml:space="preserve">
+    <value>매우 큼</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioShorterComboBoxItem.Content" xml:space="preserve">
+    <value>좀 더 짧음</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioShortComboBoxItem.Content" xml:space="preserve">
+    <value>짧음</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioSquareComboBoxItem.Content" xml:space="preserve">
+    <value>정사각형</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTallComboBoxItem.Content" xml:space="preserve">
+    <value>긺</value>
+  </data>
+  <data name="ListAndGroup_PreviewTileRatioTallerComboBoxItem.Content" xml:space="preserve">
+    <value>좀 더 긺</value>
+  </data>
+  <data name="ListAndGroup_EnableEachPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>목록별 미리보기 레이아웃</value>
+  </data>
+  <data name="ListAndGroup_EnableEachPreviewLayoutSettingsCard.Description" xml:space="preserve">
+    <value>목록마다 개별적으로 노트 미리보기 레이아웃을 지정합니다. 비활성화 시 모든 목록이 기본 레이아웃으로 설정됩니다.</value>
+  </data>
+  <data name="ListAndGroup_ResetPreviewLayoutSettingsCard.Header" xml:space="preserve">
+    <value>모든 목록의 노트 미리보기 레이아웃 초기화</value>
+  </data>
+  <data name="ListAndGroup_ResetPreviewLayoutSettingsCard.Description" xml:space="preserve">
+    <value>개별 적용된 노트 미리보기 레이아웃을 모두 기본값으로 초기화합니다.</value>
+  </data>
+  <data name="ListAndGroup_GroupIconBadgeSettingsCard.Description" xml:space="preserve">
+    <value>목록과 그룹을 구분하기 쉽도록 그룹 아이콘에 표시할 배지를 선택하세요.</value>
   </data>
 </root>

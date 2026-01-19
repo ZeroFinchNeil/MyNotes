@@ -3,7 +3,8 @@
                                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                                    xmlns:local="using:MyNotes.Views.Navigations"
-                                   xmlns:tmpls="using:MyNotes.Templates">
+                                   xmlns:tmpls="using:MyNotes.Templates"
+                                   xmlns:ui="using:CommunityToolkit.WinUI">
   <tmpls:DraggableNavigationViewItem.ContextFlyout>
     <MenuFlyout Placement="BottomEdgeAlignedLeft"
                 Opening="MenuFlyout_Opening">
@@ -28,6 +29,13 @@
                       Command="{x:Bind ViewModel.AddGroupCommand}"
                       CommandParameter="{x:Bind ViewModel}" />
       <MenuFlyoutSeparator />
+      <MenuFlyoutItem x:Name="MainPage_SetAsStartPageMenuFlyoutItem"
+                      x:Uid="/MainPage/NavigationUserNode_SetAsStartPageMenuFlyoutItem"
+                      Icon="{ui:FontIcon Glyph=&#xE78B;}"
+                      Command="{x:Bind ViewModel.SetAsStartPageCommand}"
+                      CommandParameter="{x:Bind ViewModel}"
+                      Visibility="{x:Bind MainPage_SetAsStartPageMenuFlyoutItem.IsEnabled}"/>
+      <MenuFlyoutSeparator Visibility="{x:Bind MainPage_SetAsStartPageMenuFlyoutItem.IsEnabled}" />
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_DeleteMenuFlyoutItem"
                       Icon="Delete"
                       Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"

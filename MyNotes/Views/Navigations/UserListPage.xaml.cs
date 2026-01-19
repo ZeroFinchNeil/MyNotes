@@ -126,7 +126,6 @@ public sealed partial class UserListPage : Page
     }
   }
 
-
   private static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
   {
     { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },

@@ -82,6 +82,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   public override Command<NavigationViewModelBase> UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
   public override Command<NavigationViewModelBase> DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
   public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
+  public override Command<NavigationViewModelBase> SetAsStartPageCommand => NavigationViewModelCommandService.SetAsStartPageCommand;
 
   private void RegisterMessenger()
   {

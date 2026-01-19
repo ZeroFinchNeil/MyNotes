@@ -144,4 +144,61 @@
   <data name="NavigationUserRootNode_DisplayName" xml:space="preserve">
     <value>[최상위 그룹]</value>
   </data>
+  <data name="NoteSortKey_Modified" xml:space="preserve">
+    <value>수정 시간</value>
+  </data>
+  <data name="NoteSortKey_Created" xml:space="preserve">
+    <value>만든 시간</value>
+  </data>
+  <data name="NoteSortKey_Title" xml:space="preserve">
+    <value>제목</value>
+  </data>
+  <data name="SortDirection_Ascending" xml:space="preserve">
+    <value>오름차순</value>
+  </data>
+  <data name="SortDirection_Descending" xml:space="preserve">
+    <value>내림차순</value>
+  </data>
+  <data name="PreviewLayoutType_Grid" xml:space="preserve">
+    <value>그리드</value>
+  </data>
+  <data name="PreviewLayoutType_List" xml:space="preserve">
+    <value>리스트</value>
+  </data>
+  <data name="PreviewTileSize_Smallest" xml:space="preserve">
+    <value>매우 작음</value>
+  </data>
+  <data name="PreviewTileSize_Smaller" xml:space="preserve">
+    <value>좀 더 작음</value>
+  </data>
+  <data name="PreviewTileSize_Small" xml:space="preserve">
+    <value>작음</value>
+  </data>
+  <data name="PreviewTileSize_Medium" xml:space="preserve">
+    <value>보통</value>
+  </data>
+  <data name="PreviewTileSize_Large" xml:space="preserve">
+    <value>큼</value>
+  </data>
+  <data name="PreviewTileSize_Larger" xml:space="preserve">
+    <value>좀 더 큼</value>
+  </data>
+  <data name="PreviewTileSize_Largest" xml:space="preserve">
+    <value>매우 큼</value>
+  </data>
+  <data name="PreviewTileRatio_Square" xml:space="preserve">
+    <value>정사각형</value>
+  </data>
+  <data name="PreviewTileRatio_Shorter" xml:space="preserve">
+    <value>좀 더 짧음</value>
+  </data>
+  <data name="PreviewTileRatio_Short" xml:space="preserve">
+    <value>짧음</value>
+  </data>
+  <data name="PreviewTileRatio_Tall" xml:space="preserve">
+    <value>긺</value>
+  </data>
+  <data name="PreviewTileRatio_Taller" xml:space="preserve">
+    <value>좀 더 긺</value>
+  </data>
 </root>

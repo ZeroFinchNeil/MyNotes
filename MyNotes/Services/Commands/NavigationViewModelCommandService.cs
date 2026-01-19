@@ -21,6 +21,7 @@ internal sealed class NavigationViewModelCommandService : ICommandService
   public Command<NavigationViewModelBase> UpdateCommand { get; }
   public Command<NavigationViewModelBase> DeleteCommand { get; }
   public Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand { get; }
+  public Command<NavigationViewModelBase> SetAsStartPageCommand { get; }
 
   public NavigationViewModelCommandService(NavigationService navigationService, WindowService windowService, DialogService dialogService)
   {
@@ -111,6 +112,16 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             targetGroup.ChildNodes.Add(sourceItem);
           }
         }
+      });
+
+    SetAsStartPageCommand = new(
+      actionToExecute: (viewmodel) =>
+      {
+
+      },
+      canExecuteFunc: (viewmodel) =>
+      {
+        return viewmodel is UserLeafNavigationViewModel;
       });
   }
 }

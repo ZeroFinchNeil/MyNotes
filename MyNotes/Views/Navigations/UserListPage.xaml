@@ -11,30 +11,6 @@
       xmlns:structures="using:MyNotes.Common.Structures">
 
   <Page.Resources>
-    <notes:NoteSortKey x:Key="NoteSortKeyModified">Modified</notes:NoteSortKey>
-    <notes:NoteSortKey x:Key="NoteSortKeyCreated">Created</notes:NoteSortKey>
-    <notes:NoteSortKey x:Key="NoteSortKeyTitle">Title</notes:NoteSortKey>
-
-    <structures:SortDirection x:Key="SortDirectionAscending">Ascending</structures:SortDirection>
-    <structures:SortDirection x:Key="SortDirectionDescending">Descending</structures:SortDirection>
-
-    <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeGrid">Grid</navigations:PreviewLayoutType>
-    <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeList">List</navigations:PreviewLayoutType>
-
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmallest">Smallest</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmaller">Smaller</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeSmall">Small</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeMedium">Medium</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeLarge">Large</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeLarger">Larger</navigations:PreviewTileSize>
-    <navigations:PreviewTileSize x:Key="PreviewTileSizeLargest">Largest</navigations:PreviewTileSize>
-
-    <navigations:PreviewTileRatio x:Key="PreviewTileRatioShorter">Shorter</navigations:PreviewTileRatio>
-    <navigations:PreviewTileRatio x:Key="PreviewTileRatioShort">Short</navigations:PreviewTileRatio>
-    <navigations:PreviewTileRatio x:Key="PreviewTileRatioSquare">Square</navigations:PreviewTileRatio>
-    <navigations:PreviewTileRatio x:Key="PreviewTileRatioTall">Tall</navigations:PreviewTileRatio>
-    <navigations:PreviewTileRatio x:Key="PreviewTileRatioTaller">Taller</navigations:PreviewTileRatio>
-
     <Style x:Key="UserListPage_GridViewItemContainerStyle"
            TargetType="GridViewItem"
            BasedOn="{StaticResource DefaultGridViewItemStyle}">
