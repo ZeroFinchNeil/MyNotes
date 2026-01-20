@@ -9,12 +9,20 @@
     <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.251106002" />
+    <PackageReference Include="Lucene.Net" Version="4.8.0-beta00017" />
+    <PackageReference Include="Lucene.Net.Analysis.Common" Version="4.8.0-beta00017" />
+    <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00017" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.2" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260101001" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
   </ItemGroup>
 
 </Project>

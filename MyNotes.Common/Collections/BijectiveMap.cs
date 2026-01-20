@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace MyNotes.Common.Structures;
+namespace MyNotes.Common.Collections;
 
 public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, TRight>>, IReadOnlyBijectiveMap<TLeft, TRight> where TLeft : notnull where TRight : notnull
 {

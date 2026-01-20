@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Structures;
+using MyNotes.Common.Collections;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;

@@ -3,7 +3,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates"
-                    xmlns:structures="using:MyNotes.Common.Structures"
+                    xmlns:collections="using:MyNotes.Common.Collections"
                     xmlns:notes="using:MyNotes.Models.Notes"
                     xmlns:navigations="using:MyNotes.Models.Navigations">
   <ResourceDictionary.MergedDictionaries>
@@ -839,8 +839,8 @@
   <notes:NoteSortKey x:Key="NoteSortKeyCreated">Created</notes:NoteSortKey>
   <notes:NoteSortKey x:Key="NoteSortKeyTitle">Title</notes:NoteSortKey>
 
-  <structures:SortDirection x:Key="SortDirectionAscending">Ascending</structures:SortDirection>
-  <structures:SortDirection x:Key="SortDirectionDescending">Descending</structures:SortDirection>
+  <collections:SortDirection x:Key="SortDirectionAscending">Ascending</collections:SortDirection>
+  <collections:SortDirection x:Key="SortDirectionDescending">Descending</collections:SortDirection>
 
   <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeGrid">Grid</navigations:PreviewLayoutType>
   <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeList">List</navigations:PreviewLayoutType>

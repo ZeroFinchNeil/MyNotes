@@ -3,46 +3,31 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 
+using MyNotes.Common.Operations;
+
 namespace MyNotes.Services.Database;
 
 internal sealed class AppDbContextTaskDispatcher : IDisposable
 {
-  private readonly Channel<DbSaveChangesOperation> SaveChangesChannel = Channel.CreateUnbounded<DbSaveChangesOperation>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
+  private readonly Channel<IAsyncOperationRequest> DbContextChannel = Channel.CreateUnbounded<IAsyncOperationRequest>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
 
   public AppDbContextTaskDispatcher()
   {
     _ = RunWorker();
   }
 
-  public async Task<int> EnqueueAsync(Task<int> saveChanges, CancellationToken cancellationToken = default)
+  public async Task<int> EnqueueSaveChangesAsync(Func<Task<int>> saveChanges, CancellationToken cancellationToken = default)
   {
-    DbSaveChangesOperation request = new(() => saveChanges);
-    await SaveChangesChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task;
+    DbContextSaveChangesOperationRequest request = new(saveChanges);
+    await DbContextChannel.Writer.WriteAsync(request, cancellationToken);
+    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
   }
 
   private Task RunWorker() => Task.Run(async () =>
   {
-    await foreach (DbSaveChangesOperation request in SaveChangesChannel.Reader.ReadAllAsync())
+    await foreach (IAsyncOperationRequest request in DbContextChannel.Reader.ReadAllAsync())
     {
-      try
-      {
-        var result = await request.Operation.Invoke();
-        request.TaskCompletionSource.TrySetResult(result);
-      }
-      catch (OperationCanceledException)
-      {
-        request.TaskCompletionSource.TrySetCanceled();
-      }
-      catch (Exception ex)
-      {
-        request.TaskCompletionSource.TrySetException(ex);
-      }
-      finally
-      {
-        if (!request.TaskCompletionSource.Task.IsCompleted)
-          request.TaskCompletionSource.SetResult(0);
-      }
+      await request.ExecuteAsync();
     }
   });
 
@@ -56,7 +41,7 @@ internal sealed class AppDbContextTaskDispatcher : IDisposable
     {
       if (disposing)
       {
-        SaveChangesChannel.Writer.Complete();
+        DbContextChannel.Writer.TryComplete();
       }
       _disposed = true;
     }
@@ -68,10 +53,4 @@ internal sealed class AppDbContextTaskDispatcher : IDisposable
     Dispose(disposing: true);
     GC.SuppressFinalize(this);
   }
-}
-
-internal class DbSaveChangesOperation(Func<Task<int>> saveChangesOperation)
-{
-  public TaskCompletionSource<int> TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-  public Func<Task<int>> Operation { get; } = saveChangesOperation;
 }

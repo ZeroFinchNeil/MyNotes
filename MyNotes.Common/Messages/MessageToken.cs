@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.Common.Messages;
 
-internal readonly record struct MessageToken : IMessageToken<MessageTokenContextNull>
+public readonly record struct MessageToken : IMessageToken<MessageTokenContextNull>
 {
   public required string Key { get; init; }
   public MessageTokenContextNull Context { get; } = MessageTokenContextNull.Value;
@@ -8,13 +8,13 @@ internal readonly record struct MessageToken : IMessageToken<MessageTokenContext
   public MessageToken() { }
 }
 
-internal readonly record struct MessageToken<T> : IMessageToken<T> where T : notnull
+public readonly record struct MessageToken<T> : IMessageToken<T> where T : notnull
 {
   public required string Key { get; init; }
   public required T Context { get; init; }
 }
 
-internal sealed class MessageTokenContextNull
+public sealed class MessageTokenContextNull
 {
   private MessageTokenContextNull() { }
   public static MessageTokenContextNull Value { get; } = new();

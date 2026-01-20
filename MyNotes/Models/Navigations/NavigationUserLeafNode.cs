@@ -1,4 +1,4 @@
-﻿using MyNotes.Common.Structures;
+﻿using MyNotes.Common.Collections;
 using MyNotes.Models.Notes;
 using MyNotes.Views.Navigations;
 

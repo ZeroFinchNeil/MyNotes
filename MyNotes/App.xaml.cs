@@ -6,6 +6,7 @@ using MyNotes.Services.Database;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
+using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels;
@@ -63,6 +64,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<SettingsService>();
     services.AddSingleton<WindowService>();
     services.AddSingleton<NoteService>();
+    services.AddSingleton<SearchService>();
 
     services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.NavigationViewModel);
     services.AddKeyedSingleton<ICommandService, NoteViewModelCommandService>(CommandServiceType.NoteViewModel);

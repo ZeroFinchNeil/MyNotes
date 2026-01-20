@@ -8,7 +8,7 @@
       xmlns:notevm="using:MyNotes.ViewModels.Notes"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:templates="using:MyNotes.Templates"
-      xmlns:structures="using:MyNotes.Common.Structures">
+      xmlns:collections="using:MyNotes.Common.Collections">
 
   <Page.Resources>
     <Style x:Key="UserListPage_GridViewItemContainerStyle"
@@ -118,12 +118,12 @@
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Ascending"
                                    Tag="{StaticResource SortDirectionAscending}"
-                                   IsChecked="{x:Bind Equals(ViewModel.NoteSortDirection, structures:SortDirection.Ascending)}"
+                                   IsChecked="{x:Bind Equals(ViewModel.NoteSortDirection, collections:SortDirection.Ascending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Descending"
                                    Tag="{StaticResource SortDirectionDescending}"
-                                   IsChecked="{x:Bind Equals(ViewModel.NoteSortDirection, structures:SortDirection.Descending)}"
+                                   IsChecked="{x:Bind Equals(ViewModel.NoteSortDirection, collections:SortDirection.Descending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
             </MenuFlyoutSubItem>
 

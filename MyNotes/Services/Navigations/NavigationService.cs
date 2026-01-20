@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-using MyNotes.Common.Structures;
+using MyNotes.Common.Collections;
 using MyNotes.Helpers;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;

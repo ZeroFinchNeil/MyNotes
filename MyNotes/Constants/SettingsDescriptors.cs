@@ -1,4 +1,5 @@
-﻿using MyNotes.Services.Settings;
+﻿using MyNotes.Common.Collections;
+using MyNotes.Services.Settings;
 
 namespace MyNotes.Constants;
 
@@ -35,7 +36,7 @@ internal static class SettingsDescriptors
 
   public static readonly SettingsDescriptor<bool> AllowCustomNoteSortOrder = new("AllowCustomSortOrder", true);
   public static readonly SettingsDescriptor<int> NoteSortKey = new("NoteSortKey", (int)Models.Notes.NoteSortKey.Created);
-  public static readonly SettingsDescriptor<int> NoteSortDirection = new("NoteSortDirection", (int)Common.Structures.SortDirection.Descending);
+  public static readonly SettingsDescriptor<int> NoteSortDirection = new("NoteSortDirection", (int)SortDirection.Descending);
 
   public static readonly SettingsDescriptor<bool> AllowCustomPreviewLayout = new("AllowCustomPreviewLayout", true);
   public static readonly SettingsDescriptor<int> PreviewLayoutType = new("PreviewLayoutType", (int)Models.Navigations.PreviewLayoutType.Grid);

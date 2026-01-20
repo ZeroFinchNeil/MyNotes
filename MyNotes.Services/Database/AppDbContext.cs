@@ -18,23 +18,24 @@ internal sealed class AppDbContext(AppDbContextTaskDispatcher channelService) : 
 
   private readonly AppDbContextTaskDispatcher _channelService = channelService;
 
+  private static readonly StorageFolder _localFolder = ApplicationData.Current.LocalFolder;
+  private static readonly string _connectionString = new SqliteConnectionStringBuilder()
+  {
+    DataSource = Path.Combine(_localFolder.Path, "data.db"),
+    ForeignKeys = true,
+    DefaultTimeout = 60
+  }.ToString();
+
   protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
   {
-    var localFolder = ApplicationData.Current.LocalFolder.Path;
-    string connectionString = new SqliteConnectionStringBuilder()
-    {
-      DataSource = Path.Combine(localFolder, "data.db"),
-      ForeignKeys = true,
-      DefaultTimeout = 60
-    }.ToString();
-    optionsBuilder.UseSqlite(connectionString);
+    optionsBuilder.UseSqlite(_connectionString);
   }
 
-  public override int SaveChanges() => _channelService.EnqueueAsync(Task.Run(base.SaveChanges)).GetAwaiter().GetResult();
+  public override int SaveChanges() => _channelService.EnqueueSaveChangesAsync(() => Task.Run(base.SaveChanges)).GetAwaiter().GetResult();
 
-  public override int SaveChanges(bool acceptAllChangesOnSuccess) => _channelService.EnqueueAsync(Task.Run(() => base.SaveChanges(acceptAllChangesOnSuccess))).GetAwaiter().GetResult();
+  public override int SaveChanges(bool acceptAllChangesOnSuccess) => _channelService.EnqueueSaveChangesAsync(() => Task.Run(() => base.SaveChanges(acceptAllChangesOnSuccess))).GetAwaiter().GetResult();
 
-  public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) => _channelService.EnqueueAsync(base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken), cancellationToken);
+  public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) => _channelService.EnqueueSaveChangesAsync(() => base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken), cancellationToken);
 
-  public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => _channelService.EnqueueAsync(base.SaveChangesAsync(cancellationToken), cancellationToken);
+  public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => _channelService.EnqueueSaveChangesAsync(() => base.SaveChangesAsync(cancellationToken), cancellationToken);
 }

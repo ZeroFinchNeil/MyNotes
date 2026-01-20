@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
-namespace MyNotes.Common.Structures;
+namespace MyNotes.Common.Collections;
 
 public interface IReadOnlyBijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, TRight>>, IReadOnlyCollection<BijectiveMapPair<TLeft, TRight>> where TLeft : notnull where TRight : notnull
 {

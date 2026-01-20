@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 
+using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;

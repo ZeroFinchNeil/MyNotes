@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyNotes.Services.Database.Entities;
 
-internal sealed class NoteEntity : IEquatable<NoteEntity>
+internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
 {
   [Key]
   public required Guid Id { get; init; }

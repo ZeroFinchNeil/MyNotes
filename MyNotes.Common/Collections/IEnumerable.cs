@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Common.Structures;
+﻿namespace MyNotes.Common.Collections;
 
 public interface IEnumerable<T, TLeft, TRight>
   where TLeft : notnull

@@ -3,7 +3,7 @@ using System.Windows.Input;
 
 namespace MyNotes.Common.Commands;
 
-internal partial class Command : ICommand
+public partial class Command : ICommand
 {
   public Action? ActionToExecute { get; init; }
   public Func<bool>? CanExecuteFunc { get; init; }
@@ -52,7 +52,7 @@ internal partial class Command : ICommand
   }
 }
 
-internal partial class Command<T> : ICommand
+public partial class Command<T> : ICommand
 {
   public Action<T>? ActionToExecute { get; init; }
   public Func<T, bool>? CanExecuteFunc { get; init; }

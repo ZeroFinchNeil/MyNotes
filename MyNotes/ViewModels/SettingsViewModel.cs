@@ -4,7 +4,7 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
-using MyNotes.Common.Structures;
+using MyNotes.Common.Collections;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;

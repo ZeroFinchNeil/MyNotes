@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Common.Structures;
+﻿namespace MyNotes.Common.Collections;
 
 public readonly struct BijectiveMapPair<TLeft, TRight>(TLeft left, TRight right) where TLeft : notnull where TRight : notnull
 {
