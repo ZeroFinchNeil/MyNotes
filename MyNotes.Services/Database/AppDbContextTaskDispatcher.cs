@@ -9,25 +9,25 @@ namespace MyNotes.Services.Database;
 
 internal sealed class AppDbContextTaskDispatcher : IDisposable
 {
-  private readonly Channel<IAsyncOperationRequest> DbContextChannel = Channel.CreateUnbounded<IAsyncOperationRequest>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
+  private readonly Channel<IOperationRequest> DbContextChannel = Channel.CreateUnbounded<IOperationRequest>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
 
   public AppDbContextTaskDispatcher()
   {
     _ = RunWorker();
   }
 
-  public async Task<int> EnqueueSaveChangesAsync(Func<Task<int>> saveChanges, CancellationToken cancellationToken = default)
+  public async Task<int> EnqueueSaveChangesAsync(Func<int> saveChanges, CancellationToken cancellationToken = default)
   {
     DbContextSaveChangesOperationRequest request = new(saveChanges);
     await DbContextChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    return await request.TaskCompletionSource.Task;
   }
 
   private Task RunWorker() => Task.Run(async () =>
   {
-    await foreach (IAsyncOperationRequest request in DbContextChannel.Reader.ReadAllAsync())
+    await foreach (IOperationRequest request in DbContextChannel.Reader.ReadAllAsync())
     {
-      await request.ExecuteAsync();
+      request.Execute();
     }
   });
 
@@ -46,7 +46,6 @@ internal sealed class AppDbContextTaskDispatcher : IDisposable
       _disposed = true;
     }
   }
-
 
   public void Dispose()
   {

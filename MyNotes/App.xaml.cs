@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
 using MyNotes.Services.Commands;
@@ -21,27 +22,35 @@ namespace MyNotes;
 public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
-  internal static string PackageFamilyName { get; } = Package.Current.Id.FamilyName;
+  internal static readonly string PackageFamilyName = "ZeroFinchNeil.MyNotesbyZeroFinchNeil_trdr6c7cjqx0g";
 
   internal App()
   {
     InitializeComponent();
+    this.UnhandledException += App_UnhandledException;
 
     using (var appIitializeScope = Services.CreateScope())
     {
       _ = appIitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
+      _ = appIitializeScope.ServiceProvider.GetRequiredService<SearchService>();
     }
+  }
+
+  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+  {
+    Console.WriteLine("{0} ({1}): {2}", "Unhandled Exception", e.Exception, e.Message);
   }
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
   {
-    // XAML 라이브 미리 보기를 활성화하려면 창을 하나만 띄워야 함
-#if DEBUG
-    new DebugWindow().Activate();
-#endif
     var windowService = Services.GetRequiredService<WindowService>();
     var mainWindow = windowService.MainWindow;
     mainWindow.Activate();
+  }
+
+  public static void OpenDebugWindow()
+  {
+    new DebugWindow().Activate();
   }
 
   internal ServiceProvider Services { get; } = ConfigureServices();

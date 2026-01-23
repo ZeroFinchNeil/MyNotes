@@ -177,8 +177,9 @@ internal sealed partial class NotePage : Page
   {
     NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.FormatRtf, out var editorText);
     editorText = Regexes.LastParInRtfRegex().Replace(editorText, "}");
-
+    NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.None, out var plainText);
     ViewModel.Note.Body = editorText;
+    ViewModel.Note.BodyPlainText = plainText;
 
     if (_changePreview)
     {

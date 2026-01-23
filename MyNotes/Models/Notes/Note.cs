@@ -53,6 +53,18 @@ internal sealed class Note : ObservableObject, IComparable<Note>
     }
   } = string.Empty;
 
+  public string BodyPlainText
+  {
+    get;
+    set
+    {
+      if (field != value)
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  } = string.Empty;
+
   public List<TextRange> HighlighterRanges { get; } = new();
 
   public Color Background

@@ -125,11 +125,11 @@ internal sealed partial class MainWindow : Window
   {
     // 창 크기 저장
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
-    SettingsService.Save(SettingsDescriptors.MainWindowSize.Key, new Size(_windowSize.Width / scaleFactor, _windowSize.Height / scaleFactor));
+    SettingsService.Save(SettingsDescriptors.MainWindowSize, new Size(_windowSize.Width / scaleFactor, _windowSize.Height / scaleFactor));
 
     // 창 위치 및 디스플레이 저장
-    SettingsService.Save(SettingsDescriptors.MainWindowPosition.Key, new Point(_windowPosition.X, _windowPosition.Y));
-    SettingsService.Save(SettingsDescriptors.MainWindowDisplay.Key, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+    SettingsService.Save(SettingsDescriptors.MainWindowPosition, new Point(_windowPosition.X, _windowPosition.Y));
+    SettingsService.Save(SettingsDescriptors.MainWindowDisplay, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
   }
 
   public bool IsClosed { get; private set; } = false;

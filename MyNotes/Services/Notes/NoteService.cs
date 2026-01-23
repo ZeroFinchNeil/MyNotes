@@ -6,6 +6,8 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
+using MyNotes.Services.Search;
+using MyNotes.Services.Search.Entities;
 using MyNotes.Services.Window;
 using MyNotes.Views.Windows;
 
@@ -15,12 +17,14 @@ internal sealed partial class NoteService : IDisposable
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
   private readonly WindowService WindowService;
+  private readonly SearchService SearchService;
 
-  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, WindowService windowService)
+  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, WindowService windowService, SearchService searchService)
   {
     // DI
     DbContextFactory = dbContextFactory;
     WindowService = windowService;
+    SearchService = searchService;
   }
 
   public bool IsDisposed => _disposed;
@@ -36,7 +40,7 @@ internal sealed partial class NoteService : IDisposable
 
   public NoteWindow OpenNoteWindow(Note note, bool activate = true)
   {
-    NoteWindow noteWindow = 
+    NoteWindow noteWindow =
       WindowService.NoteWindows.TryGetValue(note.Id, out var wr)
       && wr.TryGetTarget(out var existingNoteWindow)
       && !existingNoteWindow.IsClosed
@@ -108,43 +112,69 @@ internal sealed partial class NoteService : IDisposable
     }
   }
 
+  public async Task UpdateNoteSearchEntityAsync(Note note)
+  {
+    NoteSearchEntity entity = new()
+    {
+      Id = note.Id.Value,
+      Title = note.Title,
+      Body = note.BodyPlainText
+    };
+    await SearchService.WriteNoteIndexAsync(entity);
+  }
+
+  public async Task CommitSearchIndexAsync()
+  {
+    await SearchService.CommitAsync();
+  }
+
   // 새 노트 추가 및 DB에 반영
   public async Task<Note?> AddNoteAsync(NavigationUserLeafNode navigation)
   {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+
+    NoteId noteId;
+    do
+    {
+      noteId = NoteId.NewId();
+    } while (await context.NoteEntities.AnyAsync(e => e.Id == noteId.Value));
+
     Note note = new()
     {
-      Id = NoteId.NewId(),
+      Id = noteId,
       NavigationId = navigation.Id,
       Created = DateTimeOffset.UtcNow,
     };
 
-    await using (var context = await DbContextFactory.CreateDbContextAsync())
+    NoteEntity entity = new()
     {
-      if (!await context.NoteEntities.AnyAsync(e => e.Id == note.Id.Value))
-      {
-        NoteEntity entity = new()
-        {
-          Id = note.Id.Value,
-          Parent = note.NavigationId.Value,
-          Created = note.Created,
-          Modified = note.Modified,
-          Title = note.Title,
-          Body = note.Body,
-          Background = note.Background.ToString(),
-          Backdrop = (int)note.Backdrop,
-          Width = note.Size.Width,
-          Height = note.Size.Height,
-          PositionX = note.Position.X,
-          PositionY = note.Position.Y,
-          IsBookmarked = note.IsBookmarked,
-          IsDeleted = note.IsDeleted
-        };
-        await context.NoteEntities.AddAsync(entity);
-        await context.SaveChangesAsync();
-        return note;
-      }
-    }
+      Id = note.Id.Value,
+      Parent = note.NavigationId.Value,
+      Created = note.Created,
+      Modified = note.Modified,
+      Title = note.Title,
+      Body = note.Body,
+      Background = note.Background.ToString(),
+      Backdrop = (int)note.Backdrop,
+      Width = note.Size.Width,
+      Height = note.Size.Height,
+      PositionX = note.Position.X,
+      PositionY = note.Position.Y,
+      IsBookmarked = note.IsBookmarked,
+      IsDeleted = note.IsDeleted
+    };
 
-    return null;
+    context.NoteEntities.Add(entity);
+    await context.SaveChangesAsync();
+
+    NoteSearchEntity searchEntity = new()
+    {
+      Id = note.Id.Value,
+      Title = note.Title,
+      Body = note.Body
+    };
+    await SearchService.WriteNoteIndexAsync(searchEntity);
+
+    return note;
   }
 }

@@ -7,7 +7,6 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
-using MyNotes.Services.Settings;
 using MyNotes.Templates;
 
 namespace MyNotes.Services.Navigations;
@@ -23,7 +22,7 @@ internal sealed partial class NavigationService : IDisposable
   public INavigation? CurrentNavigation { get; private set; }
   public Stack<INavigation> NavigationBackStack { get; } = new();
 
-  public event TypedEventHandler<object, INavigation>? CurrentNavigationChanged;
+  public event TypedEventHandler<object, INavigation?>? CurrentNavigationChanged;
 
   public NavigationService(IDbContextFactory<AppDbContext> dbContextFactory)
   {
@@ -47,6 +46,7 @@ internal sealed partial class NavigationService : IDisposable
 
   #region Build Navigation Tree (Initialize)
   public Task BuildNavigationTask { get; }
+
   private async Task BuildNavigationTree()
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
@@ -243,31 +243,29 @@ internal sealed partial class NavigationService : IDisposable
         Position = int.MaxValue,
       };
 
-    await using (var context = await DbContextFactory.CreateDbContextAsync())
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+
+    if (!await context.NavigationEntities.AnyAsync(e => e.Id == newNode.Id.Value))
     {
-      if (!await context.NavigationEntities.AnyAsync(e => e.Id == newNode.Id.Value))
+      int index = beforeNode is null ? parentNode.ChildNodes.Count : parentNode.ChildNodes.IndexOf(beforeNode) + 1;
+      parentNode.ChildNodes.Insert(index, newNode);
+      newNode.PropertyChanged += UserNode_PropertyChanged;
+
+      NavigationEntity entity = new()
       {
-        int index = beforeNode is null ? parentNode.ChildNodes.Count : parentNode.ChildNodes.IndexOf(beforeNode) + 1;
-        parentNode.ChildNodes.Insert(index, newNode);
-        newNode.PropertyChanged += UserNode_PropertyChanged;
+        Id = newNode.Id.Value,
+        Title = newNode.Title,
+        Icon = (short)newNode.Icon,
+        Parent = newNode.Parent.Id.Value,
+        Position = newNode.Position,
+        IsComposite = isCompositeNode,
+        IsExpanded = isCompositeNode,
+        IsDeleted = false
+      };
 
-        NavigationEntity entity = new()
-        {
-          Id = newNode.Id.Value,
-          Title = newNode.Title,
-          Icon = (short)newNode.Icon,
-          Parent = newNode.Parent.Id.Value,
-          Position = newNode.Position,
-          IsComposite = isCompositeNode,
-          IsExpanded = isCompositeNode,
-          IsDeleted = false
-        };
-
-        await context.NavigationEntities.AddAsync(entity);
-        await context.SaveChangesAsync();
-
-        return newNode;
-      }
+      context.NavigationEntities.Add(entity);
+      await context.SaveChangesAsync();
+      return newNode;
     }
 
     return null;

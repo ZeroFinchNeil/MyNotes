@@ -34,7 +34,6 @@ public class Program
     else
       LaunchAppSingleInstance();
 
-
     return 0;
   }
 
@@ -64,24 +63,25 @@ public class Program
 
   private static void LaunchAppSingleInstance()
   {
-#if DEBUG
-    NativeMethods.SetConsole(0, 300, 800, 1000);
-#endif
-
     if (!DecideRedirection())
     {
+#if DEBUG
+      var consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
+#endif
+      App? app = null;
       Application.Start((p) =>
       {
         var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
         SynchronizationContext.SetSynchronizationContext(context);
-        _ = new App();
+        app = new App();
       });
-    }
+      app?.Dispose();
 
 #if DEBUG
-    Thread.Sleep(2000);
-    NativeMethods.FreeConsole();
+      NativeMethods.FreeConsole();
+      NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
 #endif
+    }
   }
 
   private static bool DecideRedirection()

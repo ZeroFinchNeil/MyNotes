@@ -13,7 +13,7 @@ namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteViewModel : ViewModelBase
 {
-  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
+  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToDbContextEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
     {
       { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
       { nameof(Note.Modified), note => e => e.Modified = note.Modified },
@@ -36,6 +36,8 @@ internal sealed partial class NoteViewModel : ViewModelBase
       { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
       { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
     });
+
+  private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];
 
   private readonly NoteViewModelCommandService NoteViewModelCommandService;
   private readonly NoteService NoteService;
@@ -69,20 +71,29 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public async Task UpdateNoteEntity()
   {
-    Action<NoteEntity>? actions = null;
+    Action<NoteEntity>? dbActions = null;
+    bool _updateNoteIndex = false;
     foreach (var propertyName in _changedNoteProperties)
     {
-      if (_notePropertyToEntityActions.TryGetValue(propertyName, out var action))
+      if (_notePropertyToDbContextEntityActions.TryGetValue(propertyName, out var dbAction))
       {
-        actions += action(Note);
+        dbActions += dbAction(Note);
       }
+      if (_notePropertyToNoteSearchEntity.Contains(propertyName))
+        _updateNoteIndex = true;
     }
 
-    if (actions is not null)
+    if (dbActions is not null)
     {
-      await NoteService.UpdateNoteEntityAsync(Note, actions);
-      _changedNoteProperties.Clear();
+      await NoteService.UpdateNoteEntityAsync(Note, dbActions);
     }
+
+    if (_updateNoteIndex)
+    {
+      await NoteService.UpdateNoteSearchEntityAsync(Note);
+    }
+
+    _changedNoteProperties.Clear();
   }
 
   private static readonly double _notePropertyDebounceTimerInterval = 500;
@@ -153,6 +164,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
       _notePropertyDebounceTimer.Dispose();
       Note.PropertyChanged -= Note_PropertyChanged;
       _ = UpdateNoteEntity();
+      _ = NoteService.CommitSearchIndexAsync();
     }
 
     _disposed = true;

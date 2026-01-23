@@ -72,40 +72,42 @@ internal static partial class NativeMethods
     public short Y;
   }
 
-  public static void SetConsole(int posX = -1, int posY = -1, int width = -1, int height = -1)
+  public static IntPtr SetConsole(int posX = -1, int posY = -1, int width = -1, int height = -1)
   {
     AllocConsole();
     IntPtr consoleHwnd = GetConsoleWindow();
-    if (consoleHwnd == IntPtr.Zero)
-      return;
-
-    if (posX >= 0 && posY >= 0 && width >= 0 && height >= 0)
-      MoveWindow(consoleHwnd, posX, posY, width, height, true);
-    //uint SWP_NOMOVE = 0x0002;
-    //uint SWP_NOSIZE = 0x0001;
-    //uint SWP_SHOWWINDOW = 0x0040;
-    //SetWindowPos(consoleHwnd, new IntPtr(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
-
-    SetConsoleFont("Cascadia Mono");
-
-    int STD_INPUT_HANDLE = -10;
-    uint ENABLE_EXTENDED_FLAGS = 0x0080;
-    uint ENABLE_MOUSE_INPUT = 0x0010;
-    //uint ENABLE_QUICK_EDIT_MODE = 0x0040;
-
-    var handle = GetStdHandle(STD_INPUT_HANDLE);
-
-    if (GetConsoleMode(handle, out uint mode))
+    if (consoleHwnd != IntPtr.Zero)
     {
-      //mode &= ~ENABLE_QUICK_EDIT_MODE;
-      mode |= ENABLE_MOUSE_INPUT;
-      mode |= ENABLE_EXTENDED_FLAGS;
-      SetConsoleMode(handle, mode);
+      if (posX >= 0 && posY >= 0 && width >= 0 && height >= 0)
+        MoveWindow(consoleHwnd, posX, posY, width, height, true);
+      //uint SWP_NOMOVE = 0x0002;
+      //uint SWP_NOSIZE = 0x0001;
+      //uint SWP_SHOWWINDOW = 0x0040;
+      //SetWindowPos(consoleHwnd, new IntPtr(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+
+      SetConsoleFont("Cascadia Mono");
+
+      int STD_INPUT_HANDLE = -10;
+      uint ENABLE_EXTENDED_FLAGS = 0x0080;
+      uint ENABLE_MOUSE_INPUT = 0x0010;
+      //uint ENABLE_QUICK_EDIT_MODE = 0x0040;
+
+      var handle = GetStdHandle(STD_INPUT_HANDLE);
+
+      if (GetConsoleMode(handle, out uint mode))
+      {
+        //mode &= ~ENABLE_QUICK_EDIT_MODE;
+        mode |= ENABLE_MOUSE_INPUT;
+        mode |= ENABLE_EXTENDED_FLAGS;
+        SetConsoleMode(handle, mode);
+      }
+
+      Console.BackgroundColor = ConsoleColor.White;
+      Console.ForegroundColor = ConsoleColor.Black;
+      Console.Clear();
     }
 
-    Console.BackgroundColor = ConsoleColor.White;
-    Console.ForegroundColor = ConsoleColor.Black;
-    Console.Clear();
+    return consoleHwnd;
   }
 
   public static void SetConsoleFont(string fontName, short width = 0, short height = 16)

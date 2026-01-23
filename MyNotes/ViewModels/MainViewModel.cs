@@ -5,6 +5,7 @@ using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Search;
 using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.ViewModels;
@@ -13,6 +14,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationService NavigationService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly SearchService SearchService;
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
 
   // Header
@@ -31,13 +33,10 @@ internal sealed partial class MainViewModel : ViewModelBase
   public NavigationViewModelBase? CurrentNavigationViewModel
   {
     get;
-    set
-    {
-      SetProperty(ref field, value);
-    }
+    set => SetProperty(ref field, value);
   }
 
-  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService)
+  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService)
   {
 #if DEBUG
     ReferenceTracker.MainViewModelReference.Add(this, GetHashCode());
@@ -45,7 +44,8 @@ internal sealed partial class MainViewModel : ViewModelBase
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandService;
+    SearchService = searchService;
+    NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
 
     // Header
     HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
@@ -61,14 +61,22 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     NavigationService.CurrentNavigationChanged += NavigationService_CurrentNavigationChanged;
 
-    // Initial Navigation
-    CurrentNavigationViewModel = HeaderMenuItems[0];
+    SetCommands();
   }
 
-  private void NavigationService_CurrentNavigationChanged(object sender, INavigation args)
+  public async Task SetInitialPageViewModel(NavigationViewModelBase initialViewModel)
   {
-    if (NavigationViewModelProvider.TryResolve(args, out var viewmodel))
-      CurrentNavigationViewModel = viewmodel;
+    await NavigationService.BuildNavigationTask;
+    CurrentNavigationViewModel = initialViewModel;
+  }
+
+  private void NavigationService_CurrentNavigationChanged(object sender, INavigation? args)
+  {
+    CurrentNavigationViewModel = args switch
+    {
+      INavigation n when NavigationViewModelProvider.TryResolve(n, out var viewmodel) => viewmodel,
+      _ => null
+    };
   }
 
   public void PushNavigation(INavigation navigation)
@@ -101,4 +109,35 @@ internal sealed partial class MainViewModel : ViewModelBase
 {
   public Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
   public Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+
+  public Command<string>? SearchNoteCommand { get; private set; }
+
+  private void SetCommands()
+  {
+    SearchNoteCommand = new(
+      actionToExecute: async (searchText) =>
+      {
+        if (string.IsNullOrEmpty(searchText))
+        {
+          return;
+        }
+
+        var searchResult = await SearchService.SearchNoteIndexAsync(searchText);
+        if (searchResult is null)
+        {
+          return;
+        }
+
+        Console.WriteLine($"------- Search Results ({searchText}) -------");
+        await foreach (var match in searchResult.Matches)
+        {
+          Console.WriteLine(match.NoteId);
+        }
+        Console.WriteLine();
+        CurrentNavigationViewModel = null;
+      });
+  }
 }
+
+/// <eventsubscription>
+/// </eventsubscription>

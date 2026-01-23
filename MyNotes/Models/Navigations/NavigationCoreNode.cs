@@ -29,7 +29,6 @@ internal abstract class NavigationCoreNode : ObservableObject, INavigationNode
 }
 
 #region Core Nodes
-
 internal sealed class NavigationHome : NavigationCoreNode
 {
   public static NavigationHome Instance => field ??= new()

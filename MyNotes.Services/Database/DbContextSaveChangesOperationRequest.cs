@@ -5,18 +5,18 @@ using MyNotes.Common.Operations;
 
 namespace MyNotes.Services.Database;
 
-internal sealed class DbContextSaveChangesOperationRequest(Func<Task<int>> operation, int fallbackValue = 0) : IAsyncOperationRequest<int>
+internal sealed class DbContextSaveChangesOperationRequest(Func<int> operation, int fallbackValue = 0) : IOperationRequest<int>
 {
   public TaskCompletionSource<int> TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-  public Func<Task<int>> Operation { get; } = operation;
+  public Func<int> Operation { get; } = operation;
   public int FallbackValue { get; } = fallbackValue;
 
-  public async Task ExecuteAsync()
+  public void Execute()
   {
     try
     {
-      var result = await Operation.Invoke();
-      TaskCompletionSource.TrySetResult(result);
+      var result = Operation.Invoke();
+      var r = TaskCompletionSource.TrySetResult(result);
     }
     catch (OperationCanceledException)
     {

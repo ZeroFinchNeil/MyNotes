@@ -7,6 +7,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Timers;
 
+using Lucene.Net.Analysis;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
@@ -29,9 +30,11 @@ internal sealed class SearchService : IDisposable
   private static readonly StorageFolder _localFolder = ApplicationData.Current.LocalFolder;
   public static readonly LuceneVersion LuceneVersion = LuceneVersion.LUCENE_48;
   public FSDirectory NoteSearchIndexFSDir { get; }
-  public MaxGramAnalyzer NoteSearchAnalyzer { get; }
+  public SpecialNGramAnalyzer NoteSearchAnalyzer { get; }
   public IndexWriter NoteSearchWriter { get; }
-  public static readonly int NoteSearchMaxGram = 5;
+
+  public static readonly int NoteSearchMinGram = 3;
+  public static readonly int NoteSearchMaxGram = 7;
   public static readonly int NoteSearchPageSize = 100;
   public static readonly FieldType NoteSearchBodyFieldType = new()
   {
@@ -45,19 +48,19 @@ internal sealed class SearchService : IDisposable
 
   public SearchService()
   {
-    var searchDirInfo = IO.Directory.CreateDirectory(IO.Path.Combine(_localFolder.Path, "Search"));
-    var noteSearchDirInfo = IO.Directory.CreateDirectory(IO.Path.Combine(searchDirInfo.FullName, "Note"));
-    NoteSearchIndexFSDir = FSDirectory.Open(IO.Path.Combine(noteSearchDirInfo.FullName, "index"));
-    NoteSearchAnalyzer = new MaxGramAnalyzer(NoteSearchMaxGram);
+    var searchDirInfo = IO.Directory.CreateDirectory(IO.Path.Combine(_localFolder.Path, "Index"));
+    NoteSearchIndexFSDir = FSDirectory.Open(IO.Path.Combine(searchDirInfo.FullName, "Note"));
+    NoteSearchAnalyzer = new SpecialNGramAnalyzer(LuceneVersion, NoteSearchMinGram, NoteSearchMaxGram);
     var indexConfig = new IndexWriterConfig(LuceneVersion, NoteSearchAnalyzer) { OpenMode = OpenMode.CREATE_OR_APPEND };
     NoteSearchWriter = new IndexWriter(NoteSearchIndexFSDir, indexConfig);
     _commitTimer.Elapsed += CommitTimer_Elapsed;
 
-    _ = RunWorker();
+    _workerCompletionTask = RunWorker();
   }
 
   private bool _disposed;
   public bool IsDisposed => _disposed;
+
 
   private void Dispose(bool disposing)
   {
@@ -66,6 +69,7 @@ internal sealed class SearchService : IDisposable
       if (disposing)
       {
         NoteSearchIndexChannel.Writer.TryComplete();
+        _workerCompletionTask.Wait();
         _commitTimer.Dispose();
         NoteSearchIndexFSDir.Dispose();
         NoteSearchAnalyzer.Dispose();
@@ -84,12 +88,14 @@ internal sealed class SearchService : IDisposable
 
   private readonly Channel<IOperationRequest> NoteSearchIndexChannel = Channel.CreateUnbounded<IOperationRequest>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
 
+  private Task _workerCompletionTask;
   private Task RunWorker() => Task.Run(async () =>
   {
     await foreach (IOperationRequest request in NoteSearchIndexChannel.Reader.ReadAllAsync())
     {
       request.Execute();
     }
+    NoteSearchWriter.Commit();
   });
 
   private static readonly int _invokeCommitCount = 20;
@@ -125,15 +131,25 @@ internal sealed class SearchService : IDisposable
     });
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
     await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    _commitTimer.Stop();
+    CommitCount = 0;
   }
 
+  #region Write And Update
   public async Task WriteNoteIndexAsync(NoteSearchEntity entity, CancellationToken cancellationToken = default)
   {
+    //var doc = new Document()
+    //  {
+    //    new StringField(nameof(NoteSearchEntity.Id), entity.Id.ToString(), Field.Store.YES),
+    //    new Field(nameof(NoteSearchEntity.Title), entity.Title, NoteSearchBodyFieldType),
+    //    new Field(nameof(NoteSearchEntity.Body), entity.Body, NoteSearchBodyFieldType)
+    //  };
+
     var doc = new Document()
       {
         new StringField(nameof(NoteSearchEntity.Id), entity.Id.ToString(), Field.Store.YES),
         new TextField(nameof(NoteSearchEntity.Title), entity.Title, Field.Store.NO),
-        new Field(nameof(NoteSearchEntity.Body), entity.Body, NoteSearchBodyFieldType)
+        new TextField(nameof(NoteSearchEntity.Body), entity.Body, Field.Store.NO)
       };
 
     Term term = new(nameof(NoteSearchEntity.Id), entity.Id.ToString());
@@ -147,7 +163,9 @@ internal sealed class SearchService : IDisposable
     _commitTimer.Start();
     await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
   }
+  #endregion
 
+  #region Delete
   public async Task DeleteNoteIndexAsync(Guid id, CancellationToken cancellationToken = default)
   {
     Term term = new(nameof(NoteSearchEntity.Id), id.ToString());
@@ -161,6 +179,161 @@ internal sealed class SearchService : IDisposable
     CommitCount++;
     _commitTimer.Start();
     await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+  }
+  #endregion
+
+  #region Read All
+  public async Task<IAsyncEnumerable<NoteSearchEntity>> ReadAllAsync(CancellationToken cancellationToken = default)
+  {
+    async IAsyncEnumerable<NoteSearchEntity> Search()
+    {
+      using DirectoryReader indexReader = NoteSearchWriter.GetReader(true);
+      IndexSearcher indexSearcher = new(indexReader);
+      Query query = new MatchAllDocsQuery();
+      ScoreDoc? currentDoc = null;
+
+      while (true)
+      {
+        TopDocs topDocs = indexSearcher.SearchAfter(currentDoc, query, NoteSearchPageSize);
+        var scoreDocs = topDocs.ScoreDocs;
+        if (scoreDocs.Length == 0)
+          break;
+
+        foreach (var scoreDoc in scoreDocs)
+        {
+          Document doc = indexSearcher.Doc(scoreDoc.Doc);
+          NoteSearchEntity e = new()
+          {
+            Id = Guid.Parse(doc.Get(nameof(NoteSearchEntity.Id))),
+            Title = doc.Get(nameof(NoteSearchEntity.Title)),
+            Body = doc.Get(nameof(NoteSearchEntity.Body))
+          };
+          yield return e;
+        }
+        currentDoc = scoreDocs.Last();
+      }
+    }
+    SearchIndexingOperationRequest<IAsyncEnumerable<NoteSearchEntity>> request = new(Search);
+
+    await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
+    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+  }
+  #endregion
+
+  #region Search Index
+  public async Task<NoteSearchResult?> SearchNoteIndexAsync(string searchText, CancellationToken cancellationToken = default)
+  {
+    SearchIndexingOperationRequest<NoteSearchResult?> request = new(() => new NoteSearchResult()
+    {
+      SearchText = searchText,
+      Matches = GetIndexReaderMatches(searchText, cancellationToken)
+    }, null);
+    await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
+    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+  }
+
+  private async IAsyncEnumerable<NoteSearchTokenMatch> GetIndexReaderMatches(string searchText, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      cancellationToken.ThrowIfCancellationRequested();
+      using DirectoryReader indexReader = NoteSearchWriter.GetReader(true);
+      IndexSearcher indexSearcher = new(indexReader);
+      MultiFieldQueryParser parser = new(LuceneVersion, [nameof(NoteSearchEntity.Title), nameof(NoteSearchEntity.Body)], NoteSearchAnalyzer) { DefaultOperator = Operator.AND };
+      var searchQuery = parser.Parse(searchText);
+      Console.WriteLine("{0}: {1}", "SearchQuery", searchQuery);
+      ScoreDoc? currentDoc = null;
+
+      while (true)
+      {
+        var topDocs = indexSearcher.SearchAfter(currentDoc, searchQuery, NoteSearchPageSize);
+        var scoreDocs = topDocs.ScoreDocs;
+
+        if (scoreDocs.Length == 0)
+          break;
+
+        foreach (var scoreDoc in scoreDocs)
+        {
+          var docId = scoreDoc.Doc;
+          var doc = indexSearcher.Doc(docId);
+
+          //var matches = GetDocPositionAndOffsets(indexReader, docId, tokens);
+
+          yield return new NoteSearchTokenMatch()
+          {
+            Score = scoreDoc.Score,
+            NoteId = Guid.Parse(doc.Get(nameof(NoteSearchEntity.Id))),
+            DocId = docId,
+            TitleMatchFrequency = 0,
+            TitleMatchOffsets = [],
+            BodyMatchFrequency = 0,
+            BodyMatchOffsets = []
+          };
+        }
+        currentDoc = scoreDocs.Last();
+      }
+    }
+    finally
+    {
+
+    }
+  }
+
+  private Dictionary<int, Range>? GetDocPositionAndOffsets(IndexReader indexReader, int docId, List<string> tokens)
+  {
+    var termsEnum = indexReader.GetTermVector(docId, "body").GetEnumerator();
+    // TermsEnum: ScoreDoc의 특정 필드에서 발생한 모든 Term 나열
+
+    Dictionary<int, Range>? matches = null;
+    foreach (string token in tokens)
+    {
+      if (termsEnum.SeekExact(new BytesRef(token)))
+      {
+        var docsEnum = termsEnum.DocsAndPositions(null, null);
+
+        if (docsEnum is null)
+        {
+          matches = null;
+          break;
+        }
+
+        Dictionary<int, Range> currentMatches = new();
+
+        while (docsEnum.NextDoc() != DocIdSetIterator.NO_MORE_DOCS)
+        {
+          for (int i = 0; i < docsEnum.Freq; i++)
+            currentMatches.TryAdd(docsEnum.NextPosition(), new Range(docsEnum.StartOffset, docsEnum.EndOffset));
+        }
+
+        matches = matches is null
+          ? currentMatches
+          : matches.Where(match => currentMatches.ContainsKey(match.Key)).ToDictionary();
+      }
+      else
+      {
+        matches = null;
+        break;
+      }
+    }
+
+    return matches;
+  }
+
+  private static List<string> GetTokens(Analyzer analyzer, string inputText)
+  {
+    var tokens = new List<string>();
+
+    using var reader = new IO.StringReader(inputText);
+    using TokenStream tokenStream = analyzer.GetTokenStream(string.Empty, reader);
+
+    tokenStream.Reset();
+    while (tokenStream.IncrementToken())
+    {
+      var termAttr = tokenStream.GetAttribute<Lucene.Net.Analysis.TokenAttributes.ICharTermAttribute>();
+      tokens.Add(termAttr.ToString());
+    }
+    tokenStream.End();
+    return tokens;
   }
 
   private static List<string> GetTokens(string word, int maxGram)
@@ -177,88 +350,5 @@ internal sealed class SearchService : IDisposable
 
     return tokens;
   }
-
-  public async Task<NoteSearchResult?> SearchNoteIndexAsync(string searchText, CancellationToken cancellationToken = default)
-  {
-    var tokens = GetTokens(searchText, NoteSearchMaxGram);
-
-    SearchIndexingOperationRequest<NoteSearchResult?> request = new(() => new NoteSearchResult()
-    {
-      SearchText = searchText,
-      SearchTokens = tokens,
-      Matches = GetIndexReaderMatches(searchText, tokens, cancellationToken)
-    }, null);
-    await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
-  }
-
-  private async IAsyncEnumerable<NoteSearchTokenMatch> GetIndexReaderMatches(string searchText, IEnumerable<string> tokens, [EnumeratorCancellation] CancellationToken cancellationToken = default)
-  {
-    try
-    {
-      cancellationToken.ThrowIfCancellationRequested();
-      using DirectoryReader indexReader = NoteSearchWriter.GetReader(true);
-      IndexSearcher indexSearcher = new(indexReader);
-      QueryParser bodyParser = new(LuceneVersion, nameof(NoteSearchEntity.Body), NoteSearchAnalyzer);
-      var bodySearchQuery = bodyParser.Parse(searchText);
-      ScoreDoc? currentDoc = null;
-
-      while (true)
-      {
-        var topDocs = indexSearcher.SearchAfter(currentDoc, bodySearchQuery, NoteSearchPageSize);
-        var scoreDocs = topDocs.ScoreDocs;
-
-        if (scoreDocs.Length == 0)
-          break;
-
-        foreach (var scoreDoc in scoreDocs)
-        {
-          var docId = scoreDoc.Doc;
-          var doc = indexSearcher.Doc(docId);
-
-          var termsEnum = indexReader.GetTermVector(docId, nameof(NoteSearchEntity.Body)).GetEnumerator();
-          if (termsEnum is null)
-            continue;
-
-          var docsEnum = termsEnum.DocsAndPositions(null, null, DocsAndPositionsFlags.OFFSETS);
-
-          List<Range> offsets = new();
-          foreach (string token in tokens)
-          {
-            if (termsEnum.SeekExact(new BytesRef(token)))
-            {
-              docsEnum = termsEnum.DocsAndPositions(null, docsEnum, DocsAndPositionsFlags.OFFSETS);
-
-              if (docsEnum is null)
-                break;
-
-              Dictionary<int, Range> currentMatches = new();
-
-              while (docsEnum.NextDoc() != DocIdSetIterator.NO_MORE_DOCS)
-              {
-                for (int i = 0; i < docsEnum.Freq; i++)
-                  offsets.Add(new Range(docsEnum.StartOffset, docsEnum.EndOffset));
-              }
-            }
-          }
-
-          yield return new NoteSearchTokenMatch()
-          {
-            Score = scoreDoc.Score,
-            NoteId = Guid.Parse(doc.Get(nameof(NoteSearchEntity.Id))),
-            DocId = docId,
-            TitleMatchFrequency = 0,
-            TitleMatchOffsets = [],
-            BodyMatchFrequency = docsEnum?.Freq ?? 0,
-            BodyMatchOffsets = [.. offsets]
-          };
-        }
-        currentDoc = scoreDocs.Last();
-      }
-    }
-    finally
-    {
-
-    }
-  }
+  #endregion
 }

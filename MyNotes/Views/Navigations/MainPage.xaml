@@ -69,6 +69,14 @@
         <tmpls:AnimatedIconButton.AnimatedIconSource>
           <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
         </tmpls:AnimatedIconButton.AnimatedIconSource>
+
+        <tmpls:AnimatedIconButton.ContextFlyout>
+          <MenuFlyout>
+            <MenuFlyoutItem x:Name="MainPage_OpenDebugWindowMenuFlyoutItem"
+                            Text="Debug Window"
+                            Click="MainPage_OpenDebugWindowMenuFlyoutItem_Click" />
+          </MenuFlyout>
+        </tmpls:AnimatedIconButton.ContextFlyout>
       </tmpls:AnimatedIconButton>
 
       <ImageIcon Grid.Column="3"
@@ -89,7 +97,16 @@
                       Grid.Column="6"
                       QueryIcon="Find"
                       VerticalAlignment="Center"
-                      MaxWidth="330" />
+                      MaxWidth="330"
+                      QuerySubmitted="MainPage_SearchAutoSuggestBox_QuerySubmitted">
+        <AutoSuggestBox.TextBoxStyle>
+          <Style TargetType="TextBox"
+                 BasedOn="{StaticResource AutoSuggestBoxTextBoxStyle}">
+            <Setter Property="IsSpellCheckEnabled"
+                    Value="False" />
+          </Style>
+        </AutoSuggestBox.TextBoxStyle>
+      </AutoSuggestBox>
     </Grid>
     <!--#endregion -->
 
@@ -101,7 +118,7 @@
                     IsSettingsVisible="False"
                     MenuItemsSource="{x:Bind MainPage_CollectionViewSource.View}"
                     FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                    SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=TwoWay}"
                     SelectionChanged="MainPage_NavigationView_SelectionChanged">
       <NavigationView.Resources>
         <SolidColorBrush x:Key="NavigationViewContentBackground"
@@ -136,6 +153,7 @@
                                                     CanDrag="True"
                                                     AllowDrop="True"
                                                     IsTabStop="True"
+                                                    SelectsOnInvoked="False"
                                                     PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
                                                     DragEnter="MainPageUserNavigationViewItem_DragEnter"
                                                     DragOver="MainPageUserNavigationViewItem_DragOver"

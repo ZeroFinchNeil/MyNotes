@@ -62,9 +62,17 @@ internal sealed partial class MainPage : Page
     this.Unloaded += MainPage_Unloaded;
   }
 
-  private void MainPage_Loaded(object sender, RoutedEventArgs e)
+  private void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+#if DEBUG
+    App.OpenDebugWindow();
+#endif
+  }
+
+  private async void MainPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
+    await ViewModel.SetInitialPageViewModel(ViewModel.HeaderMenuItems[0]);
   }
 
   private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
@@ -209,9 +217,9 @@ internal sealed partial class MainPage : Page
     if (_preventNavigation)
       return;
 
-    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation } navigationViewModel)
+    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
     {
-      if (ViewModel.CurrentNavigationViewModel == navigationViewModel || navigation is NavigationUserCompositeNode)
+      if (navigation is NavigationUserCompositeNode)
         return;
 
       MainPage_NavigationFrame.Navigate(navigation.PageType, navigation);
@@ -332,6 +340,11 @@ internal sealed partial class MainPage : Page
         targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
       }
     }
+  }
+
+  private void MainPage_SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+  {
+    ViewModel.SearchNoteCommand.Execute(args.QueryText);
   }
 }
 
