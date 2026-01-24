@@ -118,8 +118,7 @@
                     IsSettingsVisible="False"
                     MenuItemsSource="{x:Bind MainPage_CollectionViewSource.View}"
                     FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                    SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=TwoWay}"
-                    SelectionChanged="MainPage_NavigationView_SelectionChanged">
+                    SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=TwoWay}">
       <NavigationView.Resources>
         <SolidColorBrush x:Key="NavigationViewContentBackground"
                          Color="{ThemeResource ControlFillColorTransparent}" />

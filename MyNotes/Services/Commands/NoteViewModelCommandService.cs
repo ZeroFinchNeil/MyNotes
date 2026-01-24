@@ -12,14 +12,16 @@ internal sealed class NoteViewModelCommandService : ICommandService
 {
   private readonly NoteService NoteService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly NoteListViewModelProvider NoteListViewModelProvider;
 
   public Command<NoteViewModel> OpenWindowCommand { get; private set; }
   public Command<SourceTargetPair<NoteViewModel, NavigationId>> MoveToListCommand { get; private set; }
 
-  public NoteViewModelCommandService(NoteService noteService, NavigationViewModelProvider navigationViewModelProvider)
+  public NoteViewModelCommandService(NoteService noteService, NavigationViewModelProvider navigationViewModelProvider, NoteListViewModelProvider noteListViewModelProvider)
   {
     NoteService = noteService;
     NavigationViewModelProvider = navigationViewModelProvider;
+    NoteListViewModelProvider = noteListViewModelProvider;
 
     OpenWindowCommand = new(
       actionToExecute: (noteViewModel) =>
@@ -43,9 +45,10 @@ internal sealed class NoteViewModelCommandService : ICommandService
         await NoteService.UpdateNoteEntityAsync(sourceNote, entity => entity.Parent = newNavigationId.Value);
 
         if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
-            && s is UserLeafNavigationViewModel sourceViewModel)
+            && s is UserLeafNavigationViewModel sourceViewModel
+            && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel))
         {
-          sourceViewModel.NoteViewModels?.Remove(sourceNoteViewModel);
+          noteListViewModel?.NoteViewModels?.Remove(sourceNoteViewModel);
         }
       });
   }

@@ -58,39 +58,42 @@ internal sealed partial class NoteService : IDisposable
 {
   private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
 
-  // 내비게이션 사용자 목록에 해당하는 노트를 DB에서 가져오기
+  private Note NoteEntityToNote(NoteEntity e)
+  {
+    NoteId noteId = NoteId.Create(e.Id);
+    if (NoteCache.TryGetValue(noteId, out var wr)
+        && wr.TryGetTarget(out var existingNote))
+    {
+      return existingNote;
+    }
+    else
+    {
+      Note newNote = new()
+      {
+        Id = noteId,
+        NavigationId = NavigationId.Create(e.Parent),
+        Created = e.Created,
+        Title = e.Title,
+        Body = e.Body,
+        Background = e.Background.ToColor(),
+        Backdrop = (BackdropKind)e.Backdrop,
+        Size = new SizeInt32(e.Width, e.Height),
+        Position = new PointInt32(e.PositionX, e.PositionY),
+        IsBookmarked = e.IsBookmarked,
+        IsDeleted = e.IsDeleted
+      };
+      NoteCache[noteId] = new WeakReference<Note>(newNote);
+      return newNote;
+    }
+  }
+
+  /// <summary>
+  /// 사용자 목록에 해당하는 모든 노트들을 데이터베이스에서 비동기적으로 검색합니다.
+  /// </summary>
+  /// <param name="navigation">노트를 불러올 사용자 목록입니다.</param>
   public async Task<IReadOnlyList<Note>> GetNotesAsync(NavigationUserLeafNode navigation)
   {
     List<Note> notes;
-
-    Note NoteEntityToNote(NoteEntity e)
-    {
-      NoteId noteId = NoteId.Create(e.Id);
-      if (NoteCache.TryGetValue(noteId, out var wr)
-          && wr.TryGetTarget(out var existingNote))
-      {
-        return existingNote;
-      }
-      else
-      {
-        Note newNote = new()
-        {
-          Id = noteId,
-          NavigationId = navigation.Id,
-          Created = e.Created,
-          Title = e.Title,
-          Body = e.Body,
-          Background = e.Background.ToColor(),
-          Backdrop = (BackdropKind)e.Backdrop,
-          Size = new SizeInt32(e.Width, e.Height),
-          Position = new PointInt32(e.PositionX, e.PositionY),
-          IsBookmarked = e.IsBookmarked,
-          IsDeleted = e.IsDeleted
-        };
-        NoteCache[noteId] = new WeakReference<Note>(newNote);
-        return newNote;
-      }
-    }
 
     await using (var context = await DbContextFactory.CreateDbContextAsync())
     {
@@ -99,6 +102,16 @@ internal sealed partial class NoteService : IDisposable
         .Select(NoteEntityToNote)];
     }
     return notes;
+  }
+
+  /// <summary>
+  /// 지정된 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
+  /// </summary>
+  /// <param name="noteId">검색하려는 노트의 NoteId입니다.</param>
+  public async Task<Note?> FindNoteAsync(NoteId noteId)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    return context.NoteEntities.Find(noteId.Value) is NoteEntity e ? NoteEntityToNote(e) : null;
   }
 
   // 노트 업데이트

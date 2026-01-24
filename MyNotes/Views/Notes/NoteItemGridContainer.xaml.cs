@@ -7,18 +7,18 @@ using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
 
-namespace MyNotes.Views.Navigations;
+namespace MyNotes.Views.Notes;
 
-internal sealed partial class UserListPageNoteItemGridContainer : UserControl
+internal sealed partial class NoteItemGridContainer : UserControl
 {
-  public UserListPageNoteItemGridContainer()
+  public NoteItemGridContainer()
   {
     InitializeComponent();
     this.Loaded += UserListPageNoteItemGridContainer_Loaded;
     this.Unloaded += UserListPageNoteItemGridContainer_Unloaded;
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(UserListPageNoteItemGridContainer), new PropertyMetadata(null));
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemGridContainer), new PropertyMetadata(null));
   public NoteViewModel ViewModel
   {
     get => (NoteViewModel)GetValue(ViewModelProperty);

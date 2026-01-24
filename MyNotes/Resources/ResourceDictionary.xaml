@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary x:Class="MyNotes.Resources.ResourceDictionary"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates"
@@ -859,12 +860,35 @@
   <navigations:PreviewTileRatio x:Key="PreviewTileRatioTall">Tall</navigations:PreviewTileRatio>
   <navigations:PreviewTileRatio x:Key="PreviewTileRatioTaller">Taller</navigations:PreviewTileRatio>
 
-  <!--<PathGeometry x:Key="PaintBrushPathGeometry"
-                Figures="M3.5,1A0.5,0.5,0,0,0,3,1.5L3,9A2,2,0,0,0,5,11L6,11 6,13A2,2,0,1,0,10,13L10,11 11,11A2,2,0,0,0,13,9L13,1.5A0.5,0.5,0,0,0,12.5,1z M4,7L4,2 8,2 8,3.5A0.5,0.5,0,0,0,9,3.5L9,2 10,2 10,4.5A0.5,0.5,0,0,0,11,4.5L11,2 12,2 12,7z M4,8L12,8 12,9A1,1,0,0,1,11,10L9.5,10A0.5,0.5,0,0,0,9,10.5L9,13A1,1,0,1,1,7,13L7,10.5A0.5,0.5,0,0,0,6.5,10L5,10A1,1,0,0,1,4,9z" />
-  <PathGeometry x:Key="ArrowBidirectionalLeftRightPathGeometry"
-                Figures="M2.146,8.853A0.5,0.5,0,0,1,2.146,8.146L5.146,5.146A0.5,0.5,0,1,1,5.854,5.853L3.707,8 12.293,8 10.146,5.853A0.5,0.5,0,0,1,10.854,5.146L13.854,8.146A0.5,0.5,0,0,1,13.854,8.853L10.854,11.853A0.5,0.5,0,0,1,10.146,11.146L12.293,9 3.707,9 5.854,11.146A0.5,0.5,0,1,1,5.146,11.853z" />
-  <PathGeometry x:Key="ArrowBidirectionalUpDownPathGeometry"
-                Figures="M4.854,5.854A0.5,0.5,0,1,1,4.146,5.146L7.146,2.146A0.5,0.5,0,0,1,7.854,2.146L10.854,5.146A0.5,0.5,0,0,1,10.146,5.854L8,3.707 8,12.293 10.146,10.146A0.5,0.5,0,0,1,10.854,10.854L7.854,13.854A0.5,0.5,0,0,1,7.146,13.854L4.146,10.854A0.5,0.5,0,0,1,4.854,10.146L7,12.293 7,3.707z" />
-  <PathGeometry x:Key="Document100PathGeometry"
-                Figures="M5,1A2,2,0,0,0,3,3L3,9.156A1.7,1.7,0,0,1,3.718,9.746Q3.85,9.613,4,9.5L4,3A1,1,0,0,1,5,2L8,2 8,4.5A1.5,1.5,0,0,0,9.5,6L12,6 12,13.5C12,14.028,11.836,14.518,11.557,14.922A2,2,0,0,0,13,13L13,5.414A1.5,1.5,0,0,0,12.56,4.354L9.648,1.439A1.5,1.5,0,0,0,8.586,1z M11.793,5L9.5,5A0.5,0.5,0,0,1,9,4.5L9,2.207z M3,10.654A0.62,0.62,0,0,0,2.801,10.204A0.7,0.7,0,0,0,2.495,10.036C2.343,9.995 1.993,9.966 1.77,10.261 1.573,10.521 1.26,10.832 0.793,11.045A0.5,0.5,0,0,0,1.207,11.955A3.5,3.5,0,0,0,2,11.458L2,14.5A0.5,0.5,0,0,0,3,14.5z M4,11.5A1.5,1.5,0,0,1,7,11.5L7,13.5A1.5,1.5,0,0,1,4,13.5z M5.5,11A0.5,0.5,0,0,0,5,11.5L5,13.5A0.5,0.5,0,0,0,6,13.5L6,11.5A0.5,0.5,0,0,0,5.5,11 M9.5,10A1.5,1.5,0,0,0,8,11.5L8,13.5A1.5,1.5,0,0,0,11,13.5L11,11.5A1.5,1.5,0,0,0,9.5,10 M9,11.5A0.5,0.5,0,0,1,10,11.5L10,13.5A0.5,0.5,0,0,1,9,13.5z" />-->
+  <Style x:Key="NoteList_GridViewItemContainerStyle"
+         TargetType="GridViewItem"
+         BasedOn="{StaticResource DefaultGridViewItemStyle}">
+    <Setter Property="HorizontalContentAlignment"
+            Value="Stretch" />
+    <Setter Property="VerticalContentAlignment"
+            Value="Stretch" />
+  </Style>
+
+  <ItemsPanelTemplate x:Key="NoteList_GridViewItemsPanel_LayoutGrid">
+    <ItemsWrapGrid Orientation="Horizontal" />
+  </ItemsPanelTemplate>
+
+  <ItemsPanelTemplate x:Key="NoteList_GridViewItemsPanel_LayoutList">
+    <ItemsStackPanel />
+  </ItemsPanelTemplate>
+
+  <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutGrid"
+                x:DataType="notevm:NoteViewModel"
+                xmlns:notevm="using:MyNotes.ViewModels.Notes"
+                xmlns:noteview="using:MyNotes.Views.Notes">
+    <noteview:NoteItemGridContainer ViewModel="{Binding}"
+                               Margin="6" />
+  </DataTemplate>
+  <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutList"
+                x:DataType="notevm:NoteViewModel"
+                xmlns:notevm="using:MyNotes.ViewModels.Notes"
+                xmlns:noteview="using:MyNotes.Views.Notes">
+    <noteview:NoteItemListContainer ViewModel="{Binding}"
+                               Margin="6" />
+  </DataTemplate>
 </ResourceDictionary>

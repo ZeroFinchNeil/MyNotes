@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<UserControl x:Class="MyNotes.Views.Navigations.UserListPageNoteItemListContainer"
+<UserControl x:Class="MyNotes.Views.Notes.NoteItemListContainer"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="using:MyNotes.Views.Navigations"
+             xmlns:local="using:MyNotes.Views.Notes"
              xmlns:templates="using:MyNotes.Templates"
              xmlns:helpers="using:MyNotes.Helpers"
              xmlns:interactivity="using:Microsoft.Xaml.Interactivity">

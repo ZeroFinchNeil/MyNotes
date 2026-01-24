@@ -4,7 +4,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal class NavigationUserLeafNode : NavigationUserNode
+internal class NavigationUserLeafNode : NavigationUserNode, INavigationNoteList
 {
   public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 

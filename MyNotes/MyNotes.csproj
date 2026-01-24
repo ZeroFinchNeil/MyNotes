@@ -16,9 +16,8 @@
     <None Remove="Debugging\DebugWindow.xaml" />
     <None Remove="Views\Navigations\MainPage.xaml" />
     <None Remove="Views\Navigations\MainPageUserNavigationViewItem.xaml" />
+    <None Remove="Views\Navigations\SearchResultsPage.xaml" />
     <None Remove="Views\Navigations\UserListPage.xaml" />
-    <None Remove="Views\Navigations\UserListPageNoteItemGridContainer.xaml" />
-    <None Remove="Views\Navigations\UserListPageNoteItemListContainer.xaml" />
     <None Remove="Views\Notes\NotePage.xaml" />
   </ItemGroup>
   
@@ -58,13 +57,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Views\Navigations\UserListPageNoteItemListContainer.xaml">
+    <Page Update="Views\Navigations\SearchResultsPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
 
   <ItemGroup>
-    <Page Update="Views\Navigations\UserListPageNoteItemGridContainer.xaml">
+    <Page Update="Views\Navigations\NoteItemListContainer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Navigations\NoteItemGridContainer.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>

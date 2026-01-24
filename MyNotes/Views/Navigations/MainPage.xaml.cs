@@ -65,14 +65,19 @@ internal sealed partial class MainPage : Page
   private void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
 #if DEBUG
-    App.OpenDebugWindow();
+    App.Instance.OpenDebugWindow();
 #endif
   }
 
   private async void MainPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
+    ViewModel.PropertyChanged += ViewModel_PropertyChanged;
     await ViewModel.SetInitialPageViewModel(ViewModel.HeaderMenuItems[0]);
+#if DEBUG
+    await Task.Delay(2000);
+    App.Instance.OpenDebugWindow();
+#endif
   }
 
   private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
@@ -140,6 +145,9 @@ internal sealed partial class MainPage : Page
         container.Drop -= MainPageUserNavigationViewItem_Drop;
       }
     });
+
+    // 이벤트 핸들러 해제
+    ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
     // 타이머 해제
     ReleaseDraggableNavigationTimer();
@@ -212,20 +220,32 @@ internal sealed partial class MainPage : Page
 
   private bool _preventNavigation = false;
 
-  private void MainPage_NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+  private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    if (_preventNavigation)
-      return;
-
-    if (args.SelectedItem is NavigationViewModelBase { Navigation: INavigationNode navigation })
+    switch (e.PropertyName)
     {
-      if (navigation is NavigationUserCompositeNode)
-        return;
+      case nameof(MainViewModel.CurrentNavigationViewModel):
+        if (_preventNavigation)
+          return;
+        if (ViewModel.CurrentNavigationViewModel is NavigationViewModelBase { Navigation: INavigation navigation })
+        {
+          switch (navigation)
+          {
+            case NavigationUserCompositeNode:
+              return;
+            case INavigationNode node:
+              MainPage_NavigationFrame.Navigate(node.PageType, navigation);
+              break;
+            case NavigationSearch search:
+              MainPage_NavigationFrame.Navigate(search.PageType, navigation);
+              break;
+          }
 
-      MainPage_NavigationFrame.Navigate(navigation.PageType, navigation);
-      ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-      ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
-      ViewModel.PushNavigation(navigation);
+          ViewModel.AddListCommand?.RaiseCanExecuteChanged();
+          ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
+          ViewModel.PushNavigation(navigation);
+        }
+        break;
     }
   }
 
@@ -344,7 +364,7 @@ internal sealed partial class MainPage : Page
 
   private void MainPage_SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
   {
-    ViewModel.SearchNoteCommand.Execute(args.QueryText);
+    ViewModel.SearchNoteCommand?.Execute(args.QueryText);
   }
 }
 
@@ -371,7 +391,6 @@ internal sealed partial class MainPage : Page
         SetRegionsForCustomTitleBar();
         VisualStateManager.GoToState(this, "WindowActivated", false);
       }
-
     }));
   }
 

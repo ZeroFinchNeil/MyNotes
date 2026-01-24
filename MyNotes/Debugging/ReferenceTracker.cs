@@ -16,6 +16,7 @@ internal static class ReferenceTracker
   public static ConditionalWeakTable<NoteWindow, object?> NoteWindowReference = new();
   public static ConditionalWeakTable<MainPage, object?> MainPageReference = new();
   public static ConditionalWeakTable<UserListPage, object?> UserListPageReference = new();
+  public static ConditionalWeakTable<SearchResultsPage, object?> SearchResultsPageReference = new();
   public static ConditionalWeakTable<NotePage, object?> NotePageReference = new();
 
   public static ConditionalWeakTable<MainViewModel, object?> MainViewModelReference = new();

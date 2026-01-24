@@ -1,10 +1,10 @@
 using MyNotes.ViewModels.Notes;
 
-namespace MyNotes.Views.Navigations;
+namespace MyNotes.Views.Notes;
 
-internal sealed partial class UserListPageNoteItemListContainer : UserControl
+internal sealed partial class NoteItemListContainer : UserControl
 {
-  public UserListPageNoteItemListContainer()
+  public NoteItemListContainer()
   {
     InitializeComponent();
 
@@ -12,7 +12,7 @@ internal sealed partial class UserListPageNoteItemListContainer : UserControl
     this.Unloaded += UserListPageNoteItemListContainer_Unloaded;
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(UserListPageNoteItemListContainer), new PropertyMetadata(null));
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemListContainer), new PropertyMetadata(null));
   public NoteViewModel ViewModel
   {
     get => (NoteViewModel)GetValue(ViewModelProperty);

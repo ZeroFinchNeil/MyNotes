@@ -37,6 +37,7 @@ internal sealed partial class DebugWindow : Window
     PrintReference(ReferenceTracker.MainViewModelReference, "Main ViewModels");
     PrintReference(ReferenceTracker.NavigationViewModelReference, "Navigation ViewModels");
     PrintReference(ReferenceTracker.UserListPageReference, "UserList Pages");
+    PrintReference(ReferenceTracker.SearchResultsPageReference, "SearchResults Pages");
     PrintReference(ReferenceTracker.NoteWindowReference, "Note Windows");
     PrintReference(ReferenceTracker.NotePageReference, "Note Pages");
     PrintReference(ReferenceTracker.NoteViewModelReference, "Note ViewModels");

@@ -1,5 +1,4 @@
-﻿
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
 using MyNotes.Services.Commands;
@@ -14,8 +13,6 @@ using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
-
-using Windows.ApplicationModel;
 
 namespace MyNotes;
 
@@ -48,9 +45,12 @@ public sealed partial class App : Application, IDisposable
     mainWindow.Activate();
   }
 
-  public static void OpenDebugWindow()
+  public void OpenDebugWindow()
   {
     new DebugWindow().Activate();
+    var windowService = Services.GetRequiredService<WindowService>();
+    var mainWindow = windowService.MainWindow;
+    mainWindow.Activate();
   }
 
   internal ServiceProvider Services { get; } = ConfigureServices();
@@ -66,6 +66,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NavigationViewModelProvider>();
     services.AddSingleton<DialogViewModelFactory>();
     services.AddSingleton<NoteViewModelProvider>();
+    services.AddSingleton<NoteListViewModelProvider>();
 
     // Service
     services.AddSingleton<DialogService>();

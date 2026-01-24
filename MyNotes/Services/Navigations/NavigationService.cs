@@ -19,7 +19,16 @@ internal sealed partial class NavigationService : IDisposable
   public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
   public ImmutableList<INavigation> SecondaryCoreNavigations { get; } = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
 
-  public INavigation? CurrentNavigation { get; private set; }
+  public INavigation? CurrentNavigation
+  {
+    get;
+    private set
+    {
+      if (field != value)
+        field = value;
+    }
+  }
+
   public Stack<INavigation> NavigationBackStack { get; } = new();
 
   public event TypedEventHandler<object, INavigation?>? CurrentNavigationChanged;
@@ -169,14 +178,20 @@ internal sealed partial class NavigationService : IDisposable
 
   public void ChangeCurrentNavigation(INavigation navigation)
   {
+    if (CurrentNavigation == navigation)
+      return;
+
     CurrentNavigation = navigation;
     CurrentNavigationChanged?.Invoke(this, navigation);
   }
 
   public void ResetCurrentNavigation() => CurrentNavigation = null;
 
-  public void PushNavigationBackStack(INavigation navigation)
+  public void PushNavigation(INavigation navigation)
   {
+    if (CurrentNavigation == navigation)
+      return;
+
     if (CurrentNavigation is not null)
       NavigationBackStack.Push(CurrentNavigation);
     ChangeCurrentNavigation(navigation);

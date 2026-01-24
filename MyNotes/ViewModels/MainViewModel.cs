@@ -14,7 +14,6 @@ internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationService NavigationService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly SearchService SearchService;
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
 
   // Header
@@ -44,7 +43,6 @@ internal sealed partial class MainViewModel : ViewModelBase
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    SearchService = searchService;
     NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
 
     // Header
@@ -74,14 +72,15 @@ internal sealed partial class MainViewModel : ViewModelBase
   {
     CurrentNavigationViewModel = args switch
     {
-      INavigation n when NavigationViewModelProvider.TryResolve(n, out var viewmodel) => viewmodel,
+      INavigationNode node when NavigationViewModelProvider.TryResolve(node, out var viewmodel) => viewmodel,
+      NavigationSearch search => NavigationViewModelProvider.Resolve(search),
       _ => null
     };
   }
 
   public void PushNavigation(INavigation navigation)
   {
-    NavigationService.PushNavigationBackStack(navigation);
+    NavigationService.PushNavigation(navigation);
   }
 
   public void PopNavigation()
@@ -122,19 +121,13 @@ internal sealed partial class MainViewModel : ViewModelBase
           return;
         }
 
-        var searchResult = await SearchService.SearchNoteIndexAsync(searchText);
-        if (searchResult is null)
+        NavigationSearch navigationSearch = new()
         {
-          return;
-        }
+          SearchText = searchText,
+          Title = $"Search Results for {searchText}"
+        };
 
-        Console.WriteLine($"------- Search Results ({searchText}) -------");
-        await foreach (var match in searchResult.Matches)
-        {
-          Console.WriteLine(match.NoteId);
-        }
-        Console.WriteLine();
-        CurrentNavigationViewModel = null;
+        PushNavigation(navigationSearch);
       });
   }
 }

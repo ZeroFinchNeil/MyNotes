@@ -15,8 +15,8 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
   public NavigationViewModelBase Resolve(INavigation navigation)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel)
-      && !viewmodel.IsDisposed)
+        && wr.TryGetTarget(out var viewmodel)
+        && !viewmodel.IsDisposed)
     {
       return viewmodel;
     }
@@ -28,6 +28,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootNavigationViewModel>(ServiceProvider, navigation),
       NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(ServiceProvider, navigation),
       NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(ServiceProvider, navigation),
+      NavigationSearch => ActivatorUtilities.CreateInstance<SearchNavigationViewModel>(ServiceProvider, navigation),
       _ => throw new ArgumentException("Invalid navigation")
     };
 
