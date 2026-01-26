@@ -13,9 +13,9 @@
   <Identity
     Name="ZeroFinchNeil.MyNotesbyZeroFinchNeil"
     Publisher="CN=ACFE7180-3770-466E-A22B-9BCEFA69DEDA"
-    Version="0.0.1.0" />
+    Version="1.0.0.0" />
 
-  <mp:PhoneIdentity PhoneProductId="05ebc385-6a8b-407c-8315-b46b9bffb2c6" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+  <mp:PhoneIdentity PhoneProductId="ebe85a4c-810e-45a7-9e7d-0053bf43f2cb" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>MyNotes by ZeroFinchNeil</DisplayName>
@@ -43,7 +43,7 @@
         BackgroundColor="transparent"
         Square150x150Logo="Images\Square150x150Logo.png"
         Square44x44Logo="Images\Square44x44Logo.png">
-        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png" Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
+        <uap:DefaultTile Wide310x150Logo="Images\Wide310x150Logo.png"  Square71x71Logo="Images\SmallTile.png" Square310x310Logo="Images\LargeTile.png"/>
         <uap:SplashScreen Image="Images\SplashScreen.png" />
       </uap:VisualElements>
 
@@ -117,6 +117,7 @@
                             DisplayName="MyNotes" />
         </uap5:Extension>
       </Extensions>
+
     </Application>
   </Applications>
 
