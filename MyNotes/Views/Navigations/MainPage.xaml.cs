@@ -13,6 +13,7 @@ using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
+using MyNotes.Services.Logging;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Window;
 using MyNotes.ViewModels;
@@ -31,6 +32,7 @@ internal sealed partial class MainPage : Page
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
+  private readonly LoggingService LoggingService;
   private readonly IServiceScope ServiceScope;
 
   public MainPage(MainWindow mainWindow)
@@ -45,6 +47,7 @@ internal sealed partial class MainPage : Page
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
     SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
     WindowService = ServiceScope.ServiceProvider.GetRequiredService<WindowService>();
+    LoggingService = ServiceScope.ServiceProvider.GetRequiredService<LoggingService>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
 
@@ -117,8 +120,10 @@ internal sealed partial class MainPage : Page
         appWindow = mainWindow.AppWindow;
       }
     }
-    catch
-    { }
+    catch(Exception e)
+    {
+      LoggingService.Write(e);
+    }
 
     return hWnd != IntPtr.Zero && appWindow is not null;
   }

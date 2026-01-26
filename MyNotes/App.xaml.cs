@@ -4,6 +4,7 @@ using MyNotes.Debugging;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialogs;
+using MyNotes.Services.Logging;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
@@ -14,17 +15,23 @@ using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
 
+using Windows.ApplicationModel;
+
 namespace MyNotes;
 
 public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
-  internal static readonly string PackageFamilyName = "ZeroFinchNeil.MyNotesbyZeroFinchNeil_trdr6c7cjqx0g";
+  //internal static readonly string PackageFamilyName = "ZeroFinchNeil.MyNotesbyZeroFinchNeil_trdr6c7cjqx0g";
+  internal static readonly string PackageFamilyName = Package.Current.Id.FamilyName;
 
   internal App()
   {
     InitializeComponent();
+
     this.UnhandledException += App_UnhandledException;
+    AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+    TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
     using (var appIitializeScope = Services.CreateScope())
     {
@@ -33,9 +40,21 @@ public sealed partial class App : Application, IDisposable
     }
   }
 
-  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
+  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExcptionLog(e.Exception);
+
+  private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
   {
-    Console.WriteLine("{0} ({1}): {2}", "Unhandled Exception", e.Exception, e.Message);
+    if (e.ExceptionObject is Exception ex)
+      WriteExcptionLog(ex);
+  }
+
+  private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExcptionLog(e.Exception);
+
+  private void WriteExcptionLog(Exception ex)
+  {
+    Console.WriteLine("{0}: {1}", "Exception", ex);
+    var loggingService = Services.GetRequiredService<LoggingService>();
+    loggingService.Write(ex);
   }
 
   protected override void OnLaunched(LaunchActivatedEventArgs args)
@@ -69,6 +88,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NoteListViewModelProvider>();
 
     // Service
+    services.AddSingleton<LoggingService>();
     services.AddSingleton<DialogService>();
     services.AddSingleton<NavigationService>();
     services.AddSingleton<SettingsService>();
@@ -78,15 +98,6 @@ public sealed partial class App : Application, IDisposable
 
     services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.NavigationViewModel);
     services.AddKeyedSingleton<ICommandService, NoteViewModelCommandService>(CommandServiceType.NoteViewModel);
-
-    //services.AddSingleton<CommandServiceFactory>(sp => new()
-    //{
-    //  ResolveMap = new Dictionary<CommandServiceType, ICommandService?>()
-    //  {
-    //    { CommandServiceType.NavigationViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NavigationViewModel) },
-    //    { CommandServiceType.NoteViewModel, sp.GetRequiredKeyedService<ICommandService>(CommandServiceType.NoteViewModel) }
-    //  }
-    //});
 
     // DbContext
     services.AddSingleton<AppDbContextTaskDispatcher>();
@@ -106,7 +117,9 @@ public sealed partial class App : Application, IDisposable
       if (disposing)
       {
         Services.Dispose();
-        Console.WriteLine("{0}: {1}", "App Closing...", "");
+        this.UnhandledException -= App_UnhandledException;
+        AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+        TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
       }
       _disposed = true;
     }
