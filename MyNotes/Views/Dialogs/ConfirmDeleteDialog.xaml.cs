@@ -1,3 +1,4 @@
+using MyNotes.Debugging;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
@@ -8,6 +9,9 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
 
   public ConfirmDeleteDialog(ConfirmDeleteDialogViewModel viewmodel)
   {
+#if DEBUG
+    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
     InitializeComponent();
     ViewModel = viewmodel;
 

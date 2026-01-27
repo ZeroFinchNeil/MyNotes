@@ -17,9 +17,13 @@ internal sealed partial class UserListPage : Page
 
   public UserListPage()
   {
+#if DEBUG
+    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
+
     InitializeComponent();
 
-    //CommonLogic = App.Instance.Services.GetRequiredService<NoteListPageCommonLogic>();
+    //CommonLogic = App.Services.GetRequiredService<NoteListPageCommonLogic>();
 
     this.Loaded += UserListPage_Loaded;
     this.Unloaded += UserListPage_Unloaded;
@@ -31,18 +35,14 @@ internal sealed partial class UserListPage : Page
   {
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
-      var navigationViewModelProvider = App.Instance.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Instance.Services.GetRequiredService<NoteListViewModelProvider>();
+      var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
+      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       ViewModel = navigationViewModelProvider.Resolve(navigation) as UserLeafNavigationViewModel;
       NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
       if (ViewModel is not null)
       {
         NoteListViewModel.ChangePreviewLayout(UserListPage_NotesListGridView);
       }
-
-#if DEBUG
-      ReferenceTracker.UserListPageReference.Add(this, ViewModel?.GetHashCode());
-#endif
     }
   }
 
@@ -59,6 +59,7 @@ internal sealed partial class UserListPage : Page
   private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
+    NoteListViewModel?.Dispose();
   }
 
   private void UserListPage_MoreButtonMenuFlyout_Opening(object sender, object e)

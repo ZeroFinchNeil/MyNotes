@@ -15,7 +15,7 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Services.Logging;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
@@ -28,28 +28,32 @@ namespace MyNotes.Views.Navigations;
 
 internal sealed partial class MainPage : Page
 {
-  // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
   private readonly LoggingService LoggingService;
   private readonly IServiceScope ServiceScope;
 
-  public MainPage(MainWindow mainWindow)
+  private readonly NavigationId _initialNavigationId;
+
+  public MainPage(MainWindow mainWindow, NavigationId? initialNavigationId = null)
   {
 #if DEBUG
-    ReferenceTracker.MainPageReference.Add(this, mainWindow.AppWindow.Id.Value);
+    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
 #endif
 
     InitializeComponent();
 
-    ServiceScope = App.Instance.Services.CreateScope();
+    ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
     SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
     WindowService = ServiceScope.ServiceProvider.GetRequiredService<WindowService>();
     LoggingService = ServiceScope.ServiceProvider.GetRequiredService<LoggingService>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
+
+    // 시작 내비게이션(페이지) 설정
+    _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsService.Load(SettingsDescriptors.InitialPageId));
 
     // 앱 테마 설정 
     var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
@@ -65,23 +69,20 @@ internal sealed partial class MainPage : Page
     this.Unloaded += MainPage_Unloaded;
   }
 
-  private void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-#if DEBUG
-    App.Instance.OpenDebugWindow();
-#endif
+    await App.Instance.OpenDebugWindow();
   }
 
   private async void MainPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
     ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-    await ViewModel.SetInitialPageViewModel(ViewModel.HeaderMenuItems[0]);
-#if DEBUG
-    await Task.Delay(2000);
-    App.Instance.OpenDebugWindow();
-#endif
+    await ViewModel.InitializeNavigation();
+    SetNavigation(_initialNavigationId);
   }
+
+  public void SetNavigation(NavigationId? navigationId) => ViewModel.SetNavigation(navigationId ?? _initialNavigationId);
 
   private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
   {
@@ -140,9 +141,9 @@ internal sealed partial class MainPage : Page
 
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
   {
-    ViewModel.UserRootNavigationViewModel.ForEachDescendantAndSelf((viewmodel) =>
+    ViewModel.UserRootNavigationViewModel.ForEachDescendant((viewmodel) =>
     {
-      if (MainPage_NavigationView.ContainerFromMenuItem(viewmodel) is MainPageUserNavigationViewItem container)
+      if (MainPage_NavigationView.ContainerFromMenuItem(viewmodel) is UserNavigationViewItem container)
       {
         container.PresenterDragStarting -= MainPageUserNavigationViewItem_PresenterDragStarting;
         container.DragEnter -= MainPageUserNavigationViewItem_DragEnter;
@@ -273,7 +274,7 @@ internal sealed partial class MainPage : Page
   private NavigationViewModelBase? _sourceNavigationViewModel;
   private void MainPageUserNavigationViewItem_PresenterDragStarting(UIElement sender, DragStartingEventArgs args)
   {
-    if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
+    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
     {
       _sourceNavigationViewModel = sourceViewModel;
       args.Data.SetData(_navigationFormatId, sourceNavigation.Id.Value.ToString());
@@ -309,7 +310,7 @@ internal sealed partial class MainPage : Page
 
     if (e.DataView.Contains(_navigationFormatId) && await e.DataView.GetDataAsync(_navigationFormatId) is string id)
     {
-      if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
+      if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
       {
         _dragUISession = new()
         {
@@ -346,7 +347,7 @@ internal sealed partial class MainPage : Page
     e.Handled = true;
     _dispatcherTimer.Stop();
 
-    if (sender is MainPageUserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
       if (sourceNavigation == targetNavigation)
         return;

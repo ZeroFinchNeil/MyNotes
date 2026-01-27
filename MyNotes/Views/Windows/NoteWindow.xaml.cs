@@ -10,7 +10,7 @@ using MyNotes.Helpers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Notes;
 
@@ -26,13 +26,13 @@ internal sealed partial class NoteWindow : Window
   public NoteWindow(Note note)
   {
 #if DEBUG
-    ReferenceTracker.NoteWindowReference.Add(this, AppWindow.Id.Value);
+    ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
 #endif
     InitializeComponent();
     this.ExtendsContentIntoTitleBar = true;
 
-    var provider = App.Instance.Services.GetRequiredService<NoteViewModelProvider>();
-    WindowService = App.Instance.Services.GetRequiredService<WindowService>();
+    var provider = App.Services.GetRequiredService<NoteViewModelProvider>();
+    WindowService = App.Services.GetRequiredService<WindowService>();
 
     // WindowService에 등록
     NoteId = note.Id;
@@ -50,7 +50,7 @@ internal sealed partial class NoteWindow : Window
     presenter?.SetBorderAndTitleBar(true, false);
 
     //AppWindow.Resize(new((int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
-    AppWindow.MoveAndResize(new(30, 850, (int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
+    AppWindow.MoveAndResize(new(note.Position.X, note.Position.Y, (int)(note.Size.Width * scaleFactor), (int)(note.Size.Height * scaleFactor)));
 
     // 창 활성화 변경 시
     this.Activated += NoteWindow_Activated;

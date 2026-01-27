@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
@@ -37,9 +36,6 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService)
   {
-#if DEBUG
-    ReferenceTracker.MainViewModelReference.Add(this, GetHashCode());
-#endif
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
@@ -62,10 +58,16 @@ internal sealed partial class MainViewModel : ViewModelBase
     SetCommands();
   }
 
-  public async Task SetInitialPageViewModel(NavigationViewModelBase initialViewModel)
+  public Task InitializeNavigation() => NavigationService.BuildNavigationTask;
+
+  public void SetNavigation(NavigationId navigationId)
   {
-    await NavigationService.BuildNavigationTask;
-    CurrentNavigationViewModel = initialViewModel;
+    NavigationViewModelBase? viewmodel =
+      HeaderMenuItems.FirstOrDefault(vm => vm.Navigation is NavigationCoreNode coreNode && coreNode.Id == navigationId)
+      ?? UserRootNavigationViewModel.FirstDescendantOrDefault(vm => vm.Navigation is NavigationUserNode userNode && userNode.Id == navigationId, false);
+
+    if (viewmodel is not null)
+      NavigationService.PushNavigation(viewmodel.Navigation);
   }
 
   private void NavigationService_CurrentNavigationChanged(object sender, INavigation? args)

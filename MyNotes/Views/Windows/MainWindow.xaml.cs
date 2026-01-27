@@ -8,6 +8,7 @@ using MyNotes.Common.Interop;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
+using MyNotes.Models.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Views.Navigations;
 
@@ -21,13 +22,13 @@ internal sealed partial class MainWindow : Window
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
 
-  public MainWindow()
+  public MainWindow(NavigationId? _initialNavigationId = null)
   {
 #if DEBUG
-    ReferenceTracker.MainWindowReference.Add(this, AppWindow.Id.Value);
+    ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
 #endif
     InitializeComponent();
-    SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
+    SettingsService = App.Services.GetRequiredService<SettingsService>();
 
     this.ExtendsContentIntoTitleBar = true;
 
@@ -96,8 +97,10 @@ internal sealed partial class MainWindow : Window
       _ => TitleBarTheme.UseDefaultAppMode
     };
 
-    this.Content = new MainPage(this);
+    this.Content = new MainPage(this, _initialNavigationId);
   }
+
+  public void SetNavigation(NavigationId? navigationId) => (this.Content as MainPage)?.SetNavigation(navigationId);
 
   private SizeInt32 _windowSize;
   private PointInt32 _windowPosition;

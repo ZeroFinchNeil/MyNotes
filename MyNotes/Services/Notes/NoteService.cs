@@ -8,7 +8,7 @@ using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Search;
 using MyNotes.Services.Search.Entities;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Notes;
@@ -88,30 +88,30 @@ internal sealed partial class NoteService : IDisposable
   }
 
   /// <summary>
-  /// 사용자 목록에 해당하는 모든 노트들을 데이터베이스에서 비동기적으로 검색합니다.
-  /// </summary>
-  /// <param name="navigation">노트를 불러올 사용자 목록입니다.</param>
-  public async Task<IReadOnlyList<Note>> GetNotesAsync(NavigationUserLeafNode navigation)
-  {
-    List<Note> notes;
-
-    await using (var context = await DbContextFactory.CreateDbContextAsync())
-    {
-      notes = [.. context.NoteEntities
-        .Where(e => e.Parent == navigation.Id.Value)
-        .Select(NoteEntityToNote)];
-    }
-    return notes;
-  }
-
-  /// <summary>
-  /// 지정된 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
+  /// 지정한 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
   /// </summary>
   /// <param name="noteId">검색하려는 노트의 NoteId입니다.</param>
   public async Task<Note?> FindNoteAsync(NoteId noteId)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
     return context.NoteEntities.Find(noteId.Value) is NoteEntity e ? NoteEntityToNote(e) : null;
+  }
+
+  /// <summary>
+  /// 입력한 조건에 맞는 모든 노트들을 데이터베이스에서 비동기적으로 검색합니다.
+  /// </summary>
+  /// <param name="predicate">NoteEntity가 원하는 조건에 해당하면 true를 반환하는 predicate입니다.</param>
+  public async Task<IReadOnlyList<Note>> GetNotesAsync(Func<NoteEntity, bool> predicate)
+  {
+    List<Note> notes;
+
+    await using (var context = await DbContextFactory.CreateDbContextAsync())
+    {
+      notes = [.. context.NoteEntities
+        .Where(predicate)
+        .Select(NoteEntityToNote)];
+    }
+    return notes;
   }
 
   // 노트 업데이트

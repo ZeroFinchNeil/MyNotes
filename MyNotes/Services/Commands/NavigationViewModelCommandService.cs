@@ -4,7 +4,7 @@ using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 
@@ -40,7 +40,7 @@ internal sealed class NavigationViewModelCommandService : ICommandService
           if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
               && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, icon: v.Icon, title: v.Title) is INavigation newNavigation)
           {
-            NavigationService.ChangeCurrentNavigation(newNavigation);
+            NavigationService.PushNavigation(newNavigation);
           }
         }
       });
@@ -53,11 +53,11 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
-          if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
-          {
-            NavigationService.ChangeCurrentNavigation(newNavigation);
-          }
+          //if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
+          //    && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
+          //{
+          //  NavigationService.PushNavigation(newNavigation);
+          //}
         }
       });
 
@@ -106,7 +106,7 @@ internal sealed class NavigationViewModelCommandService : ICommandService
         if (pair.Source.Navigation is NavigationUserNode sourceItem
         && pair.Target.Navigation is NavigationUserCompositeNode targetGroup)
         {
-          if (sourceItem.Parent != targetGroup)
+          if (targetGroup.CanBeParentOf(sourceItem))
           {
             sourceItem.Parent.ChildNodes.Remove(sourceItem);
             targetGroup.ChildNodes.Add(sourceItem);

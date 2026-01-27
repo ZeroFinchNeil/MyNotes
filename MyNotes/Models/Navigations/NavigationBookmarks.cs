@@ -1,34 +1,20 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-
-using MyNotes.Common.Collections;
-using MyNotes.Debugging;
+﻿using MyNotes.Common.Collections;
 using MyNotes.Models.Notes;
+using MyNotes.Resources;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationSearch : ObservableObject, INavigation, INavigationNoteList
+internal sealed class NavigationBookmarks : NavigationCoreNode, INavigationNoteList
 {
-  public NavigationSearch()
+  public static NavigationBookmarks Instance => field ??= new()
   {
-#if DEBUG
-    ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
-#endif
-  }
+    Id = NavigationId.Bookmarks,
+    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Favorite } },
+    Title = LocalizedStrings.NavigationBookmarksTitle,
+  };
 
-  public required string Title
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public required string SearchText
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public Type PageType { get; } = typeof(SearchResultsPage);
+  private NavigationBookmarks() : base(typeof(BookmarksPage)) { }
 
   public NoteSortKey? NoteSortKey
   {

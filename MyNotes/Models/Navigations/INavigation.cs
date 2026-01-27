@@ -1,6 +1,8 @@
 ﻿namespace MyNotes.Models.Navigations;
 
-internal interface INavigation { }
+internal interface INavigation 
+{
+}
 
 // INavigation
 // ├─ INavigationNode

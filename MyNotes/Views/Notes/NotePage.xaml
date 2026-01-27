@@ -95,6 +95,7 @@
 
       <tmpls:AlternateIconToggleButton x:Name="NotePage_PinButton"
                                        Grid.Column="0"
+                                       ToolTipService.ToolTip="Pin"
                                        Click="NotePage_PinButton_Click">
         <tmpls:AlternateIconToggleButton.Icon>
           <FontIcon Glyph="&#xE718;" />
@@ -117,6 +118,7 @@
       <!--#region More Button -->
       <tmpls:SubtleIconButton x:Name="NotePage_MoreButton"
                               Grid.Column="1"
+                              ToolTipService.ToolTip="Menu"
                               Content="{ui:FontIcon Glyph=&#xE712;}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MoreButton_TranslateTransform" />
@@ -136,9 +138,13 @@
             </MenuFlyoutItem>
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="New note"
-                            Icon="Add" />
+                            Icon="Add"
+                            Command="{x:Bind ViewModel.CreateNewNoteCommand}"
+                            CommandParameter="{x:Bind ViewModel}" />
             <MenuFlyoutItem Text="View list"
-                            Icon="{ui:FontIcon Glyph=&#xE71D;}" />
+                            Icon="{ui:FontIcon Glyph=&#xE71D;}" 
+                            Command="{x:Bind ViewModel.ViewListCommand}"
+                            CommandParameter="{x:Bind ViewModel}"/>
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="Edit tags"
                             Icon="Tag" />
@@ -189,6 +195,7 @@
       <tmpls:SubtleIconButton x:Name="NotePage_MinimizeButton"
                               Grid.Column="3"
                               Content="{ui:FontIcon Glyph=&#xE738;}"
+                              ToolTipService.ToolTip="Minimize"
                               Click="NotePage_MinimizeButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
@@ -197,6 +204,7 @@
       <tmpls:SubtleIconButton x:Name="NotePage_CloseButton"
                               Grid.Column="4"
                               Content="{ui:FontIcon Glyph=&#xE711;}"
+                              ToolTipService.ToolTip="Close"
                               Click="NotePage_CloseButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
@@ -262,20 +270,24 @@
         <tmpls:SubtleIconToggleButton x:Name="NotePage_BoldButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DD;}"
                                       AllowFocusOnInteraction="False"
+                                      ToolTipService.ToolTip="Bold"
                                       Click="NotePage_BoldButton_Click" />
 
         <tmpls:SubtleIconToggleButton x:Name="NotePage_ItalicButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DB;}"
                                       AllowFocusOnInteraction="False"
+                                      ToolTipService.ToolTip="Italic"
                                       Click="NotePage_ItalicButton_Click" />
 
         <tmpls:SubtleIconToggleButton x:Name="NotePage_UnderlineButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DC;}"
                                       AllowFocusOnInteraction="False"
+                                      ToolTipService.ToolTip="Underline"
                                       Click="NotePage_UnderlineButton_Click" />
         <tmpls:SubtleIconToggleButton x:Name="NotePage_StrikethroughButton"
                                       Content="{ui:FontIcon Glyph=&#xEDE0;}"
                                       AllowFocusOnInteraction="False"
+                                      ToolTipService.ToolTip="Strikethrough"
                                       Click="NotePage_StrikethroughButton_Click">
           <tmpls:SubtleIconToggleButton.KeyboardAccelerators>
             <KeyboardAccelerator Modifiers="Control"
@@ -284,6 +296,7 @@
         </tmpls:SubtleIconToggleButton>
 
         <tmpls:SubtleIconButton x:Name="NotePage_MarkerButton"
+                                ToolTipService.ToolTip="Marker"
                                 Content="{ui:FontIcon Glyph=&#xF2C7;}" />
 
         <Rectangle Width="1"
@@ -292,7 +305,8 @@
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
         <tmpls:SubtleIconButton x:Name="NotePage_FontSizeButton"
-                                Content="{ui:FontIcon Glyph=&#xE8E9;}">
+                                Content="{ui:FontIcon Glyph=&#xE8E9;}"
+                                ToolTipService.ToolTip="Font size">
           <tmpls:SubtleIconButton.Resources>
             <format:DecimalFormatter xmlns:format="using:Windows.Globalization.NumberFormatting"
                                      x:Key="DecimalFormatter"
@@ -332,7 +346,8 @@
         </tmpls:SubtleIconButton>
 
         <tmpls:SubtleIconSplitButton x:Name="NotePage_FontColorButton"
-                                     Click="NotePage_FontColorButton_Click">
+                                     Click="NotePage_FontColorButton_Click"
+                                     ToolTipService.ToolTip="Font color">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <Border CornerRadius="3"
@@ -365,7 +380,8 @@
         </tmpls:SubtleIconSplitButton>
 
         <tmpls:SubtleIconSplitButton x:Name="NotePage_HighlightButton"
-                                     Click="NotePage_HighlightButton_Click">
+                                     Click="NotePage_HighlightButton_Click"
+                                     ToolTipService.ToolTip="Highlight">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <FontIcon Glyph="&#xE891;"
@@ -400,10 +416,11 @@
                    Margin="0,6"
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
-        <tmpls:SubtleIconButton x:Name="NotePage_BackgroundColorButton"
-                                Content="{ui:FontIcon Glyph=&#xE790;}">
+        <tmpls:SubtleIconButton x:Name="NotePage_BackgroundButton"
+                                Content="{ui:FontIcon Glyph=&#xE790;}"
+                                ToolTipService.ToolTip="Background">
           <tmpls:SubtleIconButton.Flyout>
-            <Flyout x:Name="NotePage_BackgroundColorFlyout"
+            <Flyout x:Name="NotePage_BackgroundFlyout"
                     Placement="Top"
                     ShouldConstrainToRootBounds="False"
                     FlyoutPresenterStyle="{StaticResource DefaultThemeFlyoutPresenterStyle}">
@@ -437,6 +454,7 @@
           </tmpls:SubtleIconButton.Flyout>
         </tmpls:SubtleIconButton>
         <tmpls:SubtleIconButton x:Name="NotePage_ImageButton"
+                                ToolTipService.ToolTip="Insert images"
                                 Content="{ui:FontIcon Glyph=&#xE91B;}" />
       </StackPanel>
     </ScrollViewer>
@@ -444,8 +462,11 @@
 
     <InfoBar x:Name="NotePage_InfoBar" 
              Grid.Row="1"
-             HorizontalAlignment="Center"
+             Background="{ThemeResource ControlFillColorDefault}"
+             HorizontalAlignment="Stretch"
              VerticalAlignment="Bottom"
+             Margin="12,4"
+             MaxWidth="600"
              IsClosable="False"/>
     
     <VisualStateManager.VisualStateGroups>
@@ -453,7 +474,7 @@
         <VisualState x:Name="FlyoutThemeDefault" />
         <VisualState x:Name="FlyoutThemeLight">
           <VisualState.Setters>
-            <Setter Target="NotePage_BackgroundColorFlyout.FlyoutPresenterStyle"
+            <Setter Target="NotePage_BackgroundFlyout.FlyoutPresenterStyle"
                     Value="{StaticResource LightThemeFlyoutPresenterStyle}" />
             <Setter Target="NotePage_MoreButtonMenuFlyout.MenuFlyoutPresenterStyle"
                     Value="{StaticResource LightThemeMenuFlyoutPresenterStyle}" />
@@ -463,7 +484,7 @@
         </VisualState>
         <VisualState x:Name="FlyoutThemeDark">
           <VisualState.Setters>
-            <Setter Target="NotePage_BackgroundColorFlyout.FlyoutPresenterStyle"
+            <Setter Target="NotePage_BackgroundFlyout.FlyoutPresenterStyle"
                     Value="{StaticResource DarkThemeFlyoutPresenterStyle}" />
             <Setter Target="NotePage_MoreButtonMenuFlyout.MenuFlyoutPresenterStyle"
                     Value="{StaticResource DarkThemeMenuFlyoutPresenterStyle}" />

@@ -16,7 +16,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Windows;
 
@@ -34,14 +34,14 @@ internal sealed partial class NotePage : Page
   internal NotePage(NoteWindow noteWindow, Note note)
   {
 #if DEBUG
-    ReferenceTracker.NotePageReference.Add(this, noteWindow.AppWindow.Id.Value);
+    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
 #endif
     InitializeComponent();
 
-    var provider = App.Instance.Services.GetRequiredService<NoteViewModelProvider>();
+    var provider = App.Services.GetRequiredService<NoteViewModelProvider>();
     ViewModel = provider.Resolve(note);
-    SettingsService = App.Instance.Services.GetRequiredService<SettingsService>();
-    WindowService = App.Instance.Services.GetRequiredService<WindowService>();
+    SettingsService = App.Services.GetRequiredService<SettingsService>();
+    WindowService = App.Services.GetRequiredService<WindowService>();
 
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
@@ -56,6 +56,7 @@ internal sealed partial class NotePage : Page
     _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;
 
     this.SizeChanged += NotePage_SizeChanged;
+    this.Loaded += NotePage_Loaded;
     this.Unloaded += NotePage_Unloaded;
   }
 
@@ -197,14 +198,47 @@ internal sealed partial class NotePage : Page
     }
   }
 
+  private void NotePage_Loaded(object sender, RoutedEventArgs e)
+  {
+    if (TryGetWindowInfo(out _, out var appWindow))
+    {
+      appWindow.Changed += AppWindow_Changed;
+    }
+  }
+
+  private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
+  {
+    if (args.DidSizeChange)
+    {
+      if (sender.Presenter is OverlappedPresenter presenter
+        && presenter.State is OverlappedPresenterState.Restored)
+      {
+        ViewModel.Note.Size = sender.Size;
+      }
+    }
+    else if (args.DidPositionChange)
+    {
+      if (sender.Presenter is OverlappedPresenter presenter
+        && presenter.State is OverlappedPresenterState.Restored)
+      {
+        ViewModel.Note.Position = sender.Position;
+      }
+    }
+  }
+
   private void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
     UnregisterMessengers();
 
+    if (TryGetWindowInfo(out _, out var appWindow))
+    {
+      appWindow.Changed -= AppWindow_Changed;
+    }
+
     _editorDebounceTimer.Tick -= EditorDebounceTimer_Tick;
     UpdateEditorBodyText();
 
-    var navigationService = App.Instance.Services.GetRequiredService<NavigationService>();
+    var navigationService = App.Services.GetRequiredService<NavigationService>();
     if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
           && navigation.Id != ViewModel.Note.NavigationId))
     {

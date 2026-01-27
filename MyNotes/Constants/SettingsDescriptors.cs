@@ -1,4 +1,5 @@
 ﻿using MyNotes.Common.Collections;
+using MyNotes.Models.Navigations;
 using MyNotes.Services.Settings;
 
 namespace MyNotes.Constants;
@@ -18,7 +19,7 @@ internal static class SettingsDescriptors
 
   // Settings - General
   public static readonly SettingsDescriptor<int> InitialPageType = new("InitialPageType", 0);
-  public static readonly SettingsDescriptor<Guid> InitialPageId = new("InitialPageId", Guid.Parse("00000000-0000-0000-0000-000000000008"));
+  public static readonly SettingsDescriptor<Guid> InitialPageId = new("InitialPageId", NavigationId.Home.Value);
 
   // Settings - Note
   public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMininumSize", new Size(400.0, 300.0));

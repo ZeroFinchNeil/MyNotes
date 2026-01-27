@@ -1,5 +1,4 @@
-﻿using MyNotes.Resources;
-using MyNotes.Views.Navigations;
+﻿using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
@@ -15,7 +14,7 @@ internal class NavigationUserCompositeNode : NavigationUserNode
     set => SetProperty(ref field, value);
   }
 
-  public void ForEachDescendant(Action<NavigationUserNode> action)
+  public void ForEachDescendant(Action<NavigationUserNode> action, bool containsSelf = true)
   {
     Stack<NavigationUserNode> stack = new();
     stack.Push(this);
@@ -23,7 +22,8 @@ internal class NavigationUserCompositeNode : NavigationUserNode
     while (stack.Count > 0)
     {
       var node = stack.Pop();
-      action.Invoke(node);
+      if (containsSelf || this != node)
+        action.Invoke(node);
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
@@ -32,22 +32,60 @@ internal class NavigationUserCompositeNode : NavigationUserNode
       }
     }
   }
-}
 
-internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
-{
-  public static NavigationUserRootNode Instance => field ??= new()
+  public IReadOnlyList<NavigationUserNode> FindDescendants(Func<NavigationUserNode, bool> condition, bool containsSelf = true)
   {
-    Id = NavigationId.UserRootNode,
-    Parent = null!,
-    Icon = Templates.Icon.System_Library,
-    Title = LocalizedStrings.NavigationUserRootNodeDisplayName,
-    PageType = typeof(Page),
-    Position = 0
-  };
+    List<NavigationUserNode> resultNodes = new();
 
-  private NavigationUserRootNode()
-  {
-    Parent = this;
+    Stack<NavigationUserNode> stack = new();
+    stack.Push(this);
+
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      if (containsSelf || this != node)
+        if (condition.Invoke(node))
+          resultNodes.Add(node);
+
+      if (node is NavigationUserCompositeNode compositeNode)
+      {
+        foreach (var childNode in compositeNode.ChildNodes)
+          stack.Push(childNode);
+      }
+    }
+
+    return resultNodes;
   }
+
+  public bool AnyDescendant(Func<NavigationUserNode, bool> condition, bool containsSelf = true)
+  {
+    Stack<NavigationUserNode> stack = new();
+    stack.Push(this);
+
+    while (stack.Count > 0)
+    {
+      var node = stack.Pop();
+      if (containsSelf || this != node)
+        if (condition.Invoke(node))
+          return true;
+
+      if (node is NavigationUserCompositeNode compositeNode)
+      {
+        foreach (var childNode in compositeNode.ChildNodes)
+          stack.Push(childNode);
+      }
+    }
+
+    return false;
+  }
+
+  public bool IsParentOf(NavigationUserNode node) => node.Parent == this && ChildNodes.Contains(node);
+  public bool HasDescendant(NavigationUserNode node) => AnyDescendant(n => n == node, false);
+
+  public bool CanBeParentOf(NavigationUserNode node) => this != node && node switch
+    {
+      NavigationUserLeafNode leaf => !IsParentOf(leaf),
+      NavigationUserCompositeNode composite => !IsParentOf(composite) && !composite.HasDescendant(this),
+      _ => false
+    };
 }

@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
@@ -10,16 +11,19 @@ using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.Views.Navigations;
 
-internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigationViewItem
+internal sealed partial class UserNavigationViewItem : DraggableNavigationViewItem
 {
-  public MainPageUserNavigationViewItem()
+  public UserNavigationViewItem()
   {
+#if DEBUG
+    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
     InitializeComponent();
     this.Loaded += MainPageUserNavigationViewItem_Loaded;
     this.Unloaded += MainPageUserNavigationViewItem_Unloaded;
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(UserNavigationViewModel), typeof(MainPageUserNavigationViewItem), new PropertyMetadata(null));
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(UserNavigationViewModel), typeof(UserNavigationViewItem), new PropertyMetadata(null));
   public UserNavigationViewModel ViewModel
   {
     get => (UserNavigationViewModel)GetValue(ViewModelProperty);
@@ -40,13 +44,6 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
   {
     if (sender is MenuFlyout && ViewModel is not null)
     {
-      NavigationUserNode? currentGroup = ViewModel switch
-      {
-        UserLeafNavigationViewModel leaf => leaf.Navigation.Parent,
-        UserCompositeNavigationViewModel composite => composite.Navigation,
-        _ => null
-      };
-
       MainPage_MoveToGroupMenuFlyoutSubItem.Items.Clear();
       RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>> message = new();
       WeakReferenceMessenger.Default.Send(message, MessageTokens.GetAllGroupNavigationViewModelsToken);
@@ -55,11 +52,12 @@ internal sealed partial class MainPageUserNavigationViewItem : DraggableNavigati
       {
         foreach (var targetVM in message.Response)
         {
-          if (targetVM.Navigation == currentGroup)
+          NavigationUserCompositeNode targetNavigation = targetVM.Navigation;
+          if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
             continue;
           MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
           {
-            Text = targetVM.Navigation.Title,
+            Text = targetNavigation.Title,
             Icon = new ImageIcon() { Source = targetVM.IconImage },
             Command = ViewModel.MoveToGroupCommand,
             CommandParameter = new SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase> { Source = ViewModel, Target = targetVM }

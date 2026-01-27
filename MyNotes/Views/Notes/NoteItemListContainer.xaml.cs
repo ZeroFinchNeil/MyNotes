@@ -1,3 +1,4 @@
+using MyNotes.Debugging;
 using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
@@ -6,6 +7,9 @@ internal sealed partial class NoteItemListContainer : UserControl
 {
   public NoteItemListContainer()
   {
+#if DEBUG
+    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
     InitializeComponent();
 
     this.Loaded += UserListPageNoteItemListContainer_Loaded;

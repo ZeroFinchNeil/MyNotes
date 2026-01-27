@@ -1,10 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal class NoteListViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigationNoteList, NoteListViewModel>
+internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigationNoteList, NoteListViewModel>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
@@ -12,9 +14,7 @@ internal class NoteListViewModelProvider(IServiceProvider serviceProvider) : IVi
 
   public NoteListViewModel Resolve(INavigationNoteList navigation)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel)
-      && !viewmodel.IsDisposed)
+    if (TryResolve(navigation, out var viewmodel))
     {
       return viewmodel;
     }
@@ -25,10 +25,11 @@ internal class NoteListViewModelProvider(IServiceProvider serviceProvider) : IVi
     return newViewModel;
   }
 
-  public bool TryResolve(INavigationNoteList navigation, out NoteListViewModel? noteViewModel)
+  public bool TryResolve(INavigationNoteList navigation, [NotNullWhen(true)] out NoteListViewModel? noteViewModel)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+        && wr.TryGetTarget(out var viewmodel)
+        && !viewmodel.IsDisposed)
     {
       noteViewModel = viewmodel;
       return true;

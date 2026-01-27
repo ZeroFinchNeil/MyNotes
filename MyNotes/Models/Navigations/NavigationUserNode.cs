@@ -1,11 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Debugging;
 using MyNotes.Templates;
 
 namespace MyNotes.Models.Navigations;
 
 internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode
 {
+  public NavigationUserNode(Type pageType)
+  {
+#if DEBUG
+    ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
+#endif
+    PageType = pageType;
+  }
+
   public required NavigationId Id { get; init; }
 
   public required NavigationUserCompositeNode Parent
@@ -28,7 +37,6 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
 
   public Type PageType { get; init; }
 
-  public NavigationUserNode(Type pageType) { PageType = pageType; }
 
   public required int Position
   {
@@ -36,8 +44,8 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
     set => SetProperty(ref field, value);
   }
 
-  public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
-  public override int GetHashCode() => Id.GetHashCode();
+  //public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
+  //public override int GetHashCode() => base.GetHashCode();
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {

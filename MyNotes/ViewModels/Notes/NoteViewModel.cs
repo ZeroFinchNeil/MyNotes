@@ -47,10 +47,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
   // 생성자
   public NoteViewModel([FromKeyedServices(CommandServiceType.NoteViewModel)] ICommandService commandService, NoteService noteService, Note note)
   {
-#if DEBUG
-    ReferenceTracker.NoteViewModelReference.Add(this, note.Id.Value);
-#endif
-
     // DI
     NoteViewModelCommandService = (NoteViewModelCommandService)commandService;
     NoteService = noteService;
@@ -175,4 +171,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
 {
   public Command<NoteViewModel> OpenWindowCommand => NoteViewModelCommandService.OpenWindowCommand;
   public Command<SourceTargetPair<NoteViewModel, NavigationId>> MoveToListCommand => NoteViewModelCommandService.MoveToListCommand;
+  public Command<NoteViewModel> CreateNewNoteCommand => NoteViewModelCommandService.CreateNewNoteCommand;
+  public Command<NoteViewModel> ViewListCommand => NoteViewModelCommandService.ViewListCommand;
 }

@@ -113,6 +113,7 @@ internal sealed partial class NavigationService : IDisposable
     foreach (var node in nodes.Values)
       node.PropertyChanged += UserNode_PropertyChanged;
 
+    // 내비게이션 트리에 들어가지 못한 누락된 내비게이션 처리
     foreach (var omission in omissions)
     {
       if (nodes.TryGetValue(omission.Parent, out var parentNode)
@@ -176,7 +177,7 @@ internal sealed partial class NavigationService : IDisposable
     }
   }
 
-  public void ChangeCurrentNavigation(INavigation navigation)
+  private void ChangeCurrentNavigation(INavigation navigation)
   {
     if (CurrentNavigation == navigation)
       return;

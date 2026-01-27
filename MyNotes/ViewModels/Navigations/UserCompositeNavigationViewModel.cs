@@ -24,7 +24,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
   private readonly SettingsService SettingsService;
 
-  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation)
+  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation) : base(navigation)
   {
     Navigation = navigation;
 
@@ -113,7 +113,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     _disposed = true;
   }
 
-  public void ForEachDescendantAndSelf(Action<NavigationViewModelBase> action)
+  public void ForEachDescendant(Action<NavigationViewModelBase> action, bool containsSelf = true)
   {
     Stack<NavigationViewModelBase> stack = new();
     stack.Push(this);
@@ -121,7 +121,8 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     while (stack.Count > 0)
     {
       var viewmodel = stack.Pop();
-      action.Invoke(viewmodel);
+      if (containsSelf || viewmodel != this)
+        action.Invoke(viewmodel);
 
       if (viewmodel is UserCompositeNavigationViewModel compositeViewModel)
       {
@@ -129,6 +130,28 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
           stack.Push(childViewModel);
       }
     }
+  }
+
+  public NavigationViewModelBase? FirstDescendantOrDefault(Func<NavigationViewModelBase, bool> condition, bool containsSelf = true)
+  {
+    Stack<NavigationViewModelBase> stack = new();
+    stack.Push(this);
+
+    while (stack.Count > 0)
+    {
+      var viewmodel = stack.Pop();
+      if (containsSelf || viewmodel != this)
+        if (condition.Invoke(viewmodel))
+          return viewmodel;
+
+      if (viewmodel is UserCompositeNavigationViewModel compositeViewModel)
+      {
+        foreach (var childViewModel in compositeViewModel.ChildNodeViewModels)
+          stack.Push(childViewModel);
+      }
+    }
+
+    return null;
   }
 
   public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;

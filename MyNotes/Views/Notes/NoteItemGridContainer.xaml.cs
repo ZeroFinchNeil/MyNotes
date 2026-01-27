@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
@@ -13,6 +14,9 @@ internal sealed partial class NoteItemGridContainer : UserControl
 {
   public NoteItemGridContainer()
   {
+#if DEBUG
+    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
     InitializeComponent();
     this.Loaded += UserListPageNoteItemGridContainer_Loaded;
     this.Unloaded += UserListPageNoteItemGridContainer_Unloaded;

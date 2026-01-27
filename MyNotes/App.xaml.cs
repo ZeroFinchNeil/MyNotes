@@ -9,7 +9,7 @@ using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
@@ -22,8 +22,8 @@ namespace MyNotes;
 public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
-  //internal static readonly string PackageFamilyName = "ZeroFinchNeil.MyNotesbyZeroFinchNeil_trdr6c7cjqx0g";
   internal static readonly string PackageFamilyName = Package.Current.Id.FamilyName;
+  internal static ServiceProvider Services { get; } = ConfigureServices();
 
   internal App()
   {
@@ -60,19 +60,20 @@ public sealed partial class App : Application, IDisposable
   protected override void OnLaunched(LaunchActivatedEventArgs args)
   {
     var windowService = Services.GetRequiredService<WindowService>();
-    var mainWindow = windowService.MainWindow;
+    var mainWindow = windowService.GetOrCreateMainWindow();
     mainWindow.Activate();
+#if DEBUG
+    _ = OpenDebugWindow();
+#endif
   }
 
-  public void OpenDebugWindow()
+  public async Task OpenDebugWindow()
   {
+    await Task.Delay(1000);
     new DebugWindow().Activate();
     var windowService = Services.GetRequiredService<WindowService>();
-    var mainWindow = windowService.MainWindow;
-    mainWindow.Activate();
+    windowService.MainWindow?.Activate();
   }
-
-  internal ServiceProvider Services { get; } = ConfigureServices();
 
   private static ServiceProvider ConfigureServices()
   {

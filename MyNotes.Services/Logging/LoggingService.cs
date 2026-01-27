@@ -59,7 +59,7 @@ internal sealed class LoggingService : IDisposable
           CryptographicOperations.ZeroMemory(_aes.IV);
           _aes.Dispose();
 
-          if (File.Exists(_logFilePath) && new FileInfo(_logFilePath).Length <= 512)
+          if (File.Exists(_logFilePath) && new FileInfo(_logFilePath).Length <= 540)
           {
             File.Delete(_logFilePath);
           }

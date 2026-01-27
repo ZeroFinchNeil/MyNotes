@@ -4,6 +4,7 @@ using CommunityToolkit.WinUI.Helpers;
 using Microsoft.UI.Xaml.Documents;
 
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 
@@ -11,6 +12,13 @@ namespace MyNotes.Models.Notes;
 
 internal sealed class Note : ObservableObject, IComparable<Note>
 {
+  public Note()
+  {
+#if DEBUG
+    ReferenceTracker.NoteReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
+  }
+
   public required NoteId Id { get; init; }
 
   public required NavigationId NavigationId

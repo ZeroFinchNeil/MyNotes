@@ -16,7 +16,7 @@ using MyNotes.Models.Settings;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.ViewModels.Navigations;
@@ -27,7 +27,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
 
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, NavigationUserLeafNode navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, NavigationUserLeafNode navigation) : base(navigation)
   {
     Navigation = navigation;
 

@@ -6,7 +6,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Window;
+using MyNotes.Services.Windows;
 
 
 namespace MyNotes.ViewModels.Notes;
@@ -16,7 +16,6 @@ internal sealed class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly SearchService SearchService;
-  private readonly WindowService WindowService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
@@ -25,7 +24,6 @@ internal sealed class NoteListViewModel : ViewModelBase
     SettingsService = settingsService;
     NoteService = noteService;
     SearchService = searchService;
-    WindowService = windowService;
     NoteViewModelProvider = noteViewModelProvider;
 
     Navigation = navigation;
@@ -223,11 +221,11 @@ internal sealed class NoteListViewModel : ViewModelBase
   public async Task LoadNoteViewModels()
   {
     NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
-    switch(Navigation)
+    switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var notes = await NoteService.GetNotesAsync(leaf);
-        foreach (var note in notes)
+        var leafNotes = await NoteService.GetNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
+        foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
@@ -242,10 +240,39 @@ internal sealed class NoteListViewModel : ViewModelBase
           if (await NoteService.FindNoteAsync(NoteId.Create(match.NoteId)) is Note note)
           {
             note.PropertyChanged += Note_PropertyChanged_WhileActive;
-            NoteViewModels.Add(NoteViewModelProvider.Resolve(note)); 
+            NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
           }
         }
         break;
+      case NavigationBookmarks bookmarks:
+        var bookmarksNotes = await NoteService.GetNotesAsync(e => e.IsBookmarked && !e.IsDeleted);
+        foreach (var note in bookmarksNotes)
+        {
+          note.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+        }
+        break;
+    }
+
+    NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
+  }
+
+  private void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+  {
+    if (e.OldItems is IList removedItems)
+    {
+      foreach (var removed in removedItems)
+      {
+        (removed as NoteViewModel)?.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
+      }
+    }
+    if (e.NewItems is IList addedItems)
+    {
+      foreach (var added in addedItems)
+      {
+        (added as NoteViewModel)?.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
+        (added as NoteViewModel)?.Note.PropertyChanged += Note_PropertyChanged_WhileActive;
+      }
     }
   }
 
@@ -254,11 +281,13 @@ internal sealed class NoteListViewModel : ViewModelBase
     if (NoteViewModels is null)
       return;
 
+    NoteViewModels.CollectionChanged -= NoteViewModels_CollectionChanged;
+
     foreach (var noteViewModel in NoteViewModels)
     {
       noteViewModel.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-      if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
-        noteViewModel.Dispose();
+      //if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
+      //  noteViewModel.Dispose();
     }
     NoteViewModels.Clear();
     NoteViewModels = null;
@@ -268,10 +297,18 @@ internal sealed class NoteListViewModel : ViewModelBase
   {
     if (sender is Note note)
     {
-      if (e.PropertyName == nameof(Note.Title))
+      var noteViewModel = NoteViewModelProvider.Resolve(note);
+      switch (e.PropertyName)
       {
-        var viewmodel = NoteViewModelProvider.Resolve(note);
-        NoteViewModels?.ReorderItem(viewmodel);
+        case nameof(Note.Title):
+          NoteViewModels?.ReorderItem(noteViewModel);
+          break;
+        case nameof(Note.IsBookmarked):
+          if (!note.IsBookmarked && Navigation is NavigationBookmarks)
+          {
+            NoteViewModels?.Remove(noteViewModel);
+          }
+          break;
       }
     }
   }

@@ -16,6 +16,7 @@ internal sealed class DbContextSaveChangesOperationRequest(Func<int> operation, 
     try
     {
       var result = Operation.Invoke();
+      Console.WriteLine("{0}: {1}", "Save Changed", result);
       var r = TaskCompletionSource.TrySetResult(result);
     }
     catch (OperationCanceledException)

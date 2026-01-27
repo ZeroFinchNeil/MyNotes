@@ -14,9 +14,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
   public NavigationViewModelBase Resolve(INavigation navigation)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.IsDisposed)
+    if (TryResolve(navigation, out var viewmodel))
     {
       return viewmodel;
     }
@@ -37,10 +35,13 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     return newViewModel;
   }
 
+
+
   public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelbase)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+        && wr.TryGetTarget(out var viewmodel)
+        && !viewmodel.IsDisposed)
     {
       viewmodelbase = viewmodel;
       return true;
@@ -65,8 +66,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
   public bool Release(INavigation navigation)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+    if (TryResolve(navigation, out var viewmodel))
     {
       viewmodel.Dispose();
       ResolvedViewModels.Remove(navigation);

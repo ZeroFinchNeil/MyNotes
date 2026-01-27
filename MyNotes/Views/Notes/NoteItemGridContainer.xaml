@@ -35,11 +35,13 @@
       </Grid.ColumnDefinitions>
 
       <!-- Bookmark Button -->
-      <templates:SubtleIconButton x:Name="NoteItem_BookmarkButton"
-                                  Grid.Column="0"
-                                  Content="{ui:SymbolIcon Symbol=Favorite}"
-                                  Visibility="Collapsed"
-                                  Style="{StaticResource SubtleIconButtonStyle_32x16}" />
+      <templates:AlternateIconToggleButton x:Name="NoteItem_BookmarkButton"
+                                           Grid.Column="0"
+                                           Icon="{ui:SymbolIcon Symbol=OutlineStar}"
+                                           CheckedIcon="{ui:SymbolIcon Symbol=SolidStar}"
+                                           IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=TwoWay}"
+                                           Visibility="Collapsed"
+                                           Style="{StaticResource AlternateIconToggleButtonStyle_32x16}" />
 
       <!-- Title -->
       <TextBlock Grid.Column="1"
@@ -126,7 +128,7 @@
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_RootGrid"
                                            Storyboard.TargetProperty="BorderBrush">
               <DiscreteObjectKeyFrame KeyTime="0:0:0"
-                                      Value="{ThemeResource AccentFillColorDefaultBrush}" />
+                                      Value="{ThemeResource ControlStrokeColorOnAccentTertiary}" />
             </ObjectAnimationUsingKeyFrames>
             <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NoteItem_BookmarkButton"
                                            Storyboard.TargetProperty="Visibility">

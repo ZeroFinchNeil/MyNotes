@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Notes;
 
@@ -12,9 +14,7 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
 
   public NoteViewModel Resolve(Note note)
   {
-    if (ResolvedViewModels.TryGetValue(note, out var wr)
-      && wr.TryGetTarget(out var viewmodel)
-      && !viewmodel.IsDisposed)
+    if (TryResolve(note, out var viewmodel))
     {
       return viewmodel;
     }
@@ -25,10 +25,11 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
     return newViewModel;
   }
 
-  public bool TryResolve(Note note, out NoteViewModel? noteViewModel)
+  public bool TryResolve(Note note, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
   {
     if (ResolvedViewModels.TryGetValue(note, out var wr)
-      && wr.TryGetTarget(out var viewmodel))
+        && wr.TryGetTarget(out var viewmodel)
+        && !viewmodel.IsDisposed)
     {
       noteViewModel = viewmodel;
       return true;

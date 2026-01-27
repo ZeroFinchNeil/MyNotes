@@ -145,41 +145,41 @@
 
           <local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
             <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
-              <local:MainPageUserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                    MenuItemsSource="{x:Bind ChildNodeViewModels}"
-                                                    IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
-                                                    ViewModel="{x:Bind}"
-                                                    CanDrag="True"
-                                                    AllowDrop="True"
-                                                    IsTabStop="True"
-                                                    SelectsOnInvoked="False"
-                                                    PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
-                                                    DragEnter="MainPageUserNavigationViewItem_DragEnter"
-                                                    DragOver="MainPageUserNavigationViewItem_DragOver"
-                                                    Drop="MainPageUserNavigationViewItem_Drop">
-                <local:MainPageUserNavigationViewItem.Icon>
+              <local:UserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                            MenuItemsSource="{x:Bind ChildNodeViewModels}"
+                                            IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
+                                            ViewModel="{x:Bind}"
+                                            CanDrag="True"
+                                            AllowDrop="True"
+                                            IsTabStop="True"
+                                            SelectsOnInvoked="False"
+                                            PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
+                                            DragEnter="MainPageUserNavigationViewItem_DragEnter"
+                                            DragOver="MainPageUserNavigationViewItem_DragOver"
+                                            Drop="MainPageUserNavigationViewItem_Drop">
+                <local:UserNavigationViewItem.Icon>
                   <ImageIcon Source="{x:Bind IconImage, Mode=OneWay}" />
-                </local:MainPageUserNavigationViewItem.Icon>
-              </local:MainPageUserNavigationViewItem>
+                </local:UserNavigationViewItem.Icon>
+              </local:UserNavigationViewItem>
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
 
           <!--사용자 목록 내비게이션 템플릿-->
           <local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
             <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
-              <local:MainPageUserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
-                                                    ViewModel="{x:Bind}"
-                                                    CanDrag="True"
-                                                    AllowDrop="True"
-                                                    IsTabStop="True"
-                                                    PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
-                                                    DragEnter="MainPageUserNavigationViewItem_DragEnter"
-                                                    DragOver="MainPageUserNavigationViewItem_DragOver"
-                                                    Drop="MainPageUserNavigationViewItem_Drop">
-                <local:MainPageUserNavigationViewItem.Icon>
+              <local:UserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
+                                            ViewModel="{x:Bind}"
+                                            CanDrag="True"
+                                            AllowDrop="True"
+                                            IsTabStop="True"
+                                            PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
+                                            DragEnter="MainPageUserNavigationViewItem_DragEnter"
+                                            DragOver="MainPageUserNavigationViewItem_DragOver"
+                                            Drop="MainPageUserNavigationViewItem_Drop">
+                <local:UserNavigationViewItem.Icon>
                   <ImageIcon Source="{x:Bind IconImage, Mode=OneWay}" />
-                </local:MainPageUserNavigationViewItem.Icon>
-              </local:MainPageUserNavigationViewItem>
+                </local:UserNavigationViewItem.Icon>
+              </local:UserNavigationViewItem>
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
         </local:MainPageNavigationViewDataTemplateSelector>
@@ -202,7 +202,8 @@
                 <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemToRootMenuFlyoutItem"
                                 Command="{x:Bind ViewModel.AddListCommand}"
                                 CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
-                <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemAtSelectedMenuFlyoutItem" Text="at selected position"
+                <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemAtSelectedMenuFlyoutItem"
+                                Text="at selected position"
                                 Command="{x:Bind ViewModel.AddListCommand}"
                                 CommandParameter="{x:Bind MainPage_NavigationView.SelectedItem, Mode=OneWay}" />
               </MenuFlyoutSubItem>

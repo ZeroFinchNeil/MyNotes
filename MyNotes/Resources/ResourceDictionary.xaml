@@ -836,6 +836,14 @@
             Value="32" />
   </Style>
 
+  <Style x:Key="AlternateIconToggleButtonStyle_32x16"
+         TargetType="templates:AlternateIconToggleButton">
+    <Setter Property="Width"
+            Value="32" />
+    <Setter Property="Height"
+            Value="32" />
+  </Style>
+
   <notes:NoteSortKey x:Key="NoteSortKeyModified">Modified</notes:NoteSortKey>
   <notes:NoteSortKey x:Key="NoteSortKeyCreated">Created</notes:NoteSortKey>
   <notes:NoteSortKey x:Key="NoteSortKeyTitle">Title</notes:NoteSortKey>

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
 using MyNotes.ViewModels;
 
 using Windows.System;
@@ -14,8 +15,12 @@ internal sealed partial class SettingsPage : Page
 
   public SettingsPage()
   {
+#if DEBUG
+    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+#endif
+
     InitializeComponent();
-    ServiceScope = App.Instance.Services.CreateScope();
+    ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<SettingsViewModel>();
 
     _ = CheckStartupState();

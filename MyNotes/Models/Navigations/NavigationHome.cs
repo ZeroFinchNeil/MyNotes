@@ -1,0 +1,16 @@
+﻿using MyNotes.Resources;
+using MyNotes.Views.Navigations;
+
+namespace MyNotes.Models.Navigations;
+
+internal sealed class NavigationHome : NavigationCoreNode
+{
+  public static NavigationHome Instance => field ??= new()
+  {
+    Id = NavigationId.Home,
+    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Home } },
+    Title = LocalizedStrings.NavigationHomeTitle
+  };
+
+  private NavigationHome() : base(typeof(HomePage)) { }
+}
