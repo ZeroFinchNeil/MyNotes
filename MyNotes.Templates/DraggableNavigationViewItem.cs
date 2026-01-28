@@ -61,6 +61,17 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
 
   private void DraggableNavigationViewItem_Loaded(object sender, RoutedEventArgs e)
   {
+    DetachWeakEventHandler();
+    AttachWeakEventHandler();
+  }
+
+  private void DraggableNavigationViewItem_Unloaded(object sender, RoutedEventArgs e)
+  {
+    DetachWeakEventHandler();
+  }
+
+  private void AttachWeakEventHandler()
+  {
     Presenter?.DragStarting += DragStartingWeakEventListner.OnEvent;
     Presenter?.DropCompleted += DropCompletedWeakEventListner.OnEvent;
 
@@ -68,12 +79,12 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
     Presenter?.DragLeave += DragLeaveWeakEventHandler.OnEvent;
   }
 
-  private void DraggableNavigationViewItem_Unloaded(object sender, RoutedEventArgs e)
+  private void DetachWeakEventHandler()
   {
-    DragStartingWeakEventListner.Detach();
-    DropCompletedWeakEventListner.Detach();
+    Presenter?.DragStarting -= DragStartingWeakEventListner.OnEvent;
+    Presenter?.DropCompleted -= DropCompletedWeakEventListner.OnEvent;
 
-    DragEnterWeakEventHandler.Detach();
-    DragLeaveWeakEventHandler.Detach();
+    Presenter?.DragEnter -= DragEnterWeakEventHandler.OnEvent;
+    Presenter?.DragLeave -= DragLeaveWeakEventHandler.OnEvent;
   }
 }

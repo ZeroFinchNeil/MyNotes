@@ -107,7 +107,7 @@ internal sealed partial class DebugWindow : Window
   private void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
   {
     var windowService = App.Services.GetRequiredService<WindowService>();
-    windowService.MainWindow?.Activate();
+    windowService.GetOrCreateMainWindow().Activate();
   }
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)

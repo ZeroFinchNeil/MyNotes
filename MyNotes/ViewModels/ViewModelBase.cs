@@ -9,7 +9,10 @@ internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposabl
 #if DEBUG
   public ViewModelBase()
   {
-    ReferenceTracker.ViewModelReference.Add(this, $"{GetType().Name.Replace("ViewModel", ""), 20}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.ViewModelReference.Add(this, $"{GetType().Name.Replace("ViewModel", ""),20}: {GetHashCode()}");
+    }
   }
 #endif
 

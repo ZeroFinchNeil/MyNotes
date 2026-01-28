@@ -7,7 +7,10 @@ internal sealed partial class HomePage : Page
   public HomePage()
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent();

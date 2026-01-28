@@ -15,7 +15,10 @@ internal sealed partial class NoteItemGridContainer : UserControl
   public NoteItemGridContainer()
   {
 #if DEBUG
-    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
     this.Loaded += UserListPageNoteItemGridContainer_Loaded;

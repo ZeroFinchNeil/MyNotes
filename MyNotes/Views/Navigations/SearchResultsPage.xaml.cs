@@ -15,25 +15,16 @@ internal sealed partial class SearchResultsPage : Page
   public SearchResultsPage()
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent();
 
     this.Loaded += SearchResultsPage_Loaded;
     this.Unloaded += SearchResultsPage_Unloaded;
-  }
-
-  private async void SearchResultsPage_Loaded(object sender, RoutedEventArgs e)
-  {
-    Bindings.Update();
-  }
-
-  private void SearchResultsPage_Unloaded(object sender, RoutedEventArgs e)
-  {
-    Bindings.StopTracking();
-    ViewModel?.Dispose();
-    NoteListViewModel?.Dispose();
   }
 
   protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -50,6 +41,21 @@ internal sealed partial class SearchResultsPage : Page
         NoteListViewModel.ChangePreviewLayout(SearchResultsPage_NotesListGridView);
       }
     }
+  }
+
+  protected override void OnNavigatedFrom(NavigationEventArgs e)
+  {
+    NoteListViewModel?.Dispose();
+  }
+
+  private async void SearchResultsPage_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
+
+  private void SearchResultsPage_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 
   // TwoWay Binding BindBack

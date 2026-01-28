@@ -8,7 +8,10 @@ internal sealed partial class NoteItemListContainer : UserControl
   public NoteItemListContainer()
   {
 #if DEBUG
-    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
 

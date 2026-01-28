@@ -87,6 +87,16 @@ internal static class ColorHelper
 
   public static Color GetComplementary(Color c) => Color.FromArgb(c.A, (byte)(255 - c.R), (byte)(255 - c.G), (byte)(255 - c.B));
 
+  public static ElementTheme GetThemeFromColor(Color color)
+  {
+    color = color.CompositeAlphaWith(Colors.White);
+
+    double preferLight = color.ContrastRatioTo(Colors.Black);
+    double preferDark = color.ContrastRatioTo(Colors.White);
+
+    return preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
+  }
+
   extension(Color color)
   {
     public SolidColorBrush SolidColorBrush => new(color);

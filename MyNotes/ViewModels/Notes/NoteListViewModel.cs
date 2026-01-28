@@ -1,5 +1,9 @@
-﻿using MyNotes.Common.Collections;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -11,7 +15,7 @@ using MyNotes.Services.Windows;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed class NoteListViewModel : ViewModelBase
+internal sealed partial class NoteListViewModel : ViewModelBase
 {
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
@@ -29,6 +33,7 @@ internal sealed class NoteListViewModel : ViewModelBase
     Navigation = navigation;
 
     SetCommands();
+    RegisterMessengers();
 
     LoadSortOrderAndPreviewStyle();
     _ = LoadNoteViewModels();
@@ -41,6 +46,7 @@ internal sealed class NoteListViewModel : ViewModelBase
 
     if (disposing)
     {
+      UnregisterMessengers();
       UnloadNoteViewModels();
     }
 
@@ -313,24 +319,6 @@ internal sealed class NoteListViewModel : ViewModelBase
     }
   }
 
-  public Command? AddNoteCommand { get; private set; }
-
-  private void SetCommands()
-  {
-    AddNoteCommand = new(
-      actionToExecute: async () =>
-      {
-        if (Navigation is NavigationUserLeafNode leaf
-            && await NoteService.AddNoteAsync(leaf) is Note note)
-        {
-          NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
-          NoteViewModels?.Add(noteViewModel);
-
-          NoteService.OpenNoteWindow(note);
-        }
-      });
-  }
-
   public static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
   {
     { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },
@@ -426,3 +414,58 @@ internal sealed class NoteListViewModel : ViewModelBase
     }
   }
 }
+
+#region Commands and Messengers
+internal sealed partial class NoteListViewModel : ViewModelBase
+{
+  public Command? AddNoteCommand { get; private set; }
+
+  private void SetCommands()
+  {
+    AddNoteCommand = new(
+      actionToExecute: async () =>
+      {
+        if (Navigation is NavigationUserLeafNode leaf
+            && await NoteService.AddNoteAsync(leaf) is Note note)
+        {
+          NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
+          NoteViewModels?.Add(noteViewModel);
+
+          NoteService.OpenNoteWindow(note);
+        }
+      });
+  }
+
+  private void RegisterMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, MessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
+    {
+      if (message.Sender is Note targetNote)
+      {
+        switch (Navigation)
+        {
+          case NavigationBookmarks:
+            var noteViewModel = NoteViewModels?.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
+            if (message.NewValue)
+            {
+              if (noteViewModel is null)
+              {
+                NoteViewModels?.Add(NoteViewModelProvider.Resolve(targetNote));
+              }
+            }
+            else
+            {
+              if (noteViewModel is not null)
+              {
+                NoteViewModels?.Remove(noteViewModel);
+              }
+            }
+            break;
+        }
+      }
+    });
+  }
+
+  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
+}
+#endregion

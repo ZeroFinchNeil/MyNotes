@@ -11,19 +11,19 @@ namespace MyNotes.Views.Navigations;
 
 internal sealed partial class UserListPage : Page
 {
-  //private readonly NoteListPageCommonLogic CommonLogic;
   private UserLeafNavigationViewModel? ViewModel;
   private NoteListViewModel? NoteListViewModel;
 
   public UserListPage()
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent();
-
-    //CommonLogic = App.Services.GetRequiredService<NoteListPageCommonLogic>();
 
     this.Loaded += UserListPage_Loaded;
     this.Unloaded += UserListPage_Unloaded;
@@ -59,7 +59,6 @@ internal sealed partial class UserListPage : Page
   private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
-    NoteListViewModel?.Dispose();
   }
 
   private void UserListPage_MoreButtonMenuFlyout_Opening(object sender, object e)

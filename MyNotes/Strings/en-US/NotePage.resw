@@ -1,42 +1,234 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<root>  
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:element name="root" msdata:IsDataSet="true">
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
             <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" />
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>1.3</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="BoldButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Bold</value>
+  </data>
+  <data name="BookmarkMenuFlyoutItem.CheckedText" xml:space="preserve">
+    <value>Unbookmark</value>
+  </data>
+  <data name="BookmarkMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Bookmark</value>
+  </data>
+  <data name="BulletsAndNumberingButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Bullets and numbering</value>
+  </data>
+  <data name="CloseButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="DecreaseFontSizeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Decrease</value>
+  </data>
+  <data name="DeleteMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="EditTagsMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Edit tags</value>
+  </data>
+  <data name="FontColorButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Font color</value>
+  </data>
+  <data name="FontColorFlyoutHeaderTextBlock.Text" xml:space="preserve">
+    <value>Font color</value>
+  </data>
+  <data name="FontSizeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Font size</value>
+  </data>
+  <data name="FontSizeFlyoutHeaderTextBlock.Text" xml:space="preserve">
+    <value>Font size</value>
+  </data>
+  <data name="TextHighlightColorButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Text highlight color</value>
+  </data>
+  <data name="TextHighlightColorFlyoutHeaderTextBlock.Text" xml:space="preserve">
+    <value>Text highlight color</value>
+  </data>
+  <data name="IncreaseFontSizeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Increase</value>
+  </data>
+  <data name="ItalicButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Italic</value>
+  </data>
+  <data name="MinimizeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Minimize</value>
+  </data>
+  <data name="MoreButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="NewNoteMenuFlyoutItem.Text" xml:space="preserve">
+    <value>New note</value>
+  </data>
+  <data name="PinButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Pin window</value>
+  </data>
+  <data name="RenameTitleMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Rename title</value>
+  </data>
+  <data name="SaveAsMenuFlyoutSubItem.Text" xml:space="preserve">
+    <value>Save as</value>
+  </data>
+  <data name="SaveAsPlainTextMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Plain text (*.txt)</value>
+  </data>
+  <data name="SaveAsRichTextMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Rich text (*.rtf)</value>
+  </data>
+  <data name="ShareMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="StrikethroughButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Strikethrough</value>
+  </data>
+  <data name="UnderlineButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Underline</value>
+  </data>
+  <data name="ViewListMenuFlyoutItem.Text" xml:space="preserve">
+    <value>View list</value>
+  </data>
+  <data name="ViewModeEditMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="ViewModeMenuFlyoutSubItem.Text" xml:space="preserve">
+    <value>View mode</value>
+  </data>
+  <data name="ViewModeReadOnlyMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Read only</value>
+  </data>
+  <data name="BackgroundButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Background color and effect</value>
+  </data>
+  <data name="BackdropRadioButtons.Header" xml:space="preserve">
+    <value>Background effect</value>
+  </data>
+  <data name="BackdropAcrylicRadioButton.Content" xml:space="preserve">
+    <value>Acrylic</value>
+  </data>
+  <data name="BackdropNoneRadioButton.Content" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="BackdropMicaRadioButton.Content" xml:space="preserve">
+    <value>Mica</value>
+  </data>
+  <data name="BackgroundFlyoutHeaderTextBlock.Text" xml:space="preserve">
+    <value>Background color</value>
+  </data>
+  <data name="InsertImagesButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Insert images</value>
+  </data>
 </root>

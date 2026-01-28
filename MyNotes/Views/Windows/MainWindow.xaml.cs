@@ -25,7 +25,10 @@ internal sealed partial class MainWindow : Window
   public MainWindow(NavigationId? _initialNavigationId = null)
   {
 #if DEBUG
-    ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
     SettingsService = App.Services.GetRequiredService<SettingsService>();

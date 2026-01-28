@@ -15,24 +15,15 @@ public sealed partial class BookmarksPage : Page
   public BookmarksPage()
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent(); 
     this.Loaded += BookmarksPage_Loaded;
     this.Unloaded += BookmarksPage_Unloaded;
-  }
-
-  private async void BookmarksPage_Loaded(object sender, RoutedEventArgs e)
-  {
-    Bindings.Update();
-  }
-
-  private void BookmarksPage_Unloaded(object sender, RoutedEventArgs e)
-  {
-    Bindings.StopTracking();
-    ViewModel?.Dispose();
-    NoteListViewModel?.Dispose();
   }
 
   protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -49,6 +40,20 @@ public sealed partial class BookmarksPage : Page
         NoteListViewModel.ChangePreviewLayout(BookmarksPage_NotesListGridView);
       }
     }
+  }
+  protected override void OnNavigatedFrom(NavigationEventArgs e)
+  {
+    NoteListViewModel?.Dispose();
+  }
+
+  private async void BookmarksPage_Loaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.Update();
+  }
+
+  private void BookmarksPage_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 
   // TwoWay Binding BindBack

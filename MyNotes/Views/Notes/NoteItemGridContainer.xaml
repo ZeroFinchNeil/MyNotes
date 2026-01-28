@@ -17,7 +17,8 @@
         Translation="0,0,12"
         PointerEntered="NoteItem_RootGrid_PointerEntered"
         PointerExited="NoteItem_RootGrid_PointerExited"
-        ContextRequested="NoteItem_RootGrid_ContextRequested">
+        ContextRequested="NoteItem_RootGrid_ContextRequested"
+        RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.Background), Mode=OneWay}">
     <Grid.Shadow>
       <ThemeShadow />
     </Grid.Shadow>
@@ -108,7 +109,8 @@
     <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
                                    Grid.Row="1"
                                    MaxLength="{x:Bind ViewModel.PreviewTextMaxLength, Mode=OneWay}"
-                                   RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}" />
+                                   RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}"
+                                   RequestedTheme="Light" />
     <Border x:Name="NoteItem_PreviewCoverBorder"
             Grid.Row="1"
             Background="Transparent">

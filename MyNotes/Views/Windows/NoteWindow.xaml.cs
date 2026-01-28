@@ -26,7 +26,10 @@ internal sealed partial class NoteWindow : Window
   public NoteWindow(Note note)
   {
 #if DEBUG
-    ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
     this.ExtendsContentIntoTitleBar = true;

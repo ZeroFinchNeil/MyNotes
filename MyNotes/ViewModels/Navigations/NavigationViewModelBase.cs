@@ -1,9 +1,8 @@
-﻿using MyNotes.Debugging;
-using MyNotes.Models.Navigations;
+﻿using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations;
 
-internal abstract class NavigationViewModelBase : ViewModelBase
+internal abstract class NavigationViewModelBase : ViewModelBase, INavigationViewModel
 {
   public abstract INavigation Navigation { get; }
 }

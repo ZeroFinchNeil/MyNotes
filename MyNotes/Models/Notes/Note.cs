@@ -15,7 +15,10 @@ internal sealed class Note : ObservableObject, IComparable<Note>
   public Note()
   {
 #if DEBUG
-    ReferenceTracker.NoteReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.NoteReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
   }
 

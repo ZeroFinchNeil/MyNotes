@@ -66,7 +66,11 @@ public class Program
     if (!DecideRedirection())
     {
 #if DEBUG
-      var consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
+      IntPtr consoleHWND = IntPtr.Zero;
+      if (Debugger.IsAttached)
+      {
+        consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
+      }
 #endif
       App? app = null;
       Application.Start((p) =>
@@ -78,8 +82,11 @@ public class Program
       app?.Dispose();
 
 #if DEBUG
-      NativeMethods.FreeConsole();
-      NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+      if (Debugger.IsAttached)
+      {
+        NativeMethods.FreeConsole();
+        NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+      }
 #endif
     }
   }

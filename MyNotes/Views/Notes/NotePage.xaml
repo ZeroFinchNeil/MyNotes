@@ -7,7 +7,8 @@
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:tmpls="using:MyNotes.Templates"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:ui="using:CommunityToolkit.WinUI">
+      xmlns:ui="using:CommunityToolkit.WinUI"
+      RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.Background), Mode=OneWay}">
 
   <Page.Resources>
     <Style x:Key="DefaultThemeFlyoutPresenterStyle"
@@ -94,8 +95,8 @@
       </Grid.ColumnDefinitions>
 
       <tmpls:AlternateIconToggleButton x:Name="NotePage_PinButton"
+                                       x:Uid="/NotePage/PinButton"
                                        Grid.Column="0"
-                                       ToolTipService.ToolTip="Pin"
                                        Click="NotePage_PinButton_Click">
         <tmpls:AlternateIconToggleButton.Icon>
           <FontIcon Glyph="&#xE718;" />
@@ -117,8 +118,8 @@
 
       <!--#region More Button -->
       <tmpls:SubtleIconButton x:Name="NotePage_MoreButton"
+                              x:Uid="/NotePage/MoreButton"
                               Grid.Column="1"
-                              ToolTipService.ToolTip="Menu"
                               Content="{ui:FontIcon Glyph=&#xE712;}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MoreButton_TranslateTransform" />
@@ -128,42 +129,58 @@
                       Placement="RightEdgeAlignedTop"
                       ShouldConstrainToRootBounds="False"
                       MenuFlyoutPresenterStyle="{StaticResource DefaultThemeMenuFlyoutPresenterStyle}">
-            <MenuFlyoutItem x:Name="NotePage_RenameMenuFlyoutItem"
-                            Text="Rename"
+            <MenuFlyoutItem x:Name="NotePage_RenameTitleMenuFlyoutItem"
+                            x:Uid="/NotePage/RenameTitleMenuFlyoutItem"
                             Icon="Rename"
-                            Click="NotePage_RenameMenuFlyoutItem_Click">
+                            Click="NotePage_RenameTitleMenuFlyoutItem_Click">
               <MenuFlyoutItem.KeyboardAccelerators>
                 <KeyboardAccelerator Key="F2" />
               </MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
             <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="New note"
+            <MenuFlyoutItem x:Uid="/NotePage/NewNoteMenuFlyoutItem"
                             Icon="Add"
                             Command="{x:Bind ViewModel.CreateNewNoteCommand}"
                             CommandParameter="{x:Bind ViewModel}" />
-            <MenuFlyoutItem Text="View list"
-                            Icon="{ui:FontIcon Glyph=&#xE71D;}" 
+            <MenuFlyoutItem x:Uid="/NotePage/ViewListMenuFlyoutItem"
+                            Icon="{ui:FontIcon Glyph=&#xE71D;}"
                             Command="{x:Bind ViewModel.ViewListCommand}"
-                            CommandParameter="{x:Bind ViewModel}"/>
+                            CommandParameter="{x:Bind ViewModel}" />
             <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="Edit tags"
+            <MenuFlyoutItem x:Uid="/NotePage/EditTagsMenuFlyoutItem"
                             Icon="Tag" />
-            <MenuFlyoutItem Text="Bookmark"
-                            Icon="Favorite" />
-            <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="View mode"
-                            Icon="View" />
-            <MenuFlyoutSeparator />
-            <MenuFlyoutSubItem Text="Save as"
-                               Icon="Save">
-              <MenuFlyoutItem Text="Plain text (*.txt)" />
-              <MenuFlyoutItem Text="Rich text (*.rtf)" />
-              <MenuFlyoutItem Text="PDF (*.pdf)" />
+            <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/BookmarkMenuFlyoutItem"
+                                           Icon="Favorite"
+                                           CheckedIcon="UnFavorite"
+                                           IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=TwoWay}" />
+            <MenuFlyoutSubItem x:Uid="/NotePage/ViewModeMenuFlyoutSubItem"
+                               Icon="View">
+              <RadioMenuFlyoutItem x:Uid="/NotePage/ViewModeEditMenuFlyoutItem"
+                                   GroupName="ViewMode"
+                                   IsChecked="True"
+                                   Tag="Edit"
+                                   Click="NotePage_ViewModeRadioMenuFlyoutItem_Click"/>
+              <RadioMenuFlyoutItem x:Uid="/NotePage/ViewModeReadOnlyMenuFlyoutItem"
+                                   GroupName="ViewMode"
+                                   Tag="ReadOnly"
+                                   Click="NotePage_ViewModeRadioMenuFlyoutItem_Click" />
             </MenuFlyoutSubItem>
-            <MenuFlyoutItem Text="Share"
+            <MenuFlyoutSeparator />
+            <MenuFlyoutSubItem x:Uid="/NotePage/SaveAsMenuFlyoutSubItem"
+                               Icon="Save">
+              <MenuFlyoutItem x:Uid="/NotePage/SaveAsPlainTextMenuFlyoutItem"
+                              Tag="SaveAsPlainText"
+                              Click="NotePage_SaveAsMenuFlyoutItem_Click"/>
+              <MenuFlyoutItem x:Uid="/NotePage/SaveAsRichTextMenuFlyoutItem"
+                              Tag="SaveAsRichText"
+                              Click="NotePage_SaveAsMenuFlyoutItem_Click" />
+              <!--<MenuFlyoutItem Text="PDF (*.pdf)"
+                              Tag="SaveAsPDF" />-->
+            </MenuFlyoutSubItem>
+            <MenuFlyoutItem x:Uid="/NotePage/ShareMenuFlyoutItem"
                             Icon="Share" />
             <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="Delete"
+            <MenuFlyoutItem x:Uid="/NotePage/DeleteMenuFlyoutItem"
                             Icon="Delete"
                             Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}" />
           </MenuFlyout>
@@ -193,18 +210,18 @@
       <!--#endregion -->
 
       <tmpls:SubtleIconButton x:Name="NotePage_MinimizeButton"
+                              x:Uid="/NotePage/MinimizeButton"
                               Grid.Column="3"
                               Content="{ui:FontIcon Glyph=&#xE738;}"
-                              ToolTipService.ToolTip="Minimize"
                               Click="NotePage_MinimizeButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
       </tmpls:SubtleIconButton>
       <tmpls:SubtleIconButton x:Name="NotePage_CloseButton"
+                              x:Uid="/NotePage/CloseButton"
                               Grid.Column="4"
                               Content="{ui:FontIcon Glyph=&#xE711;}"
-                              ToolTipService.ToolTip="Close"
                               Click="NotePage_CloseButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
@@ -268,26 +285,26 @@
                   Spacing="6"
                   Padding="6">
         <tmpls:SubtleIconToggleButton x:Name="NotePage_BoldButton"
+                                      x:Uid="/NotePage/BoldButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DD;}"
                                       AllowFocusOnInteraction="False"
-                                      ToolTipService.ToolTip="Bold"
                                       Click="NotePage_BoldButton_Click" />
 
         <tmpls:SubtleIconToggleButton x:Name="NotePage_ItalicButton"
+                                      x:Uid="/NotePage/ItalicButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DB;}"
                                       AllowFocusOnInteraction="False"
-                                      ToolTipService.ToolTip="Italic"
                                       Click="NotePage_ItalicButton_Click" />
 
         <tmpls:SubtleIconToggleButton x:Name="NotePage_UnderlineButton"
+                                      x:Uid="/NotePage/UnderlineButton"
                                       Content="{ui:FontIcon Glyph=&#xE8DC;}"
                                       AllowFocusOnInteraction="False"
-                                      ToolTipService.ToolTip="Underline"
                                       Click="NotePage_UnderlineButton_Click" />
         <tmpls:SubtleIconToggleButton x:Name="NotePage_StrikethroughButton"
+                                      x:Uid="/NotePage/StrikethroughButton"
                                       Content="{ui:FontIcon Glyph=&#xEDE0;}"
                                       AllowFocusOnInteraction="False"
-                                      ToolTipService.ToolTip="Strikethrough"
                                       Click="NotePage_StrikethroughButton_Click">
           <tmpls:SubtleIconToggleButton.KeyboardAccelerators>
             <KeyboardAccelerator Modifiers="Control"
@@ -295,8 +312,8 @@
           </tmpls:SubtleIconToggleButton.KeyboardAccelerators>
         </tmpls:SubtleIconToggleButton>
 
-        <tmpls:SubtleIconButton x:Name="NotePage_MarkerButton"
-                                ToolTipService.ToolTip="Marker"
+        <tmpls:SubtleIconButton x:Name="NotePage_BulletsAndNumberingButton"
+                                x:Uid="/NotePage/BulletsAndNumberingButton"
                                 Content="{ui:FontIcon Glyph=&#xF2C7;}" />
 
         <Rectangle Width="1"
@@ -305,8 +322,8 @@
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
         <tmpls:SubtleIconButton x:Name="NotePage_FontSizeButton"
-                                Content="{ui:FontIcon Glyph=&#xE8E9;}"
-                                ToolTipService.ToolTip="Font size">
+                                x:Uid="/NotePage/FontSizeButton"
+                                Content="{ui:FontIcon Glyph=&#xE8E9;}">
           <tmpls:SubtleIconButton.Resources>
             <format:DecimalFormatter xmlns:format="using:Windows.Globalization.NumberFormatting"
                                      x:Key="DecimalFormatter"
@@ -318,12 +335,13 @@
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
               <StackPanel Spacing="12">
-                <TextBlock Text="Font size"
+                <TextBlock x:Uid="/NotePage/FontSizeFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
 
                 <StackPanel Orientation="Horizontal"
                             Spacing="6">
                   <RepeatButton x:Name="NotePage_DecreaseFontSizeButton"
+                                x:Uid="/NotePage/DecreaseFontSizeButton"
                                 Content="{ui:FontIcon Glyph=&#xE949;}"
                                 Style="{StaticResource SubtleIconRepeatButtonStyle}"
                                 Click="NotePage_DecreaseFontSizeButton_Click" />
@@ -336,6 +354,7 @@
                             ItemsSource="{x:Bind EditorFontSizes}"
                             TextSubmitted="NotePage_FontSizeComboBox_TextSubmitted" />
                   <RepeatButton x:Name="NotePage_IncreaseFontSizeButton"
+                                x:Uid="/NotePage/IncreaseFontSizeButton"
                                 Content="{ui:FontIcon Glyph=&#xE948;}"
                                 Style="{StaticResource SubtleIconRepeatButtonStyle}"
                                 Click="NotePage_IncreaseFontSizeButton_Click" />
@@ -346,8 +365,8 @@
         </tmpls:SubtleIconButton>
 
         <tmpls:SubtleIconSplitButton x:Name="NotePage_FontColorButton"
-                                     Click="NotePage_FontColorButton_Click"
-                                     ToolTipService.ToolTip="Font color">
+                                     x:Uid="/NotePage/FontColorButton"
+                                     Click="NotePage_FontColorButton_Click">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <Border CornerRadius="3"
@@ -367,7 +386,7 @@
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
               <StackPanel Spacing="12">
-                <TextBlock Text="Font color"
+                <TextBlock x:Uid="/NotePage/FontColorFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <ColorPicker x:Name="NotePage_FontColorPicker"
                              ColorSpectrumShape="Ring"
@@ -379,13 +398,13 @@
           </tmpls:SubtleIconSplitButton.SecondaryFlyout>
         </tmpls:SubtleIconSplitButton>
 
-        <tmpls:SubtleIconSplitButton x:Name="NotePage_HighlightButton"
-                                     Click="NotePage_HighlightButton_Click"
-                                     ToolTipService.ToolTip="Highlight">
+        <tmpls:SubtleIconSplitButton x:Name="NotePage_TextHighlightColorButton"
+                                     x:Uid="/NotePage/TextHighlightColorButton"
+                                     Click="NotePage_TextHighlightColorButton_Click">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <FontIcon Glyph="&#xE891;"
-                        Foreground="{x:Bind helpers:ColorHelper.ToBrush(NotePage_HighlightColorPicker.Color), Mode=OneWay}" />
+                        Foreground="{x:Bind helpers:ColorHelper.ToBrush(NotePage_TextHighlightColorColorPicker.Color), Mode=OneWay}" />
               <FontIcon Glyph="&#xE7E6;" />
 
             </Grid>
@@ -395,13 +414,13 @@
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
               <StackPanel Spacing="12">
-                <TextBlock Text="Highlight color"
+                <TextBlock x:Uid="/NotePage/TextHighlightColorFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                <ColorPicker x:Name="NotePage_HighlightColorPicker"
+                <ColorPicker x:Name="NotePage_TextHighlightColorColorPicker"
                              ColorSpectrumShape="Ring"
                              IsAlphaEnabled="False"
                              IsMoreButtonVisible="True"
-                             ColorChanged="NotePage_HighlightColorPicker_ColorChanged" />
+                             ColorChanged="NotePage_TextHighlightColorColorPicker_ColorChanged" />
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconSplitButton.SecondaryFlyout>
@@ -417,8 +436,8 @@
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
         <tmpls:SubtleIconButton x:Name="NotePage_BackgroundButton"
-                                Content="{ui:FontIcon Glyph=&#xE790;}"
-                                ToolTipService.ToolTip="Background">
+                                x:Uid="/NotePage/BackgroundButton"
+                                Content="{ui:FontIcon Glyph=&#xE790;}">
           <tmpls:SubtleIconButton.Flyout>
             <Flyout x:Name="NotePage_BackgroundFlyout"
                     Placement="Top"
@@ -426,49 +445,47 @@
                     FlyoutPresenterStyle="{StaticResource DefaultThemeFlyoutPresenterStyle}">
               <StackPanel Spacing="12">
                 <RadioButtons x:Name="NotePage_BackdropRadioButtons"
+                              x:Uid="/NotePage/BackdropRadioButtons"
                               MaxColumns="3"
-                              Header="Backdrop"
                               HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
                               SelectedIndex="{x:Bind ViewModel.Backdrop, Mode=TwoWay}"
                               SelectionChanged="NotePage_BackdropRadioButtons_SelectionChanged">
-                  <RadioButton Content="None"
+                  <RadioButton x:Uid="/NotePage/BackdropNoneRadioButton"
                                MinWidth="100" />
-                  <RadioButton Content="Acrylic"
+                  <RadioButton x:Uid="/NotePage/BackdropAcrylicRadioButton"
                                MinWidth="100" />
-                  <RadioButton Content="Mica"
+                  <RadioButton x:Uid="/NotePage/BackdropMicaRadioButton"
                                MinWidth="100" />
                 </RadioButtons>
 
                 <NavigationViewItemSeparator />
 
-                <TextBlock Text="Background"
+                <TextBlock x:Uid="/NotePage/BackgroundFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <ColorPicker x:Name="NotePage_BackgroundColorPicker"
                              IsAlphaEnabled="True"
                              ColorSpectrumShape="Ring"
                              IsMoreButtonVisible="True"
-                             Color="{x:Bind ViewModel.Note.Background, Mode=TwoWay}"
-                             ColorChanged="NotePage_BackgroundColorPicker_ColorChanged" />
+                             Color="{x:Bind ViewModel.Note.Background, Mode=TwoWay}" />
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconButton.Flyout>
         </tmpls:SubtleIconButton>
-        <tmpls:SubtleIconButton x:Name="NotePage_ImageButton"
-                                ToolTipService.ToolTip="Insert images"
+        <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
+                                x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ui:FontIcon Glyph=&#xE91B;}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->
 
-    <InfoBar x:Name="NotePage_InfoBar" 
+    <InfoBar x:Name="NotePage_InfoBar"
              Grid.Row="1"
              Background="{ThemeResource ControlFillColorDefault}"
-             HorizontalAlignment="Stretch"
+             HorizontalAlignment="Center"
              VerticalAlignment="Bottom"
              Margin="12,4"
-             MaxWidth="600"
-             IsClosable="False"/>
-    
+             IsClosable="False" />
+
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="FlyoutThemeStates">
         <VisualState x:Name="FlyoutThemeDefault" />
@@ -480,6 +497,8 @@
                     Value="{StaticResource LightThemeMenuFlyoutPresenterStyle}" />
             <Setter Target="NotePage_FindReplaceBox.RequestedTheme"
                     Value="Light" />
+            <Setter Target="NotePage_InfoBar.RequestedTheme"
+                    Value="Light" />
           </VisualState.Setters>
         </VisualState>
         <VisualState x:Name="FlyoutThemeDark">
@@ -489,6 +508,8 @@
             <Setter Target="NotePage_MoreButtonMenuFlyout.MenuFlyoutPresenterStyle"
                     Value="{StaticResource DarkThemeMenuFlyoutPresenterStyle}" />
             <Setter Target="NotePage_FindReplaceBox.RequestedTheme"
+                    Value="Dark" />
+            <Setter Target="NotePage_InfoBar.RequestedTheme"
                     Value="Dark" />
           </VisualState.Setters>
         </VisualState>
@@ -693,6 +714,16 @@
         <VisualState x:Name="EditorSearching">
           <VisualState.Setters>
             <Setter Target="NotePage_FindReplaceBox.IsOpen"
+                    Value="True" />
+          </VisualState.Setters>
+        </VisualState>
+      </VisualStateGroup>
+
+      <VisualStateGroup x:Name="EditorViewModeState">
+        <VisualState x:Name="ViewModeEdit" />
+        <VisualState x:Name="ViewModeReadOnly">
+          <VisualState.Setters>
+            <Setter Target="NotePage_TextEditorRichEditBox.IsReadOnly"
                     Value="True" />
           </VisualState.Setters>
         </VisualState>

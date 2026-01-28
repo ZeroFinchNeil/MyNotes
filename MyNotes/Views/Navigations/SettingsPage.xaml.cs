@@ -16,7 +16,10 @@ internal sealed partial class SettingsPage : Page
   public SettingsPage()
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent();

@@ -11,7 +11,10 @@ internal sealed partial class UpdateUserNavigationDialog : ContentDialog
   public UpdateUserNavigationDialog(EditUserNavigationDialogViewModel viewmodel)
   {
 #if DEBUG
-    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
     ViewModel = viewmodel;

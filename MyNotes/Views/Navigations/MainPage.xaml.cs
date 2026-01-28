@@ -39,7 +39,10 @@ internal sealed partial class MainPage : Page
   public MainPage(MainWindow mainWindow, NavigationId? initialNavigationId = null)
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
 
     InitializeComponent();
@@ -121,7 +124,7 @@ internal sealed partial class MainPage : Page
         appWindow = mainWindow.AppWindow;
       }
     }
-    catch(Exception e)
+    catch (Exception e)
     {
       LoggingService.Write(e);
     }

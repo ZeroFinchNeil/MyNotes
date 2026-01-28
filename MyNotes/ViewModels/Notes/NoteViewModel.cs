@@ -1,7 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
+using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -114,6 +119,9 @@ internal sealed partial class NoteViewModel : ViewModelBase
     {
       case nameof(Note.Backdrop):
         this.Backdrop = (int)Note.Backdrop;
+        break;
+      case nameof(Note.IsBookmarked):
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(Note, nameof(Note.IsBookmarked), !Note.IsBookmarked, Note.IsBookmarked), MessageTokens.ChangeNoteIsBookmarkedStateToken);
         break;
     }
 

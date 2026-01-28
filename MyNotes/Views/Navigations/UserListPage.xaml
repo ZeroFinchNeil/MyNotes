@@ -58,8 +58,7 @@
 
         <templates:SubtleIconButton.Flyout>
           <MenuFlyout x:Name="UserListPage_MoreButtonMenuFlyout"
-                      Placement="BottomEdgeAlignedRight"
-                      Opening="UserListPage_MoreButtonMenuFlyout_Opening">
+                      Placement="BottomEdgeAlignedRight">
             <!-- Rename Title -->
             <MenuFlyoutItem Text="Rename title"
                             Icon="Rename" />

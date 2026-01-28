@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Content;
+using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
@@ -20,6 +21,9 @@ using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Windows;
 
+using Windows.Storage.Streams;
+using Windows.System;
+
 using WinRT.Interop;
 
 namespace MyNotes.Views.Notes;
@@ -34,7 +38,10 @@ internal sealed partial class NotePage : Page
   internal NotePage(NoteWindow noteWindow, Note note)
   {
 #if DEBUG
-    ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
 
@@ -46,7 +53,6 @@ internal sealed partial class NotePage : Page
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
     SetEditorText();
-    ChangeWindowTheme(ViewModel.Note.Background);
 
     ChangeFlyoutTheme((ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme));
 
@@ -129,32 +135,10 @@ internal sealed partial class NotePage : Page
   private void SetEditorText()
   {
     var rtfText = ViewModel.Note.Body;
-    if (string.IsNullOrEmpty(rtfText))
-    {
-      NotePage_TextEditorRichEditBox.RequestedTheme = GetThemeForColor(ViewModel.Note.Background);
-    }
-    else
+    if (!string.IsNullOrEmpty(rtfText))
     {
       NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
     }
-  }
-
-  // 테마 관련
-  private void ChangeWindowTheme(Color color)
-  {
-    var theme = GetThemeForColor(color);
-    if (this.RequestedTheme != theme)
-      this.RequestedTheme = theme;
-  }
-
-  private ElementTheme GetThemeForColor(Color color)
-  {
-    color = color.CompositeAlphaWith(Colors.White);
-
-    double preferLight = color.ContrastRatioTo(Colors.Black);
-    double preferDark = color.ContrastRatioTo(Colors.White);
-
-    return preferLight >= preferDark ? ElementTheme.Light : ElementTheme.Dark;
   }
 
   private void ChangeFlyoutTheme(ElementTheme theme)
@@ -247,6 +231,98 @@ internal sealed partial class NotePage : Page
 
     Bindings.StopTracking();
   }
+
+  private void NotePage_ViewModeRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is RadioMenuFlyoutItem item)
+    {
+      switch (item.Tag)
+      {
+        case string tag when tag is "Edit":
+          VisualStateManager.GoToState(this, "ViewModeEdit", false);
+          break;
+        case string tag when tag is "ReadOnly":
+          VisualStateManager.GoToState(this, "ViewModeReadOnly", false);
+          break;
+      }
+    }
+  }
+
+  private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is MenuFlyoutItem item
+      && TryGetWindowInfo(out _, out var appWindow))
+    {
+      (string Extension, string Kind)? fileType = item.Tag switch
+      {
+        string tag when tag is "SaveAsPlainText" => (".txt", "text"),
+        string tag when tag is "SaveAsRichText" => (".rtf", "rich text"),
+        string tag when tag is "SaveAsPDF" => (".pdf", "PDF"),
+        _ => null
+      };
+
+      if (fileType is not null)
+      {
+        string suggestedFileName = ViewModel.Note.Title;
+        foreach (var ch in System.IO.Path.GetInvalidFileNameChars())
+        {
+          suggestedFileName = suggestedFileName.Replace(ch, '_');
+        }
+        if (string.IsNullOrEmpty(suggestedFileName))
+          suggestedFileName = $"MyNote_{DateTime.UtcNow:yyyyMMdd_hhmmss}";
+
+        FileSavePicker picker = new(appWindow.Id)
+        {
+          SuggestedFileName = suggestedFileName,
+          SuggestedStartLocation = PickerLocationId.Desktop
+        };
+        picker.FileTypeChoices.Add(item.Text, [fileType.Value.Extension]);
+        picker.DefaultFileExtension = fileType.Value.Extension;
+
+        if (await picker.PickSaveFileAsync() is PickFileResult result)
+        {
+          string savePath = result.Path;
+          switch (fileType.Value.Extension)
+          {
+            case string ex when ex is ".txt":
+              NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.None, out var plainText);
+              await File.WriteAllTextAsync(savePath, plainText);
+              break;
+            case string ex when ex is ".rtf":
+              var rtfFile = await StorageFile.GetFileFromPathAsync(savePath);
+              using (IRandomAccessStream randAccStream = await rtfFile.OpenAsync(FileAccessMode.ReadWrite))
+              {
+                NotePage_TextEditorRichEditBox.Document.SaveToStream(TextGetOptions.FormatRtf, randAccStream);
+              }
+              break;
+          }
+          Button actionButton = new()
+          {
+            Content = "Show in folder"
+          };
+
+          async void SaveAsInfoBarActionButton_Click(object sender, RoutedEventArgs e)
+          {
+            actionButton.Click -= SaveAsInfoBarActionButton_Click;
+            NotePage_InfoBar.ActionButton = null;
+            var folder = await StorageFolder.GetFolderFromPathAsync(System.IO.Path.GetDirectoryName(savePath));
+            await Launcher.LaunchFolderAsync(folder);
+            NotePage_InfoBar.IsOpen = false;
+          }
+          actionButton.Click += SaveAsInfoBarActionButton_Click;
+          NotePage_InfoBar.Title = $"Saved as a {fileType.Value.Kind} file.";
+          NotePage_InfoBar.ActionButton = actionButton;
+          NotePage_InfoBar.Severity = InfoBarSeverity.Success;
+          OpenInfoBar(interval: TimeSpan.FromSeconds(7), showCloseButtonOnAutoClose: true,
+            actionAfterAutoClosed: () =>
+            {
+              actionButton.Click -= SaveAsInfoBarActionButton_Click;
+              NotePage_InfoBar.ActionButton = null;
+            });
+        }
+      }
+    }
+  }
 }
 
 #region 상단 타이틀 바 영역
@@ -289,10 +365,11 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  private void NotePage_RenameMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  private void NotePage_RenameTitleMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     VisualStateManager.GoToState(this, "TitleBarTitleRename", false);
     NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
+    NotePage_TitleRenameTextBox.SelectAll();
     NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
   }
 
@@ -390,11 +467,6 @@ internal sealed partial class NotePage : Page
     characterFormat.Strikethrough = FormatEffect.Toggle;
   }
 
-  private void NotePage_BackgroundColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-  {
-    ChangeWindowTheme(args.NewColor);
-  }
-
   private void NotePage_BackdropRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
   {
     TryExecuteOnWindow((noteWindow) =>
@@ -414,7 +486,7 @@ internal sealed partial class NotePage : Page
     characterFormat.ForegroundColor = args.NewColor;
   }
 
-  private void NotePage_HighlightColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
+  private void NotePage_TextHighlightColorColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
   {
     var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
     characterFormat.BackgroundColor = args.NewColor;
@@ -426,10 +498,10 @@ internal sealed partial class NotePage : Page
     characterFormat.ForegroundColor = NotePage_FontColorPicker.Color;
   }
 
-  private void NotePage_HighlightButton_Click(object sender, RoutedEventArgs e)
+  private void NotePage_TextHighlightColorButton_Click(object sender, RoutedEventArgs e)
   {
     var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.BackgroundColor = NotePage_HighlightColorPicker.Color;
+    characterFormat.BackgroundColor = NotePage_TextHighlightColorColorPicker.Color;
   }
 
   private readonly ImmutableList<float> EditorFontSizes = [8, 9, 10.5f, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
@@ -526,12 +598,30 @@ internal sealed partial class NotePage : Page
 #region Keyboard Accelerators
 internal sealed partial class NotePage : Page
 {
-  private readonly DispatcherTimer _infoBarDismissTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+  private readonly DispatcherTimer _infoBarDismissTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
-  private void OpenInfoBar()
+  private void OpenInfoBar(TimeSpan? interval = null, bool showCloseButtonOnAutoClose = false, Action? actionAfterAutoClosed = null)
   {
     NotePage_InfoBar.IsOpen = true;
-    _infoBarDismissTimer.Start();
+
+    if (interval is null)
+    {
+      NotePage_InfoBar.IsClosable = true;
+    }
+    else
+    {
+      NotePage_InfoBar.IsClosable = showCloseButtonOnAutoClose;
+      _infoBarDismissTimer.Stop();
+      _infoBarDismissTimer.Interval = interval.Value;
+      void InfoBarDismissTimer_Tick_WhenAutoClosed(object? sender, object e)
+      {
+        _infoBarDismissTimer.Tick -= InfoBarDismissTimer_Tick_WhenAutoClosed;
+        actionAfterAutoClosed?.Invoke();
+      }
+      if (actionAfterAutoClosed is not null)
+        _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick_WhenAutoClosed;
+      _infoBarDismissTimer.Start();
+    }
   }
 
   private void InfoBarDismissTimer_Tick(object? sender, object e)
@@ -546,8 +636,9 @@ internal sealed partial class NotePage : Page
     UpdateEditorBodyText();
     await ViewModel.UpdateNoteEntity();
     NotePage_InfoBar.Title = "Saved";
+    NotePage_InfoBar.ActionButton = null;
     NotePage_InfoBar.Severity = InfoBarSeverity.Success;
-    OpenInfoBar();
+    OpenInfoBar(TimeSpan.FromSeconds(2));
   }
 
   private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)

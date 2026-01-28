@@ -16,7 +16,10 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
   public UserNavigationViewItem()
   {
 #if DEBUG
-    ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
+    }
 #endif
     InitializeComponent();
     this.Loaded += MainPageUserNavigationViewItem_Loaded;

@@ -63,7 +63,10 @@ public sealed partial class App : Application, IDisposable
     var mainWindow = windowService.GetOrCreateMainWindow();
     mainWindow.Activate();
 #if DEBUG
-    _ = OpenDebugWindow();
+    if (Debugger.IsAttached)
+    {
+      _ = OpenDebugWindow();
+    }
 #endif
   }
 

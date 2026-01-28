@@ -10,7 +10,10 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
   public NavigationUserNode(Type pageType)
   {
 #if DEBUG
-    ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
+    if (Debugger.IsAttached)
+    {
+      ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
+    }
 #endif
     PageType = pageType;
   }
