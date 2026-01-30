@@ -4,10 +4,8 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
-using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
@@ -40,6 +38,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
       },
       { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
       { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
+      { nameof(Note.IsWindowOpen), note => e => e.IsWindowOpen = note.IsWindowOpen }
     });
 
   private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];

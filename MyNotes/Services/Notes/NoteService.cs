@@ -52,6 +52,14 @@ internal sealed partial class NoteService : IDisposable
 
     return noteWindow;
   }
+
+  public async Task OpenNoteWindowsForOpenEntities()
+  {
+    foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
+    {
+      OpenNoteWindow(note);
+    }
+  }
 }
 
 internal sealed partial class NoteService : IDisposable
@@ -80,7 +88,8 @@ internal sealed partial class NoteService : IDisposable
         Size = new SizeInt32(e.Width, e.Height),
         Position = new PointInt32(e.PositionX, e.PositionY),
         IsBookmarked = e.IsBookmarked,
-        IsDeleted = e.IsDeleted
+        IsDeleted = e.IsDeleted,
+        IsWindowOpen = e.IsWindowOpen
       };
       NoteCache[noteId] = new WeakReference<Note>(newNote);
       return newNote;
@@ -114,11 +123,20 @@ internal sealed partial class NoteService : IDisposable
     return notes;
   }
 
-  // 노트 업데이트
-  public async Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action)
+  /// <summary>
+  /// <para>Asynchronously updates a note entity in the database by applying a specified action to it. If no entity with the specified note id exists, the action is not invoked and no changes are made.</para>
+  /// <para>노트 엔티티를 주어진 액션에 따라 데이터베이스에 비동기 업데이트합니다. 데이터베이스에 일치하는 id를 가진 엔티티가 없으면 액션이 실행되지 않고 변경사항이 저장되지 않습니다.</para>
+  /// </summary>
+  /// <param name="action">
+  /// <para>An action to perform on the found note entity.</para>
+  /// <para>일치하는 노트 엔티티에서 수행해야 할 업데이트를 포함한 액션입니다.</para>
+  /// </param>
+  public Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action) => UpdateNoteEntityAsync(note.Id, action);
+
+  public async Task UpdateNoteEntityAsync(NoteId noteId, Action<NoteEntity> action)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
-    if (await context.NoteEntities.FindAsync(note.Id.Value) is NoteEntity entity)
+    if (await context.NoteEntities.FindAsync(noteId.Value) is NoteEntity entity)
     {
       action.Invoke(entity);
       await context.SaveChangesAsync();
@@ -174,7 +192,8 @@ internal sealed partial class NoteService : IDisposable
       PositionX = note.Position.X,
       PositionY = note.Position.Y,
       IsBookmarked = note.IsBookmarked,
-      IsDeleted = note.IsDeleted
+      IsDeleted = note.IsDeleted,
+      IsWindowOpen = false
     };
 
     context.NoteEntities.Add(entity);

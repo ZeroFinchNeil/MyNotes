@@ -83,9 +83,9 @@ internal class NavigationUserCompositeNode : NavigationUserNode
   public bool HasDescendant(NavigationUserNode node) => AnyDescendant(n => n == node, false);
 
   public bool CanBeParentOf(NavigationUserNode node) => this != node && node switch
-    {
-      NavigationUserLeafNode leaf => !IsParentOf(leaf),
-      NavigationUserCompositeNode composite => !IsParentOf(composite) && !composite.HasDescendant(this),
-      _ => false
-    };
+  {
+    NavigationUserLeafNode leaf => !IsParentOf(leaf),
+    NavigationUserCompositeNode composite => !IsParentOf(composite) && !composite.HasDescendant(this),
+    _ => false
+  };
 }

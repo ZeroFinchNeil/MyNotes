@@ -114,7 +114,7 @@ internal static class ColorHelper
 
 internal readonly struct LabColor(double l, double a, double b)
 {
-  public double L { get; } = l; 
-  public double A { get; } = a; 
+  public double L { get; } = l;
+  public double A { get; } = a;
   public double B { get; } = b;
 }

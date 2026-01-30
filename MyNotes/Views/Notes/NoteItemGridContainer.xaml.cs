@@ -102,7 +102,7 @@ internal sealed partial class NoteItemGridContainer : UserControl
         VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
       }
     }
-    catch(TimeoutException)
+    catch (TimeoutException)
     {
       VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
     }

@@ -1,5 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.Runtime.InteropServices;
 
+using Microsoft.Extensions.DependencyInjection;
+
+using MyNotes.Common.Interop;
 using MyNotes.Debugging;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
@@ -15,14 +18,14 @@ using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
 
-using Windows.ApplicationModel;
+using WinRT.Interop;
 
 namespace MyNotes;
 
 public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
-  internal static readonly string PackageFamilyName = Package.Current.Id.FamilyName;
+  internal static readonly string PackageFamilyName = Windows.ApplicationModel.Package.Current.Id.FamilyName;
   internal static ServiceProvider Services { get; } = ConfigureServices();
 
   internal App()
@@ -57,11 +60,29 @@ public sealed partial class App : Application, IDisposable
     loggingService.Write(ex);
   }
 
-  protected override void OnLaunched(LaunchActivatedEventArgs args)
+  protected override async void OnLaunched(LaunchActivatedEventArgs args)
   {
     var windowService = Services.GetRequiredService<WindowService>();
-    var mainWindow = windowService.GetOrCreateMainWindow();
-    mainWindow.Activate();
+    var noteService = Services.GetRequiredService<NoteService>();
+
+    AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
+    switch (appActivationArguments.Kind)
+    {
+      case ExtendedActivationKind.Launch:
+        var mainWindow = windowService.GetOrCreateMainWindow();
+        mainWindow.Activate();
+        await noteService.OpenNoteWindowsForOpenEntities();
+        break;
+      case ExtendedActivationKind.StartupTask:
+        break;
+      case ExtendedActivationKind.File:
+        break;
+      case ExtendedActivationKind.Protocol:
+        break;
+      default:
+        break;
+    }
+
 #if DEBUG
     if (Debugger.IsAttached)
     {
@@ -75,7 +96,7 @@ public sealed partial class App : Application, IDisposable
     await Task.Delay(1000);
     new DebugWindow().Activate();
     var windowService = Services.GetRequiredService<WindowService>();
-    windowService.MainWindow?.Activate();
+    windowService.GetOrCreateMainWindow()?.Activate();
   }
 
   private static ServiceProvider ConfigureServices()

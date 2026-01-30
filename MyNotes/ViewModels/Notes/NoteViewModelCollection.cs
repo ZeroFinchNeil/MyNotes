@@ -75,7 +75,7 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
 
     if (oldIndex < newIndex)
       newIndex--;
-    
+
     _items.RemoveAt(oldIndex);
     _items.Insert(newIndex, item);
 

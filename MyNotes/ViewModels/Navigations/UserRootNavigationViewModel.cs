@@ -48,9 +48,9 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
     while (queue.Count > 0)
     {
       var viewmodel = queue.Dequeue();
-      foreach(var childViewModel in viewmodel.ChildNodeViewModels)
+      foreach (var childViewModel in viewmodel.ChildNodeViewModels)
       {
-        switch(childViewModel)
+        switch (childViewModel)
         {
           case UserLeafNavigationViewModel leaf:
             viewmodels.Add(leaf);

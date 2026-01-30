@@ -66,14 +66,12 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
       case NotifyCollectionChangedAction.Add:
         if (e.NewItems is IList { Count: > 0 } addedItems && addedItems[0] is INavigation addedItem)
         {
-          Console.WriteLine("{0}: {1}", "Added", $"{e.NewStartingIndex}");
           ChildNodeViewModels.Insert(e.NewStartingIndex, NavigationViewModelProvider.Resolve(addedItem));
         }
         break;
       case NotifyCollectionChangedAction.Remove:
         if (e.OldItems is IList { Count: > 0 })
         {
-          Console.WriteLine("{0}: {1}", "Removed", $"{e.OldStartingIndex}");
           ChildNodeViewModels.RemoveAt(e.OldStartingIndex);
         }
         break;
@@ -81,14 +79,12 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
         if (e.NewItems is IList { Count: > 0 } replacedItems && replacedItems[0] is INavigation replacedItem
           && e.NewStartingIndex < ChildNodeViewModels.Count)
         {
-          Console.WriteLine("{0}: {1}", "Replaced", $"{e.NewStartingIndex}");
           ChildNodeViewModels[e.NewStartingIndex] = NavigationViewModelProvider.Resolve(replacedItem);
         }
         break;
       case NotifyCollectionChangedAction.Move:
         if (e.NewItems is IList { Count: > 0 } && e.OldItems is IList { Count: > 0 } && e.NewStartingIndex < ChildNodeViewModels.Count && e.OldStartingIndex < ChildNodeViewModels.Count)
         {
-          Console.WriteLine("{0}: {1}", "Moved", $"{e.OldStartingIndex} -> {e.NewStartingIndex}");
           ChildNodeViewModels.Move(e.OldStartingIndex, e.NewStartingIndex);
         }
         break;

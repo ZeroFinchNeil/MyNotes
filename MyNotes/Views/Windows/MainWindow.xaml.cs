@@ -84,7 +84,7 @@ internal sealed partial class MainWindow : Window
         Height = monitor.rcWork.Bottom,
       });
     }
-   _windowPosition = windowPosition.PointInt32;
+    _windowPosition = windowPosition.PointInt32;
 
     if (ContainsPointInAreas(areas, _windowPosition))
       AppWindow.Move(_windowPosition);

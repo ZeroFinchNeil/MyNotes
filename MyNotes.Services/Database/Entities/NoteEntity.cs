@@ -34,6 +34,8 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
 
   public required bool IsDeleted { get; set; }
 
+  public required bool IsWindowOpen { get; set; }
+
   public bool Equals(NoteEntity? other) => other is not null && other.Id == Id;
 
   public override bool Equals(object? obj) => this.Equals(obj as NoteEntity);

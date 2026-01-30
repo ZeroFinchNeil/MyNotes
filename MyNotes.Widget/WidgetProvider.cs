@@ -126,7 +126,7 @@ public partial class WidgetProvider : IWidgetProvider
           pageCount = "0",
           background = Base64ImageEncoder.CreateSolidColorSVG(Colors.Transparent),
           layer = Base64ImageEncoder.CreateSolidColorSVG(ColorHelper.FromArgb(32, 216, 216, 216))
-      });
+        });
       }
       else
       {

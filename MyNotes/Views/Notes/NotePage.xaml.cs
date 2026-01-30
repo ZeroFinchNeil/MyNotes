@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
@@ -64,6 +65,7 @@ internal sealed partial class NotePage : Page
     this.SizeChanged += NotePage_SizeChanged;
     this.Loaded += NotePage_Loaded;
     this.Unloaded += NotePage_Unloaded;
+    noteWindow.AppWindow.Closing += AppWindow_Closing;
   }
 
   // NoteWindow 접근
@@ -182,11 +184,38 @@ internal sealed partial class NotePage : Page
     }
   }
 
+  private IntPtr _oldWndProc = IntPtr.Zero;
+  private IntPtr _newWndProc = IntPtr.Zero;
+  private NativeMethods.WndProcCallback? _newWndProcCallback;
+  private readonly int GWLP_WNDPROC = -4;
+  private bool _isManualClose = true;
+
   private void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
-    if (TryGetWindowInfo(out _, out var appWindow))
+    if (TryGetWindowInfo(out var hWnd, out var appWindow))
     {
       appWindow.Changed += AppWindow_Changed;
+
+      ViewModel.Note.IsWindowOpen = true;
+
+      _newWndProcCallback = (handle, msg, wParam, lParam) =>
+      {
+        // 시스템에 의한 종료 시 창 복원을 위해 창 닫힘을 기록하지 않음
+        switch (msg)
+        {
+          case (uint)NativeMethods.WindowMessage.WM_CLOSE:
+            break;
+          case (uint)NativeMethods.WindowMessage.WM_QUERYENDSESSION:
+            _isManualClose = false;
+            break;
+        }
+
+        // 기존 wndProc 호출
+        return NativeMethods.CallWindowProc(_oldWndProc, handle, msg, wParam, lParam);
+      };
+
+      _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
+      _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
     }
   }
 
@@ -210,14 +239,26 @@ internal sealed partial class NotePage : Page
     }
   }
 
+  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+  {
+    sender.Changed -= AppWindow_Changed;
+    sender.Closing -= AppWindow_Closing;
+
+    if (_isManualClose)
+      ViewModel.Note.IsWindowOpen = false;
+
+    IntPtr hWnd = Win32Interop.GetWindowFromWindowId(sender.Id);
+    if (hWnd != IntPtr.Zero)
+    {
+      // 원래 WndProc으로 복귀
+      _ = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _oldWndProc);
+    }
+    _newWndProcCallback = null;
+  }
+
   private void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
     UnregisterMessengers();
-
-    if (TryGetWindowInfo(out _, out var appWindow))
-    {
-      appWindow.Changed -= AppWindow_Changed;
-    }
 
     _editorDebounceTimer.Tick -= EditorDebounceTimer_Tick;
     UpdateEditorBodyText();

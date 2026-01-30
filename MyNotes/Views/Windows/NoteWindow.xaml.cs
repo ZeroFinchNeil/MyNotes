@@ -9,7 +9,6 @@ using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Notes;
@@ -41,8 +40,10 @@ internal sealed partial class NoteWindow : Window
     NoteId = note.Id;
     WindowService.NoteWindows[NoteId] = new WeakReference<NoteWindow>(this);
 
-    // DPI 스케일 가져오기
+    // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
+
+    // DPI 스케일 가져오기
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정

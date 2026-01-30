@@ -128,5 +128,11 @@ internal sealed class Note : ObservableObject, IComparable<Note>
     set => SetProperty(ref field, value);
   }
 
+  public bool IsWindowOpen
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
   public int CompareTo(Note? other) => other is null ? 1 : Created.CompareTo(other.Created);
 }

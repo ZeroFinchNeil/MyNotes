@@ -42,7 +42,7 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
   public event TypedEventHandler<UIElement, DropCompletedEventArgs>? PresenterDropCompleted;
 
   private NavigationViewItemPresenter? Presenter;
-  
+
   protected override void OnApplyTemplate()
   {
     base.OnApplyTemplate();

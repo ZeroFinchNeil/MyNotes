@@ -10,29 +10,9 @@ public class Program
   private static int Main(string[] args)
   {
     WinRT.ComWrappersSupport.InitializeComWrappers();
+    Debug.WriteLine("{0}: {1}", "Main args", string.Join(", ", args));
 
-    // Windows 11 Widget
-    if (IsWindowsVersion11OrHigher)
-    {
-      Guid CLSID_Factory = Guid.Parse(AppStrings.WidgetProvider_COM_CLSID);
-      WidgetProviderFactory<WidgetProvider> widgetProviderFactory = new();
-      WidgetProvider = widgetProviderFactory.Instance;
-      _ = NativeMethods.CoRegisterClassObject(CLSID_Factory, widgetProviderFactory, 0x4, 0x1, out uint cookie);
-
-      if (args.Contains("-Embedding", StringComparer.OrdinalIgnoreCase))
-      {
-        using (var emptyWidgetListEvent = WidgetProvider.EmptyWidgetListEvent)
-        {
-          emptyWidgetListEvent.WaitOne();
-          WidgetProvider = null;
-          _ = NativeMethods.CoRevokeClassObject(cookie);
-        }
-      }
-      else
-        LaunchAppSingleInstance();
-    }
-    else
-      LaunchAppSingleInstance();
+    LaunchAppSingleInstance();
 
     return 0;
   }
@@ -59,18 +39,17 @@ public class Program
     return curRevision >= revision;
   }
 
-  public static bool IsWindowsVersion11OrHigher { get; } = IsOSVersionAtLeast(10, 0, 22000);
+  public static bool IsWindowsVersion11OrHigher => IsOSVersionAtLeast(10, 0, 22000);
 
   private static void LaunchAppSingleInstance()
   {
-    if (!DecideRedirection())
+    bool shouldCreatePrimaryAppInstance = !DecideRedirection();
+    if (shouldCreatePrimaryAppInstance)
     {
 #if DEBUG
       IntPtr consoleHWND = IntPtr.Zero;
-      if (Debugger.IsAttached)
-      {
-        consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
-      }
+      //if (Debugger.IsAttached)
+      consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
 #endif
       App? app = null;
       Application.Start((p) =>
@@ -82,56 +61,82 @@ public class Program
       app?.Dispose();
 
 #if DEBUG
-      if (Debugger.IsAttached)
-      {
-        NativeMethods.FreeConsole();
-        NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-      }
+      //if (Debugger.IsAttached)
+      //{
+      NativeMethods.FreeConsole();
+      NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+      //}
 #endif
     }
   }
 
   private static bool DecideRedirection()
   {
-    bool isRedirect = false;
     AppActivationArguments args = AppInstance.GetCurrent().GetActivatedEventArgs();
-    ExtendedActivationKind kind = args.Kind;
     AppInstance keyInstance = AppInstance.FindOrRegisterForKey("MyNotes");
 
+    // AppInstance.IsCurrent는 AppInstance가 현재 앱의 인스턴스인지 아니면 다른 인스턴스인지를 반환합니다.
+    // true이면 기존에 실행 중인 앱 인스턴스가 없다는 것을 의미하고(초기 앱 실행),
+    // false이면 기존에 실행 중인 앱 인스턴스가 있다는 것을 의미합니다.
     if (keyInstance.IsCurrent)
     {
       keyInstance.Activated += OnActivated;
     }
     else
     {
-      isRedirect = true;
       RedirectActivationTo(args, keyInstance);
+      return true;
     }
 
-    return isRedirect;
+    return false;
   }
 
   private static void OnActivated(object? sender, AppActivationArguments args)
   {
     ExtendedActivationKind kind = args.Kind;
+
+    // Widget
+    if (IsWindowsVersion11OrHigher)
+    {
+      Guid CLSID_Factory = Guid.Parse(AppStrings.WidgetProvider_COM_CLSID);
+      WidgetProviderFactory<WidgetProvider> widgetProviderFactory = new();
+      WidgetProvider = widgetProviderFactory.Instance;
+      _ = NativeMethods.CoRegisterClassObject(CLSID_Factory, widgetProviderFactory, 0x4, 0x1, out uint cookie);
+
+      if (kind is ExtendedActivationKind.StartupTask)
+      {
+        using (var emptyWidgetListEvent = WidgetProvider.EmptyWidgetListEvent)
+        {
+          emptyWidgetListEvent.WaitOne();
+          WidgetProvider = null;
+          _ = NativeMethods.CoRevokeClassObject(cookie);
+        }
+      }
+    }
   }
 
-  public static IntPtr redirectEventHandle = IntPtr.Zero;
+  private static IntPtr _redirectEventHandle = IntPtr.Zero;
 
-  // Do the redirection on another thread, and use a non-blocking
-  // wait method to wait for the redirection to complete.
-  public static void RedirectActivationTo(AppActivationArguments args, AppInstance keyInstance)
+  /// <summary>
+  /// <para>Redirects the current app activation to the specified key instance, bringing its main window to the foreground.</para>
+  /// <para>현재 앱 활성화를 지정된 키 인스턴스로 리디렉션하여 해당 앱의 메인 창을 포그라운드로 가져옵니다.</para>
+  /// </summary>
+  /// <remarks>
+  /// <para>Do the redirection on another thread, and use a non-blocking wait method to wait for the redirection to complete.</para>
+  /// <para>리디렉션은 다른 스레드에서 수행하고, 리디렉션이 완료될 때까지 논블로킹 대기 방식을 사용하세요.</para>
+  /// </remarks>
+  private static void RedirectActivationTo(AppActivationArguments args, AppInstance keyInstance)
   {
-    redirectEventHandle = NativeMethods.CreateEvent(IntPtr.Zero, true, false, null);
+    _redirectEventHandle = NativeMethods.CreateEvent(IntPtr.Zero, true, false, null);
     Task.Run(() =>
     {
       keyInstance.RedirectActivationToAsync(args).AsTask().Wait();
-      NativeMethods.SetEvent(redirectEventHandle);
+      NativeMethods.SetEvent(_redirectEventHandle);
     });
 
     uint CWMO_DEFAULT = 0;
     uint INFINITE = 0xFFFFFFFF;
-    _ = NativeMethods.CoWaitForMultipleObjects(CWMO_DEFAULT, INFINITE, 1, [redirectEventHandle], out uint handleIndex);
+    _ = NativeMethods.CoWaitForMultipleObjects(CWMO_DEFAULT, INFINITE, 1, [_redirectEventHandle], out uint handleIndex);
 
     // Bring the window to the foreground
     Process process = Process.GetProcessById((int)keyInstance.ProcessId);

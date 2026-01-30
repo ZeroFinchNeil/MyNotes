@@ -21,7 +21,7 @@ public sealed partial class BookmarksPage : Page
     }
 #endif
 
-    InitializeComponent(); 
+    InitializeComponent();
     this.Loaded += BookmarksPage_Loaded;
     this.Unloaded += BookmarksPage_Unloaded;
   }

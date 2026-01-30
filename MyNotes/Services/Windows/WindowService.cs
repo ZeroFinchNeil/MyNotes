@@ -9,10 +9,13 @@ namespace MyNotes.Services.Windows;
 internal sealed class WindowService
 {
   private WeakReference<MainWindow>? _mainWindow;
-  public MainWindow? MainWindow =>
-    (_mainWindow is not null && _mainWindow.TryGetTarget(out var mainWindow) && !mainWindow.IsClosed)
-      ? mainWindow : null;
 
+  /// <summary>
+  /// <para>Retrieves the current main window instance if it exists and is not closed; otherwise, creates and returns a new main window.</para>
+  /// <para>기존 MainWindow 인스턴스가 남아 있고 종료되지 않았다면 이를 반환하고, 종료되었다면 인스턴스 정리 후 새로운 인스턴스를 생성하여 반환합니다.</para>
+  /// </summary>
+  /// <param name="navigationId">An optional navigation identifier to set the initial navigation state of the main window. If null, the default navigation is used.</param>
+  /// <returns>The existing main window instance if it is open; otherwise, a new main window instance.</returns>
   public MainWindow GetOrCreateMainWindow(NavigationId? navigationId = null)
   {
     if (_mainWindow is not null

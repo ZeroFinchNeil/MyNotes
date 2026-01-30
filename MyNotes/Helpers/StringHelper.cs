@@ -23,7 +23,7 @@ internal static class StringHelper
     if (currentLanguage is null || string.IsNullOrEmpty(word))
       return string.Empty;
 
-    switch(CultureInfo.GetCultureInfo(currentLanguage).TwoLetterISOLanguageName)
+    switch (CultureInfo.GetCultureInfo(currentLanguage).TwoLetterISOLanguageName)
     {
       case "ko":
         var lastChar = word[^1];
