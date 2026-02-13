@@ -54,7 +54,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
@@ -62,7 +62,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       SettingsService.SettingsChanged -= SettingsService_SettingsChanged;
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 
   private static readonly Dictionary<string, Action<SettingsViewModel, SettingsChangedEventArgs>> SettingsMap = new()

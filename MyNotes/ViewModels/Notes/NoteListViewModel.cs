@@ -41,7 +41,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
@@ -50,7 +50,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       UnloadNoteViewModels();
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 
   public NoteViewModelCollection? NoteViewModels

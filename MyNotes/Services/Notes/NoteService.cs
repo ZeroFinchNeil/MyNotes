@@ -2,12 +2,15 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using MyNotes.Common.Interop;
+using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Search;
 using MyNotes.Services.Search.Entities;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.Views.Windows;
 
@@ -27,15 +30,14 @@ internal sealed partial class NoteService : IDisposable
     SearchService = searchService;
   }
 
-  public bool IsDisposed => _disposed;
+  public bool Disposed { get; private set; }
 
-  private bool _disposed;
   public void Dispose()
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
-    _disposed = true;
+    Disposed = true;
   }
 
   public NoteWindow OpenNoteWindow(Note note, bool activate = true)
@@ -176,6 +178,24 @@ internal sealed partial class NoteService : IDisposable
       NavigationId = navigation.Id,
       Created = DateTimeOffset.UtcNow,
     };
+
+    if (WindowService.TryGetFocusedWindow(out var focusedWindow, out var hWnd)
+      && NativeMethods.GetMonitorInfoForWindow(hWnd) is NativeMethods.MONITORINFOEX monitorInfo)
+    {
+      var rect = monitorInfo.rcWork;
+      int monitorWidth = rect.Right - rect.Left;
+      int monitorHeight = rect.Bottom - rect.Top;
+      int padding = 10;
+      Range h1 = new(rect.Left + padding, rect.Left + (monitorWidth - note.Size.Width) / 2);
+      //Range h2 = new(rect.Right - (monitorWidth + note.Size.Width) / 2, rect.Right - padding);
+      Range v1 = new(rect.Top + padding, rect.Top + (monitorHeight - note.Size.Height) / 2);
+      //Range v2 = new(rect.Bottom - (monitorHeight + note.Size.Height) / 2, rect.Bottom - padding);
+
+      Random random = new();
+      int positionX = h1.Start.Value < h1.End.Value ? random.Next(h1.Start.Value, h1.End.Value) : h1.Start.Value;
+      int positionY = v1.Start.Value < v1.End.Value ? random.Next(v1.Start.Value, v1.End.Value) : v1.Start.Value;
+      note.Position = new PointInt32(positionX, positionY);
+    }
 
     NoteEntity entity = new()
     {

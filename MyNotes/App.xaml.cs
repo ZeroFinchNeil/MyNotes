@@ -1,8 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-using Microsoft.Extensions.DependencyInjection;
-
-using MyNotes.Common.Interop;
 using MyNotes.Debugging;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
@@ -17,8 +14,6 @@ using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
-
-using WinRT.Interop;
 
 namespace MyNotes;
 
@@ -48,7 +43,7 @@ public sealed partial class App : Application, IDisposable
   private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
   {
     if (e.ExceptionObject is Exception ex)
-      WriteExcptionLog(ex);
+    { WriteExcptionLog(ex); }
   }
 
   private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExcptionLog(e.Exception);
@@ -74,6 +69,7 @@ public sealed partial class App : Application, IDisposable
         await noteService.OpenNoteWindowsForOpenEntities();
         break;
       case ExtendedActivationKind.StartupTask:
+        await noteService.OpenNoteWindowsForOpenEntities();
         break;
       case ExtendedActivationKind.File:
         break;
@@ -110,6 +106,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NavigationViewModelProvider>();
     services.AddSingleton<DialogViewModelFactory>();
     services.AddSingleton<NoteViewModelProvider>();
+    services.AddSingleton<NoteEditorViewModelProvider>();
     services.AddSingleton<NoteListViewModelProvider>();
 
     // Service
@@ -129,15 +126,14 @@ public sealed partial class App : Application, IDisposable
     services.AddDbContextFactory<AppDbContext>();
     services.AddScoped<AppDbContextInitializer>();
 
-
     return services.BuildServiceProvider();
   }
 
-  private bool _disposed;
+  public bool Disposed { get; private set; }
 
   private void Dispose(bool disposing)
   {
-    if (!_disposed)
+    if (!Disposed)
     {
       if (disposing)
       {
@@ -146,7 +142,7 @@ public sealed partial class App : Application, IDisposable
         AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
       }
-      _disposed = true;
+      Disposed = true;
     }
   }
 

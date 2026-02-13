@@ -30,4 +30,18 @@ public sealed partial class AlternateIconToggleButton : ToggleButton
     get => (UIElement)GetValue(IndeterminateIconProperty);
     set => SetValue(IndeterminateIconProperty, value);
   }
+
+  public static readonly DependencyProperty IconViewBoxWidthProperty = DependencyProperty.Register("IconViewBoxWidth", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(16.0));
+  public double IconViewBoxWidth
+  {
+    get => (double)GetValue(IconViewBoxWidthProperty);
+    set => SetValue(IconViewBoxWidthProperty, value);
+  }
+
+  public static readonly DependencyProperty IconViewBoxHeightProperty = DependencyProperty.Register("IconViewBoxHeight", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(16.0));
+  public double IconViewBoxHeight
+  {
+    get => (double)GetValue(IconViewBoxHeightProperty);
+    set => SetValue(IconViewBoxHeightProperty, value);
+  }
 }

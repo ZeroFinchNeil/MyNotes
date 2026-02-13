@@ -104,44 +104,6 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private bool TryGetWindowInfo(out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
-  {
-    hWnd = IntPtr.Zero;
-    appWindow = null;
-
-    try
-    {
-      if (this.XamlRoot is XamlRoot xamlRoot
-        && xamlRoot.ContentIslandEnvironment is ContentIslandEnvironment env)
-      {
-        var windowId = env.AppWindowId;
-        hWnd = Win32Interop.GetWindowFromWindowId(windowId);
-        appWindow = AppWindow.GetFromWindowId(windowId);
-      }
-      else if (WindowService.TryGetCurrentMainWindow(out var mainWindow))
-      {
-        hWnd = WindowNative.GetWindowHandle(mainWindow);
-        appWindow = mainWindow.AppWindow;
-      }
-    }
-    catch (Exception e)
-    {
-      LoggingService.Write(e);
-    }
-
-    return hWnd != IntPtr.Zero && appWindow is not null;
-  }
-
-  private bool TryExecuteOnWindow(Action<MainWindow> action)
-  {
-    if (WindowService.TryGetCurrentMainWindow(out var mainWindow))
-    {
-      action.Invoke(mainWindow);
-      return true;
-    }
-    return false;
-  }
-
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
   {
     ViewModel.UserRootNavigationViewModel.ForEachDescendant((viewmodel) =>
@@ -187,7 +149,7 @@ internal sealed partial class MainPage : Page
 
   private void SetRegionsForCustomTitleBar()
   {
-    if (TryGetWindowInfo(out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -262,7 +224,7 @@ internal sealed partial class MainPage : Page
   {
     this.RequestedTheme = theme;
 
-    if (TryGetWindowInfo(out _, out var appWindow))
+    if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow))
     {
       appWindow.TitleBar.PreferredTheme = theme switch
       {
@@ -387,8 +349,7 @@ internal sealed partial class MainPage : Page
     {
       if (message.Value == WindowActivationState.Deactivated)
       {
-        TryGetWindowInfo(out _, out var appWindow);
-        if (appWindow is not null)
+        if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow))
         {
           var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
           _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);

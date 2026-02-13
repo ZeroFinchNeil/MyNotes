@@ -15,10 +15,6 @@ internal static partial class NativeMethods
 
   [LibraryImport("ole32.dll", SetLastError = true)]
   public static partial uint CoWaitForMultipleObjects(uint dwFlags, uint dwMilliseconds, ulong nHandles, [In] IntPtr[] pHandles, out uint dwIndex);
-
-  [LibraryImport("user32.dll", SetLastError = true)]
-  [return: MarshalAs(UnmanagedType.Bool)]
-  public static partial bool SetForegroundWindow(IntPtr hWnd);
   #endregion
 
   #region Job 핸들 관련

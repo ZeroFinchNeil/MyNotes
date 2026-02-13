@@ -2,8 +2,8 @@
 
 internal static class ColorHelper
 {
-  public static SolidColorBrush ToBrush(Color c) => new SolidColorBrush(c);
-  public static AcrylicBrush ToAcrylicBrush(Color c, double tintOpacity = 1.0, double tintLuminosityOpacity = 1.0) => new AcrylicBrush() { FallbackColor = c, TintColor = c, TintOpacity = tintOpacity, TintLuminosityOpacity = tintLuminosityOpacity };
+  public static SolidColorBrush ToBrush(Color? c) => new(c ?? Colors.Transparent);
+  public static AcrylicBrush ToAcrylicBrush(Color c, double tintOpacity = 1.0, double tintLuminosityOpacity = 1.0) => new() { FallbackColor = c, TintColor = c, TintOpacity = tintOpacity, TintLuminosityOpacity = tintLuminosityOpacity };
 
   public const double WCAG_AA_Normal = 4.5;
   public const double WCAG_AA_Large = 3.0;

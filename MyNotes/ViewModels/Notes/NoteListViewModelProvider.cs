@@ -29,7 +29,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
         && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.IsDisposed)
+        && !viewmodel.Disposed)
     {
       noteViewModel = viewmodel;
       return true;
@@ -37,5 +37,29 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
 
     noteViewModel = null;
     return false;
+  }
+
+  public bool Release(INavigationNoteList navigation)
+  {
+    if (TryResolve(navigation, out var viewmodel))
+    {
+      if (!viewmodel.Disposed)
+        viewmodel.Dispose();
+      ResolvedViewModels.Remove(navigation);
+    }
+    return false;
+  }
+
+  public void ReleaseAll()
+  {
+    foreach (var wr in ResolvedViewModels.Values)
+    {
+      if (wr.TryGetTarget(out var viewmodel))
+      {
+        if (!viewmodel.Disposed)
+          viewmodel.Dispose();
+      }
+    }
+    ResolvedViewModels.Clear();
   }
 }

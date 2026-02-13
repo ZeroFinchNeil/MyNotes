@@ -16,9 +16,9 @@ internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposabl
   }
 #endif
 
-  public bool IsDisposed => _disposed;
+  public bool Disposed { get; protected set; }
 
-  protected bool _disposed;
+  public event EventHandler? Disposing;
 
   public void Dispose()
   {
@@ -28,24 +28,27 @@ internal abstract class ViewModelBase : ObservableObject, IViewModel, IDisposabl
 
   protected virtual void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
-    { }
+    {
+      Disposing?.Invoke(this, EventArgs.Empty);
+      Disposing = null;
+    }
 
-    _disposed = true;
+    Disposed = true;
   }
 
   // 파생 클래스 IDisposable 패턴 예시
   //protected override void Dispose(bool disposing)
   //{
-  //  if (_disposed)
+  //  if (Disposed)
   //    return;
 
   //  if (disposing)
   //  { }
 
-  //  _disposed = true;
+  //  base.Dispose(disposing);
   //}
 }

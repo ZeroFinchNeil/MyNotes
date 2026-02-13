@@ -388,8 +388,8 @@
             <Border.BackgroundTransition>
               <BrushTransition Duration="0:0:0.083" />
             </Border.BackgroundTransition>
-            <Viewbox Width="16"
-                     Height="16">
+            <Viewbox Height="16"
+                     Width="16">
               <ContentPresenter x:Name="IconPresenter"
                                 Content="{TemplateBinding Content}"
                                 Foreground="{TemplateBinding Foreground}"
@@ -496,9 +496,9 @@
             Value="40" />
     <Setter Property="Height"
             Value="40" />
-    <Setter Property="IconWidth"
+    <Setter Property="IconViewBoxWidth"
             Value="16" />
-    <Setter Property="IconHeight"
+    <Setter Property="IconViewBoxHeight"
             Value="16" />
     <Setter Property="Background"
             Value="{ThemeResource SubtleButtonBackground}" />
@@ -544,8 +544,8 @@
             <Border.BackgroundTransition>
               <BrushTransition Duration="0:0:0.083" />
             </Border.BackgroundTransition>
-            <Viewbox Width="{TemplateBinding IconWidth}"
-                     Height="{TemplateBinding IconHeight}">
+            <Viewbox Height="{TemplateBinding IconViewBoxHeight}"
+                     Width="{TemplateBinding IconViewBoxWidth}">
               <ContentPresenter x:Name="IconPresenter"
                                 Content="{TemplateBinding Content}"
                                 Foreground="{TemplateBinding Foreground}"
@@ -657,6 +657,10 @@
             Value="Left" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
+    <Setter Property="IconViewBoxWidth"
+            Value="16" />
+    <Setter Property="IconViewBoxHeight"
+            Value="16" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:SubtleIconLabelButton">
@@ -679,8 +683,8 @@
               </Grid.ColumnDefinitions>
 
               <Viewbox Grid.Column="0"
-                       Height="16"
-                       Width="16">
+                       Height="{TemplateBinding IconViewBoxHeight}"
+                       Width="{TemplateBinding IconViewBoxWidth}">
                 <ContentControl x:Name="IconPresenter"
                                 Content="{TemplateBinding Icon}"
                                 Foreground="{TemplateBinding Foreground}"
@@ -830,6 +834,10 @@
             Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
+    <Setter Property="IconViewBoxWidth"
+            Value="16" />
+    <Setter Property="IconViewBoxHeight"
+            Value="16" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:SubtleIconToggleButton">
@@ -843,8 +851,8 @@
             <Border.BackgroundTransition>
               <BrushTransition Duration="0:0:0.083" />
             </Border.BackgroundTransition>
-            <Viewbox Height="16"
-                     Width="16">
+            <Viewbox Height="{TemplateBinding IconViewBoxHeight}"
+                     Width="{TemplateBinding IconViewBoxWidth}">
               <ContentPresenter x:Name="IconPresenter"
                                 Content="{TemplateBinding Content}"
                                 Foreground="{TemplateBinding Foreground}"
@@ -1112,6 +1120,10 @@
             Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
+    <Setter Property="IconViewBoxWidth"
+            Value="16" />
+    <Setter Property="IconViewBoxHeight"
+            Value="16" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:AlternateIconToggleButton">
@@ -1127,8 +1139,8 @@
             <Border.BackgroundTransition>
               <BrushTransition Duration="0:0:0.083" />
             </Border.BackgroundTransition>
-            <Viewbox Height="16"
-                     Width="16">
+            <Viewbox Height="{TemplateBinding IconViewBoxHeight}"
+                     Width="{TemplateBinding IconViewBoxWidth}">
               <Grid>
                 <ContentPresenter x:Name="IconPresenter"
                                   Content="{TemplateBinding Icon}"
@@ -1462,6 +1474,10 @@
             Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
+    <Setter Property="IconViewBoxWidth"
+            Value="16" />
+    <Setter Property="IconViewBoxHeight"
+            Value="16" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:SubtleIconSplitButton">
@@ -1589,8 +1605,8 @@
                     BackgroundSizing="{TemplateBinding BackgroundSizing}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}">
-              <Viewbox Height="16"
-                       Width="16"
+              <Viewbox Height="{TemplateBinding IconViewBoxHeight}"
+                       Width="{TemplateBinding IconViewBoxWidth}"
                        Grid.Column="0">
                 <ContentPresenter x:Name="IconPresenter"
                                   Content="{TemplateBinding Content}"
@@ -1737,6 +1753,10 @@
             Value="Center" />
     <Setter Property="VerticalAlignment"
             Value="Center" />
+    <Setter Property="IconViewBoxWidth"
+            Value="16" />
+    <Setter Property="IconViewBoxHeight"
+            Value="16" />
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="local:SubtleIconToggleSplitButton">
@@ -1864,8 +1884,8 @@
                     BackgroundSizing="{TemplateBinding BackgroundSizing}"
                     BorderBrush="{TemplateBinding BorderBrush}"
                     BorderThickness="{TemplateBinding BorderThickness}">
-              <Viewbox Height="16"
-                       Width="16"
+              <Viewbox Height="{TemplateBinding IconViewBoxHeight}"
+                       Width="{TemplateBinding IconViewBoxWidth}"
                        Grid.Column="0">
                 <ContentPresenter x:Name="IconPresenter"
                                   Content="{TemplateBinding Content}"
@@ -3347,8 +3367,8 @@
             <Viewbox x:Name="IconRoot"
                      HorizontalAlignment="Left"
                      VerticalAlignment="Center"
-                     Width="16"
                      Height="16"
+                     Width="16"
                      Visibility="Collapsed">
               <ContentPresenter x:Name="IconContent"
                                 Content="{TemplateBinding Icon}"

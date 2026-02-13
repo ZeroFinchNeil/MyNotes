@@ -1,11 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Content;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Common.Interop;
@@ -25,13 +23,12 @@ using MyNotes.Views.Windows;
 using Windows.Storage.Streams;
 using Windows.System;
 
-using WinRT.Interop;
-
 namespace MyNotes.Views.Notes;
 
 internal sealed partial class NotePage : Page
 {
   private readonly NoteViewModel ViewModel;
+  private readonly NoteEditorViewModel EditorViewModel;
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
 
@@ -46,11 +43,12 @@ internal sealed partial class NotePage : Page
 #endif
     InitializeComponent();
 
-    var provider = App.Services.GetRequiredService<NoteViewModelProvider>();
-    ViewModel = provider.Resolve(note);
+    var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
+    var editorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    ViewModel = noteViewModelProvider.Resolve(note);
+    EditorViewModel = editorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
     SettingsService = App.Services.GetRequiredService<SettingsService>();
     WindowService = App.Services.GetRequiredService<WindowService>();
-
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
     SetEditorText();
@@ -59,7 +57,6 @@ internal sealed partial class NotePage : Page
 
     RegisterMessengers();
 
-    _editorDebounceTimer.Tick += EditorDebounceTimer_Tick;
     _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;
 
     this.SizeChanged += NotePage_SizeChanged;
@@ -68,49 +65,60 @@ internal sealed partial class NotePage : Page
     noteWindow.AppWindow.Closing += AppWindow_Closing;
   }
 
-  // NoteWindow 접근
-  private bool TryGetWindowInfo(out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  private void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
-    hWnd = IntPtr.Zero;
-    appWindow = null;
-
-    try
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
     {
-      if (this.XamlRoot is XamlRoot xamlRoot
-        && xamlRoot.ContentIslandEnvironment is ContentIslandEnvironment env)
-      {
-        var windowId = env.AppWindowId;
-        hWnd = Win32Interop.GetWindowFromWindowId(windowId);
-        appWindow = AppWindow.GetFromWindowId(windowId);
-      }
-      else if (WindowService.NoteWindows.TryGetValue(ViewModel.Note.Id, out var wr)
-        && wr.TryGetTarget(out var noteWindow))
-      {
-        hWnd = WindowNative.GetWindowHandle(noteWindow);
-        appWindow = noteWindow.AppWindow;
-      }
-    }
-    catch
-    { }
+      appWindow.Changed += AppWindow_Changed;
 
-    return hWnd != IntPtr.Zero && appWindow is not null;
+      ViewModel.Note.IsWindowOpen = true;
+
+      _newWndProcCallback = (handle, msg, wParam, lParam) =>
+      {
+        // 시스템에 의한 종료 시 창 복원을 위해 창 닫힘을 기록하지 않음
+        switch (msg)
+        {
+          case (uint)NativeMethods.WindowMessage.WM_CLOSE:
+            break;
+          case (uint)NativeMethods.WindowMessage.WM_QUERYENDSESSION:
+            _isManualClose = false;
+            break;
+        }
+
+        // 기존 wndProc 호출
+        return NativeMethods.CallWindowProc(_oldWndProc, handle, msg, wParam, lParam);
+      };
+
+      _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
+      _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
+    }
   }
 
-  private bool TryExecuteOnWindow(Action<NoteWindow> action)
+  private void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
-    if (WindowService.NoteWindows.TryGetValue(ViewModel.Note.Id, out var wr)
-        && wr.TryGetTarget(out var noteWindow))
+    UnregisterMessengers();
+    EditorViewModel.UpdateEditorBodyText();
+    if (EditorViewModel.ShouldChangePreview)
     {
-      action.Invoke(noteWindow);
-      return true;
+      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, EditorViewModel.PreviewTextMaxLength);
+      EditorViewModel.ShouldChangePreview = false;
     }
-    return false;
+
+    var navigationService = App.Services.GetRequiredService<NavigationService>();
+    if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
+          && navigation.Id != ViewModel.Note.NavigationId))
+    {
+      ViewModel.Dispose();
+    }
+    EditorViewModel.Dispose();
+
+    Bindings.StopTracking();
   }
 
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
-    if (TryGetWindowInfo(out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -159,22 +167,6 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  // 본문 텍스트 변경 시 뷰모델 및 DB 업데이트
-  private void UpdateEditorBodyText()
-  {
-    NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.FormatRtf, out var editorText);
-    editorText = Regexes.LastParInRtfRegex().Replace(editorText, "}");
-    NotePage_TextEditorRichEditBox.Document.GetText(TextGetOptions.None, out var plainText);
-    ViewModel.Note.Body = editorText;
-    ViewModel.Note.BodyPlainText = plainText;
-
-    if (_changePreview)
-    {
-      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, _previewTextMaxLength);
-      _changePreview = false;
-    }
-  }
-
   private void NotePage_SizeChanged(object sender, SizeChangedEventArgs e)
   {
     if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
@@ -189,35 +181,6 @@ internal sealed partial class NotePage : Page
   private NativeMethods.WndProcCallback? _newWndProcCallback;
   private readonly int GWLP_WNDPROC = -4;
   private bool _isManualClose = true;
-
-  private void NotePage_Loaded(object sender, RoutedEventArgs e)
-  {
-    if (TryGetWindowInfo(out var hWnd, out var appWindow))
-    {
-      appWindow.Changed += AppWindow_Changed;
-
-      ViewModel.Note.IsWindowOpen = true;
-
-      _newWndProcCallback = (handle, msg, wParam, lParam) =>
-      {
-        // 시스템에 의한 종료 시 창 복원을 위해 창 닫힘을 기록하지 않음
-        switch (msg)
-        {
-          case (uint)NativeMethods.WindowMessage.WM_CLOSE:
-            break;
-          case (uint)NativeMethods.WindowMessage.WM_QUERYENDSESSION:
-            _isManualClose = false;
-            break;
-        }
-
-        // 기존 wndProc 호출
-        return NativeMethods.CallWindowProc(_oldWndProc, handle, msg, wParam, lParam);
-      };
-
-      _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
-      _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
-    }
-  }
 
   private void AppWindow_Changed(AppWindow sender, AppWindowChangedEventArgs args)
   {
@@ -256,23 +219,6 @@ internal sealed partial class NotePage : Page
     _newWndProcCallback = null;
   }
 
-  private void NotePage_Unloaded(object sender, RoutedEventArgs e)
-  {
-    UnregisterMessengers();
-
-    _editorDebounceTimer.Tick -= EditorDebounceTimer_Tick;
-    UpdateEditorBodyText();
-
-    var navigationService = App.Services.GetRequiredService<NavigationService>();
-    if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
-          && navigation.Id != ViewModel.Note.NavigationId))
-    {
-      ViewModel.Dispose();
-    }
-
-    Bindings.StopTracking();
-  }
-
   private void NotePage_ViewModeRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is RadioMenuFlyoutItem item)
@@ -292,7 +238,7 @@ internal sealed partial class NotePage : Page
   private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is MenuFlyoutItem item
-      && TryGetWindowInfo(out _, out var appWindow))
+      && WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       (string Extension, string Kind)? fileType = item.Tag switch
       {
@@ -382,7 +328,7 @@ internal sealed partial class NotePage : Page
 
   private void NotePage_PinButton_Click(object sender, RoutedEventArgs e)
   {
-    if (TryGetWindowInfo(out _, out var appWindow))
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       var presenter = appWindow?.Presenter as OverlappedPresenter;
       presenter?.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
@@ -391,7 +337,7 @@ internal sealed partial class NotePage : Page
 
   private void NotePage_MinimizeButton_Click(object sender, RoutedEventArgs e)
   {
-    if (TryGetWindowInfo(out _, out var appWindow))
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       var presenter = appWindow?.Presenter as OverlappedPresenter;
       presenter?.Minimize();
@@ -400,7 +346,7 @@ internal sealed partial class NotePage : Page
 
   private void NotePage_CloseButton_Click(object sender, RoutedEventArgs e)
   {
-    if (TryGetWindowInfo(out IntPtr hWnd, out _))
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out IntPtr hWnd, out _))
     {
       NativeMethods.SendMessage(hWnd, (uint)NativeMethods.WindowMessage.WM_SYSCOMMAND, (IntPtr)NativeMethods.SystemCommand.SC_CLOSE, IntPtr.Zero);
     }
@@ -431,88 +377,11 @@ internal sealed partial class NotePage : Page
 #region 에디터 영역
 internal sealed partial class NotePage : Page
 {
-  private readonly DispatcherTimer _editorDebounceTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
-
-  private void EditorDebounceTimer_Tick(object? sender, object e)
-  {
-    _editorDebounceTimer.Stop();
-    UpdateEditorBodyText();
-  }
-
-  private static readonly byte _editorDebounceCountThreshold = 20;
-  private byte _editorDebounceCount = 0;
-  private void NotePage_TextEditorRichEditBox_TextChanged(object sender, RoutedEventArgs e)
-  {
-    if (!IsLoaded)
-      return;
-
-    _editorDebounceTimer.Stop();
-    _editorDebounceTimer.Start();
-
-    if (_editorDebounceCount++ >= _editorDebounceCountThreshold)
-    {
-      UpdateEditorBodyText();
-      _editorDebounceCount = 0;
-    }
-  }
-
-  private int _previousSelectionIndex = 0;
-  private int _currentSelectionIndex = 0;
-  private void NotePage_TextEditorRichEditBox_SelectionChanged(object sender, RoutedEventArgs e)
-  {
-    var selection = NotePage_TextEditorRichEditBox.Document.Selection;
-    _previousSelectionIndex = selection.GetIndex(0);
-
-    var characterFormat = selection.CharacterFormat;
-    NotePage_BoldButton.IsChecked = characterFormat.Bold is FormatEffect.On;
-    NotePage_ItalicButton.IsChecked = characterFormat.Italic is FormatEffect.On;
-    NotePage_UnderlineButton.IsChecked = characterFormat.Underline is UnderlineType.Single;
-    NotePage_StrikethroughButton.IsChecked = characterFormat.Strikethrough is FormatEffect.On;
-    NotePage_FontSizeComboBox.Text = characterFormat.Size > 0 ? characterFormat.Size.ToString() : string.Empty;
-  }
-
-  private bool _changePreview = false;
-  private readonly int _previewTextMaxLength = 100;
-  private void NotePage_TextEditorRichEditBox_TextChanging(RichEditBox sender, RichEditBoxTextChangingEventArgs args)
-  {
-    _currentSelectionIndex = NotePage_TextEditorRichEditBox.Document.Selection.GetIndex(0);
-    _changePreview = _previousSelectionIndex <= _previewTextMaxLength && _currentSelectionIndex <= _previewTextMaxLength;
-  }
-}
-#endregion
-
-#region 하단 커맨드 바 영역
-internal sealed partial class NotePage : Page
-{
-  private void NotePage_BoldButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.Bold = FormatEffect.Toggle;
-  }
-
-  private void NotePage_ItalicButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.Italic = FormatEffect.Toggle;
-  }
-
-  private void NotePage_UnderlineButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.Underline = characterFormat.Underline == UnderlineType.Single ? UnderlineType.None : UnderlineType.Single;
-  }
-
-  private void NotePage_StrikethroughButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.Strikethrough = FormatEffect.Toggle;
-  }
-
   private void NotePage_BackdropRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
   {
-    TryExecuteOnWindow((noteWindow) =>
+    WindowService.TryExecuteOnNoteWindow(ViewModel.Note.Id, (noteWindow) =>
     {
-      noteWindow.SystemBackdrop = (BackdropKind)(NotePage_BackdropRadioButtons.SelectedIndex) switch
+      noteWindow.SystemBackdrop = (BackdropKind)NotePage_BackdropRadioButtons.SelectedIndex switch
       {
         BackdropKind.Acrylic => new DesktopAcrylicBackdrop(),
         BackdropKind.Mica => new MicaBackdrop(),
@@ -521,118 +390,7 @@ internal sealed partial class NotePage : Page
     });
   }
 
-  private void NotePage_FontColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.ForegroundColor = args.NewColor;
-  }
-
-  private void NotePage_TextHighlightColorColorPicker_ColorChanged(ColorPicker sender, ColorChangedEventArgs args)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.BackgroundColor = args.NewColor;
-  }
-
-  private void NotePage_FontColorButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.ForegroundColor = NotePage_FontColorPicker.Color;
-  }
-
-  private void NotePage_TextHighlightColorButton_Click(object sender, RoutedEventArgs e)
-  {
-    var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-    characterFormat.BackgroundColor = NotePage_TextHighlightColorColorPicker.Color;
-  }
-
-  private readonly ImmutableList<float> EditorFontSizes = [8, 9, 10.5f, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48];
-  private void NotePage_FontSizeComboBox_TextSubmitted(ComboBox sender, ComboBoxTextSubmittedEventArgs e)
-  {
-    if (e.Text.Length <= 5
-      && float.TryParse(e.Text, out float fontSize)
-      && ValidateEditorFontSize(fontSize))
-    {
-      var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-      characterFormat.Size = fontSize;
-    }
-
-    e.Handled = true;
-  }
-
-  private void NotePage_DecreaseFontSizeButton_Click(object sender, RoutedEventArgs e)
-  {
-    string text = NotePage_FontSizeComboBox.Text;
-    if (text.Length <= 5 && float.TryParse(text, out float num))
-    {
-      var fontSize = GetEditorFontSizeLowerBound(num);
-      if (ValidateEditorFontSize(fontSize))
-      {
-        var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-        characterFormat.Size = fontSize;
-        NotePage_FontSizeComboBox.Text = $"{fontSize}";
-      }
-    }
-  }
-
-  private void NotePage_IncreaseFontSizeButton_Click(object sender, RoutedEventArgs e)
-  {
-    string text = NotePage_FontSizeComboBox.Text;
-    if (text.Length <= 5 && float.TryParse(text, out float num))
-    {
-      var fontSize = GetEditorFontSizeUpperBound(num);
-      if (ValidateEditorFontSize(fontSize))
-      {
-        var characterFormat = NotePage_TextEditorRichEditBox.Document.Selection.CharacterFormat;
-        characterFormat.Size = fontSize;
-        NotePage_FontSizeComboBox.Text = $"{fontSize}";
-      }
-    }
-  }
-
-  private static readonly float _minEditorFontSize = 5.0f;
-  private static readonly float _maxEditorFontSize = 512.0f;
-
-  private static bool ValidateEditorFontSize(float fontSize)
-  {
-    if (fontSize >= _minEditorFontSize && fontSize <= _maxEditorFontSize)
-    {
-      float eps = 1e-6f;
-      float truncated = (float)Math.Truncate(fontSize * 100) / 100f;
-      float fraction = Math.Abs(fontSize - (float)Math.Floor(fontSize));
-
-      if (Math.Abs(fraction - 0.0f) < eps || Math.Abs(fraction - 0.5f) < eps)
-      {
-        if (Math.Abs(fontSize - truncated) < eps)
-        {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private static float GetEditorFontSizeUpperBound(float fontSize) => fontSize switch
-  {
-    >= 5 and < 12 => fontSize + 0.5f,
-    < 20 => fontSize + 1.0f,
-    < 32 => fontSize.GreaterThanNearestMultiple(2),
-    < 64 => fontSize.GreaterThanNearestMultiple(4),
-    < 512 => fontSize.GreaterThanNearestMultiple(8),
-    512 => 512,
-    _ => 0
-  };
-
-  private static float GetEditorFontSizeLowerBound(float fontSize) => fontSize switch
-  {
-    5 => 5,
-    > 5 and <= 12 => fontSize - 0.5f,
-    <= 20 => fontSize - 1.0f,
-    <= 32 => fontSize.LessThanNearestMultiple(2),
-    <= 64 => fontSize.LessThanNearestMultiple(4),
-    <= 512 => fontSize.LessThanNearestMultiple(8),
-    _ => 0
-  };
-
+  private bool IsDefaultColor(Color color) => color.A < 255;
 }
 #endregion
 
@@ -674,7 +432,12 @@ internal sealed partial class NotePage : Page
   private async void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     args.Handled = true;
-    UpdateEditorBodyText();
+    EditorViewModel.UpdateEditorBodyText();
+    if (EditorViewModel.ShouldChangePreview)
+    {
+      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, EditorViewModel.PreviewTextMaxLength);
+      EditorViewModel.ShouldChangePreview = false;
+    }
     await ViewModel.UpdateNoteEntity();
     NotePage_InfoBar.Title = "Saved";
     NotePage_InfoBar.ActionButton = null;

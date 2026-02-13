@@ -142,9 +142,8 @@ public class Program
     Process process = Process.GetProcessById((int)keyInstance.ProcessId);
 
     int SW_RESTORE = 9;
-    NativeMethods.ShowWindowAsync(process.MainWindowHandle, SW_RESTORE);
+    _ = NativeMethods.ShowWindowAsync(process.MainWindowHandle, SW_RESTORE);
 
     NativeMethods.SetForegroundWindow(process.MainWindowHandle);
   }
 }
-

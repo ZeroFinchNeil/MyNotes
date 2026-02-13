@@ -45,11 +45,11 @@ internal sealed class LoggingService : IDisposable
     }
   }
 
-  private bool _disposed;
+  public bool Disposed { get; private set; }
 
   private void Dispose(bool disposing)
   {
-    if (!_disposed)
+    if (!Disposed)
     {
       if (disposing)
       {
@@ -66,7 +66,7 @@ internal sealed class LoggingService : IDisposable
         }
       }
 
-      _disposed = true;
+      Disposed = true;
     }
   }
 

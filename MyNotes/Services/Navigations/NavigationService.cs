@@ -40,17 +40,16 @@ internal sealed partial class NavigationService : IDisposable
     BuildNavigationTask = BuildNavigationTree();
   }
 
-  public bool IsDisposed => _disposed;
+  public bool Disposed { get; private set; }
 
-  private bool _disposed;
   public void Dispose()
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
 
-    _disposed = true;
+    Disposed = true;
   }
 
   #region Build Navigation Tree (Initialize)

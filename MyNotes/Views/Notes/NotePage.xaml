@@ -6,8 +6,9 @@
       xmlns:local="using:MyNotes.Views.Notes"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:tmpls="using:MyNotes.Templates"
-      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:ui="using:CommunityToolkit.WinUI"
+      xmlns:ctw="using:CommunityToolkit.WinUI"
+      xmlns:ctwc="using:CommunityToolkit.WinUI.Controls"
+      xmlns:mxi="using:Microsoft.Xaml.Interactivity"
       RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.Background), Mode=OneWay}">
 
   <Page.Resources>
@@ -94,6 +95,7 @@
                           Width="Auto" />
       </Grid.ColumnDefinitions>
 
+      <!-- Pin Button -->
       <tmpls:AlternateIconToggleButton x:Name="NotePage_PinButton"
                                        x:Uid="/NotePage/PinButton"
                                        Grid.Column="0"
@@ -120,7 +122,7 @@
       <tmpls:SubtleIconButton x:Name="NotePage_MoreButton"
                               x:Uid="/NotePage/MoreButton"
                               Grid.Column="1"
-                              Content="{ui:FontIcon Glyph=&#xE712;}">
+                              Content="{ctw:FontIcon Glyph=&#xE712;}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MoreButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
@@ -129,6 +131,7 @@
                       Placement="RightEdgeAlignedTop"
                       ShouldConstrainToRootBounds="False"
                       MenuFlyoutPresenterStyle="{StaticResource DefaultThemeMenuFlyoutPresenterStyle}">
+            <!-- Rename Title -->
             <MenuFlyoutItem x:Name="NotePage_RenameTitleMenuFlyoutItem"
                             x:Uid="/NotePage/RenameTitleMenuFlyoutItem"
                             Icon="Rename"
@@ -137,49 +140,69 @@
                 <KeyboardAccelerator Key="F2" />
               </MenuFlyoutItem.KeyboardAccelerators>
             </MenuFlyoutItem>
+
             <MenuFlyoutSeparator />
+
+            <!-- New Note -->
             <MenuFlyoutItem x:Uid="/NotePage/NewNoteMenuFlyoutItem"
                             Icon="Add"
                             Command="{x:Bind ViewModel.CreateNewNoteCommand}"
                             CommandParameter="{x:Bind ViewModel}" />
+
+            <!-- View List -->
             <MenuFlyoutItem x:Uid="/NotePage/ViewListMenuFlyoutItem"
-                            Icon="{ui:FontIcon Glyph=&#xE71D;}"
+                            Icon="{ctw:FontIcon Glyph=&#xE71D;}"
                             Command="{x:Bind ViewModel.ViewListCommand}"
                             CommandParameter="{x:Bind ViewModel}" />
+
             <MenuFlyoutSeparator />
+
+            <!-- Edit Tags -->
             <MenuFlyoutItem x:Uid="/NotePage/EditTagsMenuFlyoutItem"
                             Icon="Tag" />
+
+            <!-- Bookmark and Unbookmark -->
             <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/BookmarkMenuFlyoutItem"
                                            Icon="Favorite"
                                            CheckedIcon="UnFavorite"
                                            IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=TwoWay}" />
+
+            <!-- View Mode -->
             <MenuFlyoutSubItem x:Uid="/NotePage/ViewModeMenuFlyoutSubItem"
                                Icon="View">
               <RadioMenuFlyoutItem x:Uid="/NotePage/ViewModeEditMenuFlyoutItem"
                                    GroupName="ViewMode"
                                    IsChecked="True"
                                    Tag="Edit"
-                                   Click="NotePage_ViewModeRadioMenuFlyoutItem_Click"/>
+                                   Click="NotePage_ViewModeRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem x:Uid="/NotePage/ViewModeReadOnlyMenuFlyoutItem"
                                    GroupName="ViewMode"
                                    Tag="ReadOnly"
                                    Click="NotePage_ViewModeRadioMenuFlyoutItem_Click" />
             </MenuFlyoutSubItem>
+
             <MenuFlyoutSeparator />
+
+            <!-- Save As -->
             <MenuFlyoutSubItem x:Uid="/NotePage/SaveAsMenuFlyoutSubItem"
                                Icon="Save">
               <MenuFlyoutItem x:Uid="/NotePage/SaveAsPlainTextMenuFlyoutItem"
                               Tag="SaveAsPlainText"
-                              Click="NotePage_SaveAsMenuFlyoutItem_Click"/>
+                              Click="NotePage_SaveAsMenuFlyoutItem_Click" />
               <MenuFlyoutItem x:Uid="/NotePage/SaveAsRichTextMenuFlyoutItem"
                               Tag="SaveAsRichText"
                               Click="NotePage_SaveAsMenuFlyoutItem_Click" />
               <!--<MenuFlyoutItem Text="PDF (*.pdf)"
                               Tag="SaveAsPDF" />-->
             </MenuFlyoutSubItem>
+
+            <!-- Share -->
             <MenuFlyoutItem x:Uid="/NotePage/ShareMenuFlyoutItem"
                             Icon="Share" />
+
             <MenuFlyoutSeparator />
+
+            <!-- Delete Note -->
             <MenuFlyoutItem x:Uid="/NotePage/DeleteMenuFlyoutItem"
                             Icon="Delete"
                             Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}" />
@@ -209,10 +232,11 @@
                LostFocus="NotePage_TitleRenameTextBox_LostFocus" />
       <!--#endregion -->
 
+      <!--#region Caption Buttons -->
       <tmpls:SubtleIconButton x:Name="NotePage_MinimizeButton"
                               x:Uid="/NotePage/MinimizeButton"
                               Grid.Column="3"
-                              Content="{ui:FontIcon Glyph=&#xE738;}"
+                              Content="{ctw:FontIcon Glyph=&#xE738;}"
                               Click="NotePage_MinimizeButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
@@ -221,12 +245,13 @@
       <tmpls:SubtleIconButton x:Name="NotePage_CloseButton"
                               x:Uid="/NotePage/CloseButton"
                               Grid.Column="4"
-                              Content="{ui:FontIcon Glyph=&#xE711;}"
+                              Content="{ctw:FontIcon Glyph=&#xE711;}"
                               Click="NotePage_CloseButton_Click">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
       </tmpls:SubtleIconButton>
+      <!--#endregion -->
     </Grid>
     <!--#endregion -->
 
@@ -238,10 +263,7 @@
                    SelectionHighlightColorWhenNotFocused="{StaticResource AccentFillColorSelectedTextBackgroundBrush}"
                    MaxLength="100000"
                    IsSpellCheckEnabled="False"
-                   TextWrapping="Wrap"
-                   SelectionChanged="NotePage_TextEditorRichEditBox_SelectionChanged"
-                   TextChanging="NotePage_TextEditorRichEditBox_TextChanging"
-                   TextChanged="NotePage_TextEditorRichEditBox_TextChanged">
+                   TextWrapping="Wrap">
         <RichEditBox.Resources>
           <SolidColorBrush x:Key="TextControlBorderBrush"
                            Color="{StaticResource ControlFillColorTransparent}" />
@@ -256,10 +278,23 @@
           <SolidColorBrush x:Key="TextControlBackgroundFocused"
                            Color="{StaticResource ControlFillColorTransparent}" />
         </RichEditBox.Resources>
+
+        <mxi:Interaction.Behaviors>
+          <mxi:EventTriggerBehavior EventName="SelectionChanged">
+            <mxi:InvokeCommandAction Command="{x:Bind EditorViewModel.UpdateSelectionCommand}" />
+          </mxi:EventTriggerBehavior>
+          <mxi:EventTriggerBehavior EventName="TextChanging">
+            <mxi:InvokeCommandAction Command="{x:Bind EditorViewModel.UpdateTextChangingCommand}" />
+          </mxi:EventTriggerBehavior>
+          <mxi:EventTriggerBehavior EventName="TextChanged">
+            <mxi:InvokeCommandAction Command="{x:Bind EditorViewModel.UpdateTextChangedCommand}" />
+          </mxi:EventTriggerBehavior>
+        </mxi:Interaction.Behaviors>
       </RichEditBox>
     </Grid>
     <!--#endregion -->
 
+    <!--#region Find and Replace -->
     <tmpls:FindReplaceBox x:Name="NotePage_FindReplaceBox"
                           Grid.Row="1"
                           VerticalAlignment="Top"
@@ -268,6 +303,7 @@
                           IsOpen="False"
                           RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
                           Margin="12" />
+    <!--#endregion -->
 
     <!--#region Command Bar -->
     <ScrollViewer x:Name="NotePage_CommandBarScrollViewer"
@@ -284,53 +320,119 @@
                   HorizontalAlignment="Center"
                   Spacing="6"
                   Padding="6">
+        <!-- Bold -->
         <tmpls:SubtleIconToggleButton x:Name="NotePage_BoldButton"
                                       x:Uid="/NotePage/BoldButton"
-                                      Content="{ui:FontIcon Glyph=&#xE8DD;}"
+                                      Content="{ctw:FontIcon Glyph=&#xE8DD;}"
                                       AllowFocusOnInteraction="False"
-                                      Click="NotePage_BoldButton_Click" />
+                                      IsChecked="{x:Bind EditorViewModel.IsSelectionBold, Mode=TwoWay}" />
 
+        <!-- Italic -->
         <tmpls:SubtleIconToggleButton x:Name="NotePage_ItalicButton"
                                       x:Uid="/NotePage/ItalicButton"
-                                      Content="{ui:FontIcon Glyph=&#xE8DB;}"
+                                      Content="{ctw:FontIcon Glyph=&#xE8DB;}"
                                       AllowFocusOnInteraction="False"
-                                      Click="NotePage_ItalicButton_Click" />
+                                      IsChecked="{x:Bind EditorViewModel.IsSelectionItalic, Mode=TwoWay}" />
 
+        <!-- Underline -->
         <tmpls:SubtleIconToggleButton x:Name="NotePage_UnderlineButton"
                                       x:Uid="/NotePage/UnderlineButton"
-                                      Content="{ui:FontIcon Glyph=&#xE8DC;}"
+                                      Content="{ctw:FontIcon Glyph=&#xE8DC;}"
                                       AllowFocusOnInteraction="False"
-                                      Click="NotePage_UnderlineButton_Click" />
+                                      IsChecked="{x:Bind EditorViewModel.IsSelectionUnderlined, Mode=TwoWay}" />
+
+        <!-- Strikethrough -->
         <tmpls:SubtleIconToggleButton x:Name="NotePage_StrikethroughButton"
                                       x:Uid="/NotePage/StrikethroughButton"
-                                      Content="{ui:FontIcon Glyph=&#xEDE0;}"
+                                      Content="{ctw:FontIcon Glyph=&#xEDE0;}"
                                       AllowFocusOnInteraction="False"
-                                      Click="NotePage_StrikethroughButton_Click">
+                                      IsChecked="{x:Bind EditorViewModel.IsSelectionStrikethrough, Mode=TwoWay}">
           <tmpls:SubtleIconToggleButton.KeyboardAccelerators>
             <KeyboardAccelerator Modifiers="Control"
                                  Key="T" />
           </tmpls:SubtleIconToggleButton.KeyboardAccelerators>
         </tmpls:SubtleIconToggleButton>
 
-        <tmpls:SubtleIconButton x:Name="NotePage_BulletsAndNumberingButton"
-                                x:Uid="/NotePage/BulletsAndNumberingButton"
-                                Content="{ui:FontIcon Glyph=&#xF2C7;}" />
+        <!-- Bullets and Numbering -->
+        <tmpls:SubtleIconToggleSplitButton x:Name="NotePage_BulletsAndNumberingButton"
+                                           x:Uid="/NotePage/BulletsAndNumberingButton"
+                                           Content="{ctw:FontIcon Glyph=&#xE8BC;}"
+                                           AllowFocusOnInteraction="False"
+                                           IsChecked="{x:Bind EditorViewModel.IsSelectionParagraphList, Mode=TwoWay}">
+
+          <tmpls:SubtleIconToggleSplitButton.Flyout>
+            <Flyout Placement="Top"
+                    ShouldConstrainToRootBounds="False">
+              <StackPanel Spacing="12">
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                           Text="Marker type" />
+                <GridView ItemsSource="{x:Bind EditorViewModel.MarkerTypeMap.Rights}"
+                          SelectedItem="{x:Bind EditorViewModel.SelectedMarkerType, Mode=TwoWay}"
+                          Padding="0">
+                  <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <ItemsWrapGrid Orientation="Horizontal"
+                                     MaximumRowsOrColumns="5" />
+                    </ItemsPanelTemplate>
+                  </GridView.ItemsPanel>
+                  <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Width="40"
+                              Height="40">
+                        <TextBlock Text="{x:Bind}"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Padding="0,0,0,6"
+                                   FontWeight="Light"
+                                   FontSize="20" />
+                      </Border>
+                    </DataTemplate>
+                  </GridView.ItemTemplate>
+                </GridView>
+
+                <NavigationViewItemSeparator />
+
+                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
+                           Text="Marker style" />
+                <GridView ItemsSource="{x:Bind EditorViewModel.MarkerStyleMap.Rights}"
+                          SelectedItem="{x:Bind EditorViewModel.SelectedMarkerStyle, Mode=TwoWay}"
+                          Padding="0">
+                  <GridView.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <ItemsWrapGrid Orientation="Horizontal"
+                                     MaximumRowsOrColumns="5" />
+                    </ItemsPanelTemplate>
+                  </GridView.ItemsPanel>
+                  <GridView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Border Width="40"
+                              Height="40">
+                        <TextBlock Text="{x:Bind}"
+                                   TextAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   Padding="0,0,0,6"
+                                   FontWeight="Light"
+                                   FontSize="20" />
+                      </Border>
+                    </DataTemplate>
+                  </GridView.ItemTemplate>
+                </GridView>
+              </StackPanel>
+            </Flyout>
+          </tmpls:SubtleIconToggleSplitButton.Flyout>
+        </tmpls:SubtleIconToggleSplitButton>
 
         <Rectangle Width="1"
                    Stretch="Fill"
                    Margin="0,6"
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
+        <!-- Font Size -->
         <tmpls:SubtleIconButton x:Name="NotePage_FontSizeButton"
                                 x:Uid="/NotePage/FontSizeButton"
-                                Content="{ui:FontIcon Glyph=&#xE8E9;}">
-          <tmpls:SubtleIconButton.Resources>
-            <format:DecimalFormatter xmlns:format="using:Windows.Globalization.NumberFormatting"
-                                     x:Key="DecimalFormatter"
-                                     IntegerDigits="1"
-                                     FractionDigits="1"
-                                     IsDecimalPointAlwaysDisplayed="False" />
-          </tmpls:SubtleIconButton.Resources>
+                                Content="{ctw:FontIcon Glyph=&#xE8E9;}">
           <tmpls:SubtleIconButton.Flyout>
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
@@ -342,31 +444,31 @@
                             Spacing="6">
                   <RepeatButton x:Name="NotePage_DecreaseFontSizeButton"
                                 x:Uid="/NotePage/DecreaseFontSizeButton"
-                                Content="{ui:FontIcon Glyph=&#xE949;}"
+                                Content="{ctw:FontIcon Glyph=&#xE949;}"
                                 Style="{StaticResource SubtleIconRepeatButtonStyle}"
-                                Click="NotePage_DecreaseFontSizeButton_Click" />
+                                Command="{x:Bind EditorViewModel.DecreaseSelectionFontSizeCommand}" />
                   <ComboBox x:Name="NotePage_FontSizeComboBox"
                             Width="90"
                             VerticalAlignment="Center"
                             IsEditable="True"
-                            SelectedIndex="2"
                             IsTextSearchEnabled="False"
-                            ItemsSource="{x:Bind EditorFontSizes}"
-                            TextSubmitted="NotePage_FontSizeComboBox_TextSubmitted" />
+                            ItemsSource="{x:Bind EditorViewModel.FontSizes}"
+                            SelectedItem="{x:Bind EditorViewModel.SelectionFontSizeText, Mode=TwoWay}"
+                            Text="{x:Bind EditorViewModel.SelectionFontSizeText, Mode=OneWay}" />
                   <RepeatButton x:Name="NotePage_IncreaseFontSizeButton"
                                 x:Uid="/NotePage/IncreaseFontSizeButton"
-                                Content="{ui:FontIcon Glyph=&#xE948;}"
+                                Content="{ctw:FontIcon Glyph=&#xE948;}"
                                 Style="{StaticResource SubtleIconRepeatButtonStyle}"
-                                Click="NotePage_IncreaseFontSizeButton_Click" />
+                                Command="{x:Bind EditorViewModel.IncreaseSelectionFontSizeCommand}" />
                 </StackPanel>
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconButton.Flyout>
         </tmpls:SubtleIconButton>
 
+        <!-- Font Color -->
         <tmpls:SubtleIconSplitButton x:Name="NotePage_FontColorButton"
-                                     x:Uid="/NotePage/FontColorButton"
-                                     Click="NotePage_FontColorButton_Click">
+                                     x:Uid="/NotePage/FontColorButton">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <Border CornerRadius="3"
@@ -375,52 +477,162 @@
                   <ScaleTransform ScaleX="0.8"
                                   ScaleY="0.3" />
                 </Border.RenderTransform>
-                <Border Background="{x:Bind helpers:ColorHelper.ToBrush(NotePage_FontColorPicker.Color), Mode=OneWay}" />
+                <Border Background="{x:Bind helpers:ColorHelper.ToBrush(EditorViewModel.RecentFontColor), Mode=OneWay}" />
               </Border>
               <FontIcon Glyph="&#xE8D3;" />
 
             </Grid>
           </tmpls:SubtleIconSplitButton.Content>
 
+          <mxi:Interaction.Behaviors>
+            <mxi:EventTriggerBehavior EventName="Click">
+              <mxi:InvokeCommandAction Command="{x:Bind EditorViewModel.ChangeSelectionFontColorCommand}" />
+            </mxi:EventTriggerBehavior>
+          </mxi:Interaction.Behaviors>
+
           <tmpls:SubtleIconSplitButton.SecondaryFlyout>
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
-              <StackPanel Spacing="12">
+              <StackPanel Spacing="12"
+                          Width="340">
                 <TextBlock x:Uid="/NotePage/FontColorFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                <ColorPicker x:Name="NotePage_FontColorPicker"
-                             ColorSpectrumShape="Ring"
-                             IsAlphaEnabled="False"
-                             IsMoreButtonVisible="True"
-                             ColorChanged="NotePage_FontColorPicker_ColorChanged" />
+                <ctwc:Segmented x:Name="NotePage_FontColorSegmented"
+                                HorizontalAlignment="Center"
+                                SelectedIndex="0">
+                  <ctwc:SegmentedItem Content="Palette"
+                                      Icon="{ctw:FontIcon Glyph=&#xE790;}"
+                                      Width="160" />
+                  <ctwc:SegmentedItem Content="Picker"
+                                      Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
+                                      Width="160" />
+                </ctwc:Segmented>
+                <ctwc:SwitchPresenter Value="{x:Bind NotePage_FontColorSegmented.SelectedIndex, Mode=OneWay}">
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>0</x:Int32>
+                    </ctwc:Case.Value>
+                    <Grid MaxHeight="363"
+                          HorizontalAlignment="Center">
+                      <GridView x:Name="NotePage_FontColorPaletteGridView"
+                                ItemsSource="{x:Bind EditorViewModel.PaletteFontColors}"
+                                SelectedItem="{x:Bind EditorViewModel.SelectedPaletteFontColor, Mode=TwoWay}"
+                                Padding="12,0">
+                        <GridView.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal"
+                                           MaximumRowsOrColumns="6" />
+                          </ItemsPanelTemplate>
+                        </GridView.ItemsPanel>
+                        <GridView.ItemTemplate>
+                          <DataTemplate x:DataType="SolidColorBrush">
+                            <Border Width="48"
+                                    Height="48"
+                                    Background="{x:Bind}"
+                                    CornerRadius="4"
+                                    BorderThickness="1"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefault}" />
+                          </DataTemplate>
+                        </GridView.ItemTemplate>
+                      </GridView>
+                    </Grid>
+                  </ctwc:Case>
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>1</x:Int32>
+                    </ctwc:Case.Value>
+                    <ColorPicker x:Name="NotePage_FontColorPicker"
+                                 Color="{x:Bind EditorViewModel.SelectionFontColor, Mode=TwoWay}"
+                                 ColorSpectrumShape="Ring"
+                                 IsAlphaEnabled="False"
+                                 IsMoreButtonVisible="True" />
+                  </ctwc:Case>
+                </ctwc:SwitchPresenter>
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconSplitButton.SecondaryFlyout>
         </tmpls:SubtleIconSplitButton>
 
+        <!-- Text Highlight Color -->
         <tmpls:SubtleIconSplitButton x:Name="NotePage_TextHighlightColorButton"
-                                     x:Uid="/NotePage/TextHighlightColorButton"
-                                     Click="NotePage_TextHighlightColorButton_Click">
+                                     x:Uid="/NotePage/TextHighlightColorButton">
           <tmpls:SubtleIconSplitButton.Content>
             <Grid>
               <FontIcon Glyph="&#xE891;"
-                        Foreground="{x:Bind helpers:ColorHelper.ToBrush(NotePage_TextHighlightColorColorPicker.Color), Mode=OneWay}" />
+                        Foreground="{x:Bind helpers:ColorHelper.ToBrush(EditorViewModel.RecentHighlightColor), Mode=OneWay}" />
               <FontIcon Glyph="&#xE7E6;" />
 
             </Grid>
           </tmpls:SubtleIconSplitButton.Content>
 
+          <mxi:Interaction.Behaviors>
+            <mxi:EventTriggerBehavior EventName="Click">
+              <mxi:InvokeCommandAction Command="{x:Bind EditorViewModel.ChangeSelectionHighlightColorCommand}" />
+            </mxi:EventTriggerBehavior>
+          </mxi:Interaction.Behaviors>
+
           <tmpls:SubtleIconSplitButton.SecondaryFlyout>
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
-              <StackPanel Spacing="12">
+              <StackPanel Spacing="12"
+                          Width="340">
                 <TextBlock x:Uid="/NotePage/TextHighlightColorFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                <ColorPicker x:Name="NotePage_TextHighlightColorColorPicker"
-                             ColorSpectrumShape="Ring"
-                             IsAlphaEnabled="False"
-                             IsMoreButtonVisible="True"
-                             ColorChanged="NotePage_TextHighlightColorColorPicker_ColorChanged" />
+
+                <ToggleButton Content="Default"
+                              IsChecked="{x:Bind IsDefaultColor(EditorViewModel.SelectionHighlightColor), Mode=OneWay}" />
+                <ctwc:Segmented x:Name="NotePage_TextHighlightColorSegmented"
+                                HorizontalAlignment="Center"
+                                SelectedIndex="0">
+                  <ctwc:SegmentedItem Content="Palette"
+                                      Icon="{ctw:FontIcon Glyph=&#xE790;}"
+                                      Width="160" />
+                  <ctwc:SegmentedItem Content="Picker"
+                                      Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
+                                      Width="160" />
+                </ctwc:Segmented>
+                <ctwc:SwitchPresenter Value="{x:Bind NotePage_TextHighlightColorSegmented.SelectedIndex, Mode=OneWay}">
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>0</x:Int32>
+                    </ctwc:Case.Value>
+                    <Grid MaxHeight="363"
+                          HorizontalAlignment="Center">
+                      <GridView x:Name="NotePage_TextHighlightColorPaletteGridView"
+                                ItemsSource="{x:Bind EditorViewModel.PaletteHighlightColors}"
+                                SelectedItem="{x:Bind EditorViewModel.SelectedPaletteHighlightColor, Mode=TwoWay}"
+                                Padding="12,0">
+                        <GridView.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal"
+                                           MaximumRowsOrColumns="6" />
+                          </ItemsPanelTemplate>
+                        </GridView.ItemsPanel>
+                        <GridView.ItemTemplate>
+                          <DataTemplate x:DataType="SolidColorBrush">
+                            <Border Width="48"
+                                    Height="48"
+                                    Background="{x:Bind}"
+                                    CornerRadius="4"
+                                    BorderThickness="1"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefault}" />
+                          </DataTemplate>
+                        </GridView.ItemTemplate>
+                      </GridView>
+                    </Grid>
+                  </ctwc:Case>
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>1</x:Int32>
+                    </ctwc:Case.Value>
+                    <ColorPicker x:Name="NotePage_TextHighlightColorPicker"
+                                 Color="{x:Bind EditorViewModel.SelectionHighlightColor, Mode=TwoWay}"
+                                 ColorSpectrumShape="Ring"
+                                 MaxValue="99"
+                                 IsAlphaEnabled="False"
+                                 IsMoreButtonVisible="True" />
+                  </ctwc:Case>
+                </ctwc:SwitchPresenter>
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconSplitButton.SecondaryFlyout>
@@ -435,15 +647,17 @@
                    Margin="0,6"
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
+        <!-- Background and Backdrop -->
         <tmpls:SubtleIconButton x:Name="NotePage_BackgroundButton"
                                 x:Uid="/NotePage/BackgroundButton"
-                                Content="{ui:FontIcon Glyph=&#xE790;}">
+                                Content="{ctw:FontIcon Glyph=&#xE790;}">
           <tmpls:SubtleIconButton.Flyout>
             <Flyout x:Name="NotePage_BackgroundFlyout"
                     Placement="Top"
                     ShouldConstrainToRootBounds="False"
                     FlyoutPresenterStyle="{StaticResource DefaultThemeFlyoutPresenterStyle}">
-              <StackPanel Spacing="12">
+              <StackPanel Spacing="12"
+                          Width="340">
                 <RadioButtons x:Name="NotePage_BackdropRadioButtons"
                               x:Uid="/NotePage/BackdropRadioButtons"
                               MaxColumns="3"
@@ -462,29 +676,80 @@
 
                 <TextBlock x:Uid="/NotePage/BackgroundFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
-                <ColorPicker x:Name="NotePage_BackgroundColorPicker"
-                             IsAlphaEnabled="True"
-                             ColorSpectrumShape="Ring"
-                             IsMoreButtonVisible="True"
-                             Color="{x:Bind ViewModel.Note.Background, Mode=TwoWay}" />
+
+                <ctwc:Segmented x:Name="NotePage_BackgroundColorSegmented"
+                                HorizontalAlignment="Center"
+                                SelectedIndex="0">
+                  <ctwc:SegmentedItem Content="Palette"
+                                      Icon="{ctw:FontIcon Glyph=&#xE790;}"
+                                      Width="160" />
+                  <ctwc:SegmentedItem Content="Picker"
+                                      Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
+                                      Width="160" />
+                </ctwc:Segmented>
+                <ctwc:SwitchPresenter Value="{x:Bind NotePage_BackgroundColorSegmented.SelectedIndex, Mode=OneWay}">
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>0</x:Int32>
+                    </ctwc:Case.Value>
+                    <Grid MaxHeight="411"
+                          HorizontalAlignment="Center">
+                      <GridView x:Name="NotePage_BackgroundColorPaletteGridView"
+                                ItemsSource="{x:Bind ViewModel.PaletteBackgroundColors}"
+                                SelectedItem="{x:Bind ViewModel.SelectedPaletteBackgroundColor, Mode=TwoWay}"
+                                Padding="12,0">
+                        <GridView.ItemsPanel>
+                          <ItemsPanelTemplate>
+                            <ItemsWrapGrid Orientation="Horizontal"
+                                           MaximumRowsOrColumns="6" />
+                          </ItemsPanelTemplate>
+                        </GridView.ItemsPanel>
+                        <GridView.ItemTemplate>
+                          <DataTemplate x:DataType="SolidColorBrush">
+                            <Border Width="48"
+                                    Height="48"
+                                    Background="{x:Bind}"
+                                    CornerRadius="4"
+                                    BorderThickness="1"
+                                    BorderBrush="{ThemeResource CardStrokeColorDefault}" />
+                          </DataTemplate>
+                        </GridView.ItemTemplate>
+                      </GridView>
+                    </Grid>
+                  </ctwc:Case>
+                  <ctwc:Case>
+                    <ctwc:Case.Value>
+                      <x:Int32>1</x:Int32>
+                    </ctwc:Case.Value>
+
+                    <ColorPicker x:Name="NotePage_BackgroundColorPicker"
+                                 IsAlphaEnabled="True"
+                                 ColorSpectrumShape="Ring"
+                                 IsMoreButtonVisible="True"
+                                 Color="{x:Bind ViewModel.Note.Background, Mode=TwoWay}" />
+                  </ctwc:Case>
+                </ctwc:SwitchPresenter>
               </StackPanel>
             </Flyout>
           </tmpls:SubtleIconButton.Flyout>
         </tmpls:SubtleIconButton>
+
+        <!-- Insert Image -->
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
-                                Content="{ui:FontIcon Glyph=&#xE91B;}" />
+                                Content="{ctw:FontIcon Glyph=&#xE91B;}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->
 
+    <!--#region InfoBar -->
     <InfoBar x:Name="NotePage_InfoBar"
              Grid.Row="1"
              Background="{ThemeResource ControlFillColorDefault}"
              HorizontalAlignment="Center"
              VerticalAlignment="Bottom"
-             Margin="12,4"
-             IsClosable="False" />
+             Margin="12,4" />
+    <!--#endregion -->
 
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="FlyoutThemeStates">

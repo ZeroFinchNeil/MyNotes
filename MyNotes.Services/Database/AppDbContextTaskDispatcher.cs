@@ -31,19 +31,17 @@ internal sealed class AppDbContextTaskDispatcher : IDisposable
     }
   });
 
-  public bool IsDisposed => _disposed;
-
-  private bool _disposed;
+  public bool Disposed { get; private set; }
 
   private void Dispose(bool disposing)
   {
-    if (!_disposed)
+    if (!Disposed)
     {
       if (disposing)
       {
         DbContextChannel.Writer.TryComplete();
       }
-      _disposed = true;
+      Disposed = true;
     }
   }
 

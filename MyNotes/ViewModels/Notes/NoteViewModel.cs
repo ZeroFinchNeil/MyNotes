@@ -59,6 +59,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     _notePropertyDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
 
+    _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.Background);
     _backdrop = (int)Note.Backdrop;
     _preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
 
@@ -113,11 +114,14 @@ internal sealed partial class NoteViewModel : ViewModelBase
   {
     _notePropertyDebounceTimer.Start();
 
-    // 뷰에 반영(타입이 다른 TwoWay 바인딩 시) 
+    // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
       case nameof(Note.Backdrop):
         this.Backdrop = (int)Note.Backdrop;
+        break;
+      case nameof(Note.Background):
+        SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.Background);
         break;
       case nameof(Note.IsBookmarked):
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(Note, nameof(Note.IsBookmarked), !Note.IsBookmarked, Note.IsBookmarked), MessageTokens.ChangeNoteIsBookmarkedStateToken);
@@ -127,20 +131,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
     if (!string.IsNullOrEmpty(e.PropertyName))
     {
       _changedNoteProperties.Add(e.PropertyName);
-    }
-  }
-
-  private int _backdrop;
-  public int Backdrop
-  {
-    get => _backdrop;
-    set
-    {
-      if (_backdrop != value)
-      {
-        SetProperty(ref _backdrop, value);
-        Note.Backdrop = (BackdropKind)value;
-      }
     }
   }
 
@@ -157,9 +147,40 @@ internal sealed partial class NoteViewModel : ViewModelBase
     set => SetProperty(ref field, value);
   } = 100;
 
+  #region Backdrop and Background Color
+  private int _backdrop;
+  public int Backdrop
+  {
+    get => _backdrop;
+    set
+    {
+      if (_backdrop != value)
+      {
+        SetProperty(ref _backdrop, value);
+        Note.Backdrop = (BackdropKind)value;
+      }
+    }
+  }
+
+  public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors => AppColors.DefaultPaletteColorBrushes;
+
+  private SolidColorBrush? _selectedPaletteBackgroundColor;
+  public SolidColorBrush? SelectedPaletteBackgroundColor
+  {
+    get => _selectedPaletteBackgroundColor;
+    set
+    {
+      if (SetProperty(ref _selectedPaletteBackgroundColor, value) && value is not null)
+      {
+        Note.Background = value.Color;
+      }
+    }
+  }
+  #endregion
+
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
@@ -170,7 +191,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
       _ = NoteService.CommitSearchIndexAsync();
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 }
 

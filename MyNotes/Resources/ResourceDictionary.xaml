@@ -814,17 +814,17 @@
 
   <Style x:Key="SubtleIconButtonStyle_40x24"
          TargetType="templates:SubtleIconButton">
-    <Setter Property="IconWidth"
+    <Setter Property="IconViewBoxWidth"
             Value="24" />
-    <Setter Property="IconHeight"
+    <Setter Property="IconViewBoxHeight"
             Value="24" />
   </Style>
 
   <Style x:Key="SubtleIconButtonStyle_40x20"
          TargetType="templates:SubtleIconButton">
-    <Setter Property="IconWidth"
+    <Setter Property="IconViewBoxWidth"
             Value="20" />
-    <Setter Property="IconHeight"
+    <Setter Property="IconViewBoxHeight"
             Value="20" />
   </Style>
 

@@ -6,42 +6,42 @@ internal class DragUISession : IDisposable
 {
   public required string FormatId
   {
-    get => _disposed ? string.Empty : field;
+    get => Disposed ? string.Empty : field;
     init;
   }
 
   public object? DataView
   {
-    get => _disposed ? null : field;
+    get => Disposed ? null : field;
     set;
   }
 
   public required DataPackageOperation DataPackageOperation
   {
-    get => _disposed ? DataPackageOperation.None : field;
+    get => Disposed ? DataPackageOperation.None : field;
     init;
   }
 
   public string? DragUIOverrideCaption
   {
-    get => _disposed ? string.Empty : field;
+    get => Disposed ? string.Empty : field;
     set;
   }
 
-  public bool IsExpired => _disposed;
-  public bool IsDisposed => _disposed;
+  public bool IsExpired => Disposed;
 
-  private bool _disposed;
+  public bool Disposed { get; protected set; }
+
   protected virtual void Dispose(bool disposing)
   {
-    if (!_disposed)
+    if (!Disposed)
     {
       if (disposing)
       {
 
       }
 
-      _disposed = true;
+      Disposed = true;
     }
   }
 

@@ -13,13 +13,13 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
     {
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 }

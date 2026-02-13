@@ -96,7 +96,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
 
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
@@ -106,7 +106,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
       UnregisterMessenger();
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 
   public void ForEachDescendant(Action<NavigationViewModelBase> action, bool containsSelf = true)

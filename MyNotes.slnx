@@ -4,6 +4,9 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Folder Name="/솔루션 항목/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="MyNotes.Common/MyNotes.Common.csproj" Id="bd6710ff-b85e-48fd-806c-34525bf8751f">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />

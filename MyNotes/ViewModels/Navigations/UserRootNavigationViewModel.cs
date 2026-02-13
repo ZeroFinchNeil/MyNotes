@@ -67,7 +67,7 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
 
   protected override void Dispose(bool disposing)
   {
-    if (_disposed)
+    if (Disposed)
       return;
 
     if (disposing)
@@ -76,7 +76,7 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
       base.Dispose(disposing);
     }
 
-    _disposed = true;
+    base.Dispose(disposing);
   }
 
   private void RegisterMessenger()

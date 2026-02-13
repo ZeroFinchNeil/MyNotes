@@ -58,13 +58,11 @@ internal sealed class SearchService : IDisposable
     _workerCompletionTask = RunWorker();
   }
 
-  private bool _disposed;
-  public bool IsDisposed => _disposed;
-
+  public bool Disposed { get; private set; }
 
   private void Dispose(bool disposing)
   {
-    if (!_disposed)
+    if (!Disposed)
     {
       if (disposing)
       {
@@ -76,7 +74,7 @@ internal sealed class SearchService : IDisposable
         NoteSearchWriter.Dispose();
       }
 
-      _disposed = true;
+      Disposed = true;
     }
   }
 

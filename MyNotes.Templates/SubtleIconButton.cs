@@ -10,17 +10,17 @@ public sealed partial class SubtleIconButton : Button
     DefaultStyleKey = typeof(SubtleIconButton);
   }
 
-  public static readonly DependencyProperty IconWidthProperty = DependencyProperty.Register("IconWidth", typeof(double), typeof(SubtleIconButton), new PropertyMetadata(null));
-  public double IconWidth
+  public static readonly DependencyProperty IconViewBoxWidthProperty = DependencyProperty.Register("IconViewBoxWidth", typeof(double), typeof(SubtleIconButton), new PropertyMetadata(16.0));
+  public double IconViewBoxWidth
   {
-    get => (double)GetValue(IconWidthProperty);
-    set => SetValue(IconWidthProperty, value);
+    get => (double)GetValue(IconViewBoxWidthProperty);
+    set => SetValue(IconViewBoxWidthProperty, value);
   }
 
-  public static readonly DependencyProperty IconHeightProperty = DependencyProperty.Register("IconHeight", typeof(double), typeof(SubtleIconButton), new PropertyMetadata(null));
-  public double IconHeight
+  public static readonly DependencyProperty IconViewBoxHeightProperty = DependencyProperty.Register("IconViewBoxHeight", typeof(double), typeof(SubtleIconButton), new PropertyMetadata(16.0));
+  public double IconViewBoxHeight
   {
-    get => (double)GetValue(IconHeightProperty);
-    set => SetValue(IconHeightProperty, value);
+    get => (double)GetValue(IconViewBoxHeightProperty);
+    set => SetValue(IconViewBoxHeightProperty, value);
   }
 }

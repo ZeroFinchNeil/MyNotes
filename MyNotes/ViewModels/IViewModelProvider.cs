@@ -24,4 +24,6 @@ internal interface IViewModelProvider<TModel, TViewModel> where TViewModel : cla
   /// This parameter is passed uninitialized.</param>
   /// <returns>true if the ViewModel was successfully resolved; otherwise, false.</returns>
   public bool TryResolve(TModel model, out TViewModel? viewmodel);
+
+  public bool Release(TModel model);
 }

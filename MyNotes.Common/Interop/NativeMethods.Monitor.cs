@@ -10,6 +10,9 @@ internal static partial class NativeMethods
   [LibraryImport("user32.dll", SetLastError = true)]
   public static partial IntPtr MonitorFromRect(ref RECT lprc, uint dwFlags);
 
+  [LibraryImport("user32.dll", SetLastError = true)]
+  public static partial IntPtr MonitorFromWindow(IntPtr hWnd, uint dwFlags);
+
   [LibraryImport("user32.dll", EntryPoint = "GetMonitorInfoW", SetLastError = true)]
   [return: MarshalAs(UnmanagedType.Bool)]
   public static partial bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFOEX lpmi);
@@ -107,13 +110,13 @@ internal static partial class NativeMethods
 
   public static MONITORINFOEX? GetMonitorInfoForWindow(IntPtr hWnd)
   {
-    if (!GetWindowRect(hWnd, out var rect))
-      return null;
-
     //uint MONITOR_DEFAULTTONULL = 0x00000000;
     //uint MONITOR_DEFAULTTOPRIMARY = 0x00000001;
     uint MONITOR_DEFAULTTONEAREST = 0x00000002;
-    IntPtr hMonitor = MonitorFromRect(ref rect, MONITOR_DEFAULTTONEAREST);
+    //if (!GetWindowRect(hWnd, out var rect))
+    //  return null;
+    //IntPtr hMonitor = MonitorFromRect(ref rect, MONITOR_DEFAULTTONEAREST);
+    IntPtr hMonitor = MonitorFromWindow(hWnd, MONITOR_DEFAULTTONEAREST);
 
     MONITORINFOEX monitorInfo = new();
     return GetMonitorInfo(hMonitor, ref monitorInfo) ? monitorInfo : null;
