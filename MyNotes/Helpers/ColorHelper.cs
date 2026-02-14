@@ -53,6 +53,8 @@ internal static class ColorHelper
     return deltaE <= threshold;
   }
 
+  public static bool HasTransparency(Color color) => color.A < 255;
+
   public static LabColor ToLab(Color color)
   {
     // 1. sRGB(0~255) → Linear RGB(0~1) 변환

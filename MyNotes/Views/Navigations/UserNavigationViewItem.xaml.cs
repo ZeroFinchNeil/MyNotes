@@ -8,7 +8,6 @@ using MyNotes.Models.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 
-
 namespace MyNotes.Views.Navigations;
 
 internal sealed partial class UserNavigationViewItem : DraggableNavigationViewItem

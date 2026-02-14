@@ -58,7 +58,6 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
   private readonly WeakEventListener<DraggableNavigationViewItem, object, DragEventArgs> DragEnterWeakEventHandler;
   private readonly WeakEventListener<DraggableNavigationViewItem, object, DragEventArgs> DragLeaveWeakEventHandler;
 
-
   private void DraggableNavigationViewItem_Loaded(object sender, RoutedEventArgs e)
   {
     DetachWeakEventHandler();

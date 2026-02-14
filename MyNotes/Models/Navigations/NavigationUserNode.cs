@@ -40,7 +40,6 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
 
   public Type PageType { get; init; }
 
-
   public required int Position
   {
     get;

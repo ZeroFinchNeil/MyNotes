@@ -66,5 +66,4 @@ public sealed partial class ReadOnlyRichEditBox : RichEditBox
       control.Document.SetText(TextSetOptions.FormatRtf, e.NewValue as string);
     }
   }
-
 }

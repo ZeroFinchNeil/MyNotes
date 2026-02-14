@@ -49,6 +49,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     IsSelectionParagraphList = paragraphFormat.ListType is not (MarkerType.Undefined or MarkerType.None);
     SelectionMarkerType = paragraphFormat.ListType;
     SelectionMarkerStyle = paragraphFormat.ListStyle;
+    IsSelectionMarkerStyleEnabled = SelectionMarkerType is not (MarkerType.None or MarkerType.Undefined or MarkerType.Bullet);
     _isUpdatingSelectionFormatStates = false;
   }
 
@@ -182,7 +183,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   {
     get;
     set => SetProperty(ref field, value);
-  }
+  } = Colors.Black;
 
   public Color SelectionFontColor
   {
@@ -221,7 +222,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   {
     get;
     set => SetProperty(ref field, value);
-  }
+  } = Colors.Transparent;
 
   public Color SelectionHighlightColor
   {
@@ -231,6 +232,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       if (SetProperty(ref field, value))
       {
         SelectedPaletteHighlightColor = PaletteHighlightColors.FirstOrDefault(b => b.Color == value);
+        ChangeSelectionHighlightColorToAutomaticCommand?.RaiseCanExecuteChanged();
+
         if (!_isUpdatingSelectionFormatStates)
         {
           Document.Selection.CharacterFormat.BackgroundColor = value;
@@ -252,7 +255,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
         if (!_isUpdatingSelectionFormatStates)
         {
           Document.Selection.ParagraphFormat.ListType = value ? SelectionMarkerType : MarkerType.None;
-          Document.Selection.ParagraphFormat.ListStyle = value ? SelectionMarkerStyle : MarkerStyle.NoNumber;
+          Document.Selection.ParagraphFormat.ListStyle = value ? SelectionMarkerStyle : MarkerStyle.Parenthesis;
         }
       }
     }
@@ -273,7 +276,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
 
   public static readonly BijectiveMap<MarkerStyle, string> _markerStyleMap = new()
   {
-    { MarkerStyle.NoNumber,  "\u25cc" },
     { MarkerStyle.Parenthesis, ")" },
     { MarkerStyle.Parentheses, "( )" },
     { MarkerStyle.Period, "." },
@@ -286,7 +288,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     get;
     set
     {
-      Console.WriteLine("{0}: {1}", "SelectionMarkerType", value);
       if (SetProperty(ref field, value))
       {
         SelectedMarkerType = MarkerTypeMap.TryGetRight(value, out var markerType) ? markerType : null;
@@ -315,10 +316,14 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     get;
     set
     {
-      Console.WriteLine("{0}: {1}", "SelectionMarkerStyle", value);
       if (SetProperty(ref field, value))
       {
-        SelectedMarkerStyle = MarkerStyleMap.TryGetRight(value, out var markerStyle) ? markerStyle : null;
+        SelectedMarkerStyle = SelectionMarkerType switch
+        {
+          MarkerType.None or MarkerType.Undefined or MarkerType.Bullet => null,
+          _ => MarkerStyleMap.TryGetRight(value, out var markerStyle) ? markerStyle : null
+        };
+        
         if (!_isUpdatingSelectionFormatStates)
         {
           Document.Selection.ParagraphFormat.ListStyle = value;
@@ -338,6 +343,12 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       }
     }
   }
+
+  public bool IsSelectionMarkerStyleEnabled
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
   #endregion
 }
 
@@ -348,9 +359,9 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   public Command<object>? UpdateTextChangedCommand { get; private set; }
   public Command? DecreaseSelectionFontSizeCommand { get; private set; }
   public Command? IncreaseSelectionFontSizeCommand { get; private set; }
-  public Command<object>? ChangeSelectionFontSizeCommand { get; private set; }
   public Command<object>? ChangeSelectionFontColorCommand { get; private set; }
   public Command<object>? ChangeSelectionHighlightColorCommand { get; private set; }
+  public Command? ChangeSelectionHighlightColorToAutomaticCommand { get; private set; }
 
   private int _previousSelectionIndex = 0;
   private int _currentSelectionIndex = 0;
@@ -459,5 +470,13 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       {
         Document.Selection.CharacterFormat.BackgroundColor = RecentHighlightColor;
       });
+
+    ChangeSelectionHighlightColorToAutomaticCommand = new(
+      actionToExecute: () =>
+      {
+        SelectionHighlightColor = Colors.Transparent;
+      },
+      canExecuteFunc: () => SelectionHighlightColor != Colors.White
+    );
   }
 }

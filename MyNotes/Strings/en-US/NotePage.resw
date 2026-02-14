@@ -231,4 +231,19 @@
   <data name="InsertImagesButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Insert images</value>
   </data>
+  <data name="TextHighlightColorAutomaticButton.Content" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="ColorPaletteSegmentedItem.Content" xml:space="preserve">
+    <value>Color palette</value>
+  </data>
+  <data name="ColorPickerSegmentedItem.Content" xml:space="preserve">
+    <value>Color picker</value>
+  </data>
+  <data name="MarkerTypeTextBlock.Text" xml:space="preserve">
+    <value>Marker type</value>
+  </data>
+  <data name="MarkerStyleTextBlock.Text" xml:space="preserve">
+    <value>Marker style</value>
+  </data>
 </root>

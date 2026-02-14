@@ -1,11 +1,7 @@
-using System.Diagnostics.CodeAnalysis;
-
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Content;
 
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
@@ -21,8 +17,6 @@ using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
-
-using WinRT.Interop;
 
 namespace MyNotes.Views.Navigations;
 
@@ -234,7 +228,6 @@ internal sealed partial class MainPage : Page
       };
     }
   }
-
 
   private NavigationViewModelBase? _sourceNavigationViewModel;
   private void MainPageUserNavigationViewItem_PresenterDragStarting(UIElement sender, DragStartingEventArgs args)

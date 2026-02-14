@@ -12,7 +12,6 @@ using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 
-
 namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteListViewModel : ViewModelBase

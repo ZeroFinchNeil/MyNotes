@@ -231,4 +231,19 @@
   <data name="InsertImagesButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>이미지 넣기</value>
   </data>
+  <data name="TextHighlightColorAutomaticButton.Content" xml:space="preserve">
+    <value>자동</value>
+  </data>
+  <data name="ColorPaletteSegmentedItem.Content" xml:space="preserve">
+    <value>색상 팔레트</value>
+  </data>
+  <data name="ColorPickerSegmentedItem.Content" xml:space="preserve">
+    <value>색상 선택기</value>
+  </data>
+  <data name="MarkerTypeTextBlock.Text" xml:space="preserve">
+    <value>기호 타입</value>
+  </data>
+  <data name="MarkerStyleTextBlock.Text" xml:space="preserve">
+    <value>기호 스타일</value>
+  </data>
 </root>

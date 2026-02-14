@@ -157,7 +157,6 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
   public override Command<NavigationViewModelBase> SetAsStartPageCommand => NavigationViewModelCommandService.SetAsStartPageCommand;
 
-
   private void RegisterMessenger()
   {
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, MessageTokens.ChangeNavigationViewModelIconImageToken, async (recipient, message) => await SetIconImage());

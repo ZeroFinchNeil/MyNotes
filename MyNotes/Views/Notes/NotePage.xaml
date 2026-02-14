@@ -364,8 +364,8 @@
             <Flyout Placement="Top"
                     ShouldConstrainToRootBounds="False">
               <StackPanel Spacing="12">
-                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Text="Marker type" />
+                <TextBlock x:Uid="/NotePage/MarkerTypeTextBlock"
+                           Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <GridView ItemsSource="{x:Bind EditorViewModel.MarkerTypeMap.Rights}"
                           SelectedItem="{x:Bind EditorViewModel.SelectedMarkerType, Mode=TwoWay}"
                           Padding="0">
@@ -393,10 +393,11 @@
 
                 <NavigationViewItemSeparator />
 
-                <TextBlock Style="{StaticResource BodyStrongTextBlockStyle}"
-                           Text="Marker style" />
+                <TextBlock x:Uid="/NotePage/MarkerStyleTextBlock"
+                           Style="{StaticResource BodyStrongTextBlockStyle}" />
                 <GridView ItemsSource="{x:Bind EditorViewModel.MarkerStyleMap.Rights}"
                           SelectedItem="{x:Bind EditorViewModel.SelectedMarkerStyle, Mode=TwoWay}"
+                          IsEnabled="{x:Bind EditorViewModel.IsSelectionMarkerStyleEnabled, Mode=OneWay}"
                           Padding="0">
                   <GridView.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -500,10 +501,10 @@
                 <ctwc:Segmented x:Name="NotePage_FontColorSegmented"
                                 HorizontalAlignment="Center"
                                 SelectedIndex="0">
-                  <ctwc:SegmentedItem Content="Palette"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPaletteSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xE790;}"
                                       Width="160" />
-                  <ctwc:SegmentedItem Content="Picker"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPickerSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
                                       Width="160" />
                 </ctwc:Segmented>
@@ -579,15 +580,26 @@
                 <TextBlock x:Uid="/NotePage/TextHighlightColorFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}" />
 
-                <ToggleButton Content="Default"
-                              IsChecked="{x:Bind IsDefaultColor(EditorViewModel.SelectionHighlightColor), Mode=OneWay}" />
+                <Button x:Uid="/NotePage/TextHighlightColorAutomaticButton"
+                        HorizontalAlignment="Stretch"
+                        Margin="8,0"
+                        Command="{x:Bind EditorViewModel.ChangeSelectionHighlightColorToAutomaticCommand}">
+                  <Button.Resources>
+                    <SolidColorBrush x:Key="ButtonBackgroundDisabled"
+                                     Color="{ThemeResource ControlAltFillColorQuarternary}" />
+                    <SolidColorBrush x:Key="ButtonForegroundDisabled"
+                                     Color="{ThemeResource TextFillColorPrimary}" />
+                    <SolidColorBrush x:Key="ButtonBorderBrushDisabled"
+                                     Color="{ThemeResource ControlStrokeColorOnAccentTertiary}" />
+                  </Button.Resources>
+                </Button>
                 <ctwc:Segmented x:Name="NotePage_TextHighlightColorSegmented"
                                 HorizontalAlignment="Center"
                                 SelectedIndex="0">
-                  <ctwc:SegmentedItem Content="Palette"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPaletteSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xE790;}"
                                       Width="160" />
-                  <ctwc:SegmentedItem Content="Picker"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPickerSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
                                       Width="160" />
                 </ctwc:Segmented>
@@ -680,10 +692,10 @@
                 <ctwc:Segmented x:Name="NotePage_BackgroundColorSegmented"
                                 HorizontalAlignment="Center"
                                 SelectedIndex="0">
-                  <ctwc:SegmentedItem Content="Palette"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPaletteSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xE790;}"
                                       Width="160" />
-                  <ctwc:SegmentedItem Content="Picker"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/ColorPickerSegmentedItem"
                                       Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
                                       Width="160" />
                 </ctwc:Segmented>

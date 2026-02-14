@@ -389,8 +389,6 @@ internal sealed partial class NotePage : Page
       };
     });
   }
-
-  private bool IsDefaultColor(Color color) => color.A < 255;
 }
 #endregion
 
