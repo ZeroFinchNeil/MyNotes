@@ -55,8 +55,8 @@
                  Style="{StaticResource BodyStrongTextBlockStyle}">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                               CommandParameter="{x:Bind ViewModel}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
+                                               CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
       </TextBlock>
@@ -74,14 +74,19 @@
                       Closing="NoteItem_MoreButtonMenuFlyout_Closing">
             <templates:MenuFlyoutElementContainer>
               <StackPanel Orientation="Horizontal">
+                <StackPanel.Resources>
+                  <Thickness x:Key="AppBarButtonInnerBorderMargin">2,0</Thickness>
+                </StackPanel.Resources>
                 <AppBarButton Label="View"
                               Icon="{ui:FontIcon Glyph=&#xE8AD;}"
-                              Command="{x:Bind ViewModel.OpenWindowCommand}"
-                              CommandParameter="{x:Bind ViewModel}" />
+                              Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
+                              CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
                 <AppBarButton Label="Share"
                               Icon="Share" />
                 <AppBarButton Label="Remove"
-                              Icon="Delete" />
+                              Icon="Delete"
+                              Command="{x:Bind ViewModel.RemoveNoteCommand, Mode=OneWay}"
+                              CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
               </StackPanel>
             </templates:MenuFlyoutElementContainer>
 
@@ -95,8 +100,6 @@
                             Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
             <MenuFlyoutItem Text="Edit tags"
                             Icon="{ui:FontIcon Glyph=&#xE932;}" />
-            <MenuFlyoutItem Text="Bookmark"
-                            Icon="Favorite" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="About"
                             Icon="{ui:FontIcon Glyph=&#xE946;}" />
@@ -116,8 +119,8 @@
             Background="Transparent">
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                             CommandParameter="{x:Bind ViewModel}" />
+          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
+                                             CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </Border>

@@ -2,7 +2,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Structures;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
@@ -12,6 +12,7 @@ namespace MyNotes.Views.Notes;
 
 internal sealed partial class NoteItemGridContainer : UserControl
 {
+  #region Object Lifetime Management
   public NoteItemGridContainer()
   {
 #if DEBUG
@@ -25,13 +26,6 @@ internal sealed partial class NoteItemGridContainer : UserControl
     this.Unloaded += UserListPageNoteItemGridContainer_Unloaded;
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemGridContainer), new PropertyMetadata(null));
-  public NoteViewModel ViewModel
-  {
-    get => (NoteViewModel)GetValue(ViewModelProperty);
-    set => SetValue(ViewModelProperty, value);
-  }
-
   private void UserListPageNoteItemGridContainer_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
@@ -40,6 +34,14 @@ internal sealed partial class NoteItemGridContainer : UserControl
   private void UserListPageNoteItemGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
+  }
+  #endregion  
+
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemGridContainer), new PropertyMetadata(null));
+  public NoteViewModel ViewModel
+  {
+    get => (NoteViewModel)GetValue(ViewModelProperty);
+    set => SetValue(ViewModelProperty, value);
   }
 
   private void NoteItem_RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
@@ -65,7 +67,7 @@ internal sealed partial class NoteItemGridContainer : UserControl
     {
       NoteItem_MoveToListMenuFlyoutSubItem.Items.Clear();
       RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
-      WeakReferenceMessenger.Default.Send(message, MessageTokens.GetAllListNavigationViewModelsToken);
+      WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
 
       if (message.HasReceivedResponse)
       {

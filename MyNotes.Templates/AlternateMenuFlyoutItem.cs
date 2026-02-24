@@ -17,7 +17,7 @@ public sealed partial class AlternateMenuFlyoutItem : MenuFlyoutItem
     };
 
     this.Loaded += AlternateMenuFlyoutItem_Loaded;
-    this.Unloaded += AlternateMenuFlyoutItem_Unloaded;
+    //this.Unloaded += AlternateMenuFlyoutItem_Unloaded;
   }
 
   public static readonly DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool), typeof(AlternateMenuFlyoutItem), new PropertyMetadata(false, OnIsCheckedChanged));

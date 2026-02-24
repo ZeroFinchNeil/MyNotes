@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.WinUI.Helpers;
 
-namespace MyNotes.Constants;
+namespace MyNotes.AppConstants;
 
 internal static class AppColors
 {

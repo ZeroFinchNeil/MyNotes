@@ -12,6 +12,7 @@ internal sealed partial class SearchResultsPage : Page
   private SearchNavigationViewModel? ViewModel;
   private NoteListViewModel? NoteListViewModel;
 
+  #region Object Lifetime Management
   public SearchResultsPage()
   {
 #if DEBUG
@@ -57,6 +58,7 @@ internal sealed partial class SearchResultsPage : Page
   {
     Bindings.StopTracking();
   }
+  #endregion
 
   // TwoWay Binding BindBack
   private PreviewLayoutType PreviewLayoutTypeBindBack(int index)

@@ -31,14 +31,14 @@ public sealed partial class AlternateIconToggleButton : ToggleButton
     set => SetValue(IndeterminateIconProperty, value);
   }
 
-  public static readonly DependencyProperty IconViewBoxWidthProperty = DependencyProperty.Register("IconViewBoxWidth", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(16.0));
+  public static readonly DependencyProperty IconViewBoxWidthProperty = DependencyProperty.Register("IconViewBoxWidth", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(double.NaN));
   public double IconViewBoxWidth
   {
     get => (double)GetValue(IconViewBoxWidthProperty);
     set => SetValue(IconViewBoxWidthProperty, value);
   }
 
-  public static readonly DependencyProperty IconViewBoxHeightProperty = DependencyProperty.Register("IconViewBoxHeight", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(16.0));
+  public static readonly DependencyProperty IconViewBoxHeightProperty = DependencyProperty.Register("IconViewBoxHeight", typeof(double), typeof(AlternateIconToggleButton), new PropertyMetadata(double.NaN));
   public double IconViewBoxHeight
   {
     get => (double)GetValue(IconViewBoxHeightProperty);

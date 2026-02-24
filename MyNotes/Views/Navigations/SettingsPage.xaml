@@ -10,6 +10,7 @@
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:helpers="using:MyNotes.Helpers">
 
+  <!--#region Resources -->
   <Page.Resources>
     <PathIconSource x:Key="PaintBrushPathIconSource"
                     Data="M3.5,1A0.5,0.5,0,0,0,3,1.5L3,9A2,2,0,0,0,5,11L6,11 6,13A2,2,0,1,0,10,13L10,11 11,11A2,2,0,0,0,13,9L13,1.5A0.5,0.5,0,0,0,12.5,1z M4,7L4,2 8,2 8,3.5A0.5,0.5,0,0,0,9,3.5L9,2 10,2 10,4.5A0.5,0.5,0,0,0,11,4.5L11,2 12,2 12,7z M4,8L12,8 12,9A1,1,0,0,1,11,10L9.5,10A0.5,0.5,0,0,0,9,10.5L9,13A1,1,0,1,1,7,13L7,10.5A0.5,0.5,0,0,0,6.5,10L5,10A1,1,0,0,1,4,9z" />
@@ -19,11 +20,14 @@
                     Data="M4.854,5.854A0.5,0.5,0,1,1,4.146,5.146L7.146,2.146A0.5,0.5,0,0,1,7.854,2.146L10.854,5.146A0.5,0.5,0,0,1,10.146,5.854L8,3.707 8,12.293 10.146,10.146A0.5,0.5,0,0,1,10.854,10.854L7.854,13.854A0.5,0.5,0,0,1,7.146,13.854L4.146,10.854A0.5,0.5,0,0,1,4.854,10.146L7,12.293 7,3.707z" />
     <PathIconSource x:Key="Document100PathIconSource"
                     Data="M5,1A2,2,0,0,0,3,3L3,9.156A1.7,1.7,0,0,1,3.718,9.746Q3.85,9.613,4,9.5L4,3A1,1,0,0,1,5,2L8,2 8,4.5A1.5,1.5,0,0,0,9.5,6L12,6 12,13.5C12,14.028,11.836,14.518,11.557,14.922A2,2,0,0,0,13,13L13,5.414A1.5,1.5,0,0,0,12.56,4.354L9.648,1.439A1.5,1.5,0,0,0,8.586,1z M11.793,5L9.5,5A0.5,0.5,0,0,1,9,4.5L9,2.207z M3,10.654A0.62,0.62,0,0,0,2.801,10.204A0.7,0.7,0,0,0,2.495,10.036C2.343,9.995 1.993,9.966 1.77,10.261 1.573,10.521 1.26,10.832 0.793,11.045A0.5,0.5,0,0,0,1.207,11.955A3.5,3.5,0,0,0,2,11.458L2,14.5A0.5,0.5,0,0,0,3,14.5z M4,11.5A1.5,1.5,0,0,1,7,11.5L7,13.5A1.5,1.5,0,0,1,4,13.5z M5.5,11A0.5,0.5,0,0,0,5,11.5L5,13.5A0.5,0.5,0,0,0,6,13.5L6,11.5A0.5,0.5,0,0,0,5.5,11 M9.5,10A1.5,1.5,0,0,0,8,11.5L8,13.5A1.5,1.5,0,0,0,11,13.5L11,11.5A1.5,1.5,0,0,0,9.5,10 M9,11.5A0.5,0.5,0,0,1,10,11.5L10,13.5A0.5,0.5,0,0,1,9,13.5z" />
+    <PathIconSource x:Key="DocumentSplitHintOffPathIconSource"
+                    Data="M3,3.707L3,7.5A0.5,0.5,0,0,0,4,7.5L4,4.707 12,12.707 12,13A1,1,0,0,1,11,14L10.5,14A0.5,0.5,0,0,0,10.5,15L11,15A2,2,0,0,0,12.905,13.612L14.146,14.854A0.5,0.5,0,0,0,14.854,14.146L1.854,1.146A0.5,0.5,0,1,0,1.146,1.854z M12,9.879L12.909,10.788A0.5,0.5,0,0,0,13,10.5L13,9.5A0.5,0.5,0,0,0,12,9.5z M3.648,1.527L4.356,2.235A1,1,0,0,1,5,2L8,2 8,4.5A1.5,1.5,0,0,0,9.5,6L12,6 12,7.5A0.5,0.5,0,0,0,13,7.5L13,5.414A1.5,1.5,0,0,0,12.56,4.354L9.647,1.439A1.5,1.5,0,0,0,8.586,1L5,1C4.479,1,4.004,1.2,3.648,1.527 M9,2.207L11.793,5 9.5,5A0.5,0.5,0,0,1,9,4.5z M3.5,9A0.5,0.5,0,0,1,4,9.5L4,10.5A0.5,0.5,0,0,1,3,10.5L3,9.5A0.5,0.5,0,0,1,3.5,9 M3.5,12A0.5,0.5,0,0,1,4,12.5L4,13A1,1,0,0,0,5,14L5.5,14A0.5,0.5,0,0,1,5.5,15L5,15A2,2,0,0,1,3,13L3,12.5A0.5,0.5,0,0,1,3.5,12 M7,14.5A0.5,0.5,0,0,1,7.5,14L8.5,14A0.5,0.5,0,0,1,8.5,15L7.5,15A0.5,0.5,0,0,1,7,14.5" />
     <PathIconSource x:Key="LayoutDynamicPathIconSource"
                     Data="M17.75,3C19.5449,3,21,4.45507,21,6.25L21,17.75C21,19.5449,19.5449,21,17.75,21L6.25,21C4.45507,21,3,19.5449,3,17.75L3,6.25C3,4.45507,4.45507,3,6.25,3L17.75,3z M4.5,15.5L4.5,17.75C4.5,18.7165,5.2835,19.5,6.25,19.5L8.5,19.5 8.5,15.5 4.5,15.5z M10,15.5L10,19.5 17.75,19.5C18.7165,19.5,19.5,18.7165,19.5,17.75L19.5,15.5 10,15.5z M6.25,4.5C5.2835,4.5,4.5,5.2835,4.5,6.25L4.5,14 8.5,14 8.5,4.5 6.25,4.5z M10,14L19.5,14 19.5,6.25C19.5,5.2835,18.7165,4.5,17.75,4.5L10,4.5 10,14z" />
     <PathIconSource x:Key="SquareRoundedBadgePathIconSource"
                     Data="M16,19.5C16,21.43 17.57,23 19.5,23 21.43,23 23,21.43 23,19.5 23,17.57 21.43,16 19.5,16 17.57,16 16,17.57 16,19.5 M8,21L14.21,21Q14,20.25,14,19.5L14,19 8,19C6.34,19,5,17.66,5,16L5,8C5,6.34,6.34,5,8,5L16,5C17.66,5,19,6.34,19,8L19,14 19.5,14Q20.25,14,21,14.21L21,8C21,5.24,18.76,3,16,3L8,3C5.24,3,3,5.24,3,8L3,16C3,18.76,5.24,21,8,21" />
   </Page.Resources>
+  <!--#endregion -->
 
   <Grid>
     <Grid.RowDefinitions>
@@ -201,6 +205,12 @@
               </controls:SettingsCard>
             </controls:SettingsExpander.Items>
           </controls:SettingsExpander>
+
+          <!-- Delete Confirmation -->
+          <controls:SettingsCard x:Uid="/SettingsPage/General_DeleteConfirmationSettingsCard"
+                                 HeaderIcon="{ui:FontIcon Glyph=&#xE8FB;}">
+            <ToggleSwitch IsOn="{x:Bind ViewModel.ConfirmBeforeDeleting, Mode=TwoWay}" />
+          </controls:SettingsCard>
         </StackPanel>
         <!--#endregion-->
 
@@ -265,6 +275,14 @@
               </controls:SettingsCard>
             </controls:SettingsExpander.Items>
           </controls:SettingsExpander>
+
+          <!-- Delete Empty Note -->
+          <controls:SettingsCard x:Uid="/SettingsPage/Note_DeleteEmptyNoteSettingsCard">
+            <controls:SettingsCard.HeaderIcon>
+              <IconSourceElement IconSource="{StaticResource DocumentSplitHintOffPathIconSource}" />
+            </controls:SettingsCard.HeaderIcon>
+            <ToggleSwitch IsOn="{x:Bind ViewModel.DeleteEmptyNote, Mode=TwoWay}" />
+          </controls:SettingsCard>
         </StackPanel>
         <!--#endregion-->
 
@@ -410,11 +428,11 @@
                 </Grid>
               </controls:SettingsCard>
 
-              <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_EnableEachPreviewLayoutSettingsCard" >
+              <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_EnableEachPreviewLayoutSettingsCard">
                 <ToggleSwitch IsOn="{x:Bind ViewModel.AllowCustomPreviewLayout, Mode=TwoWay}" />
               </controls:SettingsCard>
 
-              <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_ResetPreviewLayoutSettingsCard" >
+              <controls:SettingsCard x:Uid="/SettingsPage/ListAndGroup_ResetPreviewLayoutSettingsCard">
                 <Button x:Uid="/SettingsPage/ListAndGroup_ResetButton" />
               </controls:SettingsCard>
             </controls:SettingsExpander.Items>

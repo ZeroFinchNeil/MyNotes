@@ -35,7 +35,7 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
     };
 
     this.Loaded += DraggableNavigationViewItem_Loaded;
-    this.Unloaded += DraggableNavigationViewItem_Unloaded;
+    //this.Unloaded += DraggableNavigationViewItem_Unloaded;
   }
 
   public event TypedEventHandler<UIElement, DragStartingEventArgs>? PresenterDragStarting;

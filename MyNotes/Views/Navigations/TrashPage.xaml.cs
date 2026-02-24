@@ -7,13 +7,13 @@ using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Navigations;
 
-public sealed partial class BookmarksPage : Page
+public sealed partial class TrashPage : Page
 {
   private CoreNavigationViewModel? ViewModel;
   private NoteListViewModel? NoteListViewModel;
 
   #region Object Lifetime Management
-  public BookmarksPage()
+  public TrashPage()
   {
 #if DEBUG
     if (Debugger.IsAttached)
@@ -23,22 +23,22 @@ public sealed partial class BookmarksPage : Page
 #endif
 
     InitializeComponent();
-    this.Loaded += BookmarksPage_Loaded;
-    this.Unloaded += BookmarksPage_Unloaded;
+    this.Loaded += TrashPage_Loaded;
+    this.Unloaded += TrashPage_Unloaded;
   }
 
   protected override void OnNavigatedTo(NavigationEventArgs e)
   {
-    if (e.Parameter is NavigationBookmarks navigation)
+    if (e.Parameter is NavigationTrash navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
       var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
       if (navigationViewModelProvider.TryResolve(navigation, out var viewmodel)
-          && viewmodel is CoreNavigationViewModel bookmarksViewModel)
+          && viewmodel is CoreNavigationViewModel trashViewModel)
       {
-        ViewModel = bookmarksViewModel;
-        NoteListViewModel.ChangePreviewLayout(BookmarksPage_NotesListGridView);
+        ViewModel = trashViewModel;
+        NoteListViewModel.ChangePreviewLayout(TrashPage_NotesListGridView);
       }
     }
   }
@@ -47,12 +47,12 @@ public sealed partial class BookmarksPage : Page
     NoteListViewModel?.Dispose();
   }
 
-  private async void BookmarksPage_Loaded(object sender, RoutedEventArgs e)
+  private async void TrashPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
   }
 
-  private void BookmarksPage_Unloaded(object sender, RoutedEventArgs e)
+  private void TrashPage_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
   }
@@ -63,20 +63,20 @@ public sealed partial class BookmarksPage : Page
     => NoteListViewModel?.ToPreviewLayoutType(index, (type) =>
     {
       NoteListViewModel.PreviewLayoutType = type;
-      NoteListViewModel.ChangePreviewLayout(BookmarksPage_NotesListGridView);
+      NoteListViewModel.ChangePreviewLayout(TrashPage_NotesListGridView);
     }) ?? PreviewLayoutType.Grid;
 
   private PreviewTileSize PreviewTileSizeBindBack(double index)
   => NoteListViewModel?.ToPreviewTileSize(index, (size) =>
   {
     NoteListViewModel.PreviewTileSize = size;
-    NoteListViewModel.ChangePreviewTile(BookmarksPage_NotesListGridView);
+    NoteListViewModel.ChangePreviewTile(TrashPage_NotesListGridView);
   }) ?? PreviewTileSize.Medium;
 
   private PreviewTileRatio PreviewTileRatioBindBack(double index)
   => NoteListViewModel?.ToPreviewTileRatio(index, (ratio) =>
   {
     NoteListViewModel.PreviewTileRatio = ratio;
-    NoteListViewModel.ChangePreviewTile(BookmarksPage_NotesListGridView);
+    NoteListViewModel.ChangePreviewTile(TrashPage_NotesListGridView);
   }) ?? PreviewTileRatio.Square;
 }

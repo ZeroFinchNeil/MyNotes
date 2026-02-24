@@ -2,27 +2,28 @@
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Settings;
 
-namespace MyNotes.Constants;
+namespace MyNotes.AppConstants;
 
-internal static class SettingsDescriptors
+internal static class AppSettingsDescriptors
 {
   // Windows
-  public static readonly SettingsDescriptor<Size> MainWindowMinimumSize = new("MainWindowMininumSize", new Size(600.0, 600.0));
+  public static readonly SettingsDescriptor<Size> MainWindowMinimumSize = new("MainWindowMinimumSize", new Size(600.0, 600.0));
   public static readonly SettingsDescriptor<Size> MainWindowSize = new("MainWindowSize", new Size(600.0, 800.0));
   public static readonly SettingsDescriptor<Point> MainWindowPosition = new("MainWindowPosition", new Point(0.0, 0.0));
   public static readonly SettingsDescriptor<string> MainWindowDisplay = new("MainWindowDisplay", string.Empty);
   public static readonly SettingsDescriptor<int> WindowBorderMargin = new("WindowBorderMargin", 20);
 
-  // Settings - Appearence
+  // Settings - Appearance
   public static readonly SettingsDescriptor<int> AppTheme = new("AppTheme", (int)ElementTheme.Default);
   public static readonly SettingsDescriptor<string> AppLanguage = new("AppLanguage", string.Empty);
 
   // Settings - General
   public static readonly SettingsDescriptor<int> InitialPageType = new("InitialPageType", 0);
   public static readonly SettingsDescriptor<Guid> InitialPageId = new("InitialPageId", NavigationId.Home.Value);
+  public static readonly SettingsDescriptor<bool> ConfirmBeforeDeleting = new("ConfirmBeforeDeleting", true);
 
   // Settings - Note
-  public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMininumSize", new Size(400.0, 300.0));
+  public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMinimumSize", new Size(400.0, 300.0));
 
   public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");
   public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", (int)Models.Notes.BackdropKind.None);
@@ -30,6 +31,8 @@ internal static class SettingsDescriptors
   public static readonly SettingsDescriptor<Point> NotePosition = new("NotePosition", new Point(0, 0));
 
   public static readonly SettingsDescriptor<int> NoteBodyUpdateFrequency = new("NoteBodyUpdateFrequency", 2);
+
+  public static readonly SettingsDescriptor<bool> DeleteEmptyNote = new("DeleteEmptyNote", true);
 
   // Settings - List and Group
   public static readonly SettingsDescriptor<bool> ShowNoteCount = new("ShowNoteCount", true);

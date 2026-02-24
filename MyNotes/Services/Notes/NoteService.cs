@@ -2,8 +2,9 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
-using MyNotes.Constants;
+using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Database;
@@ -19,13 +20,15 @@ namespace MyNotes.Services.Notes;
 internal sealed partial class NoteService : IDisposable
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
+  private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
   private readonly SearchService SearchService;
 
-  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, WindowService windowService, SearchService searchService)
+  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService, WindowService windowService, SearchService searchService)
   {
     // DI
     DbContextFactory = dbContextFactory;
+    SettingsService = settingsService;
     WindowService = windowService;
     SearchService = searchService;
   }
@@ -177,6 +180,9 @@ internal sealed partial class NoteService : IDisposable
       Id = noteId,
       NavigationId = navigation.Id,
       Created = DateTimeOffset.UtcNow,
+      Background = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
+      Backdrop = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdrop),
+      Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32
     };
 
     if (WindowService.TryGetFocusedWindow(out var focusedWindow, out var hWnd)
@@ -223,10 +229,23 @@ internal sealed partial class NoteService : IDisposable
     {
       Id = note.Id.Value,
       Title = note.Title,
-      Body = note.Body
+      Body = note.BodyPlainText
     };
     await SearchService.WriteNoteIndexAsync(searchEntity);
 
     return note;
+  }
+
+  public async Task<bool> DeleteNotePermanentlyAsync(NoteId noteId)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    var entity = await context.NoteEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value);
+    if (entity is not null)
+    {
+      context.NoteEntities.Remove(entity);
+      await SearchService.DeleteNoteIndexAsync(noteId.Value);
+      return await context.SaveChangesAsync() > 0;
+    }
+    return false;
   }
 }

@@ -139,7 +139,7 @@
     <value>Restart</value>
   </data>
   <data name="Appearance_SubTitleTextBlock.Text" xml:space="preserve">
-    <value>Appearence</value>
+    <value>Appearance</value>
   </data>
   <data name="Appearance_ThemeSettingsCard.Description" xml:space="preserve">
     <value>Selects which app theme to display.</value>
@@ -338,5 +338,17 @@
   </data>
   <data name="ListAndGroup_GroupIconBadgeSettingsCard.Description" xml:space="preserve">
     <value>Selects a badge to display on the group icon to make it easier to distinguish between lists and groups.</value>
+  </data>
+  <data name="General_DeleteConfirmationSettingsCard.Header" xml:space="preserve">
+    <value>Confirm before deleting</value>
+  </data>
+  <data name="General_DeleteConfirmationSettingsCard.Description" xml:space="preserve">
+    <value>Shows a confirmation dialog when deleting a note or a list.</value>
+  </data>
+  <data name="Note_DeleteEmptyNoteSettingsCard.Header" xml:space="preserve">
+    <value>Automatically delete empty note</value>
+  </data>
+  <data name="Note_DeleteEmptyNoteSettingsCard.Description" xml:space="preserve">
+    <value>Deletes the note, rather than saving it, if both the title and content are empty when the note window is closed. Such deleted empty notes are not moved to the Trash.</value>
   </data>
 </root>

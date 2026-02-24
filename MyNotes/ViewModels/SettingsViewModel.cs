@@ -4,8 +4,8 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
-using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
@@ -21,33 +21,42 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 {
   private readonly SettingsService SettingsService;
 
+  #region Object Lifetime Management
   public SettingsViewModel(SettingsService settingsService)
   {
     SettingsService = settingsService;
 
-    AppTheme = SettingsService.Load(SettingsDescriptors.AppTheme);
-    AppLanguage = new AppLanguage(SettingsService.Load(SettingsDescriptors.AppLanguage));
-    InitialPageType = SettingsService.Load(SettingsDescriptors.InitialPageType);
-    InitialPageId = SettingsService.Load(SettingsDescriptors.InitialPageId);
+    // Appearance
+    AppTheme = SettingsService.Load(AppSettingsDescriptors.AppTheme);
+    AppLanguage = new AppLanguage(SettingsService.Load(AppSettingsDescriptors.AppLanguage));
 
-    NoteBackground = SettingsService.Load(SettingsDescriptors.NoteBackground).ToColor();
-    NoteBackdrop = SettingsService.Load(SettingsDescriptors.NoteBackdrop);
+    // General
+    InitialPageType = SettingsService.Load(AppSettingsDescriptors.InitialPageType);
+    InitialPageId = SettingsService.Load(AppSettingsDescriptors.InitialPageId);
+    ConfirmBeforeDeleting = SettingsService.Load(AppSettingsDescriptors.ConfirmBeforeDeleting);
 
-    var noteSize = SettingsService.Load(SettingsDescriptors.NoteSize);
+    // Note
+    NoteBackground = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor();
+    NoteBackdrop = SettingsService.Load(AppSettingsDescriptors.NoteBackdrop);
+
+    var noteSize = SettingsService.Load(AppSettingsDescriptors.NoteSize);
     NoteWidth = (int)noteSize.Width;
     NoteHeight = (int)noteSize.Height;
 
-    ShowNoteCount = SettingsService.Load(SettingsDescriptors.ShowNoteCount);
-    _groupIconBadge = SettingsService.Load(SettingsDescriptors.GroupIconBadge);
+    DeleteEmptyNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote);
 
-    AllowCustomNoteSortOrder = SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder);
-    NoteSortKey = SettingsService.Load(SettingsDescriptors.NoteSortKey);
-    NoteSortDirection = SettingsService.Load(SettingsDescriptors.NoteSortDirection);
+    // List and Group
+    ShowNoteCount = SettingsService.Load(AppSettingsDescriptors.ShowNoteCount);
+    _groupIconBadge = SettingsService.Load(AppSettingsDescriptors.GroupIconBadge);
 
-    AllowCustomPreviewLayout = SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout);
-    PreviewLayoutType = SettingsService.Load(SettingsDescriptors.PreviewLayoutType);
-    PreviewTileSize = SettingsService.Load(SettingsDescriptors.PreviewTileSize);
-    PreviewTileRatio = SettingsService.Load(SettingsDescriptors.PreviewTileRatio);
+    AllowCustomNoteSortOrder = SettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder);
+    NoteSortKey = SettingsService.Load(AppSettingsDescriptors.NoteSortKey);
+    NoteSortDirection = SettingsService.Load(AppSettingsDescriptors.NoteSortDirection);
+
+    AllowCustomPreviewLayout = SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout);
+    PreviewLayoutType = SettingsService.Load(AppSettingsDescriptors.PreviewLayoutType);
+    PreviewTileSize = SettingsService.Load(AppSettingsDescriptors.PreviewTileSize);
+    PreviewTileRatio = SettingsService.Load(AppSettingsDescriptors.PreviewTileRatio);
 
     SettingsService.SettingsChanged += SettingsService_SettingsChanged;
   }
@@ -64,16 +73,17 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
     base.Dispose(disposing);
   }
+  #endregion
 
   private static readonly Dictionary<string, Action<SettingsViewModel, SettingsChangedEventArgs>> SettingsMap = new()
   {
-    { SettingsDescriptors.AppTheme.Key, (v, e) => v.AppTheme = (int)e.NewSettingsValue },
-    { SettingsDescriptors.AppLanguage.Key, (v, e) => v.AppLanguage = new AppLanguage((string)e.NewSettingsValue) },
-    { SettingsDescriptors.InitialPageType.Key, (v, e) => v.InitialPageType = (int)e.NewSettingsValue },
-    { SettingsDescriptors.InitialPageId.Key, (v, e) => v.InitialPageId = (Guid)e.NewSettingsValue },
-    { SettingsDescriptors.NoteBackground.Key, (v, e) => v.NoteBackground = ((string)e.NewSettingsValue).ToColor() },
-    { SettingsDescriptors.NoteBackdrop.Key, (v, e) => v.NoteBackdrop = (int)e.NewSettingsValue },
-    { SettingsDescriptors.NoteSize.Key, (v, e) =>
+    { AppSettingsDescriptors.AppTheme.Key, (v, e) => v.AppTheme = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.AppLanguage.Key, (v, e) => v.AppLanguage = new AppLanguage((string)e.NewSettingsValue) },
+    { AppSettingsDescriptors.InitialPageType.Key, (v, e) => v.InitialPageType = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.InitialPageId.Key, (v, e) => v.InitialPageId = (Guid)e.NewSettingsValue },
+    { AppSettingsDescriptors.NoteBackground.Key, (v, e) => v.NoteBackground = ((string)e.NewSettingsValue).ToColor() },
+    { AppSettingsDescriptors.NoteBackdrop.Key, (v, e) => v.NoteBackdrop = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.NoteSize.Key, (v, e) =>
       {
         if(e.NewSettingsValue is SizeInt32 size)
         {
@@ -81,15 +91,15 @@ internal sealed partial class SettingsViewModel : ViewModelBase
           v.NoteHeight = size.Height;
         }
       }},
-    { SettingsDescriptors.ShowNoteCount.Key, (v, e) => v.ShowNoteCount = (bool)e.NewSettingsValue },
-    { SettingsDescriptors.GroupIconBadge.Key, (v, e) => v.GroupIconBadge = (int)e.NewSettingsValue },
-    { SettingsDescriptors.AllowCustomNoteSortOrder.Key, (v, e) => v.AllowCustomNoteSortOrder = (bool)e.NewSettingsValue },
-    { SettingsDescriptors.NoteSortKey.Key, (v, e) => v.NoteSortKey = (int)e.NewSettingsValue },
-    { SettingsDescriptors.NoteSortDirection.Key, (v, e) => v.NoteSortDirection = (int)e.NewSettingsValue },
-    { SettingsDescriptors.AllowCustomPreviewLayout.Key, (v, e) => v.AllowCustomPreviewLayout = (bool)e.NewSettingsValue },
-    { SettingsDescriptors.PreviewLayoutType.Key, (v, e) => v.PreviewLayoutType = (int)e.NewSettingsValue },
-    { SettingsDescriptors.PreviewTileSize.Key, (v, e) => v.PreviewTileSize = (int)e.NewSettingsValue },
-    { SettingsDescriptors.PreviewTileRatio.Key, (v, e) => v.PreviewTileRatio = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.ShowNoteCount.Key, (v, e) => v.ShowNoteCount = (bool)e.NewSettingsValue },
+    { AppSettingsDescriptors.GroupIconBadge.Key, (v, e) => v.GroupIconBadge = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.AllowCustomNoteSortOrder.Key, (v, e) => v.AllowCustomNoteSortOrder = (bool)e.NewSettingsValue },
+    { AppSettingsDescriptors.NoteSortKey.Key, (v, e) => v.NoteSortKey = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.NoteSortDirection.Key, (v, e) => v.NoteSortDirection = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.AllowCustomPreviewLayout.Key, (v, e) => v.AllowCustomPreviewLayout = (bool)e.NewSettingsValue },
+    { AppSettingsDescriptors.PreviewLayoutType.Key, (v, e) => v.PreviewLayoutType = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.PreviewTileSize.Key, (v, e) => v.PreviewTileSize = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.PreviewTileRatio.Key, (v, e) => v.PreviewTileRatio = (int)e.NewSettingsValue },
   };
 
   private void SettingsService_SettingsChanged(object? sender, SettingsChangedEventArgs e)
@@ -106,35 +116,33 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         ValueChangedMessage<ElementTheme> msg = value switch
         {
           1 => new(ElementTheme.Light),
           2 => new(ElementTheme.Dark),
           _ => new(ElementTheme.Default)
         };
-        WeakReferenceMessenger.Default.Send(msg, MessageTokens.AppThmeChangedToken);
-        SettingsService.Save(SettingsDescriptors.AppTheme, value);
+        WeakReferenceMessenger.Default.Send(msg, AppMessageTokens.ChangeAppThemeToken);
+        SettingsService.Save(AppSettingsDescriptors.AppTheme, value);
       }
     }
   }
 
   public List<AppLanguage> AppLanguages { get; } = new(AppLanguage.ManifestLanguages.Keys.Select(lang => new AppLanguage(lang)));
-  private static readonly AppLanguage _initalLanguage = new(ApplicationLanguages.Languages[0]);
+  private static readonly AppLanguage _initialLanguage = new(ApplicationLanguages.Languages[0]);
 
   public AppLanguage AppLanguage
   {
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         string language = value.Language;
 
-        SettingsService.Save(SettingsDescriptors.AppLanguage, language);
+        SettingsService.Save(AppSettingsDescriptors.AppLanguage, language);
 
         try
         {
@@ -145,7 +153,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
           ApplicationLanguages.PrimaryLanguageOverride = GlobalizationPreferences.Languages[0];
         }
 
-        IsAppLanguageChanged = (value != _initalLanguage);
+        IsAppLanguageChanged = (value != _initialLanguage);
       }
     }
   }
@@ -163,9 +171,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         InitialPageId = value switch
         {
           0 => NavigationId.Home.Value,
@@ -174,7 +181,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
           3 => NavigationId.Empty.Value,
           _ => NavigationId.Home.Value
         };
-        SettingsService.Save(SettingsDescriptors.InitialPageType, value);
+        SettingsService.Save(AppSettingsDescriptors.InitialPageType, value);
       }
     }
   }
@@ -184,10 +191,21 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.InitialPageId, value);
+        SettingsService.Save(AppSettingsDescriptors.InitialPageId, value);
+      }
+    }
+  }
+
+  public bool ConfirmBeforeDeleting
+  {
+    get;
+    set
+    {
+      if (SetProperty(ref field, value))
+      {
+        SettingsService.Save(AppSettingsDescriptors.ConfirmBeforeDeleting, value);
       }
     }
   }
@@ -199,10 +217,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteBackground, value.ToString());
+        SettingsService.Save(AppSettingsDescriptors.NoteBackground, value.ToString());
       }
     }
   }
@@ -212,10 +229,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteBackdrop, value);
+        SettingsService.Save(AppSettingsDescriptors.NoteBackdrop, value);
       }
     }
   }
@@ -225,10 +241,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSize, new Size(value, NoteHeight));
+        SettingsService.Save(AppSettingsDescriptors.NoteSize, new Size(value, NoteHeight));
       }
     }
   }
@@ -238,10 +253,21 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSize, new Size(NoteWidth, value));
+        SettingsService.Save(AppSettingsDescriptors.NoteSize, new Size(NoteWidth, value));
+      }
+    }
+  }
+
+  public bool DeleteEmptyNote
+  {
+    get;
+    set
+    {
+      if (SetProperty(ref field, value))
+      {
+        SettingsService.Save(AppSettingsDescriptors.DeleteEmptyNote, value);
       }
     }
   }
@@ -253,10 +279,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.ShowNoteCount, value);
+        SettingsService.Save(AppSettingsDescriptors.ShowNoteCount, value);
       }
     }
   }
@@ -267,11 +292,10 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get => _groupIconBadge;
     set
     {
-      if (_groupIconBadge != value)
+      if (SetProperty(ref _groupIconBadge, value))
       {
-        SetProperty(ref _groupIconBadge, value);
-        SettingsService.Save(SettingsDescriptors.GroupIconBadge, value);
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>((GroupIconBadge)value), MessageTokens.ChangeNavigationViewModelIconImageToken);
+        SettingsService.Save(AppSettingsDescriptors.GroupIconBadge, value);
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>((GroupIconBadge)value), AppMessageTokens.ChangeNavigationViewModelIconImageToken);
       }
     }
   }
@@ -302,10 +326,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.AllowCustomNoteSortOrder, value);
+        SettingsService.Save(AppSettingsDescriptors.AllowCustomNoteSortOrder, value);
       }
     }
   }
@@ -315,10 +338,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSortKey, value);
+        SettingsService.Save(AppSettingsDescriptors.NoteSortKey, value);
         SortOrderContentText = SetSortOrderContentText(value, NoteSortDirection);
       }
     }
@@ -329,10 +351,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.NoteSortDirection, value);
+        SettingsService.Save(AppSettingsDescriptors.NoteSortDirection, value);
         SortOrderContentText = SetSortOrderContentText(NoteSortKey, value);
       }
     }
@@ -343,10 +364,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.AllowCustomPreviewLayout, value);
+        SettingsService.Save(AppSettingsDescriptors.AllowCustomPreviewLayout, value);
       }
     }
   }
@@ -394,10 +414,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.PreviewLayoutType, value);
+        SettingsService.Save(AppSettingsDescriptors.PreviewLayoutType, value);
         PreviewLayoutContentText = SetPreviewLayoutContentText(value, PreviewTileSize, PreviewTileRatio);
       }
     }
@@ -408,10 +427,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.PreviewTileSize, value);
+        SettingsService.Save(AppSettingsDescriptors.PreviewTileSize, value);
         PreviewLayoutContentText = SetPreviewLayoutContentText(PreviewLayoutType, value, PreviewTileRatio);
       }
     }
@@ -422,10 +440,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
-        SettingsService.Save(SettingsDescriptors.PreviewTileRatio, value);
+        SettingsService.Save(AppSettingsDescriptors.PreviewTileRatio, value);
         PreviewLayoutContentText = SetPreviewLayoutContentText(PreviewLayoutType, PreviewTileSize, value);
       }
     }

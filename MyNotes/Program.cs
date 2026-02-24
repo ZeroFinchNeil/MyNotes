@@ -1,5 +1,5 @@
 ﻿using MyNotes.Common.Interop;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Widget;
 
 namespace MyNotes;

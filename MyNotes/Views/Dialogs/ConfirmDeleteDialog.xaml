@@ -7,14 +7,13 @@
                Style="{StaticResource DefaultContentDialogStyle}"
                DefaultButton="Close"
                PrimaryButtonText="Delete"
-               CloseButtonText="Cancel">
+               CloseButtonText="Cancel"
+               Title="{x:Bind SetTitle(ViewModel.TargetTypeName)}">
 
-  <ContentDialog.Title>
-    <StackPanel Orientation="Horizontal">
-      <TextBlock Text="Delete " />
-      <TextBlock Text="{x:Bind ViewModel.TargetTypeName}" />
-    </StackPanel>
-  </ContentDialog.Title>
+  <StackPanel>
+    <TextBlock Text="{x:Bind ViewModel.TargetName}" />
 
-  <TextBlock Text="{x:Bind ViewModel.TargetName}" />
+    <CheckBox x:Uid="/ConfirmDeleteDialog/DeletePermanentlyCheckBox"
+              IsChecked="{x:Bind ViewModel.DeletePermanently, Mode=TwoWay}" />
+  </StackPanel>
 </ContentDialog>

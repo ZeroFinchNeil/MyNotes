@@ -37,14 +37,14 @@ internal sealed class DialogService
     return (ContentDialogResult.None, null);
   }
 
-  public async Task<ContentDialogResult> ShowConfirmDeleteDialogAsync(XamlRoot xamlRoot, string targetTypeName, string targetName, DeleteMode deleteMode)
+  public async Task<(ContentDialogResult ContentDialogResult, DeleteMode DeleteMode)> ShowConfirmDeleteDialogAsync(XamlRoot xamlRoot, string targetTypeName, string targetName, DeleteMode deleteMode)
   {
     if (ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewmodel)
     {
       var dialog = new ConfirmDeleteDialog(viewmodel) { XamlRoot = xamlRoot };
-      return await ShowNewDialog(dialog);
+      return (await ShowNewDialog(dialog), viewmodel.DeleteMode);
     }
-    return ContentDialogResult.None;
+    return (ContentDialogResult.None, DeleteMode.Permanent);
   }
 
   private ContentDialog? _currentDialog;

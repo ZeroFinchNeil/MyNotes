@@ -17,6 +17,8 @@ internal static class StringHelper
 
   public static string WrapWithQuotes(string str) => $"\"{str}\"";
 
+  public static string Affix(string word, string prefix = "", string suffix = "") => $"{prefix}{word}{suffix}";
+
   public static string Inflect(string word)
   {
     string? currentLanguage = ApplicationLanguages.PrimaryLanguageOverride ?? ApplicationLanguages.Languages.FirstOrDefault();

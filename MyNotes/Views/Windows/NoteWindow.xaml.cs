@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
@@ -22,6 +22,7 @@ internal sealed partial class NoteWindow : Window
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
 
+  #region Object Lifetime Management
   public NoteWindow(Note note)
   {
 #if DEBUG
@@ -47,7 +48,7 @@ internal sealed partial class NoteWindow : Window
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정
-    var minimumWindowSize = SettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
+    var minimumWindowSize = AppSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
     var presenter = AppWindow.Presenter as OverlappedPresenter;
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
@@ -75,13 +76,14 @@ internal sealed partial class NoteWindow : Window
     // WindowService에서 Window 테이블에서 제거
     WindowService.NoteWindows.Remove(NoteId);
   }
+  #endregion
 
   private void NoteWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
     if (AppWindow.Presenter is OverlappedPresenter presenter)
     {
       WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };
-      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowPresenterState>(state), MessageTokens.NoteWindowActivationChangedToken(NoteId));
+      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowPresenterState>(state), AppMessageTokens.NoteWindowActivationChangedToken(NoteId));
     }
   }
 }

@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Notes;
@@ -22,6 +22,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
+  #region Object Lifetime Management
   public NoteListViewModel(SettingsService settingsService, NoteService noteService, SearchService searchService, WindowService windowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
@@ -51,6 +52,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
     base.Dispose(disposing);
   }
+  #endregion
 
   public NoteViewModelCollection? NoteViewModels
   {
@@ -68,14 +70,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       {
         SetProperty(ref _noteSortKey, value);
         if (Navigation is NavigationUserLeafNode
-            && SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder))
+            && SettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder))
         {
           Navigation.NoteSortKey = value;
           Navigation.NoteSortDirection = NoteSortDirection;
         }
         else
         {
-          SettingsService.Save(SettingsDescriptors.NoteSortKey, (int)value);
+          SettingsService.Save(AppSettingsDescriptors.NoteSortKey, (int)value);
         }
         var comparer = GetComparer(NoteSortKey, NoteSortDirection);
         NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
@@ -93,14 +95,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       {
         SetProperty(ref _noteSortDirection, value);
         if (Navigation is NavigationUserLeafNode
-            && SettingsService.Load(SettingsDescriptors.AllowCustomNoteSortOrder))
+            && SettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder))
         {
           Navigation.NoteSortKey = NoteSortKey;
           Navigation.NoteSortDirection = value;
         }
         else
         {
-          SettingsService.Save(SettingsDescriptors.NoteSortDirection, (int)value);
+          SettingsService.Save(AppSettingsDescriptors.NoteSortDirection, (int)value);
         }
         var comparer = GetComparer(NoteSortKey, NoteSortDirection);
         NoteViewModels = NoteViewModels is null ? new(comparer) : new(NoteViewModels, comparer);
@@ -118,7 +120,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       {
         SetProperty(ref _previewLayoutType, value);
         if (Navigation is NavigationUserLeafNode
-            && SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+            && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {
           Navigation.PreviewLayoutType = value;
           Navigation.PreviewTileSize = PreviewTileSize;
@@ -126,7 +128,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         else
         {
-          SettingsService.Save(SettingsDescriptors.PreviewLayoutType, (int)value);
+          SettingsService.Save(AppSettingsDescriptors.PreviewLayoutType, (int)value);
         }
       }
     }
@@ -142,7 +144,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       {
         SetProperty(ref _previewTileSize, value);
         if (Navigation is NavigationUserLeafNode
-            && SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+            && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {
           Navigation.PreviewLayoutType = PreviewLayoutType;
           Navigation.PreviewTileSize = value;
@@ -150,7 +152,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         else
         {
-          SettingsService.Save(SettingsDescriptors.PreviewTileSize, (int)value);
+          SettingsService.Save(AppSettingsDescriptors.PreviewTileSize, (int)value);
         }
       }
     }
@@ -166,7 +168,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       {
         SetProperty(ref _previewTileRatio, value);
         if (Navigation is NavigationUserLeafNode
-            && SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+            && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {
           Navigation.PreviewLayoutType = PreviewLayoutType;
           Navigation.PreviewTileSize = PreviewTileSize;
@@ -174,7 +176,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         else
         {
-          SettingsService.Save(SettingsDescriptors.PreviewTileRatio, (int)value);
+          SettingsService.Save(AppSettingsDescriptors.PreviewTileRatio, (int)value);
         }
       }
     }
@@ -193,9 +195,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   public void LoadSortOrderAndPreviewStyle()
   {
-    var defaultNoteSortKey = (NoteSortKey)SettingsService.Load(SettingsDescriptors.NoteSortKey);
-    var defaultNoteSortDirection = (SortDirection)SettingsService.Load(SettingsDescriptors.NoteSortDirection);
-    if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+    var defaultNoteSortKey = (NoteSortKey)SettingsService.Load(AppSettingsDescriptors.NoteSortKey);
+    var defaultNoteSortDirection = (SortDirection)SettingsService.Load(AppSettingsDescriptors.NoteSortDirection);
+    if (SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
     {
       _noteSortKey = Navigation.NoteSortKey ?? defaultNoteSortKey;
       _noteSortDirection = Navigation.NoteSortDirection ?? defaultNoteSortDirection;
@@ -206,10 +208,10 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       _noteSortDirection = defaultNoteSortDirection;
     }
 
-    var defaultPreviewLayoutType = (PreviewLayoutType)SettingsService.Load(SettingsDescriptors.PreviewLayoutType);
-    var defaultPreviewTileSize = (PreviewTileSize)SettingsService.Load(SettingsDescriptors.PreviewTileSize);
-    var defaultPreviewTileRatio = (PreviewTileRatio)SettingsService.Load(SettingsDescriptors.PreviewTileRatio);
-    if (SettingsService.Load(SettingsDescriptors.AllowCustomPreviewLayout))
+    var defaultPreviewLayoutType = (PreviewLayoutType)SettingsService.Load(AppSettingsDescriptors.PreviewLayoutType);
+    var defaultPreviewTileSize = (PreviewTileSize)SettingsService.Load(AppSettingsDescriptors.PreviewTileSize);
+    var defaultPreviewTileRatio = (PreviewTileRatio)SettingsService.Load(AppSettingsDescriptors.PreviewTileRatio);
+    if (SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
     {
       _previewLayoutType = Navigation.PreviewLayoutType ?? defaultPreviewLayoutType;
       _previewTileSize = Navigation.PreviewTileSize ?? defaultPreviewTileSize;
@@ -252,6 +254,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       case NavigationBookmarks bookmarks:
         var bookmarksNotes = await NoteService.GetNotesAsync(e => e.IsBookmarked && !e.IsDeleted);
         foreach (var note in bookmarksNotes)
+        {
+          note.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+        }
+        break;
+      case NavigationTrash trash:
+        var trashNotes = await NoteService.GetNotesAsync(e => e.IsDeleted);
+        foreach (var note in trashNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
@@ -437,7 +447,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, MessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
     {
       if (message.Sender is Note targetNote)
       {
@@ -462,6 +472,16 @@ internal sealed partial class NoteListViewModel : ViewModelBase
             break;
         }
       }
+    });
+
+    WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NoteId, bool>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.IsNoteInListToken(Navigation), (recipient, message) =>
+    {
+      message.Reply(NoteViewModels?.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
+    });
+
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteViewModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.RemoveNoteFromListToken(Navigation), (recipient, message) =>
+    {
+      NoteViewModels?.Remove(message.Value);
     });
   }
 

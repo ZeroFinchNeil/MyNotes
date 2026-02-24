@@ -34,6 +34,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     set => SetProperty(ref field, value);
   }
 
+  #region Object Lifetime Management
   public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService)
   {
     // DI
@@ -57,6 +58,22 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     SetCommands();
   }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+      return;
+
+    if (disposing)
+    {
+      NavigationViewModelProvider.ReleaseAll();
+      NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
+      NavigationService.ResetCurrentNavigation();
+    }
+
+    base.Dispose(disposing);
+  }
+  #endregion
 
   public Task InitializeNavigation() => NavigationService.BuildNavigationTask;
 
@@ -88,21 +105,6 @@ internal sealed partial class MainViewModel : ViewModelBase
   public void PopNavigation()
   {
     NavigationService.PopNavigationBackStack();
-  }
-
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-      return;
-
-    if (disposing)
-    {
-      NavigationViewModelProvider.ReleaseAll();
-      NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
-      NavigationService.ResetCurrentNavigation();
-    }
-
-    base.Dispose(disposing);
   }
 }
 

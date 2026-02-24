@@ -1,4 +1,6 @@
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
+using MyNotes.Resources;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
@@ -7,6 +9,7 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
 {
   private readonly ConfirmDeleteDialogViewModel ViewModel;
 
+  #region #region Object Lifetime Management
   public ConfirmDeleteDialog(ConfirmDeleteDialogViewModel viewmodel)
   {
 #if DEBUG
@@ -31,4 +34,7 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
   {
     Bindings.StopTracking();
   }
+  #endregion
+
+  private string SetTitle(string title) => $"{LocalizedStrings.ConfirmDeleteDialogAffixTitleTextBlockText} {title}";
 }

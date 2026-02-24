@@ -31,24 +31,24 @@ public sealed partial class App : Application, IDisposable
     AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
     TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-    using (var appIitializeScope = Services.CreateScope())
+    using (var appInitializeScope = Services.CreateScope())
     {
-      _ = appIitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
-      _ = appIitializeScope.ServiceProvider.GetRequiredService<SearchService>();
+      _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
+      _ = appInitializeScope.ServiceProvider.GetRequiredService<SearchService>();
     }
   }
 
-  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExcptionLog(e.Exception);
+  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExceptionLog(e.Exception);
 
   private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
   {
     if (e.ExceptionObject is Exception ex)
-    { WriteExcptionLog(ex); }
+    { WriteExceptionLog(ex); }
   }
 
-  private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExcptionLog(e.Exception);
+  private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExceptionLog(e.Exception);
 
-  private void WriteExcptionLog(Exception ex)
+  private void WriteExceptionLog(Exception ex)
   {
     Console.WriteLine("{0}: {1}", "Exception", ex);
     var loggingService = Services.GetRequiredService<LoggingService>();

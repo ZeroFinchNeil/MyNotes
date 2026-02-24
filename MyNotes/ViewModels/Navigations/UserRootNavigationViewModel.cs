@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Messages;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
@@ -13,11 +13,26 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewModel
 {
+  #region Object Lifetime Management
   public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
     : base(provider, navigationViewModelCommandService, settingsService, navigation)
   {
     RegisterMessenger();
   }
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+      return;
+
+    if (disposing)
+    {
+      UnregisterMessenger();
+      base.Dispose(disposing);
+    }
+
+    base.Dispose(disposing);
+  }
+  #endregion
 
   private List<UserCompositeNavigationViewModel> GetAllGroupNavigationViewModels()
   {
@@ -65,28 +80,15 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
     return viewmodels;
   }
 
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-      return;
-
-    if (disposing)
-    {
-      UnregisterMessenger();
-      base.Dispose(disposing);
-    }
-
-    base.Dispose(disposing);
-  }
 
   private void RegisterMessenger()
   {
-    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>>, MessageToken>(this, MessageTokens.GetAllGroupNavigationViewModelsToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>>, MessageToken>(this, AppMessageTokens.GetAllGroupNavigationViewModelsToken, (recipient, message) =>
     {
       message.Reply(GetAllGroupNavigationViewModels());
     });
 
-    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>>, MessageToken>(this, MessageTokens.GetAllListNavigationViewModelsToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>>, MessageToken>(this, AppMessageTokens.GetAllListNavigationViewModelsToken, (recipient, message) =>
     {
       message.Reply(GetAllListNavigationViewModels());
     });

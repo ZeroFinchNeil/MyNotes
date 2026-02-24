@@ -1,4 +1,4 @@
-﻿using MyNotes.Constants;
+﻿using MyNotes.AppConstants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Notes;

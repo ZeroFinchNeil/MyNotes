@@ -7,7 +7,7 @@ internal static class ColorHelper
 
   public const double WCAG_AA_Normal = 4.5;
   public const double WCAG_AA_Large = 3.0;
-  public const double WCAG_AAA_Narmal = 7.0;
+  public const double WCAG_AAA_Normal = 7.0;
   public const double WCAG_AAA_Large = 4.5;
 
   public static double GetRelativeLuminance(Color c)

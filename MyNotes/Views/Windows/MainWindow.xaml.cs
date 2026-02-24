@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
@@ -22,6 +22,7 @@ internal sealed partial class MainWindow : Window
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
 
+  #region Object Lifetime Management
   public MainWindow(NavigationId? _initialNavigationId = null)
   {
 #if DEBUG
@@ -43,7 +44,7 @@ internal sealed partial class MainWindow : Window
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정
-    var minimumWindowSize = SettingsDescriptors.MainWindowMinimumSize.DefaultValue;
+    var minimumWindowSize = AppSettingsDescriptors.MainWindowMinimumSize.DefaultValue;
     var presenter = AppWindow.Presenter as OverlappedPresenter;
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
@@ -64,22 +65,22 @@ internal sealed partial class MainWindow : Window
     this.Closed += MainWindow_Closed;
 
     // 창 초기 크기 지정
-    var windowSize = SettingsService.Load(SettingsDescriptors.MainWindowSize);
+    var windowSize = SettingsService.Load(AppSettingsDescriptors.MainWindowSize);
     if (windowSize.Width < minimumWindowSize.Width && windowSize.Height < minimumWindowSize.Height)
-      windowSize = SettingsDescriptors.MainWindowSize.DefaultValue;
+      windowSize = AppSettingsDescriptors.MainWindowSize.DefaultValue;
 
     _windowSize = windowSize.SizeInt32;
     AppWindow.Resize(new((int)(_windowSize.Width * scaleFactor), (int)(_windowSize.Height * scaleFactor)));
 
     // 창 초기 위치 지정
-    var windowPosition = SettingsService.Load(SettingsDescriptors.MainWindowPosition);
+    var windowPosition = SettingsService.Load(AppSettingsDescriptors.MainWindowPosition);
     List<RectInt32> areas = new();
     foreach (var monitor in NativeMethods.GetActiveMonitorsInfo())
     {
       areas.Add(new()
       {
-        X = monitor.rcWork.Left - SettingsDescriptors.WindowBorderMargin.DefaultValue,
-        Y = monitor.rcWork.Top - SettingsDescriptors.WindowBorderMargin.DefaultValue,
+        X = monitor.rcWork.Left - AppSettingsDescriptors.WindowBorderMargin.DefaultValue,
+        Y = monitor.rcWork.Top - AppSettingsDescriptors.WindowBorderMargin.DefaultValue,
         Width = monitor.rcWork.Right,
         Height = monitor.rcWork.Bottom,
       });
@@ -92,7 +93,7 @@ internal sealed partial class MainWindow : Window
     AppWindow.Changed += AppWindow_Changed;
 
     // 제목 표시줄 테마 설정
-    var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
+    var theme = (ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme);
     AppWindow.TitleBar.PreferredTheme = theme switch
     {
       ElementTheme.Light => TitleBarTheme.Light,
@@ -102,6 +103,29 @@ internal sealed partial class MainWindow : Window
 
     this.Content = new MainPage(this, _initialNavigationId);
   }
+
+  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+  {
+    // 창 크기 저장
+    double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
+    SettingsService.Save(AppSettingsDescriptors.MainWindowSize, new Size(_windowSize.Width / scaleFactor, _windowSize.Height / scaleFactor));
+
+    // 창 위치 및 디스플레이 저장
+    SettingsService.Save(AppSettingsDescriptors.MainWindowPosition, new Point(_windowPosition.X, _windowPosition.Y));
+    SettingsService.Save(AppSettingsDescriptors.MainWindowDisplay, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+  }
+
+  public bool IsClosed { get; private set; } = false;
+
+  private void MainWindow_Closed(object sender, WindowEventArgs args)
+  {
+    IsClosed = true;
+    AppWindow.Changed -= AppWindow_Changed;
+    this.Activated -= MainWindow_Activated;
+    AppWindow.Closing -= AppWindow_Closing;
+    this.Closed -= MainWindow_Closed;
+  }
+  #endregion
 
   public void SetNavigation(NavigationId? navigationId) => (this.Content as MainPage)?.SetNavigation(navigationId);
 
@@ -127,28 +151,6 @@ internal sealed partial class MainWindow : Window
     }
   }
 
-  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
-  {
-    // 창 크기 저장
-    double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
-    SettingsService.Save(SettingsDescriptors.MainWindowSize, new Size(_windowSize.Width / scaleFactor, _windowSize.Height / scaleFactor));
-
-    // 창 위치 및 디스플레이 저장
-    SettingsService.Save(SettingsDescriptors.MainWindowPosition, new Point(_windowPosition.X, _windowPosition.Y));
-    SettingsService.Save(SettingsDescriptors.MainWindowDisplay, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
-  }
-
-  public bool IsClosed { get; private set; } = false;
-
-  private void MainWindow_Closed(object sender, WindowEventArgs args)
-  {
-    IsClosed = true;
-    AppWindow.Changed -= AppWindow_Changed;
-    this.Activated -= MainWindow_Activated;
-    AppWindow.Closing -= AppWindow_Closing;
-    this.Closed -= MainWindow_Closed;
-  }
-
   public static bool ContainsPointInAreas(List<RectInt32> areas, PointInt32 point)
   {
     foreach (var rect in areas)
@@ -162,6 +164,6 @@ internal sealed partial class MainWindow : Window
 
   private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
-    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowActivationState>(args.WindowActivationState), MessageTokens.MainWindowActivationChangedToken);
+    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowActivationState>(args.WindowActivationState), AppMessageTokens.MainWindowActivationChangedToken);
   }
 }

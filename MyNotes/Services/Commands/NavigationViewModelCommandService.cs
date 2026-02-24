@@ -29,8 +29,9 @@ internal sealed class NavigationViewModelCommandService : ICommandService
     WindowService = windowService;
     DialogService = dialogService;
 
-    AddListCommand = new(
-      actionToExecute: async (targetViewModel) =>
+    AddListCommand = new()
+    {
+      ActionToExecute = async (targetViewModel) =>
       {
         if (targetViewModel.Navigation is NavigationUserNode navigation
             && WindowService.TryGetCurrentMainWindow(out var mainWindow)
@@ -43,26 +44,30 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             NavigationService.PushNavigation(newNavigation);
           }
         }
-      });
+      }
+    };
 
-    AddGroupCommand = new(
-      actionToExecute: async (targetViewModel) =>
+    AddGroupCommand = new()
+    {
+      ActionToExecute = async (targetViewModel) =>
+    {
+      if (targetViewModel.Navigation is NavigationUserNode navigation
+          && WindowService.TryGetCurrentMainWindow(out var mainWindow)
+          && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
       {
-        if (targetViewModel.Navigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
-            && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
+        var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
+        if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
+            && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
         {
-          var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
-          //if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-          //    && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
-          //{
-          //  NavigationService.PushNavigation(newNavigation);
-          //}
+          NavigationService.PushNavigation(newNavigation);
         }
-      });
+      }
+    }
+    };
 
-    UpdateCommand = new(
-      actionToExecute: async (targetViewModel) =>
+    UpdateCommand = new()
+    {
+      ActionToExecute = async (targetViewModel) =>
       {
         if (targetViewModel.Navigation is NavigationUserNode navigation
             && WindowService.TryGetCurrentMainWindow(out var mainWindow)
@@ -77,10 +82,12 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             navigation.Title = title;
           }
         }
-      });
+      }
+    };
 
-    DeleteCommand = new(
-      actionToExecute: async (targetViewModel) =>
+    DeleteCommand = new()
+    {
+      ActionToExecute = async (targetViewModel) =>
       {
         if (targetViewModel.Navigation is NavigationUserNode navigation
             && WindowService.TryGetCurrentMainWindow(out var mainWindow)
@@ -93,15 +100,18 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             _ => string.Empty
           };
           var deleteMode = DeleteMode.MoveToTrash;
-          if (await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetTypeName, navigation.Title, deleteMode) == ContentDialogResult.Primary)
+          var result = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetTypeName, navigation.Title, deleteMode);
+          if (result.ContentDialogResult == ContentDialogResult.Primary)
           {
-            await NavigationService.DeleteUserNodeAsync(navigation, deleteMode);
+            await NavigationService.DeleteUserNodeAsync(navigation, result.DeleteMode);
           }
         }
-      });
+      }
+    };
 
-    MoveToGroupCommand = new(
-      actionToExecute: (pair) =>
+    MoveToGroupCommand = new()
+    {
+      ActionToExecute = (pair) =>
       {
         if (pair.Source.Navigation is NavigationUserNode sourceItem
         && pair.Target.Navigation is NavigationUserCompositeNode targetGroup)
@@ -112,16 +122,19 @@ internal sealed class NavigationViewModelCommandService : ICommandService
             targetGroup.ChildNodes.Add(sourceItem);
           }
         }
-      });
+      }
+    };
 
-    SetAsStartPageCommand = new(
-      actionToExecute: (viewmodel) =>
+    SetAsStartPageCommand = new()
+    {
+      ActionToExecute = (viewmodel) =>
       {
 
       },
-      canExecuteFunc: (viewmodel) =>
+      CanExecuteFunc = (viewmodel) =>
       {
         return viewmodel is UserLeafNavigationViewModel;
-      });
+      }
+    };
   }
 }

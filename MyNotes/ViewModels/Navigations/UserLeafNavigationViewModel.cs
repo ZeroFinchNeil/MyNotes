@@ -8,7 +8,7 @@ using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -27,6 +27,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
 
+  #region Object Lifetime Management
   public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, NavigationUserLeafNode navigation) : base(navigation)
   {
     Navigation = navigation;
@@ -41,18 +42,6 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     RegisterMessenger();
   }
 
-  private async void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-  {
-    switch (e.PropertyName)
-    {
-      case nameof(NavigationUserLeafNode.Icon):
-        SetIconImage();
-        break;
-    }
-  }
-
-  private void SetIconImage() => IconImage = new BitmapImage() { UriSource = IconHelper.GetMainUri((short)Navigation.Icon) };
-
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
@@ -66,6 +55,19 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
     base.Dispose(disposing);
   }
+  #endregion
+
+  private async void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    switch (e.PropertyName)
+    {
+      case nameof(NavigationUserLeafNode.Icon):
+        SetIconImage();
+        break;
+    }
+  }
+
+  private void SetIconImage() => IconImage = new BitmapImage() { UriSource = IconHelper.GetMainUri((short)Navigation.Icon) };
 
   public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
   public override Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
@@ -76,7 +78,7 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 
   private void RegisterMessenger()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, MessageTokens.ChangeNavigationViewModelIconImageToken, (recipient, message) => SetIconImage());
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, AppMessageTokens.ChangeNavigationViewModelIconImageToken, (recipient, message) => SetIconImage());
   }
 
   private void UnregisterMessenger()

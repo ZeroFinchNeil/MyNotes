@@ -3,9 +3,10 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
@@ -48,7 +49,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public Note Note { get; }
 
-  // 생성자
+  #region Object Lifetime Management
   public NoteViewModel([FromKeyedServices(CommandServiceType.NoteViewModel)] ICommandService commandService, NoteService noteService, Note note)
   {
     // DI
@@ -64,7 +65,26 @@ internal sealed partial class NoteViewModel : ViewModelBase
     _preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
 
     Note.PropertyChanged += Note_PropertyChanged;
+    RegistreMessengers();
   }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+      return;
+
+    if (disposing)
+    {
+      _notePropertyDebounceTimer.Dispose();
+      Note.PropertyChanged -= Note_PropertyChanged;
+      _ = UpdateNoteEntity();
+      _ = NoteService.CommitSearchIndexAsync();
+      UnregisterMessengers();
+    }
+
+    base.Dispose(disposing);
+  }
+  #endregion
 
   private readonly HashSet<string> _changedNoteProperties = new();
 
@@ -97,17 +117,24 @@ internal sealed partial class NoteViewModel : ViewModelBase
     _changedNoteProperties.Clear();
   }
 
+  public Task<bool> DeleteNoteEntity() => NoteService.DeleteNotePermanentlyAsync(Note.Id);
+
   private static readonly double _notePropertyDebounceTimerInterval = 500;
   private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
 
   private readonly RichEditBox _previewRichEditBox = new();
-  public string GetPreview(string body, int start, int end)
+  private string GetPreview(string body, int start, int end)
   {
     var document = _previewRichEditBox.Document;
     document.SetText(TextSetOptions.FormatRtf, body);
     document.Selection.SetRange(start, end);
     document.Selection.GetText(TextGetOptions.FormatRtf, out var preview);
     return preview;
+  }
+
+  public void SetPreview()
+  {
+    Preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
   }
 
   private void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -124,7 +151,9 @@ internal sealed partial class NoteViewModel : ViewModelBase
         SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.Background);
         break;
       case nameof(Note.IsBookmarked):
-        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(Note, nameof(Note.IsBookmarked), !Note.IsBookmarked, Note.IsBookmarked), MessageTokens.ChangeNoteIsBookmarkedStateToken);
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(Note, nameof(Note.IsBookmarked), !Note.IsBookmarked, Note.IsBookmarked), AppMessageTokens.ChangeNoteIsBookmarkedStateToken);
+        break;
+      case nameof(Note.IsDeleted):
         break;
     }
 
@@ -177,22 +206,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
     }
   }
   #endregion
-
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-      return;
-
-    if (disposing)
-    {
-      _notePropertyDebounceTimer.Dispose();
-      Note.PropertyChanged -= Note_PropertyChanged;
-      _ = UpdateNoteEntity();
-      _ = NoteService.CommitSearchIndexAsync();
-    }
-
-    base.Dispose(disposing);
-  }
 }
 
 internal sealed partial class NoteViewModel : ViewModelBase
@@ -201,4 +214,19 @@ internal sealed partial class NoteViewModel : ViewModelBase
   public Command<SourceTargetPair<NoteViewModel, NavigationId>> MoveToListCommand => NoteViewModelCommandService.MoveToListCommand;
   public Command<NoteViewModel> CreateNewNoteCommand => NoteViewModelCommandService.CreateNewNoteCommand;
   public Command<NoteViewModel> ViewListCommand => NoteViewModelCommandService.ViewListCommand;
+
+  public Command<NoteViewModel> RemoveNoteCommand => NoteViewModelCommandService.RemoveNoteCommand;
+
+  private void RegistreMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) =>
+    {
+      SetPreview();
+    });
+  }
+
+  private void UnregisterMessengers()
+  {
+    WeakReferenceMessenger.Default.UnregisterAll(this);
+  }
 }

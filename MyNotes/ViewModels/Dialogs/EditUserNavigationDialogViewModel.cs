@@ -14,6 +14,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
 
   public (Icon Icon, string Title)? Result { get; private set; }
 
+  #region Object Lifetime Management
   public EditUserNavigationDialogViewModel(NavigationUserNode targetNavigation, EditMode editMode, bool isCompositeNode)
   {
     Target = targetNavigation;
@@ -33,6 +34,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
 
     SetCommands();
   }
+  #endregion
 
   private Icon _icon = Icon.System_Board;
   public Icon Icon

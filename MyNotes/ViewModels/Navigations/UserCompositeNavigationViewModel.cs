@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;
@@ -24,6 +24,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
   private readonly SettingsService SettingsService;
 
+  #region Object Lifetime Management
   public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation) : base(navigation)
   {
     Navigation = navigation;
@@ -44,6 +45,22 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     RegisterMessenger();
   }
 
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+      return;
+
+    if (disposing)
+    {
+      Navigation.PropertyChanged -= Navigation_PropertyChanged;
+      Navigation.ChildNodes.CollectionChanged -= ChildNodes_CollectionChanged;
+      UnregisterMessenger();
+    }
+
+    base.Dispose(disposing);
+  }
+  #endregion
+
   private async void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     switch (e.PropertyName)
@@ -56,7 +73,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
 
   private async Task SetIconImage()
   {
-    IconImage = await IconHelper.GetIconImage((short)Navigation.Icon, (GroupIconBadge)SettingsService.Load(SettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
+    IconImage = await IconHelper.GetIconImage((short)Navigation.Icon, (GroupIconBadge)SettingsService.Load(AppSettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
   }
 
   private void ChildNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -92,21 +109,6 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
         ChildNodeViewModels.Clear();
         break;
     }
-  }
-
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-      return;
-
-    if (disposing)
-    {
-      Navigation.PropertyChanged -= Navigation_PropertyChanged;
-      Navigation.ChildNodes.CollectionChanged -= ChildNodes_CollectionChanged;
-      UnregisterMessenger();
-    }
-
-    base.Dispose(disposing);
   }
 
   public void ForEachDescendant(Action<NavigationViewModelBase> action, bool containsSelf = true)
@@ -159,7 +161,7 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
 
   private void RegisterMessenger()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, MessageTokens.ChangeNavigationViewModelIconImageToken, async (recipient, message) => await SetIconImage());
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, AppMessageTokens.ChangeNavigationViewModelIconImageToken, async (recipient, message) => await SetIconImage());
   }
 
   private void UnregisterMessenger()

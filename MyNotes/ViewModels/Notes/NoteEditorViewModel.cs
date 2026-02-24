@@ -1,6 +1,9 @@
-﻿using MyNotes.Common.Collections;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using MyNotes.AppConstants;
+using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
-using MyNotes.Constants;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
 
@@ -11,6 +14,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   private readonly Note Note;
   private readonly RichEditTextDocument Document;
 
+  #region Object Lifetime Management
   public NoteEditorViewModel(Note note, RichEditTextDocument document)
   {
     Note = note;
@@ -31,6 +35,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
 
     base.Dispose(disposing);
   }
+  #endregion
 
   private bool _isUpdatingSelectionFormatStates = false;
   public void UpdateSelectionFormatStates()
@@ -254,8 +259,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       {
         if (!_isUpdatingSelectionFormatStates)
         {
-          Document.Selection.ParagraphFormat.ListType = value ? SelectionMarkerType : MarkerType.None;
-          Document.Selection.ParagraphFormat.ListStyle = value ? SelectionMarkerStyle : MarkerStyle.Parenthesis;
+          Document.Selection.ParagraphFormat.ListType = value ? _recentMarkerType : MarkerType.None;
+          Document.Selection.ParagraphFormat.ListStyle = value ? _recentMarkerStyle : MarkerStyle.Undefined;
         }
       }
     }
@@ -283,6 +288,9 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   };
   public IReadOnlyBijectiveMap<MarkerStyle, string> MarkerStyleMap => _markerStyleMap;
 
+  private MarkerType _recentMarkerType = MarkerType.Bullet;
+  private MarkerStyle _recentMarkerStyle = MarkerStyle.Parenthesis;
+
   public MarkerType SelectionMarkerType
   {
     get;
@@ -294,6 +302,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
         if (!_isUpdatingSelectionFormatStates)
         {
           Document.Selection.ParagraphFormat.ListType = value;
+          if (value is not MarkerType.None)
+            _recentMarkerType = value;
         }
       }
     }
@@ -323,10 +333,11 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
           MarkerType.None or MarkerType.Undefined or MarkerType.Bullet => null,
           _ => MarkerStyleMap.TryGetRight(value, out var markerStyle) ? markerStyle : null
         };
-        
+
         if (!_isUpdatingSelectionFormatStates)
         {
           Document.Selection.ParagraphFormat.ListStyle = value;
+          _recentMarkerStyle = value;
         }
       }
     }
@@ -367,7 +378,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   private int _currentSelectionIndex = 0;
   private static readonly byte _editorDebounceCountThreshold = 20;
   private byte _editorDebounceCount = 0;
-  public bool ShouldChangePreview { get; set; } = false;
+  private bool _shouldChangePreview = false;
   public readonly int PreviewTextMaxLength = 100;
 
   private readonly DispatcherTimer _editorDebounceTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
@@ -381,10 +392,13 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   public void UpdateEditorBodyText()
   {
     Document.GetText(TextGetOptions.FormatRtf, out var editorText);
-    editorText = Regexes.LastParInRtfRegex().Replace(editorText, "}");
+    editorText = AppRegexes.LastParInRtfRegex().Replace(editorText, "}");
     Document.GetText(TextGetOptions.None, out var plainText);
     Note.Body = editorText;
     Note.BodyPlainText = plainText;
+    if (_shouldChangePreview)
+      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.UpdateNotePreviewToken(Note.Id));
+    _shouldChangePreview = false;
   }
 
   private void SetCommands()
@@ -400,7 +414,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       actionToExecute: _ =>
       {
         _currentSelectionIndex = Document.Selection.GetIndex(0);
-        ShouldChangePreview = _previousSelectionIndex <= PreviewTextMaxLength && _currentSelectionIndex <= PreviewTextMaxLength;
+        _shouldChangePreview = _previousSelectionIndex <= PreviewTextMaxLength && _currentSelectionIndex <= PreviewTextMaxLength;
       });
 
     UpdateTextChangedCommand = new(

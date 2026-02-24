@@ -8,6 +8,7 @@ internal class LocalizedStrings
   public static ResourceLoader SettingsPageResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("SettingsPage");
   public static ResourceLoader CreateUserNavigationDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("CreateUserNavigationDialog");
   public static ResourceLoader UpdateUserNavigationDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("UpdateUserNavigationDialog");
+  public static ResourceLoader ConfirmDeleteDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("ConfirmDeleteDialog");
 
   public static string NavigationHomeTitle => DefaultResourceLoader.GetString("NavigationHome_Title");
   public static string NavigationBookmarksTitle => DefaultResourceLoader.GetString("NavigationBookmarks_Title");
@@ -46,6 +47,8 @@ internal class LocalizedStrings
 
   public static string CreateUserNavigationDialogTitleText => CreateUserNavigationDialogResourceLoader.GetString("ContentDialog_TitleText");
   public static string CreateUserNavigationDialogSubTitleTextBlockText => CreateUserNavigationDialogResourceLoader.GetString("SubTitleTextBlock_Text");
+
+  public static string ConfirmDeleteDialogAffixTitleTextBlockText => ConfirmDeleteDialogResourceLoader.GetString("ContentDialog_TitleAffixText");
 
   public static string UpdateUserNavigationDialogTitleText => UpdateUserNavigationDialogResourceLoader.GetString("ContentDialog_TitleText");
   public static string UpdateUserNavigationDialogSubTitleTextBlockText => UpdateUserNavigationDialogResourceLoader.GetString("SubTitleTextBlock_Text");

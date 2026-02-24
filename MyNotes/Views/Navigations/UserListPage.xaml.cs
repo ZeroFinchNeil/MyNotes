@@ -14,6 +14,7 @@ internal sealed partial class UserListPage : Page
   private UserLeafNavigationViewModel? ViewModel;
   private NoteListViewModel? NoteListViewModel;
 
+  #region Object Lifetime Management
   public UserListPage()
   {
 #if DEBUG
@@ -60,6 +61,7 @@ internal sealed partial class UserListPage : Page
   {
     Bindings.StopTracking();
   }
+  #endregion
 
   private void UserListPage_MoreButtonMenuFlyout_Opening(object sender, object e)
   {

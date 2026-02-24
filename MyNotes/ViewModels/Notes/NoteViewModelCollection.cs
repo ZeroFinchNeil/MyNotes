@@ -7,6 +7,7 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
   private List<NoteViewModel> _items => (List<NoteViewModel>)Items;
   public Comparer<NoteViewModel> Comparer { get; private set; }
 
+  #region Object Lifetime Management
   public NoteViewModelCollection(Comparer<Note> comparer) : base(new List<NoteViewModel>()) => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
   public NoteViewModelCollection(Comparer<NoteViewModel> comparer) : base(new List<NoteViewModel>()) => Comparer = comparer;
 
@@ -23,6 +24,7 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
     _items.AddRange(items);
     _items.Sort(Comparer);
   }
+  #endregion
 
   protected override void InsertItem(int index, NoteViewModel item)
   {

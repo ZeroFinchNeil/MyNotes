@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Messages;
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
@@ -30,6 +30,7 @@ internal sealed partial class MainPage : Page
 
   private readonly NavigationId _initialNavigationId;
 
+  #region Object Lifetime Management
   public MainPage(MainWindow mainWindow, NavigationId? initialNavigationId = null)
   {
 #if DEBUG
@@ -50,10 +51,10 @@ internal sealed partial class MainPage : Page
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
 
     // 시작 내비게이션(페이지) 설정
-    _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsService.Load(SettingsDescriptors.InitialPageId));
+    _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsService.Load(AppSettingsDescriptors.InitialPageId));
 
     // 앱 테마 설정 
-    var theme = (ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme);
+    var theme = (ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme);
     this.RequestedTheme = theme;
 
     // 메신저 등록
@@ -66,11 +67,6 @@ internal sealed partial class MainPage : Page
     this.Unloaded += MainPage_Unloaded;
   }
 
-  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    await App.Instance.OpenDebugWindow();
-  }
-
   private async void MainPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
@@ -78,26 +74,6 @@ internal sealed partial class MainPage : Page
     await ViewModel.InitializeNavigation();
     SetNavigation(_initialNavigationId);
   }
-
-  public void SetNavigation(NavigationId? navigationId) => ViewModel.SetNavigation(navigationId ?? _initialNavigationId);
-
-  private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
-  {
-    MainPage_BackButton.LayoutUpdated -= MainPage_BackButton_LayoutUpdated;
-    SetRegionsForCustomTitleBar();
-  }
-
-  private bool _canGoBack = false;
-  private void MainPage_NavigationFrame_Navigated(object sender, NavigationEventArgs e)
-  {
-    bool canGoBack = MainPage_NavigationFrame.CanGoBack;
-    if (_canGoBack != canGoBack)
-    {
-      _canGoBack = canGoBack;
-      MainPage_BackButton.LayoutUpdated += MainPage_BackButton_LayoutUpdated;
-    }
-  }
-
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
   {
     ViewModel.UserRootNavigationViewModel.ForEachDescendant((viewmodel) =>
@@ -128,6 +104,31 @@ internal sealed partial class MainPage : Page
 
     // 바인딩 해제
     Bindings.StopTracking();
+  }
+  #endregion
+
+  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    await App.Instance.OpenDebugWindow();
+  }
+
+  public void SetNavigation(NavigationId? navigationId) => ViewModel.SetNavigation(navigationId ?? _initialNavigationId);
+
+  private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
+  {
+    MainPage_BackButton.LayoutUpdated -= MainPage_BackButton_LayoutUpdated;
+    SetRegionsForCustomTitleBar();
+  }
+
+  private bool _canGoBack = false;
+  private void MainPage_NavigationFrame_Navigated(object sender, NavigationEventArgs e)
+  {
+    bool canGoBack = MainPage_NavigationFrame.CanGoBack;
+    if (_canGoBack != canGoBack)
+    {
+      _canGoBack = canGoBack;
+      MainPage_BackButton.LayoutUpdated += MainPage_BackButton_LayoutUpdated;
+    }
   }
 
   #region 타이틀바 드래그 영역 조정
@@ -336,9 +337,9 @@ internal sealed partial class MainPage : Page
 {
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, MessageTokens.AppThmeChangedToken, new((recipient, message) => SetAppTheme(message.Value)));
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, AppMessageTokens.ChangeAppThemeToken, new((recipient, message) => SetAppTheme(message.Value)));
 
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowActivationState>, MessageToken>(this, MessageTokens.MainWindowActivationChangedToken, new((recipient, message) =>
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowActivationState>, MessageToken>(this, AppMessageTokens.MainWindowActivationChangedToken, new((recipient, message) =>
     {
       if (message.Value == WindowActivationState.Deactivated)
       {

@@ -6,6 +6,7 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 {
   public override NavigationCoreNode Navigation { get; }
 
+  #region Object Lifetime Management
   public CoreNavigationViewModel(NavigationCoreNode navigation)
   {
     Navigation = navigation;
@@ -22,4 +23,5 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 
     base.Dispose(disposing);
   }
+  #endregion
 }

@@ -3,7 +3,7 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.UI.Xaml.Documents;
 
-using MyNotes.Constants;
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
@@ -89,7 +89,7 @@ internal sealed class Note : ObservableObject, IComparable<Note>
         Modified = DateTimeOffset.UtcNow;
       }
     }
-  } = SettingsDescriptors.NoteBackground.DefaultValue.ToColor();
+  } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
 
   public BackdropKind Backdrop
   {
@@ -102,19 +102,19 @@ internal sealed class Note : ObservableObject, IComparable<Note>
         Modified = DateTimeOffset.UtcNow;
       }
     }
-  } = (BackdropKind)SettingsDescriptors.NoteBackdrop.DefaultValue;
+  } = (BackdropKind)AppSettingsDescriptors.NoteBackdrop.DefaultValue;
 
   public SizeInt32 Size
   {
     get => field;
     set => SetProperty(ref field, value);
-  } = SettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
+  } = AppSettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
 
   public PointInt32 Position
   {
     get => field;
     set => SetProperty(ref field, value);
-  } = SettingsDescriptors.NotePosition.DefaultValue.PointInt32;
+  } = AppSettingsDescriptors.NotePosition.DefaultValue.PointInt32;
 
   public bool IsBookmarked
   {

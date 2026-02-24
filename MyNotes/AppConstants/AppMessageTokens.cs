@@ -1,15 +1,16 @@
 ﻿using MyNotes.Common.Messages;
+using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 
-namespace MyNotes.Constants;
+namespace MyNotes.AppConstants;
 
-internal static class MessageTokens
+internal static class AppMessageTokens
 {
   // MainWindow -> MainPage
   public static readonly MessageToken MainWindowActivationChangedToken = new() { Key = "MainWindowActivationChanged" };
 
   // SettingsViewModel -> MainWindow
-  public static readonly MessageToken AppThmeChangedToken = new() { Key = "ChangeAppTheme" };
+  public static readonly MessageToken ChangeAppThemeToken = new() { Key = "ChangeAppTheme" };
 
   // NoteWindow -> NotePage
   public static MessageToken<NoteId> NoteWindowActivationChangedToken(NoteId id) => new() { Key = "NoteWindowActivationChanged", Context = id };
@@ -25,4 +26,13 @@ internal static class MessageTokens
 
   // NoteViewModel -> NoteListViewModel
   public static MessageToken ChangeNoteIsBookmarkedStateToken = new() { Key = "ChangeNoteIsBookmarkedState" };
+
+  // NoteEditorViewModel -> NoteViewModel
+  public static MessageToken<NoteId> UpdateNotePreviewToken(NoteId id) => new() { Key = "UpdateNotePreview", Context = id };
+
+  // NotePage -> NoteListViewModel
+  public static MessageToken<INavigationNoteList> IsNoteInListToken(INavigationNoteList navigation) => new() { Key = "IsNoteInListToken", Context = navigation };
+
+  // NotePage -> NoteListViewModel
+  public static MessageToken<INavigationNoteList> RemoveNoteFromListToken(INavigationNoteList navigation) => new() { Key = "RemoveNoteFromListToken", Context = navigation };
 }

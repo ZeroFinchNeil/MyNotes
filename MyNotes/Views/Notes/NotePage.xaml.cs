@@ -6,9 +6,9 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
-using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
@@ -32,7 +32,7 @@ internal sealed partial class NotePage : Page
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
 
-  // 생성자
+  #region Object Lifetime Management
   internal NotePage(NoteWindow noteWindow, Note note)
   {
 #if DEBUG
@@ -53,7 +53,7 @@ internal sealed partial class NotePage : Page
 
     SetEditorText();
 
-    ChangeFlyoutTheme((ElementTheme)SettingsService.Load(SettingsDescriptors.AppTheme));
+    ChangeFlyoutTheme((ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme));
 
     RegisterMessengers();
 
@@ -94,26 +94,45 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  private void NotePage_Unloaded(object sender, RoutedEventArgs e)
+  private async void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
-    UnregisterMessengers();
+    // 에디터 내용을 저장 후 정리
     EditorViewModel.UpdateEditorBodyText();
-    if (EditorViewModel.ShouldChangePreview)
+    EditorViewModel.Dispose();
+
+    // 노트 완전 삭제 로직
+    bool deleteNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(ViewModel.Note.Title) && string.IsNullOrWhiteSpace(ViewModel.Note.BodyPlainText);
+    if (deleteNote)
     {
-      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, EditorViewModel.PreviewTextMaxLength);
-      EditorViewModel.ShouldChangePreview = false;
+      await ViewModel.DeleteNoteEntity();
     }
 
+    // 현재 내비게이션 내에 해당 노트가 있는지 확인 후
+    // 존재하면 뷰모델 정리하지 않음
+    bool disposeViewModel = true;
     var navigationService = App.Services.GetRequiredService<NavigationService>();
-    if (!(navigationService.CurrentNavigation is NavigationUserLeafNode navigation
-          && navigation.Id != ViewModel.Note.NavigationId))
+    if (navigationService.CurrentNavigation is INavigationNoteList navigation)
+    {
+      ExtendedRequestMessage<NoteId, bool> message = new() { Request = ViewModel.Note.Id };
+      WeakReferenceMessenger.Default.Send(message, AppMessageTokens.IsNoteInListToken(navigation));
+      if (message.HasReceivedResponse && message.Response)
+      {
+        disposeViewModel = false;
+        if (deleteNote)
+        {
+          WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(ViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+        }
+      }
+    }
+    if (!deleteNote && disposeViewModel)
     {
       ViewModel.Dispose();
     }
-    EditorViewModel.Dispose();
 
+    UnregisterMessengers();
     Bindings.StopTracking();
   }
+  #endregion
 
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
@@ -431,11 +450,7 @@ internal sealed partial class NotePage : Page
   {
     args.Handled = true;
     EditorViewModel.UpdateEditorBodyText();
-    if (EditorViewModel.ShouldChangePreview)
-    {
-      ViewModel.Preview = ViewModel.GetPreview(ViewModel.Note.Body, 0, EditorViewModel.PreviewTextMaxLength);
-      EditorViewModel.ShouldChangePreview = false;
-    }
+
     await ViewModel.UpdateNoteEntity();
     NotePage_InfoBar.Title = "Saved";
     NotePage_InfoBar.ActionButton = null;
@@ -473,9 +488,9 @@ internal sealed partial class NotePage : Page
 {
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, MessageTokens.AppThmeChangedToken, new((recipient, message) => ChangeFlyoutTheme(message.Value)));
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, AppMessageTokens.ChangeAppThemeToken, new((recipient, message) => ChangeFlyoutTheme(message.Value)));
 
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowPresenterState>, MessageToken<NoteId>>(this, MessageTokens.NoteWindowActivationChangedToken(ViewModel.Note.Id), new((recipient, message) =>
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowPresenterState>, MessageToken<NoteId>>(this, AppMessageTokens.NoteWindowActivationChangedToken(ViewModel.Note.Id), new((recipient, message) =>
     {
       WindowPresenterState state = message.Value;
       WindowActivationState windowState = state.WindowActivationState;

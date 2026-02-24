@@ -5,6 +5,7 @@ namespace MyNotes.Views.Notes;
 
 internal sealed partial class NoteItemListContainer : UserControl
 {
+  #region Object Lifetime Management
   public NoteItemListContainer()
   {
 #if DEBUG
@@ -19,13 +20,6 @@ internal sealed partial class NoteItemListContainer : UserControl
     this.Unloaded += UserListPageNoteItemListContainer_Unloaded;
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemListContainer), new PropertyMetadata(null));
-  public NoteViewModel ViewModel
-  {
-    get => (NoteViewModel)GetValue(ViewModelProperty);
-    set => SetValue(ViewModelProperty, value);
-  }
-
   private void UserListPageNoteItemListContainer_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
@@ -34,5 +28,13 @@ internal sealed partial class NoteItemListContainer : UserControl
   private void UserListPageNoteItemListContainer_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
+  }
+  #endregion
+
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemListContainer), new PropertyMetadata(null));
+  public NoteViewModel ViewModel
+  {
+    get => (NoteViewModel)GetValue(ViewModelProperty);
+    set => SetValue(ViewModelProperty, value);
   }
 }

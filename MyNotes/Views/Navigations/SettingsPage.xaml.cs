@@ -13,6 +13,7 @@ internal sealed partial class SettingsPage : Page
   private readonly SettingsViewModel ViewModel;
   private readonly DispatcherTimer _startupTaskTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
 
+  #region Object Lifetime Management
   public SettingsPage()
   {
 #if DEBUG
@@ -54,6 +55,7 @@ internal sealed partial class SettingsPage : Page
 
     ServiceScope.Dispose();
   }
+  #endregion
 
   private bool _preventToggleChanging = false;
   private async Task CheckStartupState()
@@ -62,9 +64,9 @@ internal sealed partial class SettingsPage : Page
 
     bool state = await ViewModel.GetStartupTaskState();
     SettingsPage_General_StartupToggleSwitch.IsOn = state;
-
+   
     if (state)
-      VisualStateManager.GoToState(this, "SettingsPage_StartupSettingsNormalState", false);
+      VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsNormalState), false);
 
     _preventToggleChanging = false;
   }
@@ -78,13 +80,13 @@ internal sealed partial class SettingsPage : Page
     bool changedState = await ViewModel.ToggleStartupTaskState();
 
     if (SettingsPage_General_StartupToggleSwitch.IsOn == changedState)
-      VisualStateManager.GoToState(this, "SettingsPage_StartupSettingsNormalState", false);
+      VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsNormalState), false);
     else
     {
       _preventToggleChanging = true;
       SettingsPage_General_StartupToggleSwitch.IsOn = changedState;
       if (!changedState)
-        VisualStateManager.GoToState(this, "SettingsPage_StartupSettingsWarningState", false);
+        VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsWarningState), false);
       _preventToggleChanging = false;
     }
   }
