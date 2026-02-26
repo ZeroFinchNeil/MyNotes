@@ -109,6 +109,8 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
         ChildNodeViewModels.Clear();
         break;
     }
+
+    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.NavigationCollectionChangedToken);
   }
 
   public void ForEachDescendant(Action<NavigationViewModelBase> action, bool containsSelf = true)

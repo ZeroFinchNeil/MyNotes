@@ -81,7 +81,8 @@ internal sealed partial class MainViewModel : ViewModelBase
   {
     NavigationViewModelBase? viewmodel =
       HeaderMenuItems.FirstOrDefault(vm => vm.Navigation is NavigationCoreNode coreNode && coreNode.Id == navigationId)
-      ?? UserRootNavigationViewModel.FirstDescendantOrDefault(vm => vm.Navigation is NavigationUserNode userNode && userNode.Id == navigationId, false);
+      ?? UserRootNavigationViewModel.FirstDescendantOrDefault(vm => vm.Navigation is NavigationUserNode userNode && userNode.Id == navigationId, false)
+      ?? HeaderMenuItems.FirstOrDefault();
 
     if (viewmodel is not null)
       NavigationService.PushNavigation(viewmodel.Navigation);

@@ -2,23 +2,35 @@
 
 internal readonly record struct NavigationId
 {
-  public static NavigationId Empty { get; } = new(Guid.Empty);
-  public static NavigationId UserRootNode { get; } = new(Guid.Parse("00000000-0000-0000-0000-000000000001"));
-  public static NavigationId Home { get; } = new(Guid.Parse("00000000-0000-0000-0000-000000000008"));
-  public static NavigationId Bookmarks { get; } = new(Guid.Parse("00000000-0000-0000-0000-000000000009"));
-  public static NavigationId Tags { get; } = new(Guid.Parse("00000000-0000-0000-0000-00000000000a"));
+  private static Guid _empty = Guid.Empty;
+  private static Guid _root = Guid.Parse("00000000-0000-0000-0000-000000000001");
+  private static Guid _home = Guid.Parse("00000000-0000-0000-0000-000000000002");
+  private static Guid _bookmarks = Guid.Parse("00000000-0000-0000-0000-000000000003");
+  private static Guid _tags = Guid.Parse("00000000-0000-0000-0000-000000000004");
+  private static Guid _trash = Guid.Parse("00000000-0000-0000-0000-000000000005");
+  private static Guid _settings = Guid.Parse("00000000-0000-0000-0000-000000000006");
+  private static readonly Guid _allowedLowerBound = Guid.Parse("00000000-0000-0000-0000-000000000010");
+
+  public static bool IsValidId(Guid id) => id >= _allowedLowerBound;
+
+  public static NavigationId Empty { get; } = new(_empty);
+  public static NavigationId UserRootNode { get; } = new(_root);
+  public static NavigationId Home { get; } = new(_home);
+  public static NavigationId Bookmarks { get; } = new(_bookmarks);
+  public static NavigationId Tags { get; } = new(_tags);
+  public static NavigationId Trash { get; } = new(_trash);
+  public static NavigationId Settings { get; } = new(_settings);
 
   private static readonly Dictionary<Guid, NavigationId> _reserved = new()
   {
-    { Guid.Empty, Empty },
-    { Guid.Parse("00000000-0000-0000-0000-000000000001"), UserRootNode },
-    { Guid.Parse("00000000-0000-0000-0000-000000000008"), Home },
-    { Guid.Parse("00000000-0000-0000-0000-000000000009"), Bookmarks },
-    { Guid.Parse("00000000-0000-0000-0000-00000000000a"), Tags },
+    { _empty, Empty },
+    { _root, UserRootNode },
+    { _home, Home },
+    { _bookmarks, Bookmarks },
+    { _tags, Tags },
+    { _trash, Trash },
+    { _settings, Settings },
   };
-
-  private static readonly Guid _allowedLowerBound = Guid.Parse("00000000-0000-0000-0000-000000000010");
-  private static bool IsValidId(Guid id) => id >= _allowedLowerBound;
 
   public static NavigationId NewId()
   {
@@ -47,6 +59,6 @@ internal readonly record struct NavigationId
     else if (_reserved.TryGetValue(id, out var reserved))
       return reserved;
     else
-      throw new ArgumentException("NavigationId cannot be generated.", nameof(id));
+      return Empty;
   }
 }

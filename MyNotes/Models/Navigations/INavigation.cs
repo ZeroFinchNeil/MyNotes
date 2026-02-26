@@ -4,13 +4,16 @@ internal interface INavigation
 {
 }
 
-// INavigation
-// ├─ INavigationNode
-// │    ├─ NavigationCoreNode
-// │    │    └─ NavigationHome, NavigationBookmarks,      
-// │    │       NavigationTrash, NavigationSettings
-// │    └─ NavigationUserNode
-// │         ├─ NavigationUserCompositeNode
-// │         │    └─ NavigationUserRootNode
-// │         └─ NavigationUserLeafNode
-// └─ NavigationSeparator
+//INavigation
+//├─ INavigationNode
+//│  ├─ NavigationCoreNode
+//│  │  ├─ NavigationHome ──────────────────────────────────────┐              
+//│  │  ├─ NavigationBookmarks ────────┐───── INavigationInitialTarget
+//│  │  ├─ NavigationTrash             │                        │
+//│  │  └─ NavigationSettings          │                        │
+//│  └─ NavigationUserNode             ├─ INavigationNoteList   │
+//│     ├─ NavigationUserCompositeNode │                        │
+//│     │  └─ NavigationUserRootNode   │                        │
+//│     └─ NavigationUserLeafNode ─────┤────────────────────────┘
+//├─ NavigationSearch ─────────────────┘
+//└─ NavigationSeparator

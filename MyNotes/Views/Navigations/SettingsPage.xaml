@@ -4,6 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MyNotes.Views.Navigations"
       xmlns:models="using:MyNotes.Models.Settings"
+      xmlns:navigations="using:MyNotes.ViewModels.Navigations"
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:controls="using:CommunityToolkit.WinUI.Controls"
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
@@ -178,8 +179,8 @@
                             Content="Bookmarks page" />
               <ComboBoxItem x:Uid="/SettingsPage/General_LastOpenedPageComboBoxItem"
                             Content="Last opened page" />
-              <ComboBoxItem x:Uid="/SettingsPage/General_SpecificPageComboBoxItem"
-                            Content="Specific page" />
+              <ComboBoxItem x:Uid="/SettingsPage/General_PreferredPageComboBoxItem"
+                            Content="Preferred page" />
             </ComboBox>
 
             <controls:SettingsExpander.Items>
@@ -198,10 +199,34 @@
                   </StackPanel>
                 </controls:SettingsCard.Header>
               </controls:SettingsCard>
-              <controls:SettingsCard Header="Select a specific page."
+              <controls:SettingsCard Header="Select a preferred page."
                                      HeaderIcon="Add"
                                      IsEnabled="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
-                <Button Content="Select" />
+                <ComboBox ItemsSource="{x:Bind ViewModel.InitialPageOptions}"
+                          SelectedItem="{x:Bind ViewModel.SelectedInitialPageOption, Mode=TwoWay}"
+                          MinWidth="160">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="navigations:UserLeafNavigationViewModel">
+                      <Grid ColumnSpacing="10"
+                            VerticalAlignment="Center">
+                        <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="16" />
+                          <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+
+                        <Viewbox Grid.Column="0"
+                                 Width="16"
+                                 Height="16">
+                          <ImageIcon Source="{x:Bind IconImage, Mode=OneWay}" />
+                        </Viewbox>
+                        <TextBlock Grid.Column="1"
+                                   Text="{x:Bind Navigation.Title, Mode=OneWay}"
+                                   TextTrimming="CharacterEllipsis"
+                                   TextWrapping="NoWrap"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
               </controls:SettingsCard>
             </controls:SettingsExpander.Items>
           </controls:SettingsExpander>

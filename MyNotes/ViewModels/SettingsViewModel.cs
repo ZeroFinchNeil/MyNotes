@@ -6,11 +6,13 @@ using Microsoft.Windows.Globalization;
 
 using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
+using MyNotes.Common.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
 using MyNotes.Resources;
 using MyNotes.Services.Settings;
+using MyNotes.ViewModels.Navigations;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
@@ -31,8 +33,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     AppLanguage = new AppLanguage(SettingsService.Load(AppSettingsDescriptors.AppLanguage));
 
     // General
-    InitialPageType = SettingsService.Load(AppSettingsDescriptors.InitialPageType);
     InitialPageId = SettingsService.Load(AppSettingsDescriptors.InitialPageId);
+    InitialPageType = SettingsService.Load(AppSettingsDescriptors.InitialPageType);
+
     ConfirmBeforeDeleting = SettingsService.Load(AppSettingsDescriptors.ConfirmBeforeDeleting);
 
     // Note
@@ -59,6 +62,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     PreviewTileRatio = SettingsService.Load(AppSettingsDescriptors.PreviewTileRatio);
 
     SettingsService.SettingsChanged += SettingsService_SettingsChanged;
+
+    RegisterMessengers();
   }
 
   protected override void Dispose(bool disposing)
@@ -69,6 +74,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     if (disposing)
     {
       SettingsService.SettingsChanged -= SettingsService_SettingsChanged;
+      UnregisterMessengers();
     }
 
     base.Dispose(disposing);
@@ -166,26 +172,6 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   #endregion
 
   #region General
-  public int InitialPageType
-  {
-    get;
-    set
-    {
-      if (SetProperty(ref field, value))
-      {
-        InitialPageId = value switch
-        {
-          0 => NavigationId.Home.Value,
-          1 => NavigationId.Bookmarks.Value,
-          2 => NavigationId.Empty.Value,
-          3 => NavigationId.Empty.Value,
-          _ => NavigationId.Home.Value
-        };
-        SettingsService.Save(AppSettingsDescriptors.InitialPageType, value);
-      }
-    }
-  }
-
   public Guid InitialPageId
   {
     get;
@@ -193,8 +179,97 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
+        Console.WriteLine("{0}: {1}", "InitialPageId", value);
         SettingsService.Save(AppSettingsDescriptors.InitialPageId, value);
       }
+    }
+  }
+
+  public int InitialPageType
+  {
+    get;
+    set
+    {
+      if (SetProperty(ref field, value))
+      {
+        switch (value)
+        {
+          case (int)Models.Navigations.InitialPageType.Home:
+            InitialPageId = NavigationId.Home.Value;
+            break;
+          case (int)Models.Navigations.InitialPageType.Bookmarks:
+            InitialPageId = NavigationId.Bookmarks.Value;
+            break;
+          case (int)Models.Navigations.InitialPageType.LastOpened:
+            SetLastOpenedInitialPage();
+            break;
+          case (int)Models.Navigations.InitialPageType.Preferred:
+            SetPreferredInitialPageOptions();
+            break;
+        }
+        SettingsService.Save(AppSettingsDescriptors.InitialPageType, value);
+      }
+    }
+  }
+
+  public ObservableCollection<UserLeafNavigationViewModel> InitialPageOptions { get; } = new();
+  public UserLeafNavigationViewModel? SelectedInitialPageOption
+  {
+    get;
+    set
+    {
+      if (SetProperty(ref field, value) && value is not null)
+      {
+        InitialPageId = value.Navigation.Id.Value;
+      }
+    }
+  }
+
+  private void SetLastOpenedInitialPage()
+  {
+    if (InitialPageId == NavigationId.Home.Value || InitialPageId == NavigationId.Bookmarks.Value)
+      return;
+
+    RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+    WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
+    if (message.HasReceivedResponse)
+    {
+      var viewmodels = message.Response;
+      if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
+      {
+        InitialPageId = viewmodels.Count > 0
+          ? viewmodels[0].Navigation.Id.Value
+          : NavigationId.Home.Value;
+      }
+    }
+  }
+
+  private void SetPreferredInitialPageOptions()
+  {
+    var previousSelection = SelectedInitialPageOption;
+
+    RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+    WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
+    if (message.HasReceivedResponse)
+    {
+      InitialPageOptions.Clear();
+      foreach (var viewmodel in message.Response)
+      {
+        InitialPageOptions.Add(viewmodel);
+      }
+    }
+
+    if (previousSelection is not null && InitialPageOptions.Contains(previousSelection))
+    {
+      SelectedInitialPageOption = previousSelection;
+    }
+    else if (InitialPageOptions.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is UserLeafNavigationViewModel lastOpened)
+    {
+      SelectedInitialPageOption = lastOpened;
+    }
+    else
+    {
+      SelectedInitialPageOption = InitialPageOptions.FirstOrDefault();
     }
   }
 
@@ -473,4 +548,17 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     }
   }
 #pragma warning restore CA1822
+
+  private void RegisterMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken>(this, AppMessageTokens.NavigationCollectionChangedToken, (recipient, message) =>
+    {
+      if (InitialPageType == (int)Models.Navigations.InitialPageType.Preferred)
+      {
+        SetPreferredInitialPageOptions();
+      }
+    });
+  }
+
+  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }

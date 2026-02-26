@@ -33,7 +33,7 @@ internal sealed partial class SettingsPage : Page
 
     // 초기 VisualState 결정
     if (ViewModel.IsAppLanguageChanged)
-      VisualStateManager.GoToState(this, "SettingsPage_LanguageSettingsWarningState", false);
+      VisualStateManager.GoToState(this, nameof(SettingsPage_LanguageSettingsWarningState), false);
 
     this.Loaded += SettingsPage_Loaded;
     this.Unloaded += SettingsPage_Unloaded;

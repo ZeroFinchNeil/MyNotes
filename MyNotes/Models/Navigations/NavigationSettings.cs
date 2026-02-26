@@ -9,7 +9,7 @@ internal sealed class NavigationSettings : NavigationCoreNode
 {
   public static NavigationSettings Instance => field ??= new()
   {
-    Id = NavigationId.Empty,
+    Id = NavigationId.Settings,
     Icon = new AnimatedIcon() { Source = new AnimatedSettingsVisualSource() },
     Title = LocalizedStrings.NavigationSettingsTitle
   };

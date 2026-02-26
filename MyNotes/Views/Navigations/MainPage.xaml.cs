@@ -199,6 +199,14 @@ internal sealed partial class MainPage : Page
           {
             case NavigationUserCompositeNode:
               return;
+            case INavigationInitialTarget initialTarget:
+              MainPage_NavigationFrame.Navigate(initialTarget.PageType, navigation);
+              if (initialTarget is NavigationHome or NavigationBookmarks or NavigationUserLeafNode
+                  && SettingsService.Load(AppSettingsDescriptors.InitialPageType) == (int)InitialPageType.LastOpened)
+              {
+                SettingsService.Save(AppSettingsDescriptors.InitialPageId, initialTarget.Id.Value);
+              }
+              return;
             case INavigationNode node:
               MainPage_NavigationFrame.Navigate(node.PageType, navigation);
               break;
@@ -255,13 +263,13 @@ internal sealed partial class MainPage : Page
   private void DraggableUIDispatcherTimer_Tick(object? sender, object e)
   {
     _dispatcherTimer.Stop();
-    _exapndableNavigation?.IsExpanded = !_exapndableNavigation.IsExpanded;
-    _exapndableNavigation = null;
+    _expandableNavigation?.IsExpanded = !_expandableNavigation.IsExpanded;
+    _expandableNavigation = null;
   }
 
   private readonly string _navigationFormatId = $"{App.PackageFamilyName}.NavigationUserNode.Id";
   private DragUISession? _dragUISession;
-  private NavigationUserCompositeNode? _exapndableNavigation;
+  private NavigationUserCompositeNode? _expandableNavigation;
 
   private async void MainPageUserNavigationViewItem_DragEnter(object sender, DragEventArgs e)
   {
@@ -282,7 +290,7 @@ internal sealed partial class MainPage : Page
         _dispatcherTimer.Stop();
         if (navigation is NavigationUserCompositeNode compositeNode)
         {
-          _exapndableNavigation = compositeNode;
+          _expandableNavigation = compositeNode;
           _dispatcherTimer.Start();
         }
       }

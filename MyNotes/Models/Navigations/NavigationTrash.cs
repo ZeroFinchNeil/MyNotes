@@ -9,7 +9,7 @@ internal sealed class NavigationTrash : NavigationCoreNode, INavigationNoteList
 {
   public static NavigationTrash Instance => field ??= new()
   {
-    Id = NavigationId.Empty,
+    Id = NavigationId.Trash,
     Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Delete } },
     Title = LocalizedStrings.NavigationTrashTitle
   };

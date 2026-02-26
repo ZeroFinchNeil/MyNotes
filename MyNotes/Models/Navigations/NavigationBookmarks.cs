@@ -5,7 +5,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationBookmarks : NavigationCoreNode, INavigationNoteList
+internal sealed class NavigationBookmarks : NavigationCoreNode, INavigationNoteList, INavigationInitialTarget
 {
   public static NavigationBookmarks Instance => field ??= new()
   {

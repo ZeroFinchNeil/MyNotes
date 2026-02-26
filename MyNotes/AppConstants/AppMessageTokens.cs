@@ -18,7 +18,7 @@ internal static class AppMessageTokens
   // UserNavigationViewModel -> UserRootNavigationViewModel
   public static MessageToken GetAllGroupNavigationViewModelsToken = new() { Key = "GetAllGroupNavigationViewModels" };
 
-  // NoteViewModel -> UserRootNavigationViewModel
+  // NoteViewModel, SettingsPage -> UserRootNavigationViewModel
   public static MessageToken GetAllListNavigationViewModelsToken = new() { Key = "GetAllListNavigationViewModels" };
 
   // SettingsViewModel -> UserNavigationViewModel(s)
@@ -35,4 +35,6 @@ internal static class AppMessageTokens
 
   // NotePage -> NoteListViewModel
   public static MessageToken<INavigationNoteList> RemoveNoteFromListToken(INavigationNoteList navigation) => new() { Key = "RemoveNoteFromListToken", Context = navigation };
+
+  public static MessageToken NavigationCollectionChangedToken = new() { Key = "NavigationCollectionChanged" };
 }
