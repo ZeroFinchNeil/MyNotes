@@ -120,7 +120,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     get;
     set
     {
-      Console.WriteLine("{0}: {1}", "Font Size", value);
       if (ValidateFontSize(ref value))
       {
         SetProperty(ref field, value);

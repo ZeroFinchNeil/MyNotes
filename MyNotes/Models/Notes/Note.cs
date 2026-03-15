@@ -78,7 +78,7 @@ internal sealed class Note : ObservableObject, IComparable<Note>
 
   public List<TextRange> HighlighterRanges { get; } = new();
 
-  public Color Background
+  public Color BackgroundColor
   {
     get => field;
     set
@@ -91,7 +91,31 @@ internal sealed class Note : ObservableObject, IComparable<Note>
     }
   } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
 
-  public BackdropKind Backdrop
+  public bool IsBackgroundImageVisible
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public string? BackgroundImagePath
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public double BackgroundImageOpacity
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public double BackgroundImageBlur
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public BackdropKind BackdropKind
   {
     get;
     set
@@ -102,7 +126,19 @@ internal sealed class Note : ObservableObject, IComparable<Note>
         Modified = DateTimeOffset.UtcNow;
       }
     }
-  } = (BackdropKind)AppSettingsDescriptors.NoteBackdrop.DefaultValue;
+  } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
+
+  public double BackdropTintOpacity
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public double BackdropLuminosityOpacity
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
 
   public SizeInt32 Size
   {
@@ -129,6 +165,12 @@ internal sealed class Note : ObservableObject, IComparable<Note>
   }
 
   public bool IsWindowOpen
+  {
+    get;
+    set => SetProperty(ref field, value);
+  }
+
+  public bool IsAlwaysOnTop
   {
     get;
     set => SetProperty(ref field, value);

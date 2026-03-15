@@ -10,7 +10,7 @@ using MyNotes.Views.Windows;
 
 using WinRT.Interop;
 
-namespace MyNotes.Services.Windows;
+namespace MyNotes.Services.App;
 
 internal sealed class WindowService
 {
@@ -28,15 +28,18 @@ internal sealed class WindowService
   /// <para>Retrieves the current main window instance if it exists and is not closed; otherwise, creates and returns a new main window.</para>
   /// <para>기존 MainWindow 인스턴스가 남아 있고 종료되지 않았다면 이를 반환하고, 종료되었다면 인스턴스 정리 후 새로운 인스턴스를 생성하여 반환합니다.</para>
   /// </summary>
-  /// <param name="navigationId">An optional navigation identifier to set the initial navigation state of the main window. If null, the default navigation is used.</param>
-  /// <returns>The existing main window instance if it is open; otherwise, a new main window instance.</returns>
-  public MainWindow GetOrCreateMainWindow(NavigationId? navigationId = null)
+  /// <param name="navigationId">
+  /// <para>An optional navigation identifier to set the initial navigation state of the main window. If null, the default navigation is used.</para>
+  /// <para>MainWindow의 초기 탐색 상태를 설정니다. null인 경우 기본 탐색이 사용됩니다.</para>
+  /// </param>
+  public async Task<MainWindow> GetOrCreateMainWindow(NavigationId? navigationId = null)
   {
     if (_mainWindow is not null
         && _mainWindow.TryGetTarget(out var mainWindow))
     {
       if (!mainWindow.IsClosed)
       {
+        await mainWindow.LoadedTask.Task;
         mainWindow.SetNavigation(navigationId);
         return mainWindow;
       }
@@ -49,6 +52,7 @@ internal sealed class WindowService
 
     MainWindow newWindow = new(navigationId);
     _mainWindow = new(newWindow);
+    await newWindow.LoadedTask.Task;
     return newWindow;
   }
 

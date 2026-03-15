@@ -2,22 +2,15 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Common.Collections;
+using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.AppConstants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Notes;
-using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
-using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.ViewModels.Navigations;
 
@@ -25,15 +18,15 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
 {
   public override NavigationUserLeafNode Navigation { get; }
 
-  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
+  private readonly NavigationCommandService NavigationCommandService;
 
   #region Object Lifetime Management
-  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, NavigationUserLeafNode navigation) : base(navigation)
+  public UserLeafNavigationViewModel([FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NavigationUserLeafNode navigation) : base(navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
+    NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
     SetIconImage();
     Navigation.PropertyChanged += Navigation_PropertyChanged;
@@ -67,14 +60,14 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
     }
   }
 
-  private void SetIconImage() => IconImage = new BitmapImage() { UriSource = IconHelper.GetMainUri((short)Navigation.Icon) };
+  private void SetIconImage() => IconImage = IconHelper.GetIconImage((short)Navigation.Icon);
 
-  public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase> UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase> DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
-  public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
-  public override Command<NavigationViewModelBase> SetAsStartPageCommand => NavigationViewModelCommandService.SetAsStartPageCommand;
+  public override Command<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public override Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public override Command<NavigationUserNode> UpdateCommand => NavigationCommandService.UpdateCommand;
+  public override Command<NavigationUserNode> DeleteCommand => NavigationCommandService.DeleteCommand;
+  public override Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
+  public override Command<NavigationUserNode> SetAsStartPageCommand => NavigationCommandService.SetAsStartPageCommand;
 
   private void RegisterMessenger()
   {

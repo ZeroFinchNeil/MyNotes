@@ -30,7 +30,7 @@
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_UpdateMenuFlyoutItem"
                       Icon="Rename"
                       Command="{x:Bind ViewModel.UpdateCommand}"
-                      CommandParameter="{x:Bind ViewModel}">
+                      CommandParameter="{x:Bind ViewModel.Navigation}">
         <MenuFlyoutItem.KeyboardAccelerators>
           <KeyboardAccelerator Key="F2" />
         </MenuFlyoutItem.KeyboardAccelerators>
@@ -41,25 +41,25 @@
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_AddListMenuFlyoutItem"
                       Icon="Add"
                       Command="{x:Bind ViewModel.AddListCommand}"
-                      CommandParameter="{x:Bind ViewModel}" />
+                      CommandParameter="{x:Bind ViewModel.Navigation}" />
 
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_AddGroupMenuFlyoutItem"
                       Icon="Add"
                       Command="{x:Bind ViewModel.AddGroupCommand}"
-                      CommandParameter="{x:Bind ViewModel}" />
+                      CommandParameter="{x:Bind ViewModel.Navigation}" />
       <MenuFlyoutSeparator />
       <MenuFlyoutItem x:Name="MainPage_SetAsStartPageMenuFlyoutItem"
                       x:Uid="/MainPage/NavigationUserNode_SetAsStartPageMenuFlyoutItem"
                       Icon="{ui:FontIcon Glyph=&#xE78B;}"
                       Command="{x:Bind ViewModel.SetAsStartPageCommand}"
-                      CommandParameter="{x:Bind ViewModel}"
+                      CommandParameter="{x:Bind ViewModel.Navigation}"
                       Visibility="{x:Bind MainPage_SetAsStartPageMenuFlyoutItem.IsEnabled}" />
       <MenuFlyoutSeparator Visibility="{x:Bind MainPage_SetAsStartPageMenuFlyoutItem.IsEnabled}" />
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_DeleteMenuFlyoutItem"
                       Icon="Delete"
                       Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}"
                       Command="{x:Bind ViewModel.DeleteCommand}"
-                      CommandParameter="{x:Bind ViewModel}">
+                      CommandParameter="{x:Bind ViewModel.Navigation}">
         <MenuFlyoutItem.KeyboardAccelerators>
           <KeyboardAccelerator Key="Delete" />
         </MenuFlyoutItem.KeyboardAccelerators>

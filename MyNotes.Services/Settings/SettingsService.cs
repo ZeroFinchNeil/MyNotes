@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
+using Windows.Foundation.Collections;
 using Windows.Storage;
 
 namespace MyNotes.Services.Settings;
@@ -15,15 +18,31 @@ namespace MyNotes.Services.Settings;
 /// </remarks>
 internal sealed class SettingsService
 {
-  public ApplicationDataContainer LocalSettings { get; } = ApplicationData.Current.LocalSettings;
+  public static ApplicationDataContainer LocalSettings { get; } = ApplicationData.Current.LocalSettings;
+  private readonly IPropertySet _settingsSet = LocalSettings.Values;
 
   public void Save<T>(string settingsKey, T settingsValue) where T : notnull
   {
-    LocalSettings.Values.TryGetValue(settingsKey, out var oldSettingsValue);
-    LocalSettings.Values[settingsKey] = settingsValue;
+    _settingsSet.TryGetValue(settingsKey, out var oldSettingsValue);
+    _settingsSet[settingsKey] = settingsValue;
 
     if (!settingsValue.Equals(oldSettingsValue))
       SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(settingsKey, typeof(T), oldSettingsValue, settingsValue));
+  }
+
+  public static bool IsValid(object value)
+  {
+    switch (value)
+    {
+      case byte or short or ushort or int or uint or long or ulong or float or double or
+        bool or char or string or System.DateTimeOffset or System.TimeSpan or
+        System.Guid or Windows.Foundation.Point or Windows.Foundation.Size or Windows.Foundation.Rect or
+        Windows.Storage.ApplicationDataCompositeValue:
+        break;
+      default:
+        return false;
+    }
+    return true;
   }
 
   /// <remarks>
@@ -36,23 +55,65 @@ internal sealed class SettingsService
   /// </remarks>
   public void Save<T>(SettingsDescriptor<T> settings, T settingsValue) where T : notnull
   {
-    LocalSettings.Values.TryGetValue(settings.Key, out var oldSettingsValue);
-    LocalSettings.Values[settings.Key] = settingsValue;
+    if (!IsValid(settingsValue))
+      return;
+
+    _settingsSet.TryGetValue(settings.Key, out var oldSettingsValue);
+    _settingsSet[settings.Key] = settingsValue;
 
     if (!settingsValue.Equals(oldSettingsValue))
       SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(settings.Key, typeof(T), oldSettingsValue, settingsValue));
   }
 
-  public T? Load<T>(string settingsKey)
+  public T? Load<T>(string settingsKey) where T : notnull
   {
-    LocalSettings.Values.TryGetValue(settingsKey, out var value);
+    _settingsSet.TryGetValue(settingsKey, out var value);
     return value is T TValue ? TValue : default;
   }
 
-  public T Load<T>(SettingsDescriptor<T> settings)
+  public T Load<T>(SettingsDescriptor<T> settings) where T : notnull
   {
-    LocalSettings.Values.TryGetValue(settings.Key, out var value);
+    _settingsSet.TryGetValue(settings.Key, out var value);
     return value is T TValue ? TValue : settings.DefaultValue;
+  }
+
+  public void SaveToComposite<T>(SettingsDescriptor<T> settings, KeyValuePair<string, T> pair) where T : notnull
+  {
+    if (!IsValid(pair.Value))
+      return;
+
+    if (_settingsSet.TryGetValue(settings.Key, out var composite)
+      && composite is ApplicationDataCompositeValue settingsPairs)
+    {
+      var oldSettingsValue = settingsPairs[pair.Key];
+      settingsPairs[pair.Key] = pair.Value;
+      if (!pair.Value.Equals(oldSettingsValue))
+        SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(settings.Key, typeof(T), oldSettingsValue, pair.Value));
+    }
+    else
+    {
+      ApplicationDataCompositeValue compositeValue = new();
+      compositeValue[pair.Key] = pair.Value;
+      _settingsSet[settings.Key] = compositeValue;
+      SettingsChanged?.Invoke(this, new SettingsChangedEventArgs(settings.Key, typeof(T), null, pair.Value));
+    }
+  }
+
+  public IReadOnlyDictionary<string, T> LoadFromComposite<T>(SettingsDescriptor<T> settings) where T : notnull
+  {
+    Dictionary<string, T> pairs = new();
+    if (_settingsSet.TryGetValue(settings.Key, out var composite)
+      && composite is ApplicationDataCompositeValue settingsPairs)
+    {
+      foreach (var kv in settingsPairs)
+      {
+        if (kv.Value is T TValue)
+        {
+          pairs.Add(kv.Key, TValue);
+        }
+      }
+    }
+    return pairs.AsReadOnly();
   }
 
   public event EventHandler<SettingsChangedEventArgs>? SettingsChanged;

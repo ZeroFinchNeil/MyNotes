@@ -213,9 +213,6 @@
   <data name="BackgroundButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>배경 색 및 효과</value>
   </data>
-  <data name="BackdropRadioButtons.Header" xml:space="preserve">
-    <value>배경 효과</value>
-  </data>
   <data name="BackdropAcrylicRadioButton.Content" xml:space="preserve">
     <value>아크릴</value>
   </data>
@@ -226,7 +223,7 @@
     <value>미카</value>
   </data>
   <data name="BackgroundFlyoutHeaderTextBlock.Text" xml:space="preserve">
-    <value>배경 색</value>
+    <value>배경</value>
   </data>
   <data name="InsertImagesButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>이미지 넣기</value>

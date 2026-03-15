@@ -13,7 +13,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationService NavigationService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
+  private readonly NavigationCommandService NavigationCommandService;
 
   // Header
   public IReadOnlyList<NavigationViewModelBase> HeaderMenuItems { get; }
@@ -35,21 +35,21 @@ internal sealed partial class MainViewModel : ViewModelBase
   }
 
   #region Object Lifetime Management
-  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService)
+  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
   {
     // DI
     NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)navigationViewModelCommandService;
+    NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
     // Header
-    HeaderMenuItems = [.. NavigationService.PrimaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
+    HeaderMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationService.PrimaryCoreNavigations)];
 
     // User
     UserRootNavigationViewModel = (UserRootNavigationViewModel)NavigationViewModelProvider.Resolve(NavigationService.UserRootNavigation);
 
     // Footer
-    FooterMenuItems = [.. NavigationService.SecondaryCoreNavigations.Select(n => NavigationViewModelProvider.Resolve(n))];
+    FooterMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationService.SecondaryCoreNavigations)];
 
     // For CollectionViewSource.Source
     MenuItemsSource = [HeaderMenuItems, UserNavigationViewModels];
@@ -66,7 +66,6 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     if (disposing)
     {
-      NavigationViewModelProvider.ReleaseAll();
       NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
       NavigationService.ResetCurrentNavigation();
     }
@@ -81,6 +80,7 @@ internal sealed partial class MainViewModel : ViewModelBase
   {
     NavigationViewModelBase? viewmodel =
       HeaderMenuItems.FirstOrDefault(vm => vm.Navigation is NavigationCoreNode coreNode && coreNode.Id == navigationId)
+      ?? FooterMenuItems.FirstOrDefault(vm => vm.Navigation is NavigationCoreNode coreNode && coreNode.Id == navigationId)
       ?? UserRootNavigationViewModel.FirstDescendantOrDefault(vm => vm.Navigation is NavigationUserNode userNode && userNode.Id == navigationId, false)
       ?? HeaderMenuItems.FirstOrDefault();
 
@@ -111,8 +111,8 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
+  public Command<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
 
   public Command<string>? SearchNoteCommand { get; private set; }
 

@@ -27,7 +27,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
         _icon = isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
         break;
       case EditMode.Update:
-        _icon = (Icon)targetNavigation.Icon;
+        _icon = targetNavigation.Icon;
         _title = targetNavigation.Title;
         break;
     }

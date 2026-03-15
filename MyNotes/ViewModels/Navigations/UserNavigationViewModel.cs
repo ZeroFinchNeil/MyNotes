@@ -15,12 +15,12 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
 
   public override NavigationUserNode Navigation { get; }
 
-  public virtual Command<NavigationViewModelBase>? AddListCommand { get; }
-  public virtual Command<NavigationViewModelBase>? AddGroupCommand { get; }
-  public virtual Command<NavigationViewModelBase>? UpdateCommand { get; }
-  public virtual Command<NavigationViewModelBase>? DeleteCommand { get; }
-  public virtual Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>>? MoveToGroupCommand { get; }
-  public virtual Command<NavigationViewModelBase>? SetAsStartPageCommand { get; }
+  public virtual Command<NavigationUserNode>? AddListCommand { get; }
+  public virtual Command<NavigationUserNode>? AddGroupCommand { get; }
+  public virtual Command<NavigationUserNode>? UpdateCommand { get; }
+  public virtual Command<NavigationUserNode>? DeleteCommand { get; }
+  public virtual Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>>? MoveToGroupCommand { get; }
+  public virtual Command<NavigationUserNode>? SetAsStartPageCommand { get; }
 
   public BitmapImage? IconImage
   {

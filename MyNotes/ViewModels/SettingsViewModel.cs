@@ -11,6 +11,7 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.Settings;
 using MyNotes.Resources;
+using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Navigations;
 
@@ -22,11 +23,15 @@ namespace MyNotes.ViewModels;
 internal sealed partial class SettingsViewModel : ViewModelBase
 {
   private readonly SettingsService SettingsService;
+  private readonly NavigationService NavigationService;
+  private readonly NavigationViewModelProvider NavigationViewModelProvider;
 
   #region Object Lifetime Management
-  public SettingsViewModel(SettingsService settingsService)
+  public SettingsViewModel(SettingsService settingsService, NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider)
   {
     SettingsService = settingsService;
+    NavigationService = navigationService;
+    NavigationViewModelProvider = navigationViewModelProvider;
 
     // Appearance
     AppTheme = SettingsService.Load(AppSettingsDescriptors.AppTheme);
@@ -40,7 +45,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
     // Note
     NoteBackground = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor();
-    NoteBackdrop = SettingsService.Load(AppSettingsDescriptors.NoteBackdrop);
+    NoteBackdrop = SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind);
 
     var noteSize = SettingsService.Load(AppSettingsDescriptors.NoteSize);
     NoteWidth = (int)noteSize.Width;
@@ -88,7 +93,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     { AppSettingsDescriptors.InitialPageType.Key, (v, e) => v.InitialPageType = (int)e.NewSettingsValue },
     { AppSettingsDescriptors.InitialPageId.Key, (v, e) => v.InitialPageId = (Guid)e.NewSettingsValue },
     { AppSettingsDescriptors.NoteBackground.Key, (v, e) => v.NoteBackground = ((string)e.NewSettingsValue).ToColor() },
-    { AppSettingsDescriptors.NoteBackdrop.Key, (v, e) => v.NoteBackdrop = (int)e.NewSettingsValue },
+    { AppSettingsDescriptors.NoteBackdropKind.Key, (v, e) => v.NoteBackdrop = (int)e.NewSettingsValue },
     { AppSettingsDescriptors.NoteSize.Key, (v, e) =>
       {
         if(e.NewSettingsValue is SizeInt32 size)
@@ -230,34 +235,45 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     if (InitialPageId == NavigationId.Home.Value || InitialPageId == NavigationId.Bookmarks.Value)
       return;
 
-    RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
-    WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
-    if (message.HasReceivedResponse)
+    var viewmodels = NavigationViewModelProvider.Resolve<UserLeafNavigationViewModel>(NavigationService.UserLeafNavigations);
+    if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
     {
-      var viewmodels = message.Response;
-      if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
-      {
-        InitialPageId = viewmodels.Count > 0
-          ? viewmodels[0].Navigation.Id.Value
-          : NavigationId.Home.Value;
-      }
+      InitialPageId = viewmodels.Count > 0 ? viewmodels[0].Navigation.Id.Value : NavigationId.Home.Value;
     }
+
+    //RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+    //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
+    //if (message.HasReceivedResponse)
+    //{
+    //  var viewmodels = message.Response;
+    //  if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
+    //  {
+    //    InitialPageId = viewmodels.Count > 0
+    //      ? viewmodels[0].Navigation.Id.Value
+    //      : NavigationId.Home.Value;
+    //  }
+    //}
   }
 
   private void SetPreferredInitialPageOptions()
   {
     var previousSelection = SelectedInitialPageOption;
 
-    RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
-    WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
-    if (message.HasReceivedResponse)
+    foreach (var viewmodel in NavigationViewModelProvider.Resolve<UserLeafNavigationViewModel>(NavigationService.UserLeafNavigations))
     {
-      InitialPageOptions.Clear();
-      foreach (var viewmodel in message.Response)
-      {
-        InitialPageOptions.Add(viewmodel);
-      }
+      InitialPageOptions.Add(viewmodel);
     }
+
+    //RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+    //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
+    //if (message.HasReceivedResponse)
+    //{
+    //  InitialPageOptions.Clear();
+    //  foreach (var viewmodel in message.Response)
+    //  {
+    //    InitialPageOptions.Add(viewmodel);
+    //  }
+    //}
 
     if (previousSelection is not null && InitialPageOptions.Contains(previousSelection))
     {
@@ -306,7 +322,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        SettingsService.Save(AppSettingsDescriptors.NoteBackdrop, value);
+        SettingsService.Save(AppSettingsDescriptors.NoteBackdropKind, value);
       }
     }
   }

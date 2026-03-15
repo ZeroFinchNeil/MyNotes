@@ -7,6 +7,7 @@ namespace MyNotes.AppConstants;
 internal static class AppSettingsDescriptors
 {
   // Windows
+  public static readonly SettingsDescriptor<bool> IsMainWindowOpen = new("MainWindowMinimumSize", true);
   public static readonly SettingsDescriptor<Size> MainWindowMinimumSize = new("MainWindowMinimumSize", new Size(600.0, 600.0));
   public static readonly SettingsDescriptor<Size> MainWindowSize = new("MainWindowSize", new Size(600.0, 800.0));
   public static readonly SettingsDescriptor<Point> MainWindowPosition = new("MainWindowPosition", new Point(0.0, 0.0));
@@ -26,7 +27,7 @@ internal static class AppSettingsDescriptors
   public static readonly SettingsDescriptor<Size> NoteWindowMinimumSize = new("NoteWindowMinimumSize", new Size(400.0, 300.0));
 
   public static readonly SettingsDescriptor<string> NoteBackground = new("NoteBackground", "#fff2e28d");
-  public static readonly SettingsDescriptor<int> NoteBackdrop = new("NoteBackdrop", (int)Models.Notes.BackdropKind.None);
+  public static readonly SettingsDescriptor<int> NoteBackdropKind = new("NoteBackdropKind", (int)Models.Notes.BackdropKind.None);
   public static readonly SettingsDescriptor<Size> NoteSize = new("NoteSize", new Size(500.0, 500.0));
   public static readonly SettingsDescriptor<Point> NotePosition = new("NotePosition", new Point(0, 0));
 

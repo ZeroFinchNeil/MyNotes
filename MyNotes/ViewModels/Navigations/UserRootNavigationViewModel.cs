@@ -3,8 +3,8 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Messages;
 using MyNotes.AppConstants;
+using MyNotes.Common.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
@@ -14,11 +14,11 @@ namespace MyNotes.ViewModels.Navigations;
 internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewModel
 {
   #region Object Lifetime Management
-  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService navigationViewModelCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
-    : base(provider, navigationViewModelCommandService, settingsService, navigation)
+  public UserRootNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
+    : base(provider, navigationCommandService, settingsService, navigation)
   {
-    RegisterMessenger();
   }
+
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
@@ -26,7 +26,6 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
 
     if (disposing)
     {
-      UnregisterMessenger();
       base.Dispose(disposing);
     }
 
@@ -79,20 +78,4 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
 
     return viewmodels;
   }
-
-
-  private void RegisterMessenger()
-  {
-    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>>, MessageToken>(this, AppMessageTokens.GetAllGroupNavigationViewModelsToken, (recipient, message) =>
-    {
-      message.Reply(GetAllGroupNavigationViewModels());
-    });
-
-    WeakReferenceMessenger.Default.Register<RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>>, MessageToken>(this, AppMessageTokens.GetAllListNavigationViewModelsToken, (recipient, message) =>
-    {
-      message.Reply(GetAllListNavigationViewModels());
-    });
-  }
-
-  private void UnregisterMessenger() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }

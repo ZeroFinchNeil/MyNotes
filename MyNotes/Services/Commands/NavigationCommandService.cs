@@ -2,28 +2,28 @@
 using MyNotes.Common.Structures;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
+using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Windows;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.Services.Commands;
 
-internal sealed class NavigationViewModelCommandService : ICommandService
+internal sealed class NavigationCommandService : ICommandService
 {
   private readonly NavigationService NavigationService;
   private readonly WindowService WindowService;
   private readonly DialogService DialogService;
 
-  public Command<NavigationViewModelBase> AddListCommand { get; }
-  public Command<NavigationViewModelBase> AddGroupCommand { get; }
-  public Command<NavigationViewModelBase> UpdateCommand { get; }
-  public Command<NavigationViewModelBase> DeleteCommand { get; }
-  public Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand { get; }
-  public Command<NavigationViewModelBase> SetAsStartPageCommand { get; }
+  public Command<NavigationUserNode> AddListCommand { get; }
+  public Command<NavigationUserNode> AddGroupCommand { get; }
+  public Command<NavigationUserNode> UpdateCommand { get; }
+  public Command<NavigationUserNode> DeleteCommand { get; }
+  public Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand { get; }
+  public Command<NavigationUserNode> SetAsStartPageCommand { get; }
 
-  public NavigationViewModelCommandService(NavigationService navigationService, WindowService windowService, DialogService dialogService)
+  public NavigationCommandService(NavigationService navigationService, WindowService windowService, DialogService dialogService)
   {
     NavigationService = navigationService;
     WindowService = windowService;
@@ -31,10 +31,9 @@ internal sealed class NavigationViewModelCommandService : ICommandService
 
     AddListCommand = new()
     {
-      ActionToExecute = async (targetViewModel) =>
+      ActionToExecute = async (navigation) =>
       {
-        if (targetViewModel.Navigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
+        if (WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
@@ -49,10 +48,9 @@ internal sealed class NavigationViewModelCommandService : ICommandService
 
     AddGroupCommand = new()
     {
-      ActionToExecute = async (targetViewModel) =>
+      ActionToExecute = async (navigation) =>
     {
-      if (targetViewModel.Navigation is NavigationUserNode navigation
-          && WindowService.TryGetCurrentMainWindow(out var mainWindow)
+      if (WindowService.TryGetCurrentMainWindow(out var mainWindow)
           && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
       {
         var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
@@ -67,10 +65,9 @@ internal sealed class NavigationViewModelCommandService : ICommandService
 
     UpdateCommand = new()
     {
-      ActionToExecute = async (targetViewModel) =>
+      ActionToExecute = async (navigation) =>
       {
-        if (targetViewModel.Navigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
+        if (WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Update, navigation is NavigationUserCompositeNode);
@@ -87,10 +84,9 @@ internal sealed class NavigationViewModelCommandService : ICommandService
 
     DeleteCommand = new()
     {
-      ActionToExecute = async (targetViewModel) =>
+      ActionToExecute = async (navigation) =>
       {
-        if (targetViewModel.Navigation is NavigationUserNode navigation
-            && WindowService.TryGetCurrentMainWindow(out var mainWindow)
+        if (WindowService.TryGetCurrentMainWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var targetTypeName = navigation switch
@@ -113,28 +109,23 @@ internal sealed class NavigationViewModelCommandService : ICommandService
     {
       ActionToExecute = (pair) =>
       {
-        if (pair.Source.Navigation is NavigationUserNode sourceItem
-        && pair.Target.Navigation is NavigationUserCompositeNode targetGroup)
+        var sourceItem = pair.Source;
+        var targetGroup = pair.Target;
+        if (targetGroup.CanBeParentOf(sourceItem))
         {
-          if (targetGroup.CanBeParentOf(sourceItem))
-          {
-            sourceItem.Parent.ChildNodes.Remove(sourceItem);
-            targetGroup.ChildNodes.Add(sourceItem);
-          }
+          sourceItem.Parent.ChildNodes.Remove(sourceItem);
+          targetGroup.ChildNodes.Add(sourceItem);
         }
       }
     };
 
     SetAsStartPageCommand = new()
     {
-      ActionToExecute = (viewmodel) =>
+      ActionToExecute = (navigation) =>
       {
 
       },
-      CanExecuteFunc = (viewmodel) =>
-      {
-        return viewmodel is UserLeafNavigationViewModel;
-      }
+      CanExecuteFunc = (navigation) => navigation is NavigationUserLeafNode
     };
   }
 }

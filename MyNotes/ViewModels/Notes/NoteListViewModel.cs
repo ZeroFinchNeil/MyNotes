@@ -10,7 +10,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
+using MyNotes.Services.App;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -440,7 +440,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
           NoteViewModels?.Add(noteViewModel);
 
-          NoteService.OpenNoteWindow(note);
+          await NoteService.OpenNoteWindow(note);
         }
       });
   }

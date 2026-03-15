@@ -2,13 +2,13 @@
 
 internal readonly record struct NavigationId
 {
-  private static Guid _empty = Guid.Empty;
-  private static Guid _root = Guid.Parse("00000000-0000-0000-0000-000000000001");
-  private static Guid _home = Guid.Parse("00000000-0000-0000-0000-000000000002");
-  private static Guid _bookmarks = Guid.Parse("00000000-0000-0000-0000-000000000003");
-  private static Guid _tags = Guid.Parse("00000000-0000-0000-0000-000000000004");
-  private static Guid _trash = Guid.Parse("00000000-0000-0000-0000-000000000005");
-  private static Guid _settings = Guid.Parse("00000000-0000-0000-0000-000000000006");
+  private static readonly Guid _empty = Guid.Empty;
+  private static readonly Guid _root = Guid.Parse("00000000-0000-0000-0000-000000000001");
+  private static readonly Guid _home = Guid.Parse("00000000-0000-0000-0000-000000000002");
+  private static readonly Guid _bookmarks = Guid.Parse("00000000-0000-0000-0000-000000000003");
+  private static readonly Guid _tags = Guid.Parse("00000000-0000-0000-0000-000000000004");
+  private static readonly Guid _trash = Guid.Parse("00000000-0000-0000-0000-000000000005");
+  private static readonly Guid _settings = Guid.Parse("00000000-0000-0000-0000-000000000006");
   private static readonly Guid _allowedLowerBound = Guid.Parse("00000000-0000-0000-0000-000000000010");
 
   public static bool IsValidId(Guid id) => id >= _allowedLowerBound;

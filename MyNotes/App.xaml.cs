@@ -1,6 +1,12 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using System.IO.Pipes;
+using System.Text;
 
+using Microsoft.Extensions.DependencyInjection;
+
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
+using MyNotes.Models.Navigations;
+using MyNotes.Services.App;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Database;
 using MyNotes.Services.Dialogs;
@@ -9,7 +15,6 @@ using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Navigations;
@@ -20,9 +25,8 @@ namespace MyNotes;
 public sealed partial class App : Application, IDisposable
 {
   internal static App Instance => (App)Current;
-  internal static readonly string PackageFamilyName = Windows.ApplicationModel.Package.Current.Id.FamilyName;
-  internal static ServiceProvider Services { get; } = ConfigureServices();
 
+  #region Object Lifetime Management
   internal App()
   {
     InitializeComponent();
@@ -38,38 +42,26 @@ public sealed partial class App : Application, IDisposable
     }
   }
 
-  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExceptionLog(e.Exception);
-
-  private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
-  {
-    if (e.ExceptionObject is Exception ex)
-    { WriteExceptionLog(ex); }
-  }
-
-  private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExceptionLog(e.Exception);
-
-  private void WriteExceptionLog(Exception ex)
-  {
-    Console.WriteLine("{0}: {1}", "Exception", ex);
-    var loggingService = Services.GetRequiredService<LoggingService>();
-    loggingService.Write(ex);
-  }
-
   protected override async void OnLaunched(LaunchActivatedEventArgs args)
   {
+    _ = PipeServerStreamAsync();
+    Console.WriteLine("{0}: {1}", "OnLaunched", true);
+    Console.WriteLine("{0}: {1}", "LaunchActivatedEventArgs", args.Arguments);
+
     var windowService = Services.GetRequiredService<WindowService>();
     var noteService = Services.GetRequiredService<NoteService>();
+    var settingsService = Services.GetRequiredService<SettingsService>();
 
     AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
     switch (appActivationArguments.Kind)
     {
-      case ExtendedActivationKind.Launch:
-        var mainWindow = windowService.GetOrCreateMainWindow();
-        mainWindow.Activate();
-        await noteService.OpenNoteWindowsForOpenEntities();
-        break;
-      case ExtendedActivationKind.StartupTask:
-        await noteService.OpenNoteWindowsForOpenEntities();
+      case ExtendedActivationKind.Launch or ExtendedActivationKind.StartupTask:
+        var noteWindowsCount = await noteService.OpenNoteWindowsForOpenEntities();
+        if (noteWindowsCount == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
+        {
+          var mainWindow = await windowService.GetOrCreateMainWindow();
+          mainWindow.Activate();
+        }
         break;
       case ExtendedActivationKind.File:
         break;
@@ -85,48 +77,6 @@ public sealed partial class App : Application, IDisposable
       _ = OpenDebugWindow();
     }
 #endif
-  }
-
-  public async Task OpenDebugWindow()
-  {
-    await Task.Delay(1000);
-    new DebugWindow().Activate();
-    var windowService = Services.GetRequiredService<WindowService>();
-    windowService.GetOrCreateMainWindow()?.Activate();
-  }
-
-  private static ServiceProvider ConfigureServices()
-  {
-    ServiceCollection services = new();
-
-    // ViewModel
-    services.AddScoped<MainViewModel>();
-    services.AddScoped<SettingsViewModel>();
-
-    services.AddSingleton<NavigationViewModelProvider>();
-    services.AddSingleton<DialogViewModelFactory>();
-    services.AddSingleton<NoteViewModelProvider>();
-    services.AddSingleton<NoteEditorViewModelProvider>();
-    services.AddSingleton<NoteListViewModelProvider>();
-
-    // Service
-    services.AddSingleton<LoggingService>();
-    services.AddSingleton<DialogService>();
-    services.AddSingleton<NavigationService>();
-    services.AddSingleton<SettingsService>();
-    services.AddSingleton<WindowService>();
-    services.AddSingleton<NoteService>();
-    services.AddSingleton<SearchService>();
-
-    services.AddKeyedSingleton<ICommandService, NavigationViewModelCommandService>(CommandServiceType.NavigationViewModel);
-    services.AddKeyedSingleton<ICommandService, NoteViewModelCommandService>(CommandServiceType.NoteViewModel);
-
-    // DbContext
-    services.AddSingleton<AppDbContextTaskDispatcher>();
-    services.AddDbContextFactory<AppDbContext>();
-    services.AddScoped<AppDbContextInitializer>();
-
-    return services.BuildServiceProvider();
   }
 
   public bool Disposed { get; private set; }
@@ -150,5 +100,98 @@ public sealed partial class App : Application, IDisposable
   {
     Dispose(disposing: true);
     GC.SuppressFinalize(this);
+  }
+  #endregion
+
+  internal static ServiceProvider Services { get; } = ConfigureServices();
+
+  private static ServiceProvider ConfigureServices()
+  {
+    ServiceCollection services = new();
+
+    // ViewModel
+    services.AddScoped<MainViewModel>();
+    services.AddScoped<SettingsViewModel>();
+
+    services.AddSingleton<NavigationViewModelProvider>();
+    services.AddSingleton<DialogViewModelFactory>();
+    services.AddSingleton<NoteViewModelProvider>();
+    services.AddSingleton<NoteEditorViewModelProvider>();
+    services.AddSingleton<NoteListViewModelProvider>();
+
+    // Service
+    services.AddSingleton<WindowService>();
+    services.AddSingleton<JumpListService>();
+    services.AddSingleton<LoggingService>();
+    services.AddSingleton<DialogService>();
+    services.AddSingleton<NavigationService>();
+    services.AddSingleton<SettingsService>();
+    services.AddSingleton<NoteService>();
+    services.AddSingleton<SearchService>();
+
+    services.AddKeyedSingleton<ICommandService, NavigationCommandService>(CommandServiceType.Navigation);
+    services.AddKeyedSingleton<ICommandService, NoteCommandService>(CommandServiceType.Note);
+
+    // DbContext
+    services.AddSingleton<AppDbContextTaskDispatcher>();
+    services.AddDbContextFactory<AppDbContext>();
+    services.AddScoped<AppDbContextInitializer>();
+
+    return services.BuildServiceProvider();
+  }
+  private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExceptionLog(e.Exception);
+
+  private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
+  {
+    if (e.ExceptionObject is Exception ex)
+    { WriteExceptionLog(ex); }
+  }
+
+  private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExceptionLog(e.Exception);
+
+  private void WriteExceptionLog(Exception ex)
+  {
+    Console.WriteLine("{0}: {1}", "Exception", ex);
+    var loggingService = Services.GetRequiredService<LoggingService>();
+    loggingService.Write(ex);
+  }
+
+  public async Task OpenDebugWindow()
+  {
+    await Task.Delay(1000);
+    new DebugWindow().Activate();
+  }
+
+  private async Task PipeServerStreamAsync()
+  {
+    while (!Disposed)
+    {
+      using NamedPipeServerStream pipeServerStream = new(AppStrings.NamedPipe_LaunchArguments, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+
+      await pipeServerStream.WaitForConnectionAsync();
+
+      using StreamReader sr = new(pipeServerStream);
+
+      var windowService = Services.GetRequiredService<WindowService>();
+
+      string? arg;
+      while ((arg = sr.ReadLine()?.Trim()) is not null)
+      {
+        Console.WriteLine("{0}: {1}", "arg", arg);
+        switch (arg)
+        {
+          case AppStrings.LaunchArgument_JumpList_MainWindow:
+            (await windowService.GetOrCreateMainWindow(NavigationId.Home)).Activate();
+            break;
+          case AppStrings.LaunchArgument_JumpList_NewNote:
+            var noteCommandService = Services.GetRequiredKeyedService<ICommandService>(CommandServiceType.Note) as NoteCommandService;
+            noteCommandService?.CreateNewNoteCommand.Execute(null);
+            break;
+          case AppStrings.LaunchArgument_JumpList_Settings:
+            (await windowService.GetOrCreateMainWindow(NavigationId.Settings)).Activate();
+            break;
+        }
+      }
+    }
   }
 }

@@ -201,11 +201,11 @@
                                  Height="40">
                 <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemToRootMenuFlyoutItem"
                                 Command="{x:Bind ViewModel.AddListCommand}"
-                                CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
+                                CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel.Navigation}" />
                 <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemAtSelectedMenuFlyoutItem"
                                 Text="at selected position"
                                 Command="{x:Bind ViewModel.AddListCommand}"
-                                CommandParameter="{x:Bind MainPage_NavigationView.SelectedItem, Mode=OneWay}" />
+                                CommandParameter="{x:Bind MainPage_NavigationView.SelectedItem.(navigationvm:NavigationViewModelBase.Navigation), Mode=OneWay}" />
               </MenuFlyoutSubItem>
               <MenuFlyoutSubItem x:Name="MainPage_PaneFooter_AddGroupMunuFlyoutSubItem"
                                  x:Uid="/MainPage/PaneFooter_AddGroupMunuFlyoutSubItem"
@@ -214,10 +214,10 @@
                                  Height="40">
                 <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemToRootMenuFlyoutItem"
                                 Command="{x:Bind ViewModel.AddGroupCommand}"
-                                CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel}" />
+                                CommandParameter="{x:Bind ViewModel.UserRootNavigationViewModel.Navigation}" />
                 <MenuFlyoutItem x:Uid="/MainPage/PaneFooter_AddItemAtSelectedMenuFlyoutItem"
                                 Command="{x:Bind ViewModel.AddGroupCommand}"
-                                CommandParameter="{x:Bind MainPage_NavigationView.SelectedItem, Mode=OneWay}" />
+                                CommandParameter="{x:Bind MainPage_NavigationView.SelectedItem.(navigationvm:NavigationViewModelBase.Navigation), Mode=OneWay}" />
               </MenuFlyoutSubItem>
             </MenuFlyout>
           </tmpls:SubtleIconLabelButton.Flyout>

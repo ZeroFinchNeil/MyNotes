@@ -22,6 +22,9 @@ internal sealed partial class MainWindow : Window
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
 
+  public TaskCompletionSource LoadedTask { get; } = new();
+  public event EventHandler? Loaded;
+
   #region Object Lifetime Management
   public MainWindow(NavigationId? _initialNavigationId = null)
   {
@@ -101,7 +104,13 @@ internal sealed partial class MainWindow : Window
       _ => TitleBarTheme.UseDefaultAppMode
     };
 
+    // MainWindow 시작 플래그
+    SettingsService.Save(AppSettingsDescriptors.IsMainWindowOpen, true);
+
     this.Content = new MainPage(this, _initialNavigationId);
+
+    Loaded?.Invoke(this, EventArgs.Empty);
+    LoadedTask.TrySetResult();
   }
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -113,6 +122,9 @@ internal sealed partial class MainWindow : Window
     // 창 위치 및 디스플레이 저장
     SettingsService.Save(AppSettingsDescriptors.MainWindowPosition, new Point(_windowPosition.X, _windowPosition.Y));
     SettingsService.Save(AppSettingsDescriptors.MainWindowDisplay, NativeMethods.GetMonitorInfoForWindow(_hWnd)?.szDevice ?? string.Empty);
+
+    // MainWindow 종료 플래그
+    SettingsService.Save(AppSettingsDescriptors.IsMainWindowOpen, false);
   }
 
   public bool IsClosed { get; private set; } = false;

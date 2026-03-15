@@ -14,12 +14,14 @@ using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
+using MyNotes.Services.App;
+using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Windows;
 
+using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
 using Windows.System;
 
@@ -65,13 +67,14 @@ internal sealed partial class NotePage : Page
     noteWindow.AppWindow.Closing += AppWindow_Closing;
   }
 
-  private void NotePage_Loaded(object sender, RoutedEventArgs e)
+  private async void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
     if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
     {
       appWindow.Changed += AppWindow_Changed;
 
       ViewModel.Note.IsWindowOpen = true;
+      (appWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = ViewModel.Note.IsAlwaysOnTop;
 
       _newWndProcCallback = (handle, msg, wParam, lParam) =>
       {
@@ -91,7 +94,15 @@ internal sealed partial class NotePage : Page
 
       _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
       _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
+
+      if (ViewModel.Note.NavigationId == NavigationId.Empty)
+      {
+        var dialogService = App.Services.GetRequiredService<DialogService>();
+        var result = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
+      }
     }
+
+    ViewModel.ChangeNoteBackdrop();
   }
 
   private async void NotePage_Unloaded(object sender, RoutedEventArgs e)
@@ -175,13 +186,13 @@ internal sealed partial class NotePage : Page
     switch (theme)
     {
       case ElementTheme.Default:
-        VisualStateManager.GoToState(this, "FlyoutThemeDefault", false);
+        VisualStateManager.GoToState(this, nameof(FlyoutThemeDefault), false);
         break;
       case ElementTheme.Light:
-        VisualStateManager.GoToState(this, "FlyoutThemeLight", false);
+        VisualStateManager.GoToState(this, nameof(FlyoutThemeLight), false);
         break;
       case ElementTheme.Dark:
-        VisualStateManager.GoToState(this, "FlyoutThemeDark", false);
+        VisualStateManager.GoToState(this, nameof(FlyoutThemeDark), false);
         break;
     }
   }
@@ -245,10 +256,10 @@ internal sealed partial class NotePage : Page
       switch (item.Tag)
       {
         case string tag when tag is "Edit":
-          VisualStateManager.GoToState(this, "ViewModeEdit", false);
+          VisualStateManager.GoToState(this, nameof(ViewModeEdit), false);
           break;
         case string tag when tag is "ReadOnly":
-          VisualStateManager.GoToState(this, "ViewModeReadOnly", false);
+          VisualStateManager.GoToState(this, nameof(ViewModeReadOnly), false);
           break;
       }
     }
@@ -329,11 +340,27 @@ internal sealed partial class NotePage : Page
       }
     }
   }
+
+  private async void NotePage_BrowseButton_Click(object sender, RoutedEventArgs e)
+  {
+    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+    {
+      FileOpenPicker picker = new(appWindow.Id);
+      var result = await picker.PickSingleFileAsync();
+      if (result is not null)
+      {
+        ViewModel.Note.BackgroundImagePath = result.Path;
+      }
+    }
+  }
+
+  private readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
+  private SolidColorBrush GetBackgroundBrush(BackdropKind backdropKind, Color color) => backdropKind is BackdropKind.None ? new(color) : _transparentBrush;
 }
 
-#region 상단 타이틀 바 영역
 internal sealed partial class NotePage : Page
 {
+  #region 상단 타이틀 바 영역
   // 타이틀바 드래그 영역 조정(로드 및 크기 변경 시)
   private void NotePage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
   {
@@ -343,15 +370,6 @@ internal sealed partial class NotePage : Page
   private void NotePage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
-  }
-
-  private void NotePage_PinButton_Click(object sender, RoutedEventArgs e)
-  {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
-    {
-      var presenter = appWindow?.Presenter as OverlappedPresenter;
-      presenter?.IsAlwaysOnTop = !presenter.IsAlwaysOnTop;
-    }
   }
 
   private void NotePage_MinimizeButton_Click(object sender, RoutedEventArgs e)
@@ -390,26 +408,35 @@ internal sealed partial class NotePage : Page
     VisualStateManager.GoToState(this, "TitleBarTitleNormal", false);
     NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
   }
-}
-#endregion
+  #endregion
 
-#region 에디터 영역
-internal sealed partial class NotePage : Page
-{
-  private void NotePage_BackdropRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
+  #region 에디터 영역
+  private async void NotePage_TextEditorRichEditBox_Paste(object sender, TextControlPasteEventArgs e)
   {
-    WindowService.TryExecuteOnNoteWindow(ViewModel.Note.Id, (noteWindow) =>
+    e.Handled = true;
+    var clipboardDataPackageView = Clipboard.GetContent();
+    var availableFormats = clipboardDataPackageView.AvailableFormats;
+    var selection = NotePage_TextEditorRichEditBox.Document.Selection;
+
+    if (availableFormats.Contains(StandardDataFormats.Rtf))
     {
-      noteWindow.SystemBackdrop = (BackdropKind)NotePage_BackdropRadioButtons.SelectedIndex switch
-      {
-        BackdropKind.Acrylic => new DesktopAcrylicBackdrop(),
-        BackdropKind.Mica => new MicaBackdrop(),
-        BackdropKind.None or _ => null
-      };
-    });
+      string rtfText = await clipboardDataPackageView.GetRtfAsync();
+      selection.SetText(TextSetOptions.FormatRtf, rtfText);
+      int position = selection.GetIndex(TextRangeUnit.Character) + rtfText.Length - 1;
+      selection.SetRange(position, position);
+    }
+    else if (availableFormats.Contains(StandardDataFormats.Text))
+    {
+      string plainText = await clipboardDataPackageView.GetTextAsync();
+      selection.SetText(TextSetOptions.None, plainText);
+      int position = selection.GetIndex(TextRangeUnit.Character) + plainText.Length - 1;
+      selection.SetRange(position, position);
+    }
   }
+  #endregion
+
+  private bool IsBackdropPropertySliderEnabled(BackdropKind backdropKind) => backdropKind is not BackdropKind.None;
 }
-#endregion
 
 #region Keyboard Accelerators
 internal sealed partial class NotePage : Page
@@ -461,22 +488,22 @@ internal sealed partial class NotePage : Page
   private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     if (NotePage_FindReplaceBox.IsOpen)
-      VisualStateManager.GoToState(this, "EditorSearchNone", false);
+      VisualStateManager.GoToState(this, nameof(EditorSearchNone), false);
     else
-      VisualStateManager.GoToState(this, "EditorSearching", false);
+      VisualStateManager.GoToState(this, nameof(EditorSearching), false);
   }
 
   private void NotePage_ReplaceKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     if (NotePage_FindReplaceBox.IsOpen)
-      VisualStateManager.GoToState(this, "EditorSearchNone", false);
+      VisualStateManager.GoToState(this, nameof(EditorSearchNone), false);
     else
-      VisualStateManager.GoToState(this, "EditorSearching", false);
+      VisualStateManager.GoToState(this, nameof(EditorSearching), false);
   }
 
   private void NotePage_RenameTitleKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
-    VisualStateManager.GoToState(this, "TitleBarTitleRename", false);
+    VisualStateManager.GoToState(this, nameof(TitleBarTitleRename), false);
     NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
     NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
   }

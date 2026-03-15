@@ -1,4 +1,3 @@
-using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Resources;
 using MyNotes.ViewModels.Dialogs;

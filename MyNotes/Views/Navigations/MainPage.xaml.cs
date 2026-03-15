@@ -11,12 +11,12 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Services.Logging;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
+using MyNotes.Services.App;
 
 namespace MyNotes.Views.Navigations;
 
@@ -74,6 +74,7 @@ internal sealed partial class MainPage : Page
     await ViewModel.InitializeNavigation();
     SetNavigation(_initialNavigationId);
   }
+
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
   {
     ViewModel.UserRootNavigationViewModel.ForEachDescendant((viewmodel) =>
@@ -267,7 +268,7 @@ internal sealed partial class MainPage : Page
     _expandableNavigation = null;
   }
 
-  private readonly string _navigationFormatId = $"{App.PackageFamilyName}.NavigationUserNode.Id";
+  private readonly string _navigationFormatId = $"{AppStrings.PackageFamilyName}.NavigationUserNode.Id";
   private DragUISession? _dragUISession;
   private NavigationUserCompositeNode? _expandableNavigation;
 

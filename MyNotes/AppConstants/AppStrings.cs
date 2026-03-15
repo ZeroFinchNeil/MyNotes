@@ -2,6 +2,16 @@
 
 internal static class AppStrings
 {
+  public const string AppDisplayName = "MyNotes";
+  public static readonly string PackageFamilyName = Windows.ApplicationModel.Package.Current.Id.FamilyName;
+
+  public const string AppInstanceKey = "MyNotes";
+
   public const string WidgetProvider_COM_CLSID = "A5423B36-2D5C-45CA-9268-71B560D7269A";
   public const string StartupTaskId = "StartupTaskId";
+
+  public const string NamedPipe_LaunchArguments = """Local\MyNotes.NamedPipe.LaunchArguments""";
+  public const string LaunchArgument_JumpList_NewNote = "JumpList_NewNote";
+  public const string LaunchArgument_JumpList_MainWindow = "JumpList_MainWindow";
+  public const string LaunchArgument_JumpList_Settings = "JumpList_Settings";
 }

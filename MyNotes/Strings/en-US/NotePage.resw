@@ -213,9 +213,6 @@
   <data name="BackgroundButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Background color and effect</value>
   </data>
-  <data name="BackdropRadioButtons.Header" xml:space="preserve">
-    <value>Background effect</value>
-  </data>
   <data name="BackdropAcrylicRadioButton.Content" xml:space="preserve">
     <value>Acrylic</value>
   </data>
@@ -226,7 +223,7 @@
     <value>Mica</value>
   </data>
   <data name="BackgroundFlyoutHeaderTextBlock.Text" xml:space="preserve">
-    <value>Background color</value>
+    <value>Background</value>
   </data>
   <data name="InsertImagesButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Insert images</value>

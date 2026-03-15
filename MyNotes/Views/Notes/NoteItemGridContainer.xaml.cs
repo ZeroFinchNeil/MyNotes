@@ -7,6 +7,10 @@ using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Notes;
+using MyNotes.Models.Notes;
+
+using Microsoft.Extensions.DependencyInjection;
+using MyNotes.Services.Navigations;
 
 namespace MyNotes.Views.Notes;
 
@@ -66,28 +70,47 @@ internal sealed partial class NoteItemGridContainer : UserControl
     if (sender is MenuFlyout && ViewModel is not null)
     {
       NoteItem_MoveToListMenuFlyoutSubItem.Items.Clear();
-      RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
-      WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
 
-      if (message.HasReceivedResponse)
+      var navigationService = App.Services.GetRequiredService<NavigationService>();
+      var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
+
+      foreach (var targetVM in navigationViewModelProvider.Resolve<UserLeafNavigationViewModel>(navigationService.UserLeafNavigations))
       {
-        foreach (var targetVM in message.Response)
+        var targetNavigation = targetVM.Navigation;
+        if (targetNavigation.Id == ViewModel.Note.NavigationId)
+          continue;
+        NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
         {
-          if (targetVM.Navigation.Id == ViewModel.Note.NavigationId)
-            continue;
-          NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
-          {
-            Text = targetVM.Navigation.Title,
-            Icon = new ImageIcon() { Source = targetVM.IconImage },
-            Command = ViewModel.MoveToListCommand,
-            CommandParameter = new SourceTargetPair<NoteViewModel, NavigationId> { Source = ViewModel, Target = targetVM.Navigation.Id }
-          });
-        }
-
-        NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
+          Text = targetNavigation.Title,
+          Icon = new ImageIcon() { Source = targetVM.IconImage },
+          Command = ViewModel.MoveToListCommand,
+          CommandParameter = new SourceTargetPair<Note, NavigationId> { Source = ViewModel.Note, Target = targetNavigation.Id }
+        });
       }
-      else
-        NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = false;
+
+      NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
+
+      //RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
+      //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
+      //if (message.HasReceivedResponse)
+      //{
+      //  foreach (var targetVM in message.Response)
+      //  {
+      //    if (targetVM.Navigation.Id == ViewModel.Note.NavigationId)
+      //      continue;
+      //    NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
+      //    {
+      //      Text = targetVM.Navigation.Title,
+      //      Icon = new ImageIcon() { Source = targetVM.IconImage },
+      //      Command = ViewModel.MoveToListCommand,
+      //      CommandParameter = new SourceTargetPair<Note, NavigationId> { Source = ViewModel.Note, Target = targetVM.Navigation.Id }
+      //    });
+      //  }
+
+      //  NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
+      //}
+      //else
+      //  NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = false;
     }
   }
 

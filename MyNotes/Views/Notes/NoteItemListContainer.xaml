@@ -8,7 +8,7 @@
              xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
 
   <Grid x:Name="NoteItem_RootGrid"
-        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.Background), Mode=OneWay}"
+        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.BackgroundColor), Mode=OneWay}"
         CornerRadius="{ThemeResource OverlayCornerRadius}"
         BorderThickness="1"
         BorderBrush="{ThemeResource ControlStrokeColorDefault}"
@@ -37,7 +37,7 @@
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
           <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                             CommandParameter="{x:Bind ViewModel}" />
+                                             CommandParameter="{x:Bind ViewModel.Note}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </TextBlock>
@@ -57,7 +57,7 @@
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
           <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                             CommandParameter="{x:Bind ViewModel}" />
+                                             CommandParameter="{x:Bind ViewModel.Note}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </Border>

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.ViewModels;
 
@@ -98,6 +99,6 @@ internal sealed partial class SettingsPage : Page
 
   private async void SettingsPage_General_AppStartupButton_Click(object sender, RoutedEventArgs e)
   {
-    await Launcher.LaunchUriAsync(new Uri($"ms-settings:appsfeatures-app?{Uri.EscapeDataString(App.PackageFamilyName)}"));
+    await Launcher.LaunchUriAsync(new Uri($"ms-settings:appsfeatures-app?{Uri.EscapeDataString(AppStrings.PackageFamilyName)}"));
   }
 }

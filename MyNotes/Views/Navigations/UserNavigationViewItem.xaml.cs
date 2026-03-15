@@ -1,10 +1,13 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.Common.Structures;
+using Microsoft.Extensions.DependencyInjection;
+
 using MyNotes.AppConstants;
+using MyNotes.Common.Structures;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
+using MyNotes.Services.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
 
@@ -49,29 +52,25 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
     if (sender is MenuFlyout && ViewModel is not null)
     {
       MainPage_MoveToGroupMenuFlyoutSubItem.Items.Clear();
-      RequestMessage<IReadOnlyList<UserCompositeNavigationViewModel>> message = new();
-      WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllGroupNavigationViewModelsToken);
 
-      if (message.HasReceivedResponse)
+      var navigationService = App.Services.GetRequiredService<NavigationService>();
+      var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
+
+      foreach (var targetVM in navigationViewModelProvider.Resolve<UserCompositeNavigationViewModel>(navigationService.UserCompositeNavigations))
       {
-        foreach (var targetVM in message.Response)
+        var targetNavigation = targetVM.Navigation;
+        if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
+          continue;
+        MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
         {
-          NavigationUserCompositeNode targetNavigation = targetVM.Navigation;
-          if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
-            continue;
-          MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
-          {
-            Text = targetNavigation.Title,
-            Icon = new ImageIcon() { Source = targetVM.IconImage },
-            Command = ViewModel.MoveToGroupCommand,
-            CommandParameter = new SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase> { Source = ViewModel, Target = targetVM }
-          });
-        }
-
-        MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = MainPage_MoveToGroupMenuFlyoutSubItem.Items.Count > 0;
+          Text = targetNavigation.Title,
+          Icon = new ImageIcon() { Source = targetVM.IconImage },
+          Command = ViewModel.MoveToGroupCommand,
+          CommandParameter = new SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode> { Source = ViewModel.Navigation, Target = targetNavigation }
+        });
       }
-      else
-        MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = false;
+
+      MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = MainPage_MoveToGroupMenuFlyoutSubItem.Items.Count > 0;
     }
   }
 }

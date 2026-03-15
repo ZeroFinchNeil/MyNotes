@@ -5,9 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
+using MyNotes.Services.App;
 using MyNotes.Services.Database;
 using MyNotes.Services.Notes;
-using MyNotes.Services.Windows;
 using MyNotes.Views.Windows;
 
 namespace MyNotes.Debugging;
@@ -96,18 +96,18 @@ internal sealed partial class DebugWindow : Window
     GC.Collect();
   }
 
-  private void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
+  private async void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
   {
     Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
     note.Title = $"New note {note.Id.Value}";
     var noteService = App.Services.GetRequiredService<NoteService>();
-    noteService.OpenNoteWindow(note);
+    await noteService.OpenNoteWindow(note);
   }
 
-  private void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
+  private async void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
   {
     var windowService = App.Services.GetRequiredService<WindowService>();
-    windowService.GetOrCreateMainWindow().Activate();
+    (await windowService.GetOrCreateMainWindow()).Activate();
   }
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)

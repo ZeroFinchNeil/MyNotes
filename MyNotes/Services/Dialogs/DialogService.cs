@@ -21,7 +21,7 @@ internal sealed class DialogService
 
   public async Task<(ContentDialogResult ContentDialogResult, (Icon Icon, string Title)? Value)> ShowEditUserNavigationDialogAsync(XamlRoot xamlRoot, NavigationUserNode targetNavigation, EditMode editMode, bool isCompositeNode)
   {
-    if (ViewModelFactory.Resolve(DialogType.SetNode, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewmodel)
+    if (ViewModelFactory.Resolve(DialogType.EditUserNavigation, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewmodel)
     {
       ContentDialog dialog = editMode switch
       {
@@ -45,6 +45,16 @@ internal sealed class DialogService
       return (await ShowNewDialog(dialog), viewmodel.DeleteMode);
     }
     return (ContentDialogResult.None, DeleteMode.Permanent);
+  }
+
+  public async Task<(ContentDialogResult ContentDialogResult, NavigationId? navigationId)> ShowSelectNoteParentDialogAsync(XamlRoot xamlRoot)
+  {
+    if (ViewModelFactory.Resolve(DialogType.SelectNoteParent) is SelectNoteParentDialogViewModel viewmodel)
+    {
+      var dialog = new SelectNoteParentDialog(viewmodel) { XamlRoot = xamlRoot };
+      return (await ShowNewDialog(dialog), viewmodel.SelectedNavigationViewModel?.Navigation.Id);
+    }
+    return (ContentDialogResult.None, null);
   }
 
   private ContentDialog? _currentDialog;

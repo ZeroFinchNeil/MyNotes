@@ -6,6 +6,6 @@ namespace MyNotes.Services.Commands;
 
 internal enum CommandServiceType
 {
-  NavigationViewModel,
-  NoteViewModel
+  Navigation,
+  Note
 }

@@ -9,7 +9,7 @@
              xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
 
   <Grid x:Name="NoteItem_RootGrid"
-        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.Background), Mode=OneWay}"
+        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.BackgroundColor), Mode=OneWay}"
         CornerRadius="{ThemeResource OverlayCornerRadius}"
         BorderThickness="1"
         BorderBrush="{ThemeResource ControlStrokeColorDefault}"
@@ -18,7 +18,7 @@
         PointerEntered="NoteItem_RootGrid_PointerEntered"
         PointerExited="NoteItem_RootGrid_PointerExited"
         ContextRequested="NoteItem_RootGrid_ContextRequested"
-        RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.Background), Mode=OneWay}">
+        RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.BackgroundColor), Mode=OneWay}">
     <Grid.Shadow>
       <ThemeShadow />
     </Grid.Shadow>
@@ -36,7 +36,7 @@
       </Grid.ColumnDefinitions>
 
       <!-- Bookmark Button -->
-      <templates:AlternateIconToggleButton x:Name="NoteItem_BookmarkButton"
+      <templates:AlternateSubtleIconToggleButton x:Name="NoteItem_BookmarkButton"
                                            Grid.Column="0"
                                            Icon="{ui:SymbolIcon Symbol=OutlineStar}"
                                            CheckedIcon="{ui:SymbolIcon Symbol=SolidStar}"
@@ -56,7 +56,7 @@
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
             <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                                               CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
+                                               CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
       </TextBlock>
@@ -73,20 +73,29 @@
                       Opening="NoteItem_MoreButtonMenuFlyout_Opening"
                       Closing="NoteItem_MoreButtonMenuFlyout_Closing">
             <templates:MenuFlyoutElementContainer>
-              <StackPanel Orientation="Horizontal">
+              <StackPanel Orientation="Horizontal"
+                          Spacing="2">
                 <StackPanel.Resources>
-                  <Thickness x:Key="AppBarButtonInnerBorderMargin">2,0</Thickness>
+                  <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                  <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,8,0,4</Thickness>
+                  <Thickness x:Key="AppBarButtonTextLabelMargin">2,0,2,4</Thickness>
                 </StackPanel.Resources>
                 <AppBarButton Label="View"
                               Icon="{ui:FontIcon Glyph=&#xE8AD;}"
+                              Width="60"
+                              Height="48"
                               Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                              CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
+                              CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
                 <AppBarButton Label="Share"
-                              Icon="Share" />
+                              Icon="Share"
+                              Width="60"
+                              Height="48"/>
                 <AppBarButton Label="Remove"
                               Icon="Delete"
+                              Width="60"
+                              Height="48"
                               Command="{x:Bind ViewModel.RemoveNoteCommand, Mode=OneWay}"
-                              CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
+                              CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
               </StackPanel>
             </templates:MenuFlyoutElementContainer>
 
@@ -95,11 +104,14 @@
             <MenuFlyoutSubItem x:Name="NoteItem_MoveToListMenuFlyoutSubItem"
                                Text="Move to list"
                                Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
-
             <MenuFlyoutItem Text="Rename title"
                             Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
             <MenuFlyoutItem Text="Edit tags"
                             Icon="{ui:FontIcon Glyph=&#xE932;}" />
+            <MenuFlyoutItem Text="Add to jump list"
+                            Icon="Add"
+                            Command="{x:Bind ViewModel.AddNoteToJumpListCommand, Mode=OneWay}"
+                            CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem Text="About"
                             Icon="{ui:FontIcon Glyph=&#xE946;}" />
@@ -120,7 +132,7 @@
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
           <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                                             CommandParameter="{x:Bind ViewModel, Mode=OneWay}" />
+                                             CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </Border>

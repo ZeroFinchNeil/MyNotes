@@ -30,6 +30,8 @@ internal static class NumericHelper
 
   public static double ToDouble(int num) => num;
 
+  public static string Round(double num, int digits) => Math.Round(num, digits).ToString();
+
   // Extensions
   // 확장 메서드 및 확장 멤버(정적/인스턴스 모두 가능) 정의
   extension(Size size)

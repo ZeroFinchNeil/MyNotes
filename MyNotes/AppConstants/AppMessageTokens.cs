@@ -7,25 +7,19 @@ namespace MyNotes.AppConstants;
 internal static class AppMessageTokens
 {
   // MainWindow -> MainPage
-  public static readonly MessageToken MainWindowActivationChangedToken = new() { Key = "MainWindowActivationChanged" };
+  public static MessageToken MainWindowActivationChangedToken { get; } = new() { Key = "MainWindowActivationChanged" };
 
   // SettingsViewModel -> MainWindow
-  public static readonly MessageToken ChangeAppThemeToken = new() { Key = "ChangeAppTheme" };
+  public static MessageToken ChangeAppThemeToken { get; } = new() { Key = "ChangeAppTheme" };
 
   // NoteWindow -> NotePage
   public static MessageToken<NoteId> NoteWindowActivationChangedToken(NoteId id) => new() { Key = "NoteWindowActivationChanged", Context = id };
 
-  // UserNavigationViewModel -> UserRootNavigationViewModel
-  public static MessageToken GetAllGroupNavigationViewModelsToken = new() { Key = "GetAllGroupNavigationViewModels" };
-
-  // NoteViewModel, SettingsPage -> UserRootNavigationViewModel
-  public static MessageToken GetAllListNavigationViewModelsToken = new() { Key = "GetAllListNavigationViewModels" };
-
   // SettingsViewModel -> UserNavigationViewModel(s)
-  public static MessageToken ChangeNavigationViewModelIconImageToken = new() { Key = "ChangeNavigationViewModelIconImage" };
+  public static MessageToken ChangeNavigationViewModelIconImageToken { get; } = new() { Key = "ChangeNavigationViewModelIconImage" };
 
   // NoteViewModel -> NoteListViewModel
-  public static MessageToken ChangeNoteIsBookmarkedStateToken = new() { Key = "ChangeNoteIsBookmarkedState" };
+  public static MessageToken ChangeNoteIsBookmarkedStateToken { get; } = new() { Key = "ChangeNoteIsBookmarkedState" };
 
   // NoteEditorViewModel -> NoteViewModel
   public static MessageToken<NoteId> UpdateNotePreviewToken(NoteId id) => new() { Key = "UpdateNotePreview", Context = id };
@@ -36,5 +30,5 @@ internal static class AppMessageTokens
   // NotePage -> NoteListViewModel
   public static MessageToken<INavigationNoteList> RemoveNoteFromListToken(INavigationNoteList navigation) => new() { Key = "RemoveNoteFromListToken", Context = navigation };
 
-  public static MessageToken NavigationCollectionChangedToken = new() { Key = "NavigationCollectionChanged" };
+  public static MessageToken NavigationCollectionChangedToken { get; } = new() { Key = "NavigationCollectionChanged" };
 }

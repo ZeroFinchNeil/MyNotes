@@ -21,17 +21,17 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   public ObservableCollection<NavigationViewModelBase> ChildNodeViewModels { get; }
 
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly NavigationViewModelCommandService NavigationViewModelCommandService;
+  private readonly NavigationCommandService NavigationCommandService;
   private readonly SettingsService SettingsService;
 
   #region Object Lifetime Management
-  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.NavigationViewModel)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation) : base(navigation)
+  public UserCompositeNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService commandService, SettingsService settingsService, NavigationUserCompositeNode navigation) : base(navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
     NavigationViewModelProvider = provider;
-    NavigationViewModelCommandService = (NavigationViewModelCommandService)commandService;
+    NavigationCommandService = (NavigationCommandService)commandService;
     SettingsService = settingsService;
 
     ChildNodeViewModels = [.. Navigation.ChildNodes.Select(NavigationViewModelProvider.Resolve)];
@@ -154,12 +154,12 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     return null;
   }
 
-  public override Command<NavigationViewModelBase> AddListCommand => NavigationViewModelCommandService.AddListCommand;
-  public override Command<NavigationViewModelBase> AddGroupCommand => NavigationViewModelCommandService.AddGroupCommand;
-  public override Command<NavigationViewModelBase> UpdateCommand => NavigationViewModelCommandService.UpdateCommand;
-  public override Command<NavigationViewModelBase> DeleteCommand => NavigationViewModelCommandService.DeleteCommand;
-  public override Command<SourceTargetPair<NavigationViewModelBase, NavigationViewModelBase>> MoveToGroupCommand => NavigationViewModelCommandService.MoveToGroupCommand;
-  public override Command<NavigationViewModelBase> SetAsStartPageCommand => NavigationViewModelCommandService.SetAsStartPageCommand;
+  public override Command<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public override Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public override Command<NavigationUserNode> UpdateCommand => NavigationCommandService.UpdateCommand;
+  public override Command<NavigationUserNode> DeleteCommand => NavigationCommandService.DeleteCommand;
+  public override Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
+  public override Command<NavigationUserNode> SetAsStartPageCommand => NavigationCommandService.SetAsStartPageCommand;
 
   private void RegisterMessenger()
   {

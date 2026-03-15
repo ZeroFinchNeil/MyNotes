@@ -18,9 +18,21 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
 
   public required string Body { get; set; }
 
-  public required string Background { get; set; }
+  public required string BackgroundColor { get; set; }
 
-  public required int Backdrop { get; set; }
+  public required bool IsBackgroundImageVisible { get; set; }
+
+  public required string? BackgroundImagePath { get; set; }
+
+  public required double BackgroundImageOpacity { get; set; }
+
+  public required double BackgroundImageBlur { get; set; }
+
+  public required int BackdropKind { get; set; }
+
+  public required double BackdropTintOpacity { get; set; }
+
+  public required double BackdropLuminosityOpacity { get; set; }
 
   public required int Width { get; set; }
 
@@ -35,6 +47,8 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   public required bool IsDeleted { get; set; }
 
   public required bool IsWindowOpen { get; set; }
+
+  public required bool IsAlwaysOnTop { get; set; }
 
   public bool Equals(NoteEntity? other) => other is not null && other.Id == Id;
 

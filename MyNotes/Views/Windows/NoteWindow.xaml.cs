@@ -3,13 +3,12 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Interop;
 using MyNotes.AppConstants;
+using MyNotes.Common.Interop;
 using MyNotes.Debugging;
-using MyNotes.Helpers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Services.Windows;
+using MyNotes.Services.App;
 using MyNotes.ViewModels.Notes;
 using MyNotes.Views.Notes;
 
@@ -21,6 +20,8 @@ internal sealed partial class NoteWindow : Window
 
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
+  public TaskCompletionSource LoadedTask { get; } = new();
+  public event EventHandler? Loaded;
 
   #region Object Lifetime Management
   public NoteWindow(Note note)
@@ -62,6 +63,9 @@ internal sealed partial class NoteWindow : Window
     this.Closed += NoteWindow_Closed;
 
     this.Content = new NotePage(this, note);
+
+    Loaded?.Invoke(this, EventArgs.Empty);
+    LoadedTask.TrySetResult();
   }
 
   public bool IsClosed { get; set; } = false;
@@ -78,8 +82,10 @@ internal sealed partial class NoteWindow : Window
   }
   #endregion
 
+  
   private void NoteWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
+    
     if (AppWindow.Presenter is OverlappedPresenter presenter)
     {
       WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };

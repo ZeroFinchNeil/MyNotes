@@ -2,6 +2,7 @@
 
 internal enum DialogType
 {
-  SetNode,
-  ConfirmDelete
+  EditUserNavigation,
+  ConfirmDelete,
+  SelectNoteParent
 }

@@ -77,7 +77,10 @@ public partial class Command<T> : ICommand
     if (!CanExecute(parameter))
       return;
 
-    if (ActionToExecute is not null && parameter is not null)
-      ActionToExecute((T)parameter);
+    if (ActionToExecute is not null)
+    {
+      T param = parameter is null ? default! : (T)parameter;
+      ActionToExecute(param);
+    }
   }
 }

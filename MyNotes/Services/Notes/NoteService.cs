@@ -7,12 +7,12 @@ using MyNotes.Common.Interop;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
+using MyNotes.Services.App;
 using MyNotes.Services.Database;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Search;
 using MyNotes.Services.Search.Entities;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
 using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Notes;
@@ -43,7 +43,16 @@ internal sealed partial class NoteService : IDisposable
     Disposed = true;
   }
 
-  public NoteWindow OpenNoteWindow(Note note, bool activate = true)
+  /// <summary>
+  /// <para>지정된 노트에 대한 창을 열고, 선택적으로 로드 후 활성화합니다. 지정된 노트에 대한 창이 이미 열려 있고 닫히지 않은 경우, 이 메서드는 기존 창을 반환합니다. 그렇지 않으면 새 창을 생성합니다. 창은 <paramref name="activate"/>가 <see langword="true"/>인 경우에만 활성화됩니다.</para>
+  /// <para>Opens a window for the specified note, optionally activating it after loading. If a window for the specified note is already open and not closed, this method returns the existing window. Otherwise, a new window is created. The window is activated only if <paramref name="activate"/> is <see langword="true"/>.</para>
+  /// </summary>
+  /// <param name="note">The note for which to open a window. Cannot be null.</param>
+  /// <param name="activate">A value indicating whether the window should be activated after it is loaded. If <see langword="true"/>, the
+  /// window is brought to the foreground.</param>
+  /// <returns>A <see cref="NoteWindow"/> instance representing the window for the specified note. If a window for the note
+  /// already exists and is not closed, the existing window is returned.</returns>
+  public async Task<NoteWindow> OpenNoteWindow(Note note, bool activate = true)
   {
     NoteWindow noteWindow =
       WindowService.NoteWindows.TryGetValue(note.Id, out var wr)
@@ -53,17 +62,23 @@ internal sealed partial class NoteService : IDisposable
       : new(note);
 
     if (activate)
+    {
+      await noteWindow.LoadedTask.Task;
       noteWindow.Activate();
+    }
 
     return noteWindow;
   }
 
-  public async Task OpenNoteWindowsForOpenEntities()
+  public async Task<int> OpenNoteWindowsForOpenEntities()
   {
+    int result = 0;
     foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
     {
-      OpenNoteWindow(note);
+      await OpenNoteWindow(note);
+      result++;
     }
+    return result;
   }
 }
 
@@ -81,23 +96,30 @@ internal sealed partial class NoteService : IDisposable
     }
     else
     {
-      Note newNote = new()
+      Note note = new()
       {
         Id = noteId,
-        NavigationId = NavigationId.Create(e.Parent),
+        NavigationId = NavigationId.GetOrCreate(e.Parent),
         Created = e.Created,
         Title = e.Title,
         Body = e.Body,
-        Background = e.Background.ToColor(),
-        Backdrop = (BackdropKind)e.Backdrop,
+        BackgroundColor = e.BackgroundColor.ToColor(),
+        IsBackgroundImageVisible = e.IsBackgroundImageVisible,
+        BackgroundImagePath = e.BackgroundImagePath,
+        BackgroundImageOpacity = e.BackgroundImageOpacity,
+        BackgroundImageBlur = e.BackgroundImageBlur,
+        BackdropKind = (BackdropKind)e.BackdropKind,
+        BackdropTintOpacity = e.BackdropTintOpacity,
+        BackdropLuminosityOpacity = e.BackdropLuminosityOpacity,
         Size = new SizeInt32(e.Width, e.Height),
         Position = new PointInt32(e.PositionX, e.PositionY),
         IsBookmarked = e.IsBookmarked,
         IsDeleted = e.IsDeleted,
-        IsWindowOpen = e.IsWindowOpen
+        IsWindowOpen = e.IsWindowOpen,
+        IsAlwaysOnTop = e.IsAlwaysOnTop
       };
-      NoteCache[noteId] = new WeakReference<Note>(newNote);
-      return newNote;
+      NoteCache[noteId] = new WeakReference<Note>(note);
+      return note;
     }
   }
 
@@ -129,12 +151,12 @@ internal sealed partial class NoteService : IDisposable
   }
 
   /// <summary>
-  /// <para>Asynchronously updates a note entity in the database by applying a specified action to it. If no entity with the specified note id exists, the action is not invoked and no changes are made.</para>
   /// <para>노트 엔티티를 주어진 액션에 따라 데이터베이스에 비동기 업데이트합니다. 데이터베이스에 일치하는 id를 가진 엔티티가 없으면 액션이 실행되지 않고 변경사항이 저장되지 않습니다.</para>
+  /// <para>Asynchronously updates a note entity in the database by applying a specified action to it. If no entity with the specified note id exists, the action is not invoked and no changes are made.</para>
   /// </summary>
   /// <param name="action">
-  /// <para>An action to perform on the found note entity.</para>
   /// <para>일치하는 노트 엔티티에서 수행해야 할 업데이트를 포함한 액션입니다.</para>
+  /// <para>An action to perform on the found note entity.</para>
   /// </param>
   public Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action) => UpdateNoteEntityAsync(note.Id, action);
 
@@ -164,8 +186,14 @@ internal sealed partial class NoteService : IDisposable
     await SearchService.CommitAsync();
   }
 
-  // 새 노트 추가 및 DB에 반영
-  public async Task<Note?> AddNoteAsync(NavigationUserLeafNode navigation)
+  /// <summary>
+  /// <para>새 노트를 생성하고 데이터베이스에 비동기적으로 추가합니다. 노트는 기본 설정으로 초기화되며, 가능한 경우 현재 포커스가 있는 창을 기준으로 위치가 지정됩니다. 노트는 생성 후 검색을 위해 색인화됩니다.</para>
+  /// <para>Creates a new note and adds it to the database asynchronously. The note is initialized with default settings and positioned based on the currently focused window, if available. The note is indexed for search after creation.</para> 
+  /// </summary>
+  /// <param name="navigation">The navigation node to associate with the new note. If null, the note will be created without a navigation link.</param>
+  /// <returns>A task that represents the asynchronous operation. The task result contains the newly created note, or null if the
+  /// note could not be created.</returns>
+  public async Task<Note> AddNoteAsync(NavigationUserLeafNode? navigation)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
 
@@ -175,14 +203,26 @@ internal sealed partial class NoteService : IDisposable
       noteId = NoteId.NewId();
     } while (await context.NoteEntities.AnyAsync(e => e.Id == noteId.Value));
 
+    NavigationId navigationId = navigation?.Id ?? NavigationId.Empty;
+
     Note note = new()
     {
       Id = noteId,
-      NavigationId = navigation.Id,
+      NavigationId = navigationId,
       Created = DateTimeOffset.UtcNow,
-      Background = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
-      Backdrop = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdrop),
-      Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32
+      BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
+      IsBackgroundImageVisible = false,
+      BackgroundImagePath = null,
+      BackgroundImageOpacity = 1.0,
+      BackgroundImageBlur = 0.0,
+      BackdropKind = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
+      BackdropTintOpacity = 0.5,
+      BackdropLuminosityOpacity = 0.0,
+      Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32,
+      IsBookmarked = false,
+      IsDeleted = false,
+      IsWindowOpen = false,
+      IsAlwaysOnTop = false,
     };
 
     if (WindowService.TryGetFocusedWindow(out var focusedWindow, out var hWnd)
@@ -211,15 +251,22 @@ internal sealed partial class NoteService : IDisposable
       Modified = note.Modified,
       Title = note.Title,
       Body = note.Body,
-      Background = note.Background.ToString(),
-      Backdrop = (int)note.Backdrop,
+      BackgroundColor = note.BackgroundColor.ToString(),
+      IsBackgroundImageVisible = note.IsBackgroundImageVisible,
+      BackgroundImagePath = note.BackgroundImagePath,
+      BackgroundImageOpacity = note.BackgroundImageOpacity,
+      BackgroundImageBlur = note.BackgroundImageBlur,
+      BackdropKind = (int)note.BackdropKind,
+      BackdropTintOpacity = note.BackdropTintOpacity,
+      BackdropLuminosityOpacity = note.BackdropLuminosityOpacity,
       Width = note.Size.Width,
       Height = note.Size.Height,
       PositionX = note.Position.X,
       PositionY = note.Position.Y,
       IsBookmarked = note.IsBookmarked,
       IsDeleted = note.IsDeleted,
-      IsWindowOpen = false
+      IsWindowOpen = note.IsWindowOpen,
+      IsAlwaysOnTop = note.IsAlwaysOnTop
     };
 
     context.NoteEntities.Add(entity);

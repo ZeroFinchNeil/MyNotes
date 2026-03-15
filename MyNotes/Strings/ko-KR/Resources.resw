@@ -201,4 +201,13 @@
   <data name="PreviewTileRatio_Taller" xml:space="preserve">
     <value>좀 더 긺</value>
   </data>
+  <data name="JumpList_NewNote" xml:space="preserve">
+    <value>새 노트</value>
+  </data>
+  <data name="JumpList_MainWindow" xml:space="preserve">
+    <value>메인 창</value>
+  </data>
+  <data name="JumpList_Settings" xml:space="preserve">
+    <value>설정</value>
+  </data>
 </root>

@@ -45,6 +45,10 @@ internal class LocalizedStrings
   public static string PreviewTileRatioTall => DefaultResourceLoader.GetString("PreviewTileRatio_Tall");
   public static string PreviewTileRatioTaller => DefaultResourceLoader.GetString("PreviewTileRatio_Taller");
 
+  public static string JumpListNewNote => DefaultResourceLoader.GetString("JumpList_NewNote");
+  public static string JumpListMainWindow => DefaultResourceLoader.GetString("JumpList_MainWindow");
+  public static string JumpListSettings => DefaultResourceLoader.GetString("JumpList_Settings");
+
   public static string CreateUserNavigationDialogTitleText => CreateUserNavigationDialogResourceLoader.GetString("ContentDialog_TitleText");
   public static string CreateUserNavigationDialogSubTitleTextBlockText => CreateUserNavigationDialogResourceLoader.GetString("SubTitleTextBlock_Text");
 
