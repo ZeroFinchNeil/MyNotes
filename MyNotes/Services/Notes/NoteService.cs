@@ -24,6 +24,10 @@ internal sealed partial class NoteService : IDisposable
   private readonly WindowService WindowService;
   private readonly SearchService SearchService;
 
+  private readonly TaskCompletionSource InitializationTCS = new();
+  public Task InitializationTask => InitializationTCS.Task;
+
+  #region Object Lifetime Management
   public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService, WindowService windowService, SearchService searchService)
   {
     // DI
@@ -31,6 +35,21 @@ internal sealed partial class NoteService : IDisposable
     SettingsService = settingsService;
     WindowService = windowService;
     SearchService = searchService;
+
+    _ = InitializeAsync();
+  }
+
+  private async Task InitializeAsync()
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    var entities = context.NoteEntities.Where(e => e.Parent == NavigationId.Empty.Value);
+    foreach (var id in entities.Select(e => e.Id))
+    {
+      await SearchService.DeleteNoteIndexAsync(id);
+    }
+    context.NoteEntities.RemoveRange(entities);
+
+    InitializationTCS.TrySetResult();
   }
 
   public bool Disposed { get; private set; }
@@ -42,6 +61,7 @@ internal sealed partial class NoteService : IDisposable
 
     Disposed = true;
   }
+  #endregion
 
   /// <summary>
   /// <para>지정된 노트에 대한 창을 열고, 선택적으로 로드 후 활성화합니다. 지정된 노트에 대한 창이 이미 열려 있고 닫히지 않은 경우, 이 메서드는 기존 창을 반환합니다. 그렇지 않으면 새 창을 생성합니다. 창은 <paramref name="activate"/>가 <see langword="true"/>인 경우에만 활성화됩니다.</para>
@@ -63,7 +83,7 @@ internal sealed partial class NoteService : IDisposable
 
     if (activate)
     {
-      await noteWindow.LoadedTask.Task;
+      await noteWindow.LoadTask;
       noteWindow.Activate();
     }
 
@@ -130,7 +150,7 @@ internal sealed partial class NoteService : IDisposable
   public async Task<Note?> FindNoteAsync(NoteId noteId)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
-    return context.NoteEntities.Find(noteId.Value) is NoteEntity e ? NoteEntityToNote(e) : null;
+    return (await context.NoteEntities.FindAsync(noteId.Value)) is NoteEntity e ? NoteEntityToNote(e) : null;
   }
 
   /// <summary>

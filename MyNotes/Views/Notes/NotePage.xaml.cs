@@ -99,6 +99,19 @@ internal sealed partial class NotePage : Page
       {
         var dialogService = App.Services.GetRequiredService<DialogService>();
         var result = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
+        var contentDialogResult = result.ContentDialogResult;
+        switch (contentDialogResult)
+        {
+          case ContentDialogResult.Primary:
+            if (result.navigationId is NavigationId parentId && parentId != NavigationId.Empty)
+            {
+              ViewModel.Note.NavigationId = parentId;
+            }
+            break;
+          case ContentDialogResult.None:
+            ViewModel.CloseWindowCommand.Execute(ViewModel.Note);
+            break;
+        }
       }
     }
 
@@ -370,23 +383,6 @@ internal sealed partial class NotePage : Page
   private void NotePage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
-  }
-
-  private void NotePage_MinimizeButton_Click(object sender, RoutedEventArgs e)
-  {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
-    {
-      var presenter = appWindow?.Presenter as OverlappedPresenter;
-      presenter?.Minimize();
-    }
-  }
-
-  private void NotePage_CloseButton_Click(object sender, RoutedEventArgs e)
-  {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out IntPtr hWnd, out _))
-    {
-      NativeMethods.SendMessage(hWnd, (uint)NativeMethods.WindowMessage.WM_SYSCOMMAND, (IntPtr)NativeMethods.SystemCommand.SC_CLOSE, IntPtr.Zero);
-    }
   }
 
   private void NotePage_RenameTitleMenuFlyoutItem_Click(object sender, RoutedEventArgs e)

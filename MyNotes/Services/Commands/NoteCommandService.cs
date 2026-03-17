@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Interop;
 using MyNotes.Common.Structures;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
@@ -28,6 +29,8 @@ internal sealed class NoteCommandService : ICommandService
   private readonly JumpListService JumpListService;
 
   public Command<Note> OpenNoteWindowCommand { get; }
+  public Command<Note> MinimizeNoteWindowCommand { get; }
+  public Command<Note> CloseNoteWindowCommand { get; }
   public Command<SourceTargetPair<Note, NavigationId>> MoveNoteToListCommand { get; }
   public Command<NavigationId?> CreateNewNoteCommand { get; }
   public Command<Note> ViewListCommand { get; }
@@ -50,6 +53,29 @@ internal sealed class NoteCommandService : ICommandService
       ActionToExecute = async (note) =>
       {
         await NoteService.OpenNoteWindow(note);
+      }
+    };
+
+    MinimizeNoteWindowCommand = new()
+    {
+      ActionToExecute = async (note) =>
+      {
+        if (WindowService.TryGetNoteWindowInfo(note.Id, out _, out var appWindow))
+        {
+          var presenter = appWindow?.Presenter as OverlappedPresenter;
+          presenter?.Minimize();
+        }
+      }
+    };
+
+    CloseNoteWindowCommand = new()
+    {
+      ActionToExecute = async (note) =>
+      {
+        if (WindowService.TryGetNoteWindowInfo(note.Id, out IntPtr hWnd, out _))
+        {
+          NativeMethods.SendMessage(hWnd, (uint)NativeMethods.WindowMessage.WM_SYSCOMMAND, (IntPtr)NativeMethods.SystemCommand.SC_CLOSE, IntPtr.Zero);
+        }
       }
     };
 

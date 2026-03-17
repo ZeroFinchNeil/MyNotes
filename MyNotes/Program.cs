@@ -1,9 +1,8 @@
-﻿using MyNotes.Common.Interop;
-using MyNotes.AppConstants;
-using MyNotes.Widget;
+﻿using System.IO.Pipes;
 
-using System.IO.Pipes;
-using System.Text;
+using MyNotes.AppConstants;
+using MyNotes.Common.Interop;
+using MyNotes.Widget;
 
 namespace MyNotes;
 
@@ -14,14 +13,14 @@ public class Program
   {
     WinRT.ComWrappersSupport.InitializeComWrappers();
 
-    _ = PipeClientStreamAsync(args);
+    _ = LaunchArgumentsPipeClientStreamAsync(args);
 
-    LaunchAppSingleInstance();
+    DecideRedirection();
 
     return 0;
   }
 
-  private static async Task PipeClientStreamAsync(IEnumerable<string> args)
+  private static async Task LaunchArgumentsPipeClientStreamAsync(IEnumerable<string> args)
   {
     using (NamedPipeClientStream pipeClientStream = new(".", AppStrings.NamedPipe_LaunchArguments, PipeDirection.Out, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
     {
@@ -38,57 +37,45 @@ public class Program
     }
   }
 
-  private static void LaunchAppSingleInstance()
-  {
-    bool shouldCreatePrimaryAppInstance = !DecideRedirection();
-    if (shouldCreatePrimaryAppInstance)
-    {
-#if DEBUG
-      IntPtr consoleHWND = IntPtr.Zero;
-      //if (Debugger.IsAttached)
-      consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
-#endif
-      App? app = null;
-      Application.Start((p) =>
-      {
-        var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
-        SynchronizationContext.SetSynchronizationContext(context);
-        app = new App();
-      });
-      app?.Dispose();
-
-#if DEBUG
-      //if (Debugger.IsAttached)
-      //{
-      NativeMethods.FreeConsole();
-      NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
-      //}
-#endif
-    }
-  }
-
   /// <summary>
   /// AppInstance.IsCurrent는 AppInstance가 현재 앱의 인스턴스인지 아니면 다른 인스턴스인지를 반환합니다.
-  /// true이면 기존에 실행 중인 앱 인스턴스가 없다는 것을 의미하고(초기 앱 실행),
+  /// true이면 기존에 실행 중인 앱 인스턴스가 없다는 것을 의미하고(초기 앱 실행 시),
   /// false이면 기존에 실행 중인 앱 인스턴스가 있다는 것을 의미합니다.
   /// </summary>
-  /// <returns></returns>
-  private static bool DecideRedirection()
+  private static void DecideRedirection()
   {
-    AppActivationArguments args = AppInstance.GetCurrent().GetActivatedEventArgs();
     AppInstance appInstance = AppInstance.FindOrRegisterForKey(AppStrings.AppInstanceKey);
 
     if (appInstance.IsCurrent)
     {
-      appInstance.Activated += OnActivated;
+      LaunchSingleAppInstance(appInstance);
     }
     else
     {
-      RedirectActivationTo(args, appInstance);
-      return true;
+      RedirectActivationTo(appInstance);
     }
+  }
 
-    return false;
+  private static void LaunchSingleAppInstance(AppInstance appInstance)
+  {
+    appInstance.Activated += OnActivated;
+#if DEBUG
+    IntPtr consoleHWND = IntPtr.Zero;
+    consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
+#endif
+    App? app = null;
+    Application.Start((p) =>
+    {
+      var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
+      SynchronizationContext.SetSynchronizationContext(context);
+      app = new App();
+    });
+    app?.Dispose();
+
+#if DEBUG
+    NativeMethods.FreeConsole();
+    NativeMethods.SendMessage(consoleHWND, (uint)NativeMethods.WindowMessage.WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+#endif
   }
 
   private static void OnActivated(object? sender, AppActivationArguments args)
@@ -125,8 +112,11 @@ public class Program
   /// <para>Do the redirection on another thread, and use a non-blocking wait method to wait for the redirection to complete.</para>
   /// <para>리디렉션은 다른 스레드에서 수행하고, 리디렉션이 완료될 때까지 논블로킹 대기 방식을 사용하세요.</para>
   /// </remarks>
-  private static void RedirectActivationTo(AppActivationArguments args, AppInstance appInstance)
+  private static void RedirectActivationTo(AppInstance appInstance)
   {
+    AppActivationArguments args = appInstance.GetActivatedEventArgs();
+    //AppActivationArguments args = AppInstance.GetCurrent().GetActivatedEventArgs();
+
     _redirectEventHandle = NativeMethods.CreateEvent(IntPtr.Zero, true, false, null);
     Task.Run(() =>
     {

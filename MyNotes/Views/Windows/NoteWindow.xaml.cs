@@ -20,7 +20,9 @@ internal sealed partial class NoteWindow : Window
 
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
-  public TaskCompletionSource LoadedTask { get; } = new();
+
+  private readonly TaskCompletionSource LoadTCS = new();
+  public Task LoadTask => LoadTCS.Task;
   public event EventHandler? Loaded;
 
   #region Object Lifetime Management
@@ -65,7 +67,7 @@ internal sealed partial class NoteWindow : Window
     this.Content = new NotePage(this, note);
 
     Loaded?.Invoke(this, EventArgs.Empty);
-    LoadedTask.TrySetResult();
+    LoadTCS.TrySetResult();
   }
 
   public bool IsClosed { get; set; } = false;

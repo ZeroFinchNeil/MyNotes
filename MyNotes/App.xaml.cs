@@ -1,5 +1,4 @@
 ﻿using System.IO.Pipes;
-using System.Text;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -35,19 +34,32 @@ public sealed partial class App : Application, IDisposable
     AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
     TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-    using (var appInitializeScope = Services.CreateScope())
-    {
-      _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
-      _ = appInitializeScope.ServiceProvider.GetRequiredService<SearchService>();
-    }
+    _ = InitializeServicesAsync();
   }
+
+  private async Task InitializeServicesAsync()
+  {
+    using var appInitializeScope = Services.CreateScope();
+    _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
+    _ = appInitializeScope.ServiceProvider.GetRequiredService<SearchService>();
+
+    var navigationService = appInitializeScope.ServiceProvider.GetRequiredService<NavigationService>();
+    await navigationService.InitializationTask;
+
+    var noteService = appInitializeScope.ServiceProvider.GetRequiredService<NoteService>();
+    await noteService.InitializationTask;
+
+    InitializationTCS.TrySetResult();
+  }
+
+  private readonly TaskCompletionSource InitializationTCS = new();
+  public Task InitializationTask => InitializationTCS.Task;
 
   protected override async void OnLaunched(LaunchActivatedEventArgs args)
   {
-    _ = PipeServerStreamAsync();
-    Console.WriteLine("{0}: {1}", "OnLaunched", true);
-    Console.WriteLine("{0}: {1}", "LaunchActivatedEventArgs", args.Arguments);
+    await InitializationTask;
 
+    _ = LaunchArgumentsPipeServerStreamAsync();
     var windowService = Services.GetRequiredService<WindowService>();
     var noteService = Services.GetRequiredService<NoteService>();
     var settingsService = Services.GetRequiredService<SettingsService>();
@@ -162,7 +174,7 @@ public sealed partial class App : Application, IDisposable
     new DebugWindow().Activate();
   }
 
-  private async Task PipeServerStreamAsync()
+  private async Task LaunchArgumentsPipeServerStreamAsync()
   {
     while (!Disposed)
     {

@@ -303,6 +303,8 @@ internal sealed partial class NoteViewModel : ViewModelBase
 internal sealed partial class NoteViewModel : ViewModelBase
 {
   public Command<Note> OpenWindowCommand => NoteCommandService.OpenNoteWindowCommand;
+  public Command<Note> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;
+  public Command<Note> CloseWindowCommand => NoteCommandService.CloseNoteWindowCommand;
   public Command<SourceTargetPair<Note, NavigationId>> MoveToListCommand => NoteCommandService.MoveNoteToListCommand;
   public Command<NavigationId?> CreateNewNoteCommand => NoteCommandService.CreateNewNoteCommand;
   public Command<Note> ViewListCommand => NoteCommandService.ViewListCommand;

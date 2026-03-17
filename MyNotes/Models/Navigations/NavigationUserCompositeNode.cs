@@ -16,19 +16,19 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 
   public void ForEachDescendant(Action<NavigationUserNode> action, bool containsSelf = true)
   {
-    Stack<NavigationUserNode> stack = new();
-    stack.Push(this);
+    Queue<NavigationUserNode> queue = new();
+    queue.Enqueue(this);
 
-    while (stack.Count > 0)
+    while (queue.Count > 0)
     {
-      var node = stack.Pop();
+      var node = queue.Dequeue();
       if (containsSelf || this != node)
         action.Invoke(node);
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
         foreach (var childNode in compositeNode.ChildNodes)
-          stack.Push(childNode);
+          queue.Enqueue(childNode);
       }
     }
   }
@@ -49,8 +49,9 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
-        foreach (var childNode in compositeNode.ChildNodes)
-          stack.Push(childNode);
+        int index = compositeNode.ChildNodes.Count - 1;
+        for (int i = index; i >= 0; i--)
+          stack.Push(compositeNode.ChildNodes[i]);
       }
     }
 
@@ -59,12 +60,12 @@ internal class NavigationUserCompositeNode : NavigationUserNode
 
   public bool AnyDescendant(Func<NavigationUserNode, bool> condition, bool containsSelf = true)
   {
-    Stack<NavigationUserNode> stack = new();
-    stack.Push(this);
+    Queue<NavigationUserNode> queue = new();
+    queue.Enqueue(this);
 
-    while (stack.Count > 0)
+    while (queue.Count > 0)
     {
-      var node = stack.Pop();
+      var node = queue.Dequeue();
       if (containsSelf || this != node)
         if (condition.Invoke(node))
           return true;
@@ -72,7 +73,7 @@ internal class NavigationUserCompositeNode : NavigationUserNode
       if (node is NavigationUserCompositeNode compositeNode)
       {
         foreach (var childNode in compositeNode.ChildNodes)
-          stack.Push(childNode);
+          queue.Enqueue(childNode);
       }
     }
 

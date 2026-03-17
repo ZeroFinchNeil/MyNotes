@@ -259,7 +259,8 @@
                               x:Uid="/NotePage/MinimizeButton"
                               Grid.Column="3"
                               Content="{ctw:FontIcon Glyph=&#xE738;}"
-                              Click="NotePage_MinimizeButton_Click">
+                              Command="{x:Bind ViewModel.MinimizeWindowCommand}"
+                              CommandParameter="{x:Bind ViewModel.Note}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
@@ -268,7 +269,8 @@
                               x:Uid="/NotePage/CloseButton"
                               Grid.Column="4"
                               Content="{ctw:FontIcon Glyph=&#xE711;}"
-                              Click="NotePage_CloseButton_Click">
+                              Command="{x:Bind ViewModel.CloseWindowCommand}"
+                              CommandParameter="{x:Bind ViewModel.Note}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>

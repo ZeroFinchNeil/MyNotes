@@ -39,7 +39,7 @@ internal sealed class WindowService
     {
       if (!mainWindow.IsClosed)
       {
-        await mainWindow.LoadedTask.Task;
+        await mainWindow.LoadTask;
         mainWindow.SetNavigation(navigationId);
         return mainWindow;
       }
@@ -52,7 +52,7 @@ internal sealed class WindowService
 
     MainWindow newWindow = new(navigationId);
     _mainWindow = new(newWindow);
-    await newWindow.LoadedTask.Task;
+    await newWindow.LoadTask;
     return newWindow;
   }
 
@@ -112,6 +112,41 @@ internal sealed class WindowService
 
   #region Note Windows
   public Dictionary<NoteId, WeakReference<NoteWindow>> NoteWindows { get; } = new();
+
+  public bool TryGetNoteWindow(NoteId noteId, [NotNullWhen(true)] out NoteWindow? noteWindow)
+  {
+    if (NoteWindows.TryGetValue(noteId, out var wr)
+      && wr.TryGetTarget(out var window)
+      && !window.IsClosed)
+    {
+      noteWindow = window;
+      return true;
+    }
+
+    noteWindow = null;
+    return false;
+  }
+
+  public bool TryGetNoteWindowInfo(NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  {
+    hWnd = IntPtr.Zero;
+    appWindow = null;
+
+    try
+    {
+      if (NoteWindows.TryGetValue(noteId, out var wr)
+        && wr.TryGetTarget(out var noteWindow)
+        && !noteWindow.IsClosed)
+      {
+        hWnd = WindowNative.GetWindowHandle(noteWindow);
+        appWindow = noteWindow.AppWindow;
+      }
+    }
+    catch
+    { }
+
+    return hWnd != IntPtr.Zero && appWindow is not null;
+  }
 
   public bool TryGetNoteWindowInfo(FrameworkElement element, NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {

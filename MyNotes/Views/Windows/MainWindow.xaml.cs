@@ -22,7 +22,8 @@ internal sealed partial class MainWindow : Window
   // 창 핸들 및 AppWindow Presenter 필드
   private readonly IntPtr _hWnd;
 
-  public TaskCompletionSource LoadedTask { get; } = new();
+  private readonly TaskCompletionSource LoadTCS = new();
+  public Task LoadTask => LoadTCS.Task;
   public event EventHandler? Loaded;
 
   #region Object Lifetime Management
@@ -110,7 +111,7 @@ internal sealed partial class MainWindow : Window
     this.Content = new MainPage(this, _initialNavigationId);
 
     Loaded?.Invoke(this, EventArgs.Empty);
-    LoadedTask.TrySetResult();
+    LoadTCS.TrySetResult();
   }
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)

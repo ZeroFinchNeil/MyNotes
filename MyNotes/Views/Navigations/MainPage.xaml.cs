@@ -71,7 +71,6 @@ internal sealed partial class MainPage : Page
   {
     Bindings.Update();
     ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-    await ViewModel.InitializeNavigation();
     SetNavigation(_initialNavigationId);
   }
 

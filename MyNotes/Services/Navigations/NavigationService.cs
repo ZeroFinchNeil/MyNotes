@@ -39,7 +39,7 @@ internal sealed partial class NavigationService : IDisposable
   {
     DbContextFactory = dbContextFactory;
 
-    BuildNavigationTask = BuildNavigationTree();
+    _ = BuildNavigationTreeAsync();
   }
 
   public bool Disposed { get; private set; }
@@ -55,9 +55,10 @@ internal sealed partial class NavigationService : IDisposable
   }
 
   #region Build Navigation Tree (Initialize)
-  public Task BuildNavigationTask { get; }
+  private readonly TaskCompletionSource InitializationTCS = new();
+  public Task InitializationTask => InitializationTCS.Task;
 
-  private async Task BuildNavigationTree()
+  private async Task BuildNavigationTreeAsync()
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
     var entities = await context.NavigationEntities.ToListAsync();
@@ -131,6 +132,9 @@ internal sealed partial class NavigationService : IDisposable
         compositeNode.ChildNodes.Insert(index, omitNode);
       }
     }
+
+    // 내비게이션 초기화 작업 완료
+    InitializationTCS.TrySetResult();
   }
   #endregion
 

@@ -74,8 +74,6 @@ internal sealed partial class MainViewModel : ViewModelBase
   }
   #endregion
 
-  public Task InitializeNavigation() => NavigationService.BuildNavigationTask;
-
   public void SetNavigation(NavigationId navigationId)
   {
     NavigationViewModelBase? viewmodel =
