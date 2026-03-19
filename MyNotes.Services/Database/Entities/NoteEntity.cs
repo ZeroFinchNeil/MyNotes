@@ -20,7 +20,7 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
 
   public required string BackgroundColor { get; set; }
 
-  public required bool IsBackgroundImageVisible { get; set; }
+  public required bool ShowBackgroundImage { get; set; }
 
   public required string? BackgroundImagePath { get; set; }
 
@@ -33,6 +33,12 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   public required double BackdropTintOpacity { get; set; }
 
   public required double BackdropLuminosityOpacity { get; set; }
+
+  public required string Images { get; set; }
+
+  public required bool ShowImagePanel { get; set; }
+
+  public required double ImagePanelHeight { get; set; }
 
   public required int Width { get; set; }
 

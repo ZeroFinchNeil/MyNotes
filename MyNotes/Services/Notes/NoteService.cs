@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.WinUI.Helpers;
+﻿using System.Text.Json;
+
+using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -116,6 +118,15 @@ internal sealed partial class NoteService : IDisposable
     }
     else
     {
+      List<string>? images = null;
+      try
+      {
+        images = JsonSerializer.Deserialize<List<string>>(e.Images);
+      }
+      catch
+      { }
+      images ??= new();
+
       Note note = new()
       {
         Id = noteId,
@@ -124,13 +135,16 @@ internal sealed partial class NoteService : IDisposable
         Title = e.Title,
         Body = e.Body,
         BackgroundColor = e.BackgroundColor.ToColor(),
-        IsBackgroundImageVisible = e.IsBackgroundImageVisible,
+        ShowBackgroundImage = e.ShowBackgroundImage,
         BackgroundImagePath = e.BackgroundImagePath,
         BackgroundImageOpacity = e.BackgroundImageOpacity,
         BackgroundImageBlur = e.BackgroundImageBlur,
         BackdropKind = (BackdropKind)e.BackdropKind,
         BackdropTintOpacity = e.BackdropTintOpacity,
         BackdropLuminosityOpacity = e.BackdropLuminosityOpacity,
+        Images = [.. images],
+        ShowImagePanel = e.ShowImagePanel,
+        ImagePanelHeight = e.ImagePanelHeight,
         Size = new SizeInt32(e.Width, e.Height),
         Position = new PointInt32(e.PositionX, e.PositionY),
         IsBookmarked = e.IsBookmarked,
@@ -231,13 +245,16 @@ internal sealed partial class NoteService : IDisposable
       NavigationId = navigationId,
       Created = DateTimeOffset.UtcNow,
       BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
-      IsBackgroundImageVisible = false,
+      ShowBackgroundImage = false,
       BackgroundImagePath = null,
       BackgroundImageOpacity = 1.0,
       BackgroundImageBlur = 0.0,
       BackdropKind = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
       BackdropTintOpacity = 0.5,
       BackdropLuminosityOpacity = 0.0,
+      Images = [],
+      ShowImagePanel = true,
+      ImagePanelHeight = 180.0,
       Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32,
       IsBookmarked = false,
       IsDeleted = false,
@@ -272,13 +289,16 @@ internal sealed partial class NoteService : IDisposable
       Title = note.Title,
       Body = note.Body,
       BackgroundColor = note.BackgroundColor.ToString(),
-      IsBackgroundImageVisible = note.IsBackgroundImageVisible,
+      ShowBackgroundImage = note.ShowBackgroundImage,
       BackgroundImagePath = note.BackgroundImagePath,
       BackgroundImageOpacity = note.BackgroundImageOpacity,
       BackgroundImageBlur = note.BackgroundImageBlur,
       BackdropKind = (int)note.BackdropKind,
       BackdropTintOpacity = note.BackdropTintOpacity,
       BackdropLuminosityOpacity = note.BackdropLuminosityOpacity,
+      Images = AppStrings.JsonEmptyArray,
+      ShowImagePanel = note.ShowImagePanel,
+      ImagePanelHeight = note.ImagePanelHeight,
       Width = note.Size.Width,
       Height = note.Size.Height,
       PositionX = note.Position.X,

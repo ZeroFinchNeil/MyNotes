@@ -1,25 +1,48 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.Security.Cryptography;
+
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+
+using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Helpers;
 using MyNotes.Models.Notes;
+using MyNotes.Services.App;
 
 namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteEditorViewModel : ViewModelBase
 {
+  private readonly WindowService WindowService;
   private readonly Note Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(Note note, RichEditTextDocument document)
+  public NoteEditorViewModel(WindowService windowService, Note note, RichEditTextDocument document)
   {
+    WindowService = windowService;
     Note = note;
     Document = document;
     _editorDebounceTimer.Tick += EditorDebounceTimer_Tick;
+
+    foreach (var imageFileName in Note.Images)
+    {
+      try
+      {
+        BitmapImage image = new() { UriSource = new Uri(System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderPath, imageFileName)) };
+        Images.Add(image);
+      }
+      catch
+      { }
+    }
+    IsImagePanelVisible = Images.Count > 0;
+
+    Images.CollectionChanged += Images_CollectionChanged;
     SetCommands();
   }
 
@@ -30,7 +53,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
 
     if (disposing)
     {
-
+      Images.CollectionChanged -= Images_CollectionChanged;
     }
 
     base.Dispose(disposing);
@@ -183,11 +206,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     }
   }
 
-  public Color RecentFontColor
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = Colors.Black;
+  [ObservableProperty]
+  public partial Color RecentFontColor { get; set; } = Colors.Black;
 
   public Color SelectionFontColor
   {
@@ -222,11 +242,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     }
   }
 
-  public Color RecentHighlightColor
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = Colors.Transparent;
+  [ObservableProperty]
+  public partial Color RecentHighlightColor { get; set; } = Colors.Transparent;
 
   public Color SelectionHighlightColor
   {
@@ -354,10 +371,23 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
     }
   }
 
-  public bool IsSelectionMarkerStyleEnabled
+  [ObservableProperty]
+  public partial bool IsSelectionMarkerStyleEnabled { get; set; }
+  #endregion
+
+  #region Images
+  public ObservableCollection<BitmapImage> Images = new();
+
+  [ObservableProperty]
+  public partial bool IsImagePanelVisible { get; set; }
+
+  [ObservableProperty]
+  public partial double ImagePanelMaxHeight { get; set; } = 120.0;
+
+  private void Images_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
-    get;
-    set => SetProperty(ref field, value);
+    Note.Images = [.. Images.Select(image => System.IO.Path.GetFileName(image.UriSource.AbsolutePath))];
+    IsImagePanelVisible = Images.Count > 0;
   }
   #endregion
 }
@@ -372,6 +402,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   public Command<object>? ChangeSelectionFontColorCommand { get; private set; }
   public Command<object>? ChangeSelectionHighlightColorCommand { get; private set; }
   public Command? ChangeSelectionHighlightColorToAutomaticCommand { get; private set; }
+
+  public Command? InsertImageCommand { get; private set; }
 
   private int _previousSelectionIndex = 0;
   private int _currentSelectionIndex = 0;
@@ -491,5 +523,50 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
       },
       canExecuteFunc: () => SelectionHighlightColor != Colors.White
     );
+
+    InsertImageCommand = new()
+    {
+      ActionToExecute = async () =>
+      {
+        if (WindowService.TryGetNoteWindowInfo(Note.Id, out _, out var appWindow))
+        {
+          FileOpenPicker picker = new(appWindow.OwnerWindowId)
+          {
+            ViewMode = PickerViewMode.Thumbnail
+          };
+          picker.FileTypeFilter.Add(".jpg");
+          picker.FileTypeFilter.Add(".jpeg");
+          picker.FileTypeFilter.Add(".png");
+          picker.FileTypeFilter.Add(".bmp");
+          picker.FileTypeFilter.Add(".gif");
+          picker.FileTypeFilter.Add(".tiff");
+          picker.FileTypeFilter.Add(".ico");
+
+          foreach (var result in await picker.PickMultipleFilesAsync())
+          {
+            try
+            {
+              var originalFile = await StorageFile.GetFileFromPathAsync(result.Path);
+
+              string fileName;
+              using (var stream = await originalFile.OpenStreamForReadAsync())
+              using (var md5 = MD5.Create())
+              {
+                fileName = System.IO.Path.ChangeExtension(Convert.ToHexStringLower(await md5.ComputeHashAsync(stream)), System.IO.Path.GetExtension(result.Path));
+              }
+
+              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderPath, CreationCollisionOption.OpenIfExists);
+              var copiedFile = await originalFile.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
+              BitmapImage image = new() { UriSource = new Uri(copiedFile.Path) };
+              Images.Add(image);
+            }
+            catch (Exception e)
+            {
+              Console.WriteLine("{0}: {1}", "File Exception", e.Message);
+            }
+          }
+        }
+      }
+    };
   }
 }

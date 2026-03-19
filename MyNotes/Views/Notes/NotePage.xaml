@@ -60,6 +60,9 @@
 
     <converters:EnumToIntConverter x:Key="BackdropKindToIntConverter"
                                    EnumType="notes:BackdropKind" />
+
+    <PathIconSource x:Key="ImageMultipleOffPathIconSource"
+                    Data="M12.309,13.016L14.146,14.854A0.5,0.5,0,0,0,14.854,14.146L1.854,1.146A0.5,0.5,0,1,0,1.146,1.854L2.414,3.12A2.5,2.5,0,0,0,2,4.5L2,9.5A2.5,2.5,0,0,0,4.5,12L9.5,12C10.01,12,10.483,11.848,10.879,11.586L11.596,12.303A3.5,3.5,0,0,1,9.5,13L5,13C5.456,13.607,6.182,14,7,14L9.5,14A4.48,4.48,0,0,0,12.309,13.016 M10.147,10.854A1.5,1.5,0,0,1,9.5,11L4.5,11C4.268,11,4.05,10.947,3.853,10.854L6.498,8.209A0.71,0.71,0,0,1,7.499,8.206L7.502,8.209z M6.402,7.109A1.7,1.7,0,0,0,5.791,7.502L3.146,10.147A1.5,1.5,0,0,1,3,9.5L3,4.5C3,4.268,3.052,4.05,3.146,3.853z M11,4.5L11,8.879 11.975,9.854Q12,9.68,12,9.5L12,4.5A2.5,2.5,0,0,0,9.5,2L4.5,2Q4.32,2,4.146,2.025L5.121,3 9.5,3A1.5,1.5,0,0,1,11,4.5 M12.797,10.676L13.561,11.44A4.5,4.5,0,0,0,14,9.5L14,6C14,5.182,13.607,4.456,13,4L13,9.5C13,9.913,12.928,10.309,12.797,10.676 M10,5A1,1,0,1,1,8,5A1,1,0,0,1,10,5" />
   </Page.Resources>
   <Grid Background="{x:Bind GetBackgroundBrush(ViewModel.Note.BackdropKind, ViewModel.Note.BackgroundColor), Mode=OneWay}"
         KeyboardAcceleratorPlacementMode="Hidden">
@@ -82,13 +85,15 @@
     </Grid.KeyboardAccelerators>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
+      <RowDefinition Height="Auto" />
       <RowDefinition />
       <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
 
+    <!--#region Background Image -->
     <Grid Grid.Row="0"
-          Grid.RowSpan="3"
-          Visibility="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}">
+          Grid.RowSpan="4"
+          Visibility="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}">
       <Image Source="{x:Bind ViewModel.BackgroundImage, Mode=OneWay}"
              Stretch="Uniform"
              Opacity="{x:Bind ViewModel.Note.BackgroundImageOpacity, Mode=OneWay}" />
@@ -98,6 +103,7 @@
         </Border.Background>
       </Border>
     </Grid>
+    <!--#endregion -->
 
     <!--#region Title Bar -->
     <Grid x:Name="NotePage_TitleBarGrid"
@@ -189,6 +195,16 @@
                                            CheckedIcon="UnFavorite"
                                            IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=TwoWay}" />
 
+            <!-- Show Images -->
+            <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
+                                           Icon="{ctw:FontIcon Glyph=&#xE8B9;}"
+                                           IsChecked="{x:Bind ViewModel.Note.ShowImagePanel, Mode=TwoWay}"
+                                           Visibility="{x:Bind EditorViewModel.IsImagePanelVisible, Mode=OneWay}">
+              <tmpls:AlternateMenuFlyoutItem.CheckedIcon>
+                <IconSourceElement IconSource="{StaticResource ImageMultipleOffPathIconSource}" />
+              </tmpls:AlternateMenuFlyoutItem.CheckedIcon>
+            </tmpls:AlternateMenuFlyoutItem>
+
             <!-- View Mode -->
             <MenuFlyoutSubItem x:Uid="/NotePage/ViewModeMenuFlyoutSubItem"
                                Icon="View">
@@ -279,8 +295,68 @@
     </Grid>
     <!--#endregion -->
 
+    <!--#region Images -->
+    <Grid Grid.Row="1"
+          Visibility="{x:Bind VisibleWhenAll(EditorViewModel.IsImagePanelVisible, ViewModel.Note.ShowImagePanel), Mode=OneWay}"
+          Padding="6,0">
+      <GridView x:Name="NotePage_ImagesGridView"
+                Grid.Row="0"
+                CanReorderItems="True"
+                CanDragItems="True"
+                AllowDrop="True"
+                ItemsSource="{x:Bind EditorViewModel.Images}"
+                SelectionMode="None"
+                ScrollViewer.VerticalScrollMode="Disabled"
+                ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                ScrollViewer.HorizontalScrollMode="Enabled"
+                ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                Height="{x:Bind ViewModel.Note.ImagePanelHeight, Mode=TwoWay}"
+                MinHeight="120"
+                MaxHeight="{x:Bind EditorViewModel.ImagePanelMaxHeight, Mode=OneWay}"
+                Padding="0,6"
+                Margin="0,0,0,6">
+        <GridView.ItemsPanel>
+          <ItemsPanelTemplate>
+            <ItemsStackPanel Orientation="Horizontal"></ItemsStackPanel>
+          </ItemsPanelTemplate>
+        </GridView.ItemsPanel>
+
+        <GridView.ItemContainerStyle>
+          <Style TargetType="GridViewItem"
+                 BasedOn="{StaticResource DefaultGridViewItemStyle}">
+          </Style>
+        </GridView.ItemContainerStyle>
+
+        <GridView.ItemTemplate>
+          <DataTemplate x:DataType="BitmapImage">
+            <Image Source="{x:Bind}">
+              <Image.ContextFlyout>
+                <MenuFlyout>
+                  <MenuFlyoutItem Icon="NewWindow"
+                                  Text="Show" />
+                  <MenuFlyoutItem Icon="SaveLocal"
+                                  Text="Save local" />
+                  <MenuFlyoutSeparator />
+                  <MenuFlyoutItem Icon="Delete"
+                                  Text="Delete" />
+                </MenuFlyout>
+              </Image.ContextFlyout>
+            </Image>
+          </DataTemplate>
+        </GridView.ItemTemplate>
+      </GridView>
+
+      <ctwc:ContentSizer x:Name="NotePage_ImagesContentSizer"
+                         TargetControl="{x:Bind NotePage_ImagesGridView}"
+                         Orientation="Horizontal" 
+                         VerticalAlignment="Bottom"
+                         Cursor="Arrow"
+                         PointerPressed="NotePage_ImagesContentSizer_PointerPressed"/>
+    </Grid>
+    <!--#endregion -->
+
     <!--#region Text Editor -->
-    <Grid Grid.Row="1">
+    <Border Grid.Row="2">
       <RichEditBox x:Name="NotePage_TextEditorRichEditBox"
                    RequestedTheme="Light"
                    SelectionFlyout="{x:Null}"
@@ -316,12 +392,12 @@
           </mxi:EventTriggerBehavior>
         </mxi:Interaction.Behaviors>
       </RichEditBox>
-    </Grid>
+    </Border>
     <!--#endregion -->
 
     <!--#region Find and Replace -->
     <tmpls:FindReplaceBox x:Name="NotePage_FindReplaceBox"
-                          Grid.Row="1"
+                          Grid.Row="2"
                           VerticalAlignment="Top"
                           HorizontalAlignment="Right"
                           TargetEditor="{x:Bind NotePage_TextEditorRichEditBox}"
@@ -332,7 +408,7 @@
 
     <!--#region Command Bar -->
     <ScrollViewer x:Name="NotePage_CommandBarScrollViewer"
-                  Grid.Row="2"
+                  Grid.Row="3"
                   HorizontalScrollMode="Enabled"
                   VerticalScrollMode="Disabled"
                   HorizontalScrollBarVisibility="Hidden"
@@ -879,11 +955,11 @@
                     </ctwc:Case.Value>
                     <StackPanel Spacing="12">
                       <CheckBox Content="Show background image"
-                                IsChecked="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=TwoWay}" />
+                                IsChecked="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=TwoWay}" />
 
                       <RadioButtons Header="Stretch"
                                     MaxColumns="4"
-                                    IsEnabled="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}">
+                                    IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}">
                         <RadioButton Content="None" />
                         <RadioButton Content="Fill" />
                         <RadioButton Content="Uniform" />
@@ -921,12 +997,12 @@
                                 StepFrequency="0.01"
                                 IsThumbToolTipEnabled="False"
                                 Value="{x:Bind ViewModel.Note.BackgroundImageOpacity, Mode=TwoWay}"
-                                IsEnabled="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}" />
+                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
                         <tmpls:SubtleIconButton Grid.Row="1"
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}" />
+                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
                       </Grid>
 
                       <Grid RowSpacing="4"
@@ -959,12 +1035,12 @@
                                 Maximum="100"
                                 IsThumbToolTipEnabled="False"
                                 Value="{x:Bind ViewModel.Note.BackgroundImageBlur, Mode=TwoWay}"
-                                IsEnabled="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}" />
+                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
                         <tmpls:SubtleIconButton Grid.Row="1"
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind ViewModel.Note.IsBackgroundImageVisible, Mode=OneWay}" />
+                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
                       </Grid>
                       <Grid>
                         <Grid.ColumnDefinitions>
@@ -993,14 +1069,16 @@
         <!-- Insert Image -->
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
-                                Content="{ctw:FontIcon Glyph=&#xE91B;}" />
+                                Content="{ctw:FontIcon Glyph=&#xE91B;}"
+                                Command="{x:Bind EditorViewModel.InsertImageCommand}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->
 
     <!--#region InfoBar -->
     <InfoBar x:Name="NotePage_InfoBar"
-             Grid.Row="1"
+             Grid.Row="2"
+             IsOpen="False"
              Background="{ThemeResource ControlFillColorDefault}"
              HorizontalAlignment="Center"
              VerticalAlignment="Bottom"
@@ -1114,6 +1192,11 @@
                                     KeySpline="0.2,0.7 0.5,1.0"
                                     Value="0" />
             </DoubleAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
+                                           Storyboard.TargetProperty="Visibility">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="Visible" />
+            </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>
 
@@ -1174,6 +1257,11 @@
               <DiscreteObjectKeyFrame KeyTime="0"
                                       Value="-40" />
             </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
+                                           Storyboard.TargetProperty="Visibility">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="Collapsed" />
+            </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>
 
@@ -1213,6 +1301,11 @@
                                            Storyboard.TargetProperty="Y">
               <DiscreteObjectKeyFrame KeyTime="0"
                                       Value="-40" />
+            </ObjectAnimationUsingKeyFrames>
+            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
+                                           Storyboard.TargetProperty="Visibility">
+              <DiscreteObjectKeyFrame KeyTime="0:0:0"
+                                      Value="Collapsed" />
             </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>

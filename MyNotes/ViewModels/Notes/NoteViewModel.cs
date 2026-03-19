@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.Text.Json;
+
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -16,46 +18,10 @@ using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Notes;
 using MyNotes.Templates.Media;
 
-using Windows.Storage.Streams;
-
 namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteViewModel : ViewModelBase
 {
-  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToDbContextEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
-  {
-    { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
-    { nameof(Note.Modified), note => e => e.Modified = note.Modified },
-    { nameof(Note.Title), note => e => e.Title = note.Title },
-    { nameof(Note.Body), note => e => e.Body = note.Body },
-    { nameof(Note.BackgroundColor), note => e => e.BackgroundColor = note.BackgroundColor.ToString() },
-    { nameof(Note.IsBackgroundImageVisible), note => e => e.IsBackgroundImageVisible = note.IsBackgroundImageVisible },
-    { nameof(Note.BackgroundImagePath), note => e => e.BackgroundImagePath = note.BackgroundImagePath },
-    { nameof(Note.BackgroundImageOpacity), note => e => e.BackgroundImageOpacity = note.BackgroundImageOpacity },
-    { nameof(Note.BackgroundImageBlur), note => e => e.BackgroundImageBlur = note.BackgroundImageBlur },
-    { nameof(Note.BackdropKind), note => e => e.BackdropKind = (int)note.BackdropKind },
-    { nameof(Note.BackdropTintOpacity), note => e => e.BackdropTintOpacity = Math.Round( note.BackdropTintOpacity, 2) },
-    { nameof(Note.BackdropLuminosityOpacity), note => e => e.BackdropLuminosityOpacity =  Math.Round(note.BackdropLuminosityOpacity, 2) },
-    { nameof(Note.Size), note => e =>
-      {
-        e.Width = note.Size.Width;
-        e.Height = note.Size.Height;
-      }
-    },
-    { nameof(Note.Position), note => e =>
-      {
-        e.PositionX = note.Position.X;
-        e.PositionY = note.Position.Y;
-      }
-    },
-    { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
-    { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
-    { nameof(Note.IsWindowOpen), note => e => e.IsWindowOpen = note.IsWindowOpen },
-    { nameof(Note.IsAlwaysOnTop), note => e => e.IsAlwaysOnTop = note.IsAlwaysOnTop }
-  });
-
-  private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];
-
   private readonly WindowService WindowService;
   private readonly NoteCommandService NoteCommandService;
   private readonly NoteService NoteService;
@@ -77,7 +43,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
     _notePropertyDebounceTimer.Elapsed += NotePropertyChangedDebounceTimer_Elapsed;
 
     _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
-    BackgroundImage = Note.IsBackgroundImageVisible ? GetBackgroundImage(Note.BackgroundImagePath) : null;
+    BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
     Preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
     Note.PropertyChanged += Note_PropertyChanged;
     RegisterMessengers();
@@ -101,6 +67,63 @@ internal sealed partial class NoteViewModel : ViewModelBase
   }
   #endregion
 
+  #region Note 내부 속성 변경 시 데이터베이스에 반영 및 기타 로직 실행
+  /// <summary>
+  /// <para>노트 속성과 데이터베이스 노트 엔티티의 해당 속성을 업데이트하는 작업 간의 매핑을 제공합니다. 이 딕셔너리는 'Note' 객체와 데이터베이스의 'NoteEntity' 표현 간의 효율적인 동기화를 가능하게 합니다. 각 항목은 'Note' 클래스의 속성 이름과 해당 'Note' 객체가 주어졌을 때 'NoteEntity'의 관련 속성을 업데이트하는 작업을 반환하는 함수를 연결합니다. 이 매핑은 불변이므로 스레드 안전성을 보장하고 의도치 않은 수정을 방지합니다.</para>
+  /// <para>Provides a mapping of note property names to actions that update corresponding properties on a database entity. This dictionary enables efficient synchronization between 'Note' objects and their associated 'NoteEntity' representations in the database. Each entry associates a property name from the 'Note' class with a  function that, given a 'Note', returns an action to update the relevant property on a 'NoteEntity'. The mapping is  immutable, ensuring thread safety and preventing accidental modification.</para>
+  /// </summary>
+  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToDbContextEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
+  {
+    { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
+    { nameof(Note.Modified), note => e => e.Modified = note.Modified },
+    { nameof(Note.Title), note => e => e.Title = note.Title },
+    { nameof(Note.Body), note => e => e.Body = note.Body },
+    { nameof(Note.BackgroundColor), note => e => e.BackgroundColor = note.BackgroundColor.ToString() },
+    { nameof(Note.ShowBackgroundImage), note => e => e.ShowBackgroundImage = note.ShowBackgroundImage },
+    { nameof(Note.BackgroundImagePath), note => e => e.BackgroundImagePath = note.BackgroundImagePath },
+    { nameof(Note.BackgroundImageOpacity), note => e => e.BackgroundImageOpacity = note.BackgroundImageOpacity },
+    { nameof(Note.BackgroundImageBlur), note => e => e.BackgroundImageBlur = note.BackgroundImageBlur },
+    { nameof(Note.BackdropKind), note => e => e.BackdropKind = (int)note.BackdropKind },
+    { nameof(Note.BackdropTintOpacity), note => e => e.BackdropTintOpacity = Math.Round(note.BackdropTintOpacity, 2) },
+    { nameof(Note.BackdropLuminosityOpacity), note => e => e.BackdropLuminosityOpacity = Math.Round(note.BackdropLuminosityOpacity, 2) },
+    { nameof(Note.Images), note => e => e.Images = JsonSerializer.Serialize(note.Images, AppJson.JsonSerializerOptions) },
+    { nameof(Note.ShowImagePanel), note => e => e.ShowImagePanel = note.ShowImagePanel },
+    { nameof(Note.ImagePanelHeight), note => e => e.ImagePanelHeight = Math.Round(note.ImagePanelHeight, 2) },
+    { nameof(Note.Size), note => e =>
+      {
+        e.Width = note.Size.Width;
+        e.Height = note.Size.Height;
+      }
+    },
+    { nameof(Note.Position), note => e =>
+      {
+        e.PositionX = note.Position.X;
+        e.PositionY = note.Position.Y;
+      }
+    },
+    { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
+    { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
+    { nameof(Note.IsWindowOpen), note => e => e.IsWindowOpen = note.IsWindowOpen },
+    { nameof(Note.IsAlwaysOnTop), note => e => e.IsAlwaysOnTop = note.IsAlwaysOnTop }
+  });
+
+  private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];
+
+  private readonly HashSet<string> _changedNoteProperties = new();
+
+  private static readonly double _notePropertyDebounceTimerInterval = 500;
+  private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
+
+  /// <summary>
+  /// Handles property change notifications for the associated note and updates related UI elements or application state
+  /// as needed.
+  /// </summary>
+  /// <remarks>This method responds to changes in note properties by updating UI components, managing
+  /// application state, and sending relevant messages. It is intended to be used with property change events from a
+  /// note object. The method is asynchronous and may trigger additional operations depending on which property was
+  /// changed.</remarks>
+  /// <param name="sender">The source of the property change event, typically the note instance whose property has changed.</param>
+  /// <param name="e">The event data containing information about the changed property.</param>
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     _notePropertyDebounceTimer.Start();
@@ -115,7 +138,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
         ChangeNoteBackdrop();
         if (Note.BackdropKind is not BackdropKind.None)
         {
-          Note.IsBackgroundImageVisible = false;
+          Note.ShowBackgroundImage = false;
         }
         break;
       case nameof(Note.BackdropKind) or nameof(Note.BackdropTintOpacity) or nameof(Note.BackdropLuminosityOpacity):
@@ -130,9 +153,9 @@ internal sealed partial class NoteViewModel : ViewModelBase
         break;
       case nameof(Note.IsDeleted):
         break;
-      case nameof(Note.IsBackgroundImageVisible) or nameof(Note.BackgroundImagePath):
-        BackgroundImage = Note.IsBackgroundImageVisible ? GetBackgroundImage(Note.BackgroundImagePath) : null;
-        if (Note.IsBackgroundImageVisible)
+      case nameof(Note.ShowBackgroundImage) or nameof(Note.BackgroundImagePath):
+        BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
+        if (Note.ShowBackgroundImage)
         {
           Note.BackdropKind = BackdropKind.None;
         }
@@ -150,8 +173,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
       _changedNoteProperties.Add(e.PropertyName);
     }
   }
-
-  private readonly HashSet<string> _changedNoteProperties = new();
 
   private async void NotePropertyChangedDebounceTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e) => await UpdateNoteEntity();
 
@@ -181,11 +202,9 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     _changedNoteProperties.Clear();
   }
+  #endregion
 
   public Task<bool> DeleteNoteEntity() => NoteService.DeleteNotePermanentlyAsync(Note.Id);
-
-  private static readonly double _notePropertyDebounceTimerInterval = 500;
-  private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
 
   private readonly RichEditBox _previewRichEditBox = new();
   private string GetPreview(string body, int start, int end)
@@ -202,24 +221,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
     Preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
   }
 
-  private ImageSource? GetBackgroundImage(string? imagePath)
-  {
-    if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
-    {
-      return null;
-    }
-
-    try
-    {
-      BitmapImage image = new() { UriSource = new Uri(imagePath) };
-      return image;
-    }
-    catch (Exception)
-    { }
-
-    return null;
-  }
-
   public string Preview
   {
     get => field;
@@ -233,7 +234,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
   } = 100;
 
   #region Backdrop and Background Color
-
   public IReadOnlyList<BackdropKind> BackdropKinds { get; } = Enum.GetValues<BackdropKind>();
 
   public void ChangeNoteBackdrop()
@@ -296,6 +296,24 @@ internal sealed partial class NoteViewModel : ViewModelBase
         Note.BackgroundColor = value.Color;
       }
     }
+  }
+
+  private ImageSource? GetBackgroundImage(string? imagePath)
+  {
+    if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
+    {
+      return null;
+    }
+
+    try
+    {
+      BitmapImage image = new() { UriSource = new Uri(imagePath) };
+      return image;
+    }
+    catch (Exception)
+    { }
+
+    return null;
   }
   #endregion
 }

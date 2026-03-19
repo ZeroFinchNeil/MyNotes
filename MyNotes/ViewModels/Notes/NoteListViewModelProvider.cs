@@ -39,6 +39,22 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     return false;
   }
 
+  public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NoteListViewModel? noteViewModel)
+  {
+    var navigation = ResolvedViewModels.Keys.FirstOrDefault(nav => nav is NavigationUserLeafNode node && node.Id == navigationId);
+    if (navigation is not null
+        && ResolvedViewModels.TryGetValue(navigation, out var wr)
+        && wr.TryGetTarget(out var viewmodel)
+        && !viewmodel.Disposed)
+    {
+      noteViewModel = viewmodel;
+      return true;
+    }
+
+    noteViewModel = null;
+    return false;
+  }
+
   public bool Release(INavigationNoteList navigation)
   {
     if (TryResolve(navigation, out var viewmodel))

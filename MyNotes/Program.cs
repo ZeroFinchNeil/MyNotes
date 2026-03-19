@@ -48,7 +48,7 @@ public class Program
 
     if (appInstance.IsCurrent)
     {
-      LaunchSingleAppInstance(appInstance);
+      LaunchAppInstance(appInstance);
     }
     else
     {
@@ -56,7 +56,7 @@ public class Program
     }
   }
 
-  private static void LaunchSingleAppInstance(AppInstance appInstance)
+  private static void LaunchAppInstance(AppInstance appInstance)
   {
     appInstance.Activated += OnActivated;
 #if DEBUG

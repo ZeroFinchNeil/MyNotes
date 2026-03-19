@@ -243,4 +243,10 @@
   <data name="MarkerStyleTextBlock.Text" xml:space="preserve">
     <value>기호 스타일</value>
   </data>
+  <data name="ShowImagesMenuFlyoutItem.CheckedText" xml:space="preserve">
+    <value>이미지 숨기기</value>
+  </data>
+  <data name="ShowImagesMenuFlyoutItem.Text" xml:space="preserve">
+    <value>이미지 표시</value>
+  </data>
 </root>

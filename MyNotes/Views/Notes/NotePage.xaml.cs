@@ -98,6 +98,7 @@ internal sealed partial class NotePage : Page
       if (ViewModel.Note.NavigationId == NavigationId.Empty)
       {
         var dialogService = App.Services.GetRequiredService<DialogService>();
+        var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
         var result = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
         var contentDialogResult = result.ContentDialogResult;
         switch (contentDialogResult)
@@ -106,6 +107,13 @@ internal sealed partial class NotePage : Page
             if (result.navigationId is NavigationId parentId && parentId != NavigationId.Empty)
             {
               ViewModel.Note.NavigationId = parentId;
+
+              if (noteListViewModelProvider.TryResolve(parentId, out var noteListViewModel)
+                && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
+                && !noteViewModels.Contains(ViewModel))
+              {
+                noteViewModels.Add(ViewModel);
+              }
             }
             break;
           case ContentDialogResult.None:
@@ -217,6 +225,7 @@ internal sealed partial class NotePage : Page
     {
       NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
     }
+    EditorViewModel.ImagePanelMaxHeight = this.ActualHeight * 0.5;
   }
 
   private IntPtr _oldWndProc = IntPtr.Zero;
@@ -369,6 +378,17 @@ internal sealed partial class NotePage : Page
 
   private readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
   private SolidColorBrush GetBackgroundBrush(BackdropKind backdropKind, Color color) => backdropKind is BackdropKind.None ? new(color) : _transparentBrush;
+
+  private Visibility VisibleWhenAll(bool v1, bool v2) => v1 && v2 ? Visibility.Visible : Visibility.Collapsed;
+
+  private void NotePage_ImagesContentSizer_PointerPressed(object sender, PointerRoutedEventArgs e)
+  {
+    if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
+        && focusedElement == NotePage_TextEditorRichEditBox)
+    {
+      NotePage_ImagesGridView.Focus(FocusState.Programmatic);
+    }
+  }
 }
 
 internal sealed partial class NotePage : Page

@@ -95,9 +95,9 @@ internal sealed class LoggingService : IDisposable
     var jsonString = JsonSerializer.Serialize(entry, _jsonSerializerOptions);
     if (jsonString is not null)
     {
-      using var encriptor = _aes.CreateEncryptor();
+      using var encryptor = _aes.CreateEncryptor();
       using MemoryStream memoryStream = new();
-      using CryptoStream cryptoStream = new(memoryStream, encriptor, CryptoStreamMode.Write);
+      using CryptoStream cryptoStream = new(memoryStream, encryptor, CryptoStreamMode.Write);
       cryptoStream.Write(Encoding.UTF8.GetBytes(jsonString), 0, jsonString.Length);
       cryptoStream.FlushFinalBlock();
       File.AppendAllBytes(_logFilePath, [.. BitConverter.GetBytes((int)memoryStream.Length), .. memoryStream.ToArray()]);

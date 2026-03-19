@@ -116,16 +116,17 @@ internal sealed class NoteCommandService : ICommandService
             NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNote);
             await NoteService.OpenNoteWindow(newNote);
 
-            if (NoteListViewModelProvider.TryResolve(navigationViewModel.Navigation, out var noteListViewModel))
+            if (NoteListViewModelProvider.TryResolve(navigationViewModel.Navigation, out var noteListViewModel)
+                && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
+                && !noteViewModels.Contains(newNoteViewModel))
             {
-              noteListViewModel.NoteViewModels?.Add(newNoteViewModel);
+              noteViewModels.Add(newNoteViewModel);
             }
           }
         }
         else
         {
           Note newNote = await NoteService.AddNoteAsync(null);
-          Console.WriteLine("{0}: {1}", "note", newNote.NavigationId);
           NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNote);
           await NoteService.OpenNoteWindow(newNote);
         }

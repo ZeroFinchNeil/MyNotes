@@ -3,7 +3,7 @@
 internal static class AppStrings
 {
   public const string AppDisplayName = "MyNotes";
-  public static readonly string PackageFamilyName = Windows.ApplicationModel.Package.Current.Id.FamilyName;
+  public static string PackageFamilyName { get; } = Windows.ApplicationModel.Package.Current.Id.FamilyName;
 
   public const string AppInstanceKey = "MyNotes";
 
@@ -14,4 +14,9 @@ internal static class AppStrings
   public const string LaunchArgument_JumpList_NewNote = "JumpList_NewNote";
   public const string LaunchArgument_JumpList_MainWindow = "JumpList_MainWindow";
   public const string LaunchArgument_JumpList_Settings = "JumpList_Settings";
+
+  public const string JsonEmptyObject = "{}";
+  public const string JsonEmptyArray = "[]";
+
+  public const string ImageFolderPath = "Images";
 }

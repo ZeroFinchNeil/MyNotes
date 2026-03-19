@@ -243,4 +243,10 @@
   <data name="MarkerStyleTextBlock.Text" xml:space="preserve">
     <value>Marker style</value>
   </data>
+  <data name="ShowImagesMenuFlyoutItem.CheckedText" xml:space="preserve">
+    <value>Hide images</value>
+  </data>
+  <data name="ShowImagesMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Show images</value>
+  </data>
 </root>

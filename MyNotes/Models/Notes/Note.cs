@@ -10,7 +10,7 @@ using MyNotes.Models.Navigations;
 
 namespace MyNotes.Models.Notes;
 
-internal sealed class Note : ObservableObject, IComparable<Note>
+internal sealed partial class Note : ObservableObject, IComparable<Note>
 {
   public Note()
   {
@@ -24,28 +24,21 @@ internal sealed class Note : ObservableObject, IComparable<Note>
 
   public required NoteId Id { get; init; }
 
-  public required NavigationId NavigationId
-  {
-    get => field;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial NavigationId NavigationId { get; set; }
 
   public required DateTimeOffset Created { get; init; }
 
-  public DateTimeOffset Modified
-  {
-    get => field;
-    private set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial DateTimeOffset Modified { get; private set; }
 
   public string Title
   {
     get => field;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         Modified = DateTimeOffset.UtcNow;
       }
     }
@@ -56,25 +49,15 @@ internal sealed class Note : ObservableObject, IComparable<Note>
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         Modified = DateTimeOffset.UtcNow;
       }
     }
   } = string.Empty;
 
-  public string BodyPlainText
-  {
-    get;
-    set
-    {
-      if (field != value)
-      {
-        SetProperty(ref field, value);
-      }
-    }
-  } = string.Empty;
+  [ObservableProperty]
+  public partial string BodyPlainText { get; set; } = string.Empty;
 
   public List<TextRange> HighlighterRanges { get; } = new();
 
@@ -91,90 +74,62 @@ internal sealed class Note : ObservableObject, IComparable<Note>
     }
   } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
 
-  public bool IsBackgroundImageVisible
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial bool ShowBackgroundImage { get; set; }
 
-  public string? BackgroundImagePath
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial string? BackgroundImagePath { get; set; }
 
-  public double BackgroundImageOpacity
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial double BackgroundImageOpacity { get; set; }
 
-  public double BackgroundImageBlur
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial double BackgroundImageBlur { get; set; }
 
   public BackdropKind BackdropKind
   {
     get;
     set
     {
-      if (field != value)
+      if (SetProperty(ref field, value))
       {
-        SetProperty(ref field, value);
         Modified = DateTimeOffset.UtcNow;
       }
     }
   } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
 
-  public double BackdropTintOpacity
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial double BackdropTintOpacity { get; set; }
 
-  public double BackdropLuminosityOpacity
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial double BackdropLuminosityOpacity { get; set; }
 
-  public SizeInt32 Size
-  {
-    get => field;
-    set => SetProperty(ref field, value);
-  } = AppSettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
+  [ObservableProperty]
+  public partial ImmutableList<string> Images { get; set; } = [];
 
-  public PointInt32 Position
-  {
-    get => field;
-    set => SetProperty(ref field, value);
-  } = AppSettingsDescriptors.NotePosition.DefaultValue.PointInt32;
+  [ObservableProperty]
+  public partial bool ShowImagePanel { get; set; }
 
-  public bool IsBookmarked
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial double ImagePanelHeight { get; set; }
 
-  public bool IsDeleted
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial SizeInt32 Size { get; set; } = AppSettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
 
-  public bool IsWindowOpen
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PointInt32 Position { get; set; } = AppSettingsDescriptors.NotePosition.DefaultValue.PointInt32;
 
-  public bool IsAlwaysOnTop
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial bool IsBookmarked { get; set; }
+
+  [ObservableProperty]
+  public partial bool IsDeleted { get; set; }
+
+  [ObservableProperty]
+  public partial bool IsWindowOpen { get; set; }
+
+  [ObservableProperty]
+  public partial bool IsAlwaysOnTop { get; set; }
 
   public int CompareTo(Note? other) => other is null ? 1 : Created.CompareTo(other.Created);
 }

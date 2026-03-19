@@ -4,7 +4,7 @@ namespace MyNotes.AppConstants;
 
 internal static class AppColors
 {
-  public static readonly IReadOnlyList<Color> NamedPaletteColors = new List<Color>()
+  public static IReadOnlyList<Color> NamedPaletteColors { get; } = new List<Color>()
   {
     "#fffafa".ToColor(), "#fff5ee".ToColor(), "#fdf5e6".ToColor(), "#fffaf0".ToColor(), "#ffffe0".ToColor(),
     "#fffff0".ToColor(), "#f5fffa".ToColor(), "#e0ffff".ToColor(), "#f0ffff".ToColor(), "#f0f8ff".ToColor(),
@@ -36,7 +36,7 @@ internal static class AppColors
     "#cd853f".ToColor(), "#b8860b".ToColor(), "#808000".ToColor(), "#556b2f".ToColor(),
   }.AsReadOnly();
 
-  public static readonly IReadOnlyList<SolidColorBrush> NamedPaletteColorBrushes = new List<SolidColorBrush>()
+  public static IReadOnlyList<SolidColorBrush> NamedPaletteColorBrushes { get; } = new List<SolidColorBrush>()
   {
     new("#fffafa".ToColor()), new("#fff5ee".ToColor()), new("#fdf5e6".ToColor()), new("#fffaf0".ToColor()), new("#ffffe0".ToColor()),
     new("#fffff0".ToColor()), new("#f5fffa".ToColor()), new("#e0ffff".ToColor()), new("#f0ffff".ToColor()), new("#f0f8ff".ToColor()),
@@ -68,7 +68,7 @@ internal static class AppColors
     new("#cd853f".ToColor()), new("#b8860b".ToColor()), new("#808000".ToColor()), new("#556b2f".ToColor()),
   }.AsReadOnly();
 
-  public static readonly IReadOnlyList<Color> DefaultPaletteColors = new List<Color>()
+  public static IReadOnlyList<Color> DefaultPaletteColors { get; } = new List<Color>()
   {
     "#FFCCCC".ToColor(), "#F59F9F".ToColor(), "#EB7575".ToColor(), "#E04F4F".ToColor(), "#D62B2B".ToColor(),
     "#FFE6CC".ToColor(), "#F5CA9F".ToColor(), "#EBB075".ToColor(), "#E0974F".ToColor(), "#D6812B".ToColor(),
@@ -87,7 +87,7 @@ internal static class AppColors
     "#737373".ToColor(), "#595959".ToColor(), "#404040".ToColor(), "#262626".ToColor(), "#0D0D0D".ToColor(),
   }.AsReadOnly();
 
-  public static readonly IReadOnlyList<SolidColorBrush> DefaultPaletteColorBrushes = new List<SolidColorBrush>()
+  public static IReadOnlyList<SolidColorBrush> DefaultPaletteColorBrushes { get; } = new List<SolidColorBrush>()
   {
     new("#FFCCCC".ToColor()), new("#F59F9F".ToColor()), new("#EB7575".ToColor()), new("#E04F4F".ToColor()), new("#D62B2B".ToColor()),
     new("#FFE6CC".ToColor()), new("#F5CA9F".ToColor()), new("#EBB075".ToColor()), new("#E0974F".ToColor()), new("#D6812B".ToColor()),
