@@ -3,7 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
+using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 

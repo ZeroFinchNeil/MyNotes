@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 
 using MyNotes.Common.Collections;
 using MyNotes.Debugging;
@@ -7,7 +8,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationSearch : ObservableObject, INavigation, INavigationNoteList
+internal sealed partial class NavigationSearch : ObservableObject, INavigation, INavigationNoteList
 {
   public NavigationSearch()
   {
@@ -19,47 +20,26 @@ internal sealed class NavigationSearch : ObservableObject, INavigation, INavigat
 #endif
   }
 
-  public required string Title
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial string Title { get; set; }
 
-  public required string SearchText
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial string SearchText { get; set; }
 
   public Type PageType { get; } = typeof(SearchResultsPage);
 
-  public NoteSortKey? NoteSortKey
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NoteSortKey? NoteSortKey { get; set; }
 
-  public SortDirection? NoteSortDirection
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial SortDirection? NoteSortDirection { get; set; }
 
-  public PreviewLayoutType? PreviewLayoutType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
 
-  public PreviewTileSize? PreviewTileSize
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileSize? PreviewTileSize { get; set; }
 
-  public PreviewTileRatio? PreviewTileRatio
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
 }

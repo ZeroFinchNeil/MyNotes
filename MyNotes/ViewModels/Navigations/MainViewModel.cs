@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
@@ -6,6 +8,7 @@ using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Search;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.ViewModels;
 
@@ -28,11 +31,8 @@ internal sealed partial class MainViewModel : ViewModelBase
   // For CollectionViewSource.Source
   public IReadOnlyList<IReadOnlyList<NavigationViewModelBase>?> MenuItemsSource { get; }
 
-  public NavigationViewModelBase? CurrentNavigationViewModel
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NavigationViewModelBase? CurrentNavigationViewModel { get; set; }
 
   #region Object Lifetime Management
   public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, SearchService searchService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)

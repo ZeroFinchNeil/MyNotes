@@ -1,11 +1,13 @@
-﻿using MyNotes.Common.Collections;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Common.Collections;
 using MyNotes.Models.Notes;
 using MyNotes.Resources;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationBookmarks : NavigationCoreNode, INavigationNoteList, INavigationInitialTarget
+internal sealed partial class NavigationBookmarks : NavigationCoreNode, INavigationNoteList, INavigationInitialTarget
 {
   public static NavigationBookmarks Instance => field ??= new()
   {
@@ -16,33 +18,18 @@ internal sealed class NavigationBookmarks : NavigationCoreNode, INavigationNoteL
 
   private NavigationBookmarks() : base(typeof(BookmarksPage)) { }
 
-  public NoteSortKey? NoteSortKey
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NoteSortKey? NoteSortKey { get; set; }
 
-  public SortDirection? NoteSortDirection
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial SortDirection? NoteSortDirection { get; set; }
 
-  public PreviewLayoutType? PreviewLayoutType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
 
-  public PreviewTileSize? PreviewTileSize
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileSize? PreviewTileSize { get; set; }
 
-  public PreviewTileRatio? PreviewTileRatio
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
 }

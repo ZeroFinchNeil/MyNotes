@@ -16,8 +16,9 @@ using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Notes;
+using MyNotes.ViewModels.Images.Providers;
+using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes;
 
@@ -130,6 +131,8 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NoteViewModelProvider>();
     services.AddSingleton<NoteEditorViewModelProvider>();
     services.AddSingleton<NoteListViewModelProvider>();
+
+    services.AddSingleton<ImageViewModelProvider>();
 
     // Service
     services.AddSingleton<WindowService>();

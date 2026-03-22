@@ -12,6 +12,7 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
+using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.ViewModels.Navigations;
 

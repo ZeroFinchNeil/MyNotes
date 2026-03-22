@@ -18,7 +18,9 @@ using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
+using MyNotes.ViewModels.Images;
 using MyNotes.ViewModels.Notes;
+using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
@@ -56,6 +58,8 @@ internal sealed partial class NotePage : Page
     SetEditorText();
 
     ChangeFlyoutTheme((ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme));
+
+    ViewModel.LoadImages();
 
     RegisterMessengers();
 
@@ -225,7 +229,7 @@ internal sealed partial class NotePage : Page
     {
       NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
     }
-    EditorViewModel.ImagePanelMaxHeight = this.ActualHeight * 0.5;
+    ViewModel.ImagePanelMaxHeight = this.ActualHeight * 0.5;
   }
 
   private IntPtr _oldWndProc = IntPtr.Zero;
@@ -387,6 +391,16 @@ internal sealed partial class NotePage : Page
         && focusedElement == NotePage_TextEditorRichEditBox)
     {
       NotePage_ImagesGridView.Focus(FocusState.Programmatic);
+    }
+  }
+
+  private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e) => ViewModel.ShowImageCommand?.Execute();
+
+  private void NotePage_DeleteImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if(sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
+    {
+      ViewModel.DeleteImageCommand?.Execute(imageViewModel);
     }
   }
 }

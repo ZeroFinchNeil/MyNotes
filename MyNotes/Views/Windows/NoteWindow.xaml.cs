@@ -9,7 +9,7 @@ using MyNotes.Debugging;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.App;
-using MyNotes.ViewModels.Notes;
+using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
 
 namespace MyNotes.Views.Windows;

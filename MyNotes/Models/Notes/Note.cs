@@ -31,48 +31,27 @@ internal sealed partial class Note : ObservableObject, IComparable<Note>
 
   [ObservableProperty]
   public partial DateTimeOffset Modified { get; private set; }
+  private void UpdateModified() => Modified = DateTimeOffset.UtcNow;
 
-  public string Title
-  {
-    get => field;
-    set
-    {
-      if (SetProperty(ref field, value))
-      {
-        Modified = DateTimeOffset.UtcNow;
-      }
-    }
-  } = string.Empty;
+  [ObservableProperty]
+  public partial string Title { get; set; } = string.Empty;
 
-  public string Body
-  {
-    get;
-    set
-    {
-      if (SetProperty(ref field, value))
-      {
-        Modified = DateTimeOffset.UtcNow;
-      }
-    }
-  } = string.Empty;
+  partial void OnTitleChanged(string oldValue, string newValue) => UpdateModified();
+
+  [ObservableProperty]
+  public partial string Body { get; set; } = string.Empty;
+
+  partial void OnBodyChanged(string oldValue, string newValue) => UpdateModified();
 
   [ObservableProperty]
   public partial string BodyPlainText { get; set; } = string.Empty;
 
   public List<TextRange> HighlighterRanges { get; } = new();
 
-  public Color BackgroundColor
-  {
-    get => field;
-    set
-    {
-      if (field != value)
-      {
-        SetProperty(ref field, value);
-        Modified = DateTimeOffset.UtcNow;
-      }
-    }
-  } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
+  [ObservableProperty]
+  public partial Color BackgroundColor { get; set; } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
+
+  partial void OnBackgroundColorChanged(Color oldValue, Color newValue) => UpdateModified();
 
   [ObservableProperty]
   public partial bool ShowBackgroundImage { get; set; }
@@ -86,17 +65,10 @@ internal sealed partial class Note : ObservableObject, IComparable<Note>
   [ObservableProperty]
   public partial double BackgroundImageBlur { get; set; }
 
-  public BackdropKind BackdropKind
-  {
-    get;
-    set
-    {
-      if (SetProperty(ref field, value))
-      {
-        Modified = DateTimeOffset.UtcNow;
-      }
-    }
-  } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
+  [ObservableProperty]
+  public partial BackdropKind BackdropKind { get; set; } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
+
+  partial void OnBackdropKindChanged(BackdropKind oldValue, BackdropKind newValue) => UpdateModified();
 
   [ObservableProperty]
   public partial double BackdropTintOpacity { get; set; }

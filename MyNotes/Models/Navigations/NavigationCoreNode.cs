@@ -4,7 +4,7 @@ using MyNotes.Debugging;
 
 namespace MyNotes.Models.Navigations;
 
-internal abstract class NavigationCoreNode : ObservableObject, INavigationNode
+internal abstract partial class NavigationCoreNode : ObservableObject, INavigationNode
 {
   public NavigationCoreNode(Type pageType)
   {
@@ -19,17 +19,11 @@ internal abstract class NavigationCoreNode : ObservableObject, INavigationNode
 
   public required NavigationId Id { get; init; }
 
-  public required IconElement Icon
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial IconElement Icon { get; set; }
 
-  public required string Title
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial string Title { get; set; }
 
   public Type PageType { get; init; }
 }

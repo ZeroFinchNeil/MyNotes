@@ -1,16 +1,18 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
-using MyNotes.AppConstants;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
+using MyNotes.Services.App;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.Services.App;
+using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -54,11 +56,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   }
   #endregion
 
-  public NoteViewModelCollection? NoteViewModels
-  {
-    get;
-    private set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NoteViewModelCollection? NoteViewModels { get; private set; }
 
   private NoteSortKey _noteSortKey;
   public NoteSortKey NoteSortKey
@@ -66,9 +65,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     get => _noteSortKey;
     set
     {
-      if (_noteSortKey != value)
+      if (SetProperty(ref _noteSortKey, value))
       {
-        SetProperty(ref _noteSortKey, value);
         if (Navigation is NavigationUserLeafNode
             && SettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder))
         {
@@ -91,9 +89,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     get => _noteSortDirection;
     set
     {
-      if (_noteSortDirection != value)
+      if (SetProperty(ref _noteSortDirection, value))
       {
-        SetProperty(ref _noteSortDirection, value);
         if (Navigation is NavigationUserLeafNode
             && SettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder))
         {
@@ -116,9 +113,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     get => _previewLayoutType;
     set
     {
-      if (_previewLayoutType != value)
+      if (SetProperty(ref _previewLayoutType, value))
       {
-        SetProperty(ref _previewLayoutType, value);
         if (Navigation is NavigationUserLeafNode
             && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {
@@ -140,9 +136,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     get => _previewTileSize;
     set
     {
-      if (_previewTileSize != value)
+      if (SetProperty(ref _previewTileSize, value))
       {
-        SetProperty(ref _previewTileSize, value);
         if (Navigation is NavigationUserLeafNode
             && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {
@@ -164,9 +159,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     get => _previewTileRatio;
     set
     {
-      if (_previewTileRatio != value)
+      if (SetProperty(ref _previewTileRatio, value))
       {
-        SetProperty(ref _previewTileRatio, value);
         if (Navigation is NavigationUserLeafNode
             && SettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout))
         {

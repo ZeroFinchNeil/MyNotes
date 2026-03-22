@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Providers;
 
 internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigation, NavigationViewModelBase>
 {

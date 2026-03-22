@@ -1,5 +1,8 @@
-﻿using MyNotes.Services.Navigations;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.ViewModels.Dialogs;
 
@@ -7,11 +10,8 @@ internal sealed partial class SelectNoteParentDialogViewModel : DialogViewModelB
 {
   public ObservableCollection<UserLeafNavigationViewModel> TargetNavigationViewModels { get; } = new();
 
-  public UserLeafNavigationViewModel? SelectedNavigationViewModel
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial UserLeafNavigationViewModel? SelectedNavigationViewModel { get; set; }
 
   #region Object Lifetime Management
   public SelectNoteParentDialogViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider)

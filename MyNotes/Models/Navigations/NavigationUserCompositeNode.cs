@@ -1,18 +1,17 @@
-﻿using MyNotes.Views.Navigations;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal class NavigationUserCompositeNode : NavigationUserNode
+internal partial class NavigationUserCompositeNode : NavigationUserNode
 {
   public NavigationUserNodeCollection ChildNodes { get; }
 
   public NavigationUserCompositeNode() : base(typeof(HomePage)) { ChildNodes = new(this); }
 
-  public bool IsExpanded
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial bool IsExpanded { get; set; }
 
   public void ForEachDescendant(Action<NavigationUserNode> action, bool containsSelf = true)
   {

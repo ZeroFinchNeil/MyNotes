@@ -11,6 +11,7 @@ using MyNotes.Models.Notes;
 
 using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Services.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.Views.Notes;
 

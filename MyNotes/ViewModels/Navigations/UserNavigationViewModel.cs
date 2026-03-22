@@ -1,4 +1,6 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Common.Commands;
 using MyNotes.Common.Structures;
@@ -22,9 +24,6 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
   public virtual Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>>? MoveToGroupCommand { get; }
   public virtual Command<NavigationUserNode>? SetAsStartPageCommand { get; }
 
-  public BitmapImage? IconImage
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial BitmapImage? IconImage { get; set; }
 }

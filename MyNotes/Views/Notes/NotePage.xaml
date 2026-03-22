@@ -7,6 +7,7 @@
       xmlns:local="using:MyNotes.Views.Notes"
       xmlns:notes="using:MyNotes.Models.Notes"
       xmlns:navigations="using:MyNotes.Models.Navigations"
+      xmlns:imagevm="using:MyNotes.ViewModels.Images"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:commands="using:MyNotes.Common.Commands"
       xmlns:converters="using:MyNotes.Common.Converters"
@@ -199,7 +200,7 @@
             <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
                                            Icon="{ctw:FontIcon Glyph=&#xE8B9;}"
                                            IsChecked="{x:Bind ViewModel.Note.ShowImagePanel, Mode=TwoWay}"
-                                           Visibility="{x:Bind EditorViewModel.IsImagePanelVisible, Mode=OneWay}">
+                                           Visibility="{x:Bind ViewModel.IsImagePanelVisible, Mode=OneWay}">
               <tmpls:AlternateMenuFlyoutItem.CheckedIcon>
                 <IconSourceElement IconSource="{StaticResource ImageMultipleOffPathIconSource}" />
               </tmpls:AlternateMenuFlyoutItem.CheckedIcon>
@@ -297,14 +298,14 @@
 
     <!--#region Images -->
     <Grid Grid.Row="1"
-          Visibility="{x:Bind VisibleWhenAll(EditorViewModel.IsImagePanelVisible, ViewModel.Note.ShowImagePanel), Mode=OneWay}"
+          Visibility="{x:Bind VisibleWhenAll(ViewModel.IsImagePanelVisible, ViewModel.Note.ShowImagePanel), Mode=OneWay}"
           Padding="6,0">
       <GridView x:Name="NotePage_ImagesGridView"
                 Grid.Row="0"
                 CanReorderItems="True"
                 CanDragItems="True"
                 AllowDrop="True"
-                ItemsSource="{x:Bind EditorViewModel.Images}"
+                ItemsSource="{x:Bind ViewModel.ImageViewModels}"
                 SelectionMode="None"
                 ScrollViewer.VerticalScrollMode="Disabled"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -312,7 +313,7 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                 Height="{x:Bind ViewModel.Note.ImagePanelHeight, Mode=TwoWay}"
                 MinHeight="120"
-                MaxHeight="{x:Bind EditorViewModel.ImagePanelMaxHeight, Mode=OneWay}"
+                MaxHeight="{x:Bind ViewModel.ImagePanelMaxHeight, Mode=OneWay}"
                 Padding="0,6"
                 Margin="0,0,0,6">
         <GridView.ItemsPanel>
@@ -328,17 +329,23 @@
         </GridView.ItemContainerStyle>
 
         <GridView.ItemTemplate>
-          <DataTemplate x:DataType="BitmapImage">
-            <Image Source="{x:Bind}">
+          <DataTemplate x:DataType="imagevm:ImageViewModel">
+            <Image Source="{x:Bind Image}"
+                   DataContext="{x:Bind}">
               <Image.ContextFlyout>
                 <MenuFlyout>
-                  <MenuFlyoutItem Icon="NewWindow"
-                                  Text="Show" />
+                  <MenuFlyoutItem x:Name="NotePage_ShowImageMenuFlyoutItem"
+                                  Icon="NewWindow"
+                                  Text="Show"
+                                  Click="NotePage_ShowImageMenuFlyoutItem_Click" />
                   <MenuFlyoutItem Icon="SaveLocal"
-                                  Text="Save local" />
+                                  Text="Save local"
+                                  Command="{x:Bind SaveImageCommand}" />
                   <MenuFlyoutSeparator />
-                  <MenuFlyoutItem Icon="Delete"
-                                  Text="Delete" />
+                  <MenuFlyoutItem x:Name="NotePage_DeleteImageMenuFlyoutItem"
+                                  Icon="Delete"
+                                  Text="Delete"
+                                  Click="NotePage_DeleteImageMenuFlyoutItem_Click" />
                 </MenuFlyout>
               </Image.ContextFlyout>
             </Image>
@@ -348,10 +355,10 @@
 
       <ctwc:ContentSizer x:Name="NotePage_ImagesContentSizer"
                          TargetControl="{x:Bind NotePage_ImagesGridView}"
-                         Orientation="Horizontal" 
+                         Orientation="Horizontal"
                          VerticalAlignment="Bottom"
                          Cursor="Arrow"
-                         PointerPressed="NotePage_ImagesContentSizer_PointerPressed"/>
+                         PointerPressed="NotePage_ImagesContentSizer_PointerPressed" />
     </Grid>
     <!--#endregion -->
 
@@ -1070,7 +1077,7 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind EditorViewModel.InsertImageCommand}" />
+                                Command="{x:Bind ViewModel.InsertImageCommand}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

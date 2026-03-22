@@ -1,26 +1,19 @@
-﻿using MyNotes.Models.Modes;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Models.Modes;
 
 namespace MyNotes.ViewModels.Dialogs;
 
 internal sealed partial class ConfirmDeleteDialogViewModel : DialogViewModelBase
 {
-  public string TargetTypeName
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial string TargetTypeName { get; set; }
 
-  public string TargetName
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial string TargetName { get; set; }
 
-  public DeleteMode DeleteMode
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial DeleteMode DeleteMode { get; set; }
 
   private bool _deletePermanently;
   public bool DeletePermanently

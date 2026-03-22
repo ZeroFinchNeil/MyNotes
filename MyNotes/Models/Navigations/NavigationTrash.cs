@@ -1,11 +1,13 @@
-﻿using MyNotes.Common.Collections;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Common.Collections;
 using MyNotes.Models.Notes;
 using MyNotes.Resources;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationTrash : NavigationCoreNode, INavigationNoteList
+internal sealed partial class NavigationTrash : NavigationCoreNode, INavigationNoteList
 {
   public static NavigationTrash Instance => field ??= new()
   {
@@ -16,34 +18,18 @@ internal sealed class NavigationTrash : NavigationCoreNode, INavigationNoteList
 
   private NavigationTrash() : base(typeof(TrashPage)) { }
 
-  public NoteSortKey? NoteSortKey
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NoteSortKey? NoteSortKey { get; set; }
 
-  public SortDirection? NoteSortDirection
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial SortDirection? NoteSortDirection { get; set; }
 
-  public PreviewLayoutType? PreviewLayoutType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
 
-  public PreviewTileSize? PreviewTileSize
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileSize? PreviewTileSize { get; set; }
 
-  public PreviewTileRatio? PreviewTileRatio
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
+  [ObservableProperty]
+  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
 }

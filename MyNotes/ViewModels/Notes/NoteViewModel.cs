@@ -1,10 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.Security.Cryptography;
+using System.Text.Json;
 
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
@@ -17,6 +20,8 @@ using MyNotes.Services.Commands;
 using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Notes;
 using MyNotes.Templates.Media;
+using MyNotes.ViewModels.Images;
+using MyNotes.ViewModels.Images.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -26,17 +31,19 @@ internal sealed partial class NoteViewModel : ViewModelBase
   private readonly NoteCommandService NoteCommandService;
   private readonly NoteService NoteService;
   private readonly JumpListService JumpListService;
+  private readonly ImageViewModelProvider ImageViewModelProvider;
 
   public Note Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel(WindowService windowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, Note note)
+  public NoteViewModel(WindowService windowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, ImageViewModelProvider imageViewModelProvider, Note note)
   {
     // DI
     WindowService = windowService;
     NoteCommandService = (NoteCommandService)noteCommandService;
     NoteService = noteService;
     JumpListService = jumpListService;
+    ImageViewModelProvider = imageViewModelProvider;
 
     Note = note;
 
@@ -46,6 +53,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
     BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
     Preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
     Note.PropertyChanged += Note_PropertyChanged;
+    SetCommands();
     RegisterMessengers();
   }
 
@@ -58,6 +66,8 @@ internal sealed partial class NoteViewModel : ViewModelBase
     {
       _notePropertyDebounceTimer.Dispose();
       Note.PropertyChanged -= Note_PropertyChanged;
+      ImageViewModels?.CollectionChanged -= Images_CollectionChanged;
+
       _ = UpdateNoteEntity();
       _ = NoteService.CommitSearchIndexAsync();
       UnregisterMessengers();
@@ -221,17 +231,11 @@ internal sealed partial class NoteViewModel : ViewModelBase
     Preview = GetPreview(Note.Body, 0, PreviewTextMaxLength);
   }
 
-  public string Preview
-  {
-    get => field;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial string Preview { get; set; }
 
-  public int PreviewTextMaxLength
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = 100;
+  [ObservableProperty]
+  public partial int PreviewTextMaxLength { get; set; } = 100;
 
   #region Backdrop and Background Color
   public IReadOnlyList<BackdropKind> BackdropKinds { get; } = Enum.GetValues<BackdropKind>();
@@ -277,11 +281,8 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   private Color GetFallbackColor(Color color, double opacity) => Color.FromArgb((byte)(opacity * 255), color.R, color.G, color.B);
 
-  public ImageSource? BackgroundImage
-  {
-    get => field;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial BitmapImage? BackgroundImage { get; set; }
 
   public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors => AppColors.DefaultPaletteColorBrushes;
 
@@ -298,7 +299,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
     }
   }
 
-  private ImageSource? GetBackgroundImage(string? imagePath)
+  private BitmapImage? GetBackgroundImage(string? imagePath)
   {
     if (string.IsNullOrEmpty(imagePath) || !File.Exists(imagePath))
     {
@@ -316,6 +317,71 @@ internal sealed partial class NoteViewModel : ViewModelBase
     return null;
   }
   #endregion
+
+  #region Images
+  public ObservableCollection<ImageViewModel>? ImageViewModels;
+
+  public void LoadImages()
+  {
+    ImageViewModels = new();
+
+    bool hasUnloaded = false;
+    foreach (var imageFileName in Note.Images)
+    {
+      try
+      {
+        if (ImageViewModelProvider.Resolve(imageFileName) is ImageViewModel imageViewModel)
+        {
+          ImageViewModels.Add(imageViewModel);
+        }
+        else
+        {
+          hasUnloaded = true;
+        }
+      }
+      catch
+      {
+        hasUnloaded = true;
+      }
+    }
+
+    if (hasUnloaded)
+    {
+      UpdateNoteImagePaths();
+    }
+
+    IsImagePanelVisible = ImageViewModels.Count > 0;
+
+    ImageViewModels.CollectionChanged -= Images_CollectionChanged;
+    ImageViewModels.CollectionChanged += Images_CollectionChanged;
+  }
+
+  [ObservableProperty]
+  public partial bool IsImagePanelVisible { get; set; }
+
+  [ObservableProperty]
+  public partial double ImagePanelMaxHeight { get; set; } = 120.0;
+
+  private void Images_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateNoteImagePaths();
+
+  private void UpdateNoteImagePaths()
+  {
+    if (ImageViewModels is null)
+      return;
+
+    List<string> imageFileNames = new();
+    foreach (var imageViewModel in ImageViewModels)
+    {
+      if (imageViewModel.Image is not null)
+      {
+        imageFileNames.Add(System.IO.Path.GetFileName(imageViewModel.Image.UriSource.AbsolutePath));
+      }
+    }
+
+    Note.Images = [.. imageFileNames];
+    IsImagePanelVisible = ImageViewModels.Count > 0;
+  }
+  #endregion
 }
 
 internal sealed partial class NoteViewModel : ViewModelBase
@@ -330,6 +396,83 @@ internal sealed partial class NoteViewModel : ViewModelBase
   public Command<Note> RemoveNoteCommand => NoteCommandService.RemoveNoteCommand;
 
   public Command<Note> AddNoteToJumpListCommand => NoteCommandService.AddNoteToJumpListCommand;
+
+  public Command? InsertImageCommand { get; private set; }
+
+  public Command? ShowImageCommand { get; private set; }
+  public Command<ImageViewModel>? DeleteImageCommand { get; private set; }
+
+  private void SetCommands()
+  {
+    InsertImageCommand = new()
+    {
+      ActionToExecute = async () =>
+      {
+        if (WindowService.TryGetNoteWindowInfo(Note.Id, out _, out var appWindow))
+        {
+          FileOpenPicker picker = new(appWindow.OwnerWindowId)
+          {
+            ViewMode = PickerViewMode.Thumbnail
+          };
+          picker.FileTypeFilter.Add(".jpg");
+          picker.FileTypeFilter.Add(".jpeg");
+          picker.FileTypeFilter.Add(".png");
+          picker.FileTypeFilter.Add(".bmp");
+          picker.FileTypeFilter.Add(".gif");
+          picker.FileTypeFilter.Add(".tiff");
+          picker.FileTypeFilter.Add(".ico");
+
+          foreach (var result in await picker.PickMultipleFilesAsync())
+          {
+            try
+            {
+              var originalFile = await StorageFile.GetFileFromPathAsync(result.Path);
+              byte[] randomBytes = new byte[16];
+              RandomNumberGenerator.Fill(randomBytes);
+              var fileName = System.IO.Path.ChangeExtension(Convert.ToHexStringLower(randomBytes), System.IO.Path.GetExtension(result.Path));
+
+              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderPath, CreationCollisionOption.OpenIfExists);
+              var copiedFile = await originalFile.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
+              var imageViewModel = ImageViewModelProvider.Resolve(System.IO.Path.GetFileName(copiedFile.Path));
+              if (imageViewModel is not null)
+              {
+                ImageViewModels?.Add(imageViewModel);
+              }
+            }
+            catch (Exception e)
+            {
+              Console.WriteLine("{0}: {1}", "File Exception", e.Message);
+            }
+          }
+        }
+      }
+    };
+
+    ShowImageCommand = new()
+    {
+      ActionToExecute = () =>
+      {
+      }
+    };
+
+    DeleteImageCommand = new()
+    {
+      ActionToExecute = async (imageViewModel) =>
+      {
+        ImageViewModels?.Remove(imageViewModel);
+        try
+        {
+          if (await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderPath, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
+          {
+            var file = await folder.GetFileAsync(imageViewModel.FileName);
+            await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+          }
+        }
+        catch
+        { }
+      }
+    };
+  }
 
   private void RegisterMessengers()
   {

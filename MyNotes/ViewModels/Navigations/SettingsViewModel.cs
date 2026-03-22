@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Helpers;
 
@@ -14,6 +15,7 @@ using MyNotes.Resources;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
@@ -169,11 +171,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     }
   }
 
-  public bool IsAppLanguageChanged
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial bool IsAppLanguageChanged { get; set; }
   #endregion
 
   #region General
@@ -391,11 +390,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     }
   }
 
-  public string SortOrderContentText
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = string.Empty;
+  [ObservableProperty]
+  public partial string SortOrderContentText { get; set; } = string.Empty;
 
   private static readonly IReadOnlyDictionary<NoteSortKey, Func<string>> _noteSortKeyLocalizedStringMap = new Dictionary<NoteSortKey, Func<string>>()
   {
@@ -494,11 +490,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   private static string SetPreviewLayoutContentText(int previewLayoutType, int previewTileSize, int previewTileRatio) =>
     SetPreviewLayoutContentText((PreviewLayoutType)previewLayoutType, (PreviewTileSize)previewTileSize, (PreviewTileRatio)previewTileRatio);
 
-  public string PreviewLayoutContentText
-  {
-    get;
-    set => SetProperty(ref field, value);
-  } = string.Empty;
+  [ObservableProperty]
+  public partial string PreviewLayoutContentText { get; set; } = string.Empty;
 
   public int PreviewLayoutType
   {

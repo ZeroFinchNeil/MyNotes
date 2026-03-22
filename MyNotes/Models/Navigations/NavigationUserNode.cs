@@ -19,35 +19,19 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
   }
 
   public required NavigationId Id { get; init; }
-
-  public required NavigationUserCompositeNode Parent
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public required Icon Icon
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
-  public required string Title
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
-
   public Type PageType { get; init; }
 
-  public required int Position
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public required partial NavigationUserCompositeNode Parent { get; set; }
 
-  //public override bool Equals(object? obj) => obj is NavigationUserNode node && Id == node.Id;
-  //public override int GetHashCode() => base.GetHashCode();
+  [ObservableProperty]
+  public required partial Icon Icon { get; set; }
+
+  [ObservableProperty]
+  public required partial string Title { get; set; }
+
+  [ObservableProperty]
+  public required partial int Position { get; set; }
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {

@@ -1,40 +1,27 @@
-﻿using MyNotes.Common.Collections;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Common.Collections;
 using MyNotes.Models.Notes;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal class NavigationUserLeafNode : NavigationUserNode, INavigationNoteList, INavigationInitialTarget
+internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationNoteList, INavigationInitialTarget
 {
   public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 
-  public NoteSortKey? NoteSortKey
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial NoteSortKey? NoteSortKey { get; set; }
 
-  public SortDirection? NoteSortDirection
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial SortDirection? NoteSortDirection { get; set; }
 
-  public PreviewLayoutType? PreviewLayoutType
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
 
-  public PreviewTileSize? PreviewTileSize
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileSize? PreviewTileSize { get; set; }
 
-  public PreviewTileRatio? PreviewTileRatio
-  {
-    get;
-    set => SetProperty(ref field, value);
-  }
+  [ObservableProperty]
+  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
 }

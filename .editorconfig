@@ -253,6 +253,7 @@ indent_size = 2
 end_of_line = crlf
 dotnet_style_allow_multiple_blank_lines_experimental = false:warning
 dotnet_diagnostic.IDE2002.severity = warning
+dotnet_diagnostic.MVVMTK0056.severity = warning
 #dotnet_style_qualification_for_field = false:silent
 #dotnet_style_qualification_for_property = false:silent
 #dotnet_style_qualification_for_method = false:silent

@@ -1,4 +1,6 @@
-﻿using MyNotes.Common.Commands;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+
+using MyNotes.Common.Commands;
 using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigations;
@@ -24,11 +26,11 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
     switch (EditMode)
     {
       case EditMode.Create:
-        _icon = isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
+        Icon = isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
         break;
       case EditMode.Update:
-        _icon = targetNavigation.Icon;
-        _title = targetNavigation.Title;
+        Icon = targetNavigation.Icon;
+        Title = targetNavigation.Title;
         break;
     }
 
@@ -36,19 +38,11 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
   }
   #endregion
 
-  private Icon _icon = Icon.System_Board;
-  public Icon Icon
-  {
-    get => _icon;
-    set => SetProperty(ref _icon, value);
-  }
+  [ObservableProperty]
+  public partial Icon Icon { get; set; } = Icon.System_Board;
 
-  private string _title = string.Empty;
-  public string Title
-  {
-    get => _title;
-    set => SetProperty(ref _title, value);
-  }
+  [ObservableProperty]
+  public partial string Title { get; set; } = string.Empty;
 }
 
 internal sealed partial class EditUserNavigationDialogViewModel : DialogViewModelBase

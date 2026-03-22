@@ -4,40 +4,38 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Notes;
 
-namespace MyNotes.ViewModels.Notes;
+namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<Note, NoteEditorViewModel>
+internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<Note, NoteViewModel>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<Note, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<Note, WeakReference<NoteViewModel>> ResolvedViewModels = new();
 
-  NoteEditorViewModel IViewModelProvider<Note, NoteEditorViewModel>.Resolve(Note note) => throw new NotImplementedException();
-
-  public NoteEditorViewModel Resolve(Note note, RichEditTextDocument document)
+  public NoteViewModel Resolve(Note note)
   {
     if (TryResolve(note, out var viewmodel))
     {
       return viewmodel;
     }
 
-    NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(ServiceProvider, note, document);
-    ResolvedViewModels[note] = new WeakReference<NoteEditorViewModel>(newViewModel);
+    NoteViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteViewModel>(ServiceProvider, note);
+    ResolvedViewModels[note] = new WeakReference<NoteViewModel>(newViewModel);
 
     return newViewModel;
   }
 
-  public bool TryResolve(Note note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
+  public bool TryResolve(Note note, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
   {
     if (ResolvedViewModels.TryGetValue(note, out var wr)
         && wr.TryGetTarget(out var viewmodel)
         && !viewmodel.Disposed)
     {
-      noteEditorViewModel = viewmodel;
+      noteViewModel = viewmodel;
       return true;
     }
 
-    noteEditorViewModel = null;
+    noteViewModel = null;
     return false;
   }
 

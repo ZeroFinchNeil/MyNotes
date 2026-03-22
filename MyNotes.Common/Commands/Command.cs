@@ -8,9 +8,6 @@ public partial class Command : ICommand
   public Action? ActionToExecute { get; init; }
   public Func<bool>? CanExecuteFunc { get; init; }
 
-  public Action<object>? ActionsToExecuteWithParam { get; init; }
-  public Func<object, bool>? CanExecuteFuncWithParam { get; init; }
-
   public Command() { }
 
   public Command(Action actionToExecute, Func<bool>? canExecuteFunc = null)
@@ -19,36 +16,18 @@ public partial class Command : ICommand
     CanExecuteFunc = canExecuteFunc;
   }
 
-  public Command(Action<object> actionToExecuteWithParam, Func<object, bool>? canExecuteFuncWithParam = null)
-  {
-    ActionsToExecuteWithParam = actionToExecuteWithParam;
-    CanExecuteFuncWithParam = canExecuteFuncWithParam;
-  }
-
   public event EventHandler? CanExecuteChanged;
 
-  public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+  public void NotifyCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 
-  public bool CanExecute(object? parameter = null)
-    => parameter is null
-      ? CanExecuteFunc is null || CanExecuteFunc()
-      : CanExecuteFuncWithParam is null || CanExecuteFuncWithParam(parameter);
+  public bool CanExecute(object? parameter = null) => CanExecuteFunc?.Invoke() ?? true;
 
   public void Execute(object? parameter = null)
   {
     if (!CanExecute(parameter))
       return;
 
-    if (parameter is null)
-    {
-      if (ActionToExecute is not null)
-        ActionToExecute();
-    }
-    else
-    {
-      if (ActionsToExecuteWithParam is not null)
-        ActionsToExecuteWithParam(parameter);
-    }
+    ActionToExecute?.Invoke();
   }
 }
 
@@ -67,7 +46,7 @@ public partial class Command<T> : ICommand
 
   public event EventHandler? CanExecuteChanged;
 
-  public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+  public void NotifyCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 
   public bool CanExecute(object? parameter)
     => parameter is null || CanExecuteFunc is null || CanExecuteFunc((T)parameter);

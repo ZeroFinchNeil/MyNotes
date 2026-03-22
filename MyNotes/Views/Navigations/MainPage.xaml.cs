@@ -215,8 +215,8 @@ internal sealed partial class MainPage : Page
               break;
           }
 
-          ViewModel.AddListCommand?.RaiseCanExecuteChanged();
-          ViewModel.AddGroupCommand?.RaiseCanExecuteChanged();
+          ViewModel.AddListCommand?.NotifyCanExecuteChanged();
+          ViewModel.AddGroupCommand?.NotifyCanExecuteChanged();
           ViewModel.PushNavigation(navigation);
         }
         break;

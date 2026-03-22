@@ -10,6 +10,7 @@ using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.Views.Navigations;
 

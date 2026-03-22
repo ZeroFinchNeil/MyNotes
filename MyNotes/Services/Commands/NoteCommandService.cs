@@ -13,7 +13,9 @@ using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
 using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
+using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Services.Commands;
 
