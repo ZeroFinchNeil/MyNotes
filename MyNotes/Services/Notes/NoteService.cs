@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Helpers;
+using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.App;
@@ -118,10 +119,10 @@ internal sealed partial class NoteService : IDisposable
     }
     else
     {
-      List<string>? images = null;
+      List<ImageDescriptor>? images = null;
       try
       {
-        images = JsonSerializer.Deserialize<List<string>>(e.Images);
+        images = JsonSerializer.Deserialize<List<ImageDescriptor>>(e.Images);
       }
       catch
       { }

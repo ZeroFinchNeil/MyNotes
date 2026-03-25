@@ -3,6 +3,7 @@
 using Microsoft.UI.Content;
 
 using MyNotes.Common.Interop;
+using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Logging;
@@ -185,6 +186,85 @@ internal sealed class WindowService
     }
     return false;
   }
+  #endregion
+
+  #region ImageViewer Window
+  private WeakReference<ImageViewerWindow>? _imageViewerWindow;
+
+  public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(IEnumerable<ImageDescriptor> images, ImageDescriptor selectedImage)
+  {
+    if (_imageViewerWindow is not null
+        && _imageViewerWindow.TryGetTarget(out var imageViewerWindow))
+    {
+      if (!imageViewerWindow.IsClosed)
+      {
+        return imageViewerWindow;
+      }
+      else
+      {
+        imageViewerWindow.Close();
+        _imageViewerWindow = null;
+      }
+    }
+
+    ImageViewerWindow newWindow = new();
+    _imageViewerWindow = new(newWindow);
+    return newWindow;
+  }
+
+  public bool TryGetCurrentImageViewerWindow([NotNullWhen(true)] out ImageViewerWindow? imageViewerWindow)
+  {
+    imageViewerWindow = null;
+
+    if (_imageViewerWindow is not null
+        && _imageViewerWindow.TryGetTarget(out var m)
+        && !m.IsClosed)
+    {
+      imageViewerWindow = m;
+      return true;
+    }
+
+    return false;
+  }
+
+  public bool TryGetImageViewerWindowInfo(FrameworkElement element, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  {
+    hWnd = IntPtr.Zero;
+    appWindow = null;
+
+    try
+    {
+      if (element.XamlRoot is XamlRoot xamlRoot
+        && xamlRoot.ContentIslandEnvironment is ContentIslandEnvironment env)
+      {
+        var windowId = env.AppWindowId;
+        hWnd = Win32Interop.GetWindowFromWindowId(windowId);
+        appWindow = AppWindow.GetFromWindowId(windowId);
+      }
+      else if (TryGetCurrentImageViewerWindow(out var imageViewerWindow))
+      {
+        hWnd = WindowNative.GetWindowHandle(imageViewerWindow);
+        appWindow = imageViewerWindow.AppWindow;
+      }
+    }
+    catch (Exception e)
+    {
+      LoggingService.Write(e);
+    }
+
+    return hWnd != IntPtr.Zero && appWindow is not null;
+  }
+
+  public bool TryExecuteOnImageViewerWindow(Action<ImageViewerWindow> action)
+  {
+    if (TryGetCurrentImageViewerWindow(out var imageViewerWindow))
+    {
+      action.Invoke(imageViewerWindow);
+      return true;
+    }
+    return false;
+  }
+
   #endregion
 
   #region 통합 창 로직

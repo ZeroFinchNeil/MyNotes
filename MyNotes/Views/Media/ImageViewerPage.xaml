@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page x:Class="MyNotes.Views.Media.ImageViewerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:local="using:MyNotes.Views.Media"
+      xmlns:mediavm="using:MyNotes.ViewModels.Media">
+
+  <Grid Background="#202020">
+    <FlipView ItemsSource="{x:Bind ViewModel.ImageViewModels, Mode=OneWay}"
+              SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
+              Background="Transparent">
+      <FlipView.ItemContainerStyle>
+        <Style TargetType="FlipViewItem"
+               BasedOn="{StaticResource DefaultFlipViewItemStyle}">
+          <Setter Property="HorizontalAlignment"
+                  Value="Center" />
+          <Setter Property="VerticalAlignment"
+                  Value="Center" />
+          <Setter Property="VerticalContentAlignment"
+                  Value="Stretch" />
+          <Setter Property="HorizontalContentAlignment"
+                  Value="Stretch" />
+        </Style>
+      </FlipView.ItemContainerStyle>
+      <FlipView.ItemTemplate>
+        <DataTemplate x:DataType="mediavm:ImageViewModel">
+
+          <Image Source="{x:Bind Image, Mode=OneWay}">
+            <Image.ContextFlyout>
+              <MenuFlyout>
+                <MenuFlyoutItem Icon="SaveLocal"
+                                Text="Save local"
+                                Command="{x:Bind SaveImageCommand}" />
+              </MenuFlyout>
+            </Image.ContextFlyout>
+          </Image>
+        </DataTemplate>
+      </FlipView.ItemTemplate>
+    </FlipView>
+  </Grid>
+</Page>

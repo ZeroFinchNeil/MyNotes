@@ -6,6 +6,7 @@ using Microsoft.UI.Xaml.Documents;
 using MyNotes.AppConstants;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
+using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Models.Notes;
@@ -77,7 +78,7 @@ internal sealed partial class Note : ObservableObject, IComparable<Note>
   public partial double BackdropLuminosityOpacity { get; set; }
 
   [ObservableProperty]
-  public partial ImmutableList<string> Images { get; set; } = [];
+  public partial ImmutableList<ImageDescriptor> Images { get; set; } = [];
 
   [ObservableProperty]
   public partial bool ShowImagePanel { get; set; }

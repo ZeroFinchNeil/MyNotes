@@ -14,7 +14,7 @@ internal static class IconHelper
   private static readonly float PrimaryIconScale = 1.0f;
   private static readonly float BadgeIconScale = 0.5f;
 
-  public static BitmapImage GetIconImage(short icon) => new() { UriSource = GetMainUri(icon) };
+  public static BitmapImage GetIconImage(short icon) => new() { UriSource = GetMainUri(icon), DecodePixelType = DecodePixelType.Logical };
 
   public static async Task<BitmapImage> GetIconImage(short icon, GroupIconBadge groupIconBadge, bool showBadge)
   {

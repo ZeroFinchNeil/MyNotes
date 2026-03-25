@@ -7,7 +7,7 @@
       xmlns:local="using:MyNotes.Views.Notes"
       xmlns:notes="using:MyNotes.Models.Notes"
       xmlns:navigations="using:MyNotes.Models.Navigations"
-      xmlns:imagevm="using:MyNotes.ViewModels.Images"
+      xmlns:mediavm="using:MyNotes.ViewModels.Media"
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:commands="using:MyNotes.Common.Commands"
       xmlns:converters="using:MyNotes.Common.Converters"
@@ -305,8 +305,9 @@
                 CanReorderItems="True"
                 CanDragItems="True"
                 AllowDrop="True"
-                ItemsSource="{x:Bind ViewModel.ImageViewModels}"
+                ItemsSource="{x:Bind ImageCollectionViewModel.ImageViewModels}"
                 SelectionMode="None"
+                AllowFocusOnInteraction="False"
                 ScrollViewer.VerticalScrollMode="Disabled"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
                 ScrollViewer.HorizontalScrollMode="Enabled"
@@ -329,9 +330,11 @@
         </GridView.ItemContainerStyle>
 
         <GridView.ItemTemplate>
-          <DataTemplate x:DataType="imagevm:ImageViewModel">
-            <Image Source="{x:Bind Image}"
-                   DataContext="{x:Bind}">
+          <DataTemplate x:DataType="mediavm:ImageViewModel">
+            <Image x:Name="NotePage_UserImage"
+                   Source="{x:Bind Image}"
+                   DataContext="{x:Bind}"
+                   DoubleTapped="NotePage_UserImage_DoubleTapped">
               <Image.ContextFlyout>
                 <MenuFlyout>
                   <MenuFlyoutItem x:Name="NotePage_ShowImageMenuFlyoutItem"
@@ -1077,7 +1080,8 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind ViewModel.InsertImageCommand}" />
+                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}" 
+                                CommandParameter="{x:Bind ViewModel.Note.Id}"/>
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

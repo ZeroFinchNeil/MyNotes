@@ -11,6 +11,7 @@ using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
+using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
@@ -18,7 +19,7 @@ using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
-using MyNotes.ViewModels.Images;
+using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Windows;
@@ -33,6 +34,7 @@ internal sealed partial class NotePage : Page
 {
   private readonly NoteViewModel ViewModel;
   private readonly NoteEditorViewModel EditorViewModel;
+  private readonly ImageCollectionViewModel ImageCollectionViewModel;
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
 
@@ -51,6 +53,7 @@ internal sealed partial class NotePage : Page
     var editorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
     ViewModel = noteViewModelProvider.Resolve(note);
     EditorViewModel = editorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
+    ImageCollectionViewModel = App.Services.GetRequiredService<ImageCollectionViewModel>();
     SettingsService = App.Services.GetRequiredService<SettingsService>();
     WindowService = App.Services.GetRequiredService<WindowService>();
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
@@ -59,7 +62,7 @@ internal sealed partial class NotePage : Page
 
     ChangeFlyoutTheme((ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme));
 
-    ViewModel.LoadImages();
+    LoadImages();
 
     RegisterMessengers();
 
@@ -135,6 +138,8 @@ internal sealed partial class NotePage : Page
     // 에디터 내용을 저장 후 정리
     EditorViewModel.UpdateEditorBodyText();
     EditorViewModel.Dispose();
+
+    ImageCollectionViewModel.ImageViewModels?.CollectionChanged -= ImageViewModels_CollectionChanged;
 
     // 노트 완전 삭제 로직
     bool deleteNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(ViewModel.Note.Title) && string.IsNullOrWhiteSpace(ViewModel.Note.BodyPlainText);
@@ -394,13 +399,47 @@ internal sealed partial class NotePage : Page
     }
   }
 
-  private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e) => ViewModel.ShowImageCommand?.Execute();
+  public void LoadImages()
+  {
+    ImageCollectionViewModel.SetImages(ViewModel.Note.Images);
+
+    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels!.Count > 0;
+
+    ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
+    ImageCollectionViewModel.ImageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
+  }
+
+  private void ImageViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateNoteImagePaths();
+
+  private void UpdateNoteImagePaths()
+  {
+    if (ImageCollectionViewModel.ImageViewModels is null)
+      return;
+
+    ViewModel.Note.Images = [.. ImageCollectionViewModel.ImageViewModels.Select(vm => vm.ImageDescriptor)];
+    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels.Count > 0;
+  }
+  private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
+    {
+      ImageCollectionViewModel.ShowImageCommand?.Execute(imageViewModel);
+    }
+  }
 
   private void NotePage_DeleteImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    if(sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
+    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
-      ViewModel.DeleteImageCommand?.Execute(imageViewModel);
+      ImageCollectionViewModel.DeleteImageCommand?.Execute(imageViewModel);
+    }
+  }
+
+  private void NotePage_UserImage_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+  {
+    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
+    {
+      ImageCollectionViewModel.ShowImageCommand?.Execute(imageViewModel);
     }
   }
 }

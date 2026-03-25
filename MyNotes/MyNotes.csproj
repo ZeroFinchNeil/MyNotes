@@ -15,8 +15,10 @@
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Views\Dialogs\SelectNoteParentDialog.xaml" />
+    <None Remove="Views\Media\ImageViewerPage.xaml" />
     <None Remove="Views\Navigations\BookmarksPage.xaml" />
     <None Remove="Views\Navigations\TrashPage.xaml" />
+    <None Remove="Views\Windows\ImageViewerWindow.xaml" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="AppIcon.ico" />
@@ -49,6 +51,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Page Update="Views\Windows\ImageViewerWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
     <Page Update="Views\Dialogs\SelectNoteParentDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -62,6 +70,12 @@
 
   <ItemGroup>
     <Page Update="Views\Navigations\BookmarksPage.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="Views\Media\ImageViewerPage.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
