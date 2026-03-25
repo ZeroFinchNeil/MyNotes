@@ -234,7 +234,7 @@ internal sealed partial class NotePage : Page
     {
       NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
     }
-    ViewModel.ImagePanelMaxHeight = this.ActualHeight * 0.5;
+    ViewModel.ImagePanelMaxHeight = Math.Min(this.ActualHeight * 0.5, 512 * this.XamlRoot.RasterizationScale);
   }
 
   private IntPtr _oldWndProc = IntPtr.Zero;

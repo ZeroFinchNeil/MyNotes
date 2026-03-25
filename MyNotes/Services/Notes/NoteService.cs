@@ -103,124 +103,13 @@ internal sealed partial class NoteService : IDisposable
     }
     return result;
   }
+
+  public Task CommitSearchIndexAsync() => SearchService.CommitAsync();
 }
 
+#region Create (Add)
 internal sealed partial class NoteService : IDisposable
 {
-  private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
-
-  private Note NoteEntityToNote(NoteEntity e)
-  {
-    NoteId noteId = NoteId.Create(e.Id);
-    if (NoteCache.TryGetValue(noteId, out var wr)
-        && wr.TryGetTarget(out var existingNote))
-    {
-      return existingNote;
-    }
-    else
-    {
-      List<ImageDescriptor>? images = null;
-      try
-      {
-        images = JsonSerializer.Deserialize<List<ImageDescriptor>>(e.Images);
-      }
-      catch
-      { }
-      images ??= new();
-
-      Note note = new()
-      {
-        Id = noteId,
-        NavigationId = NavigationId.GetOrCreate(e.Parent),
-        Created = e.Created,
-        Title = e.Title,
-        Body = e.Body,
-        BackgroundColor = e.BackgroundColor.ToColor(),
-        ShowBackgroundImage = e.ShowBackgroundImage,
-        BackgroundImagePath = e.BackgroundImagePath,
-        BackgroundImageOpacity = e.BackgroundImageOpacity,
-        BackgroundImageBlur = e.BackgroundImageBlur,
-        BackdropKind = (BackdropKind)e.BackdropKind,
-        BackdropTintOpacity = e.BackdropTintOpacity,
-        BackdropLuminosityOpacity = e.BackdropLuminosityOpacity,
-        Images = [.. images],
-        ShowImagePanel = e.ShowImagePanel,
-        ImagePanelHeight = e.ImagePanelHeight,
-        Size = new SizeInt32(e.Width, e.Height),
-        Position = new PointInt32(e.PositionX, e.PositionY),
-        IsBookmarked = e.IsBookmarked,
-        IsDeleted = e.IsDeleted,
-        IsWindowOpen = e.IsWindowOpen,
-        IsAlwaysOnTop = e.IsAlwaysOnTop
-      };
-      NoteCache[noteId] = new WeakReference<Note>(note);
-      return note;
-    }
-  }
-
-  /// <summary>
-  /// 지정한 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
-  /// </summary>
-  /// <param name="noteId">검색하려는 노트의 NoteId입니다.</param>
-  public async Task<Note?> FindNoteAsync(NoteId noteId)
-  {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    return (await context.NoteEntities.FindAsync(noteId.Value)) is NoteEntity e ? NoteEntityToNote(e) : null;
-  }
-
-  /// <summary>
-  /// 입력한 조건에 맞는 모든 노트들을 데이터베이스에서 비동기적으로 검색합니다.
-  /// </summary>
-  /// <param name="predicate">NoteEntity가 원하는 조건에 해당하면 true를 반환하는 predicate입니다.</param>
-  public async Task<IReadOnlyList<Note>> GetNotesAsync(Func<NoteEntity, bool> predicate)
-  {
-    List<Note> notes;
-
-    await using (var context = await DbContextFactory.CreateDbContextAsync())
-    {
-      notes = [.. context.NoteEntities
-        .Where(predicate)
-        .Select(NoteEntityToNote)];
-    }
-    return notes;
-  }
-
-  /// <summary>
-  /// <para>노트 엔티티를 주어진 액션에 따라 데이터베이스에 비동기 업데이트합니다. 데이터베이스에 일치하는 id를 가진 엔티티가 없으면 액션이 실행되지 않고 변경사항이 저장되지 않습니다.</para>
-  /// <para>Asynchronously updates a note entity in the database by applying a specified action to it. If no entity with the specified note id exists, the action is not invoked and no changes are made.</para>
-  /// </summary>
-  /// <param name="action">
-  /// <para>일치하는 노트 엔티티에서 수행해야 할 업데이트를 포함한 액션입니다.</para>
-  /// <para>An action to perform on the found note entity.</para>
-  /// </param>
-  public Task UpdateNoteEntityAsync(Note note, Action<NoteEntity> action) => UpdateNoteEntityAsync(note.Id, action);
-
-  public async Task UpdateNoteEntityAsync(NoteId noteId, Action<NoteEntity> action)
-  {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    if (await context.NoteEntities.FindAsync(noteId.Value) is NoteEntity entity)
-    {
-      action.Invoke(entity);
-      await context.SaveChangesAsync();
-    }
-  }
-
-  public async Task UpdateNoteSearchEntityAsync(Note note)
-  {
-    NoteSearchEntity entity = new()
-    {
-      Id = note.Id.Value,
-      Title = note.Title,
-      Body = note.BodyPlainText
-    };
-    await SearchService.WriteNoteIndexAsync(entity);
-  }
-
-  public async Task CommitSearchIndexAsync()
-  {
-    await SearchService.CommitAsync();
-  }
-
   /// <summary>
   /// <para>새 노트를 생성하고 데이터베이스에 비동기적으로 추가합니다. 노트는 기본 설정으로 초기화되며, 가능한 경우 현재 포커스가 있는 창을 기준으로 위치가 지정됩니다. 노트는 생성 후 검색을 위해 색인화됩니다.</para>
   /// <para>Creates a new note and adds it to the database asynchronously. The note is initialized with default settings and positioned based on the currently focused window, if available. The note is indexed for search after creation.</para> 
@@ -240,28 +129,7 @@ internal sealed partial class NoteService : IDisposable
 
     NavigationId navigationId = navigation?.Id ?? NavigationId.Empty;
 
-    Note note = new()
-    {
-      Id = noteId,
-      NavigationId = navigationId,
-      Created = DateTimeOffset.UtcNow,
-      BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
-      ShowBackgroundImage = false,
-      BackgroundImagePath = null,
-      BackgroundImageOpacity = 1.0,
-      BackgroundImageBlur = 0.0,
-      BackdropKind = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
-      BackdropTintOpacity = 0.5,
-      BackdropLuminosityOpacity = 0.0,
-      Images = [],
-      ShowImagePanel = true,
-      ImagePanelHeight = 180.0,
-      Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32,
-      IsBookmarked = false,
-      IsDeleted = false,
-      IsWindowOpen = false,
-      IsAlwaysOnTop = false,
-    };
+    Note note = CreateDefaultNote(noteId, navigationId);
 
     if (WindowService.TryGetFocusedWindow(out var focusedWindow, out var hWnd)
       && NativeMethods.GetMonitorInfoForWindow(hWnd) is NativeMethods.MONITORINFOEX monitorInfo)
@@ -270,70 +138,286 @@ internal sealed partial class NoteService : IDisposable
       int monitorWidth = rect.Right - rect.Left;
       int monitorHeight = rect.Bottom - rect.Top;
       int padding = 10;
-      Range h1 = new(rect.Left + padding, rect.Left + (monitorWidth - note.Size.Width) / 2);
-      //Range h2 = new(rect.Right - (monitorWidth + note.Size.Width) / 2, rect.Right - padding);
-      Range v1 = new(rect.Top + padding, rect.Top + (monitorHeight - note.Size.Height) / 2);
-      //Range v2 = new(rect.Bottom - (monitorHeight + note.Size.Height) / 2, rect.Bottom - padding);
+      Range horizontal = new(rect.Left + padding, rect.Left + (monitorWidth - note.Size.Width) / 2);
+      Range vertical = new(rect.Top + padding, rect.Top + (monitorHeight - note.Size.Height) / 2);
 
       Random random = new();
-      int positionX = h1.Start.Value < h1.End.Value ? random.Next(h1.Start.Value, h1.End.Value) : h1.Start.Value;
-      int positionY = v1.Start.Value < v1.End.Value ? random.Next(v1.Start.Value, v1.End.Value) : v1.Start.Value;
+      int positionX = horizontal.Start.Value < horizontal.End.Value ? random.Next(horizontal.Start.Value, horizontal.End.Value) : horizontal.Start.Value;
+      int positionY = vertical.Start.Value < vertical.End.Value ? random.Next(vertical.Start.Value, vertical.End.Value) : vertical.Start.Value;
+
       note.Position = new PointInt32(positionX, positionY);
     }
 
-    NoteEntity entity = new()
-    {
-      Id = note.Id.Value,
-      Parent = note.NavigationId.Value,
-      Created = note.Created,
-      Modified = note.Modified,
-      Title = note.Title,
-      Body = note.Body,
-      BackgroundColor = note.BackgroundColor.ToString(),
-      ShowBackgroundImage = note.ShowBackgroundImage,
-      BackgroundImagePath = note.BackgroundImagePath,
-      BackgroundImageOpacity = note.BackgroundImageOpacity,
-      BackgroundImageBlur = note.BackgroundImageBlur,
-      BackdropKind = (int)note.BackdropKind,
-      BackdropTintOpacity = note.BackdropTintOpacity,
-      BackdropLuminosityOpacity = note.BackdropLuminosityOpacity,
-      Images = AppStrings.JsonEmptyArray,
-      ShowImagePanel = note.ShowImagePanel,
-      ImagePanelHeight = note.ImagePanelHeight,
-      Width = note.Size.Width,
-      Height = note.Size.Height,
-      PositionX = note.Position.X,
-      PositionY = note.Position.Y,
-      IsBookmarked = note.IsBookmarked,
-      IsDeleted = note.IsDeleted,
-      IsWindowOpen = note.IsWindowOpen,
-      IsAlwaysOnTop = note.IsAlwaysOnTop
-    };
+    NoteDbContextEntity entity = NoteToDbContextEntity(note);
 
     context.NoteEntities.Add(entity);
     await context.SaveChangesAsync();
 
-    NoteSearchEntity searchEntity = new()
-    {
-      Id = note.Id.Value,
-      Title = note.Title,
-      Body = note.BodyPlainText
-    };
+    NoteSearchEntity searchEntity = NoteToSearchEntity(note);
     await SearchService.WriteNoteIndexAsync(searchEntity);
 
     return note;
   }
+}
+#endregion
 
-  public async Task<bool> DeleteNotePermanentlyAsync(NoteId noteId)
+#region Read (Get and Find)
+internal sealed partial class NoteService : IDisposable
+{
+  /// <summary>
+  /// 지정한 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
+  /// </summary>
+  /// <param name="noteId">검색하려는 노트의 NoteId입니다.</param>
+  public async Task<Note?> FindNoteAsync(NoteId noteId)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    return (await context.NoteEntities.FindAsync(noteId.Value)) is NoteDbContextEntity e ? DbContextEntityToNote(e) : null;
+  }
+
+  /// <summary>
+  /// 입력한 조건에 맞는 모든 노트들을 데이터베이스에서 비동기적으로 검색합니다.
+  /// </summary>
+  /// <param name="predicate">NoteEntity가 원하는 조건에 해당하면 true를 반환하는 predicate입니다.</param>
+  public async Task<IReadOnlyList<Note>> GetNotesAsync(Func<NoteDbContextEntity, bool> predicate)
+  {
+    List<Note> notes;
+
+    await using (var context = await DbContextFactory.CreateDbContextAsync())
+    {
+      notes = [.. context.NoteEntities
+        .Where(predicate)
+        .Select(DbContextEntityToNote)];
+    }
+    return notes;
+  }
+}
+#endregion
+
+#region Update
+internal sealed partial class NoteService : IDisposable
+{
+  /// <summary>
+  /// <para>노트 엔티티를 주어진 액션에 따라 데이터베이스에 비동기 업데이트합니다. 데이터베이스에 일치하는 id를 가진 엔티티가 없으면 액션이 실행되지 않고 변경사항이 저장되지 않습니다.</para>
+  /// <para>Asynchronously updates a note entity in the database by applying a specified action to it. If no entity with the specified note id exists, the action is not invoked and no changes are made.</para>
+  /// </summary>
+  /// <param name="action">
+  /// <para>일치하는 노트 엔티티에서 수행해야 할 업데이트를 포함한 액션입니다.</para>
+  /// <para>An action to perform on the found note entity.</para>
+  /// </param>
+  private async Task UpdateDbContextEntityAsync(Note note, Action<NoteDbContextEntity> action)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    if (await context.NoteEntities.FindAsync(note.Id.Value) is NoteDbContextEntity entity)
+    {
+      action.Invoke(entity);
+      await context.SaveChangesAsync();
+    }
+  }
+
+  private Task UpdateSearchEntityAsync(Note note) => SearchService.WriteNoteIndexAsync(NoteToSearchEntity(note));
+
+  public async Task UpdateNoteEntityAsync(Note note, IEnumerable<string> changedNoteProperties)
+  {
+    changedNoteProperties = changedNoteProperties.Distinct();
+    Action<NoteDbContextEntity>? dbActions = null;
+    bool _updateNoteSearchIndex = false;
+    foreach (var propertyName in changedNoteProperties)
+    {
+      if (_notePropertyToDbContextEntityActions.TryGetValue(propertyName, out var dbAction))
+      {
+        dbActions += dbAction(note);
+      }
+      if (_notePropertyToNoteSearchEntity.Contains(propertyName))
+        _updateNoteSearchIndex = true;
+    }
+
+    if (dbActions is not null)
+    {
+      await UpdateDbContextEntityAsync(note, dbActions);
+    }
+
+    if (_updateNoteSearchIndex)
+    {
+      await UpdateSearchEntityAsync(note);
+    }
+  }
+}
+#endregion
+
+#region Delete
+internal sealed partial class NoteService : IDisposable
+{
+  private async Task<bool> DeleteDbContextEntityAsync(NoteId noteId)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync();
     var entity = await context.NoteEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value);
     if (entity is not null)
     {
       context.NoteEntities.Remove(entity);
-      await SearchService.DeleteNoteIndexAsync(noteId.Value);
       return await context.SaveChangesAsync() > 0;
     }
     return false;
   }
+
+  private Task DeleteSearchEntityAsync(NoteId noteId) => SearchService.DeleteNoteIndexAsync(noteId.Value);
+
+  public async Task<bool> DeleteNotePermanentlyAsync(NoteId noteId)
+  {
+    await DeleteSearchEntityAsync(noteId);
+    return await DeleteDbContextEntityAsync(noteId);
+  }
 }
+#endregion
+
+#region Cache and Mapper
+internal sealed partial class NoteService : IDisposable
+{
+  private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
+
+  /// <summary>
+  /// <para>노트 속성과 데이터베이스 노트 엔티티의 해당 속성을 업데이트하는 작업 간의 매핑을 제공합니다. 이 딕셔너리는 'Note' 객체와 데이터베이스의 'NoteEntity' 표현 간의 효율적인 동기화를 가능하게 합니다. 각 항목은 'Note' 클래스의 속성 이름과 해당 'Note' 객체가 주어졌을 때 'NoteEntity'의 관련 속성을 업데이트하는 작업을 반환하는 함수를 연결합니다. 이 매핑은 불변이므로 스레드 안전성을 보장하고 의도치 않은 수정을 방지합니다.</para>
+  /// <para>Provides a mapping of note property names to actions that update corresponding properties on a database entity. This dictionary enables efficient synchronization between 'Note' objects and their associated 'NoteEntity' representations in the database. Each entry associates a property name from the 'Note' class with a  function that, given a 'Note', returns an action to update the relevant property on a 'NoteEntity'. The mapping is  immutable, ensuring thread safety and preventing accidental modification.</para>
+  /// </summary>
+  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteDbContextEntity>>> _notePropertyToDbContextEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteDbContextEntity>>>()
+  {
+    { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
+    { nameof(Note.Modified), note => e => e.Modified = note.Modified },
+    { nameof(Note.Title), note => e => e.Title = note.Title },
+    { nameof(Note.Body), note => e => e.Body = note.Body },
+    { nameof(Note.BackgroundColor), note => e => e.BackgroundColor = note.BackgroundColor.ToString() },
+    { nameof(Note.ShowBackgroundImage), note => e => e.ShowBackgroundImage = note.ShowBackgroundImage },
+    { nameof(Note.BackgroundImagePath), note => e => e.BackgroundImagePath = note.BackgroundImagePath },
+    { nameof(Note.BackgroundImageOpacity), note => e => e.BackgroundImageOpacity = note.BackgroundImageOpacity },
+    { nameof(Note.BackgroundImageBlur), note => e => e.BackgroundImageBlur = note.BackgroundImageBlur },
+    { nameof(Note.BackdropKind), note => e => e.BackdropKind = (int)note.BackdropKind },
+    { nameof(Note.BackdropTintOpacity), note => e => e.BackdropTintOpacity = Math.Round(note.BackdropTintOpacity, 2) },
+    { nameof(Note.BackdropLuminosityOpacity), note => e => e.BackdropLuminosityOpacity = Math.Round(note.BackdropLuminosityOpacity, 2) },
+    { nameof(Note.Images), note => e => e.Images = JsonSerializer.Serialize(note.Images, AppJson.JsonSerializerOptions) },
+    { nameof(Note.ShowImagePanel), note => e => e.ShowImagePanel = note.ShowImagePanel },
+    { nameof(Note.ImagePanelHeight), note => e => e.ImagePanelHeight = Math.Round(note.ImagePanelHeight, 2) },
+    { nameof(Note.Size), note => e =>
+      {
+        e.Width = note.Size.Width;
+        e.Height = note.Size.Height;
+      }
+    },
+    { nameof(Note.Position), note => e =>
+      {
+        e.PositionX = note.Position.X;
+        e.PositionY = note.Position.Y;
+      }
+    },
+    { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
+    { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
+    { nameof(Note.IsWindowOpen), note => e => e.IsWindowOpen = note.IsWindowOpen },
+    { nameof(Note.IsAlwaysOnTop), note => e => e.IsAlwaysOnTop = note.IsAlwaysOnTop }
+  });
+  private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];
+
+  private Note DbContextEntityToNote(NoteDbContextEntity e)
+  {
+    NoteId noteId = NoteId.Create(e.Id);
+    if (NoteCache.TryGetValue(noteId, out var wr)
+        && wr.TryGetTarget(out var existingNote))
+    {
+      return existingNote;
+    }
+
+    List<ImageDescriptor>? images = null;
+    try
+    {
+      images = JsonSerializer.Deserialize<List<ImageDescriptor>>(e.Images);
+    }
+    catch
+    { }
+    images ??= new();
+
+    Note note = new()
+    {
+      Id = noteId,
+      NavigationId = NavigationId.GetOrCreate(e.Parent),
+      Created = e.Created,
+      Title = e.Title,
+      Body = e.Body,
+      BackgroundColor = e.BackgroundColor.ToColor(),
+      ShowBackgroundImage = e.ShowBackgroundImage,
+      BackgroundImagePath = e.BackgroundImagePath,
+      BackgroundImageOpacity = e.BackgroundImageOpacity,
+      BackgroundImageBlur = e.BackgroundImageBlur,
+      BackdropKind = (BackdropKind)e.BackdropKind,
+      BackdropTintOpacity = e.BackdropTintOpacity,
+      BackdropLuminosityOpacity = e.BackdropLuminosityOpacity,
+      Images = [.. images],
+      ShowImagePanel = e.ShowImagePanel,
+      ImagePanelHeight = e.ImagePanelHeight,
+      Size = new SizeInt32(e.Width, e.Height),
+      Position = new PointInt32(e.PositionX, e.PositionY),
+      IsBookmarked = e.IsBookmarked,
+      IsDeleted = e.IsDeleted,
+      IsWindowOpen = e.IsWindowOpen,
+      IsAlwaysOnTop = e.IsAlwaysOnTop
+    };
+    NoteCache[noteId] = new WeakReference<Note>(note);
+    return note;
+  }
+
+  private static NoteDbContextEntity NoteToDbContextEntity(Note note) => new()
+  {
+    Id = note.Id.Value,
+    Parent = note.NavigationId.Value,
+    Created = note.Created,
+    Modified = note.Modified,
+    Title = note.Title,
+    Body = note.Body,
+    BackgroundColor = note.BackgroundColor.ToString(),
+    ShowBackgroundImage = note.ShowBackgroundImage,
+    BackgroundImagePath = note.BackgroundImagePath,
+    BackgroundImageOpacity = note.BackgroundImageOpacity,
+    BackgroundImageBlur = note.BackgroundImageBlur,
+    BackdropKind = (int)note.BackdropKind,
+    BackdropTintOpacity = note.BackdropTintOpacity,
+    BackdropLuminosityOpacity = note.BackdropLuminosityOpacity,
+    Images = JsonSerializer.Serialize(note.Images, AppJson.JsonSerializerOptions),
+    ShowImagePanel = note.ShowImagePanel,
+    ImagePanelHeight = note.ImagePanelHeight,
+    Width = note.Size.Width,
+    Height = note.Size.Height,
+    PositionX = note.Position.X,
+    PositionY = note.Position.Y,
+    IsBookmarked = note.IsBookmarked,
+    IsDeleted = note.IsDeleted,
+    IsWindowOpen = note.IsWindowOpen,
+    IsAlwaysOnTop = note.IsAlwaysOnTop
+  };
+
+  private static NoteSearchEntity NoteToSearchEntity(Note note) => new()
+  {
+    Id = note.Id.Value,
+    Title = note.Title,
+    Body = note.BodyPlainText
+  };
+
+  private Note CreateDefaultNote(NoteId noteId, NavigationId navigationId) => new()
+  {
+    Id = noteId,
+    NavigationId = navigationId,
+    Created = DateTimeOffset.UtcNow,
+    BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground).ToColor(),
+    ShowBackgroundImage = false,
+    BackgroundImagePath = null,
+    BackgroundImageOpacity = 1.0,
+    BackgroundImageBlur = 0.0,
+    BackdropKind = (BackdropKind)SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
+    BackdropTintOpacity = 0.5,
+    BackdropLuminosityOpacity = 0.0,
+    Images = [],
+    ShowImagePanel = true,
+    ImagePanelHeight = 180.0,
+    Size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32,
+    IsBookmarked = false,
+    IsDeleted = false,
+    IsWindowOpen = false,
+    IsAlwaysOnTop = false,
+  };
+}
+#endregion

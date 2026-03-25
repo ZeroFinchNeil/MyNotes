@@ -93,7 +93,7 @@ internal sealed class NoteCommandService : ICommandService
           return;
 
         sourceNote.NavigationId = newNavigationId;
-        await NoteService.UpdateNoteEntityAsync(sourceNote, entity => entity.Parent = newNavigationId.Value);
+        await NoteService.UpdateNoteEntityAsync(sourceNote, [nameof(Note.NavigationId)]);
 
         if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
             && s is UserLeafNavigationViewModel sourceViewModel

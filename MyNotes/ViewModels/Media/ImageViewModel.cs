@@ -21,7 +21,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
     Image = new()
     {
       UriSource = new Uri(ImageDescriptor.FilePath),
-      DecodePixelType = DecodePixelType.Logical
+      DecodePixelType = DecodePixelType.Logical,
+      DecodePixelHeight = 1024
     };
     Image.ImageFailed += Image_ImageFailed;
   }

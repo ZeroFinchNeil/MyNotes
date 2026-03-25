@@ -70,47 +70,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
   #endregion
 
   #region Note 내부 속성 변경 시 데이터베이스에 반영 및 기타 로직 실행
-  /// <summary>
-  /// <para>노트 속성과 데이터베이스 노트 엔티티의 해당 속성을 업데이트하는 작업 간의 매핑을 제공합니다. 이 딕셔너리는 'Note' 객체와 데이터베이스의 'NoteEntity' 표현 간의 효율적인 동기화를 가능하게 합니다. 각 항목은 'Note' 클래스의 속성 이름과 해당 'Note' 객체가 주어졌을 때 'NoteEntity'의 관련 속성을 업데이트하는 작업을 반환하는 함수를 연결합니다. 이 매핑은 불변이므로 스레드 안전성을 보장하고 의도치 않은 수정을 방지합니다.</para>
-  /// <para>Provides a mapping of note property names to actions that update corresponding properties on a database entity. This dictionary enables efficient synchronization between 'Note' objects and their associated 'NoteEntity' representations in the database. Each entry associates a property name from the 'Note' class with a  function that, given a 'Note', returns an action to update the relevant property on a 'NoteEntity'. The mapping is  immutable, ensuring thread safety and preventing accidental modification.</para>
-  /// </summary>
-  private static readonly ImmutableDictionary<string, Func<Note, Action<NoteEntity>>> _notePropertyToDbContextEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<Note, Action<NoteEntity>>>()
-  {
-    { nameof(Note.NavigationId), note => e => e.Parent = note.NavigationId.Value },
-    { nameof(Note.Modified), note => e => e.Modified = note.Modified },
-    { nameof(Note.Title), note => e => e.Title = note.Title },
-    { nameof(Note.Body), note => e => e.Body = note.Body },
-    { nameof(Note.BackgroundColor), note => e => e.BackgroundColor = note.BackgroundColor.ToString() },
-    { nameof(Note.ShowBackgroundImage), note => e => e.ShowBackgroundImage = note.ShowBackgroundImage },
-    { nameof(Note.BackgroundImagePath), note => e => e.BackgroundImagePath = note.BackgroundImagePath },
-    { nameof(Note.BackgroundImageOpacity), note => e => e.BackgroundImageOpacity = note.BackgroundImageOpacity },
-    { nameof(Note.BackgroundImageBlur), note => e => e.BackgroundImageBlur = note.BackgroundImageBlur },
-    { nameof(Note.BackdropKind), note => e => e.BackdropKind = (int)note.BackdropKind },
-    { nameof(Note.BackdropTintOpacity), note => e => e.BackdropTintOpacity = Math.Round(note.BackdropTintOpacity, 2) },
-    { nameof(Note.BackdropLuminosityOpacity), note => e => e.BackdropLuminosityOpacity = Math.Round(note.BackdropLuminosityOpacity, 2) },
-    { nameof(Note.Images), note => e => e.Images = JsonSerializer.Serialize(note.Images, AppJson.JsonSerializerOptions) },
-    { nameof(Note.ShowImagePanel), note => e => e.ShowImagePanel = note.ShowImagePanel },
-    { nameof(Note.ImagePanelHeight), note => e => e.ImagePanelHeight = Math.Round(note.ImagePanelHeight, 2) },
-    { nameof(Note.Size), note => e =>
-      {
-        e.Width = note.Size.Width;
-        e.Height = note.Size.Height;
-      }
-    },
-    { nameof(Note.Position), note => e =>
-      {
-        e.PositionX = note.Position.X;
-        e.PositionY = note.Position.Y;
-      }
-    },
-    { nameof(Note.IsBookmarked), note => e => e.IsBookmarked = note.IsBookmarked },
-    { nameof(Note.IsDeleted), note => e => e.IsDeleted = note.IsDeleted },
-    { nameof(Note.IsWindowOpen), note => e => e.IsWindowOpen = note.IsWindowOpen },
-    { nameof(Note.IsAlwaysOnTop), note => e => e.IsAlwaysOnTop = note.IsAlwaysOnTop }
-  });
-
-  private static readonly ImmutableHashSet<string> _notePropertyToNoteSearchEntity = [nameof(Note.Title), nameof(Note.BodyPlainText)];
-
   private readonly HashSet<string> _changedNoteProperties = new();
 
   private static readonly double _notePropertyDebounceTimerInterval = 500;
@@ -180,28 +139,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public async Task UpdateNoteEntity()
   {
-    Action<NoteEntity>? dbActions = null;
-    bool _updateNoteSearchIndex = false;
-    foreach (var propertyName in _changedNoteProperties)
-    {
-      if (_notePropertyToDbContextEntityActions.TryGetValue(propertyName, out var dbAction))
-      {
-        dbActions += dbAction(Note);
-      }
-      if (_notePropertyToNoteSearchEntity.Contains(propertyName))
-        _updateNoteSearchIndex = true;
-    }
-
-    if (dbActions is not null)
-    {
-      await NoteService.UpdateNoteEntityAsync(Note, dbActions);
-    }
-
-    if (_updateNoteSearchIndex)
-    {
-      await NoteService.UpdateNoteSearchEntityAsync(Note);
-    }
-
+    await NoteService.UpdateNoteEntityAsync(Note, _changedNoteProperties);
     _changedNoteProperties.Clear();
   }
   #endregion

@@ -18,7 +18,7 @@ internal sealed class AppDbContext(AppDbContextTaskDispatcher channelService) : 
   public DbSet<NavigationEntity> NavigationEntities => Set<NavigationEntity>();
 
   /// <summary>노트 DB 엔티티</summary>
-  public DbSet<NoteEntity> NoteEntities => Set<NoteEntity>();
+  public DbSet<NoteDbContextEntity> NoteEntities => Set<NoteDbContextEntity>();
 
   private readonly AppDbContextTaskDispatcher _channelService = channelService;
 

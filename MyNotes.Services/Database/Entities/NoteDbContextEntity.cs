@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyNotes.Services.Database.Entities;
 
-internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
+internal sealed class NoteDbContextEntity : IDatabaseEntity<NoteDbContextEntity>
 {
   [Key]
   public required Guid Id { get; init; }
@@ -56,8 +56,8 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
 
   public required bool IsAlwaysOnTop { get; set; }
 
-  public bool Equals(NoteEntity? other) => other is not null && other.Id == Id;
+  public bool Equals(NoteDbContextEntity? other) => other is not null && other.Id == Id;
 
-  public override bool Equals(object? obj) => this.Equals(obj as NoteEntity);
+  public override bool Equals(object? obj) => this.Equals(obj as NoteDbContextEntity);
   public override int GetHashCode() => Id.GetHashCode();
 }
