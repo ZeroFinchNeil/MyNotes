@@ -7,6 +7,7 @@ using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Logging;
+using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
 
 using WinRT.Interop;
@@ -191,7 +192,7 @@ internal sealed class WindowService
   #region ImageViewer Window
   private WeakReference<ImageViewerWindow>? _imageViewerWindow;
 
-  public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(IEnumerable<ImageDescriptor> images, ImageDescriptor selectedImage)
+  public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(ImageCollectionKey key)
   {
     if (_imageViewerWindow is not null
         && _imageViewerWindow.TryGetTarget(out var imageViewerWindow))
@@ -207,7 +208,7 @@ internal sealed class WindowService
       }
     }
 
-    ImageViewerWindow newWindow = new();
+    ImageViewerWindow newWindow = new(key);
     _imageViewerWindow = new(newWindow);
     return newWindow;
   }

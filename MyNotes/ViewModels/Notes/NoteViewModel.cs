@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
@@ -15,7 +13,6 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.App;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Notes;
 using MyNotes.Templates.Media;
 

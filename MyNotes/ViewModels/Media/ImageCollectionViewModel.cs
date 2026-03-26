@@ -18,43 +18,30 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private readonly ImageViewModelProvider ImageViewModelProvider;
   private readonly WindowService WindowService;
 
+  private ImageCollectionKey ImageCollectionKey { get; }
+
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, WindowService windowService)
+  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, WindowService windowService, ImageCollectionKey imageCollectionKey)
   {
     ImageViewModelProvider = imageViewModelProvider;
     WindowService = windowService;
 
+    ImageCollectionKey = imageCollectionKey;
+
+    ImageViewModels = ImageCollectionKey.CollectionReference.TryGetTarget(out var collection) ? collection : new();
     SetCommands();
   }
   #endregion
 
   [ObservableProperty]
-  public partial ObservableCollection<ImageViewModel>? ImageViewModels { get; private set; }
+  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; }
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
 
-  public void SetImages(IEnumerable<ImageDescriptor> descriptors)
-  {
-    ImageViewModels = new();
-    foreach (var descriptor in descriptors)
-    {
-      if (ImageViewModelProvider.Resolve(descriptor) is ImageViewModel imageViewModel)
-      {
-        Console.WriteLine("{0}: {1}", "imageViewModel", imageViewModel.ImageDescriptor.FileName);
-        ImageViewModels.Add(imageViewModel);
-      }
-    }
-  }
-
-  public void SetImages(ObservableCollection<ImageViewModel> imageViewModels)
-  {
-    ImageViewModels = imageViewModels;
-  }
-
   public void NavigateImage(ImageViewModel selection)
   {
-    if (ImageViewModels is not null && ImageViewModels.Contains(selection))
+    if (ImageViewModels.Contains(selection))
     {
       SelectedImage = selection;
     }
@@ -103,7 +90,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
               ImageDescriptor imageDescriptor = new() { FileName = System.IO.Path.GetFileName(copiedFile.Path) };
               if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
               {
-                ImageViewModels?.Add(imageViewModel);
+                ImageViewModels.Add(imageViewModel);
               }
             }
             catch (Exception e)
@@ -119,11 +106,9 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ActionToExecute = async (imageViewModel) =>
       {
-        if (ImageViewModels is not null)
-        {
-          var imageViewerWindow = await WindowService.GetOrCreateImageViewerWindow(ImageViewModels.Select(vm => vm.ImageDescriptor), imageViewModel.ImageDescriptor);
-          imageViewerWindow.Activate();
-        }
+        var imageViewerWindow = await WindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
+        imageViewerWindow.Activate();
+        NavigateImage(imageViewModel);
       }
     };
 

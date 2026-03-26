@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Navigation;
 
 using MyNotes.Models.Media;
 using MyNotes.ViewModels.Media;
+using MyNotes.ViewModels.Media.Providers;
 
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -25,9 +26,10 @@ internal sealed partial class ImageViewerPage : Page
 {
   private readonly ImageCollectionViewModel ViewModel;
 
-  public ImageViewerPage()
+  public ImageViewerPage(ImageCollectionKey imageCollectionKey)
   {
     InitializeComponent();
-    ViewModel = App.Services.GetRequiredService<ImageCollectionViewModel>();
+    var provider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
+    ViewModel = provider.Resolve(imageCollectionKey);
   }
 }

@@ -6,7 +6,7 @@
       xmlns:mediavm="using:MyNotes.ViewModels.Media">
 
   <Grid Background="#202020">
-    <FlipView ItemsSource="{x:Bind ViewModel.ImageViewModels, Mode=OneWay}"
+    <FlipView ItemsSource="{x:Bind ViewModel.ImageViewModels}"
               SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
               Background="Transparent">
       <FlipView.ItemContainerStyle>

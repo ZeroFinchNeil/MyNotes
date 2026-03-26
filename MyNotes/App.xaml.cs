@@ -134,7 +134,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<NoteListViewModelProvider>();
 
     services.AddSingleton<ImageViewModelProvider>();
-    services.AddTransient<ImageCollectionViewModel>();
+    services.AddSingleton<ImageCollectionViewModelProvider>();
 
     // Service
     services.AddSingleton<WindowService>();

@@ -11,7 +11,6 @@ using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Debugging;
 using MyNotes.Helpers;
-using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
@@ -20,6 +19,7 @@ using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Media;
+using MyNotes.ViewModels.Media.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Windows;
@@ -51,9 +51,18 @@ internal sealed partial class NotePage : Page
 
     var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
     var editorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    var imageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ViewModel = noteViewModelProvider.Resolve(note);
     EditorViewModel = editorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
-    ImageCollectionViewModel = App.Services.GetRequiredService<ImageCollectionViewModel>();
+
+    var imageViewModelProvider = App.Services.GetRequiredService<ImageViewModelProvider>();
+    ObservableCollection<ImageViewModel> imageViewModels = [.. ViewModel.Note.Images.Select(imageViewModelProvider.Resolve)];
+    ImageCollectionKey imageCollectionKey = new() { Key = note.Id.Value, CollectionReference = new(imageViewModels) };
+    ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
+    imageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
+    imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
+
+    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(imageCollectionKey);
     SettingsService = App.Services.GetRequiredService<SettingsService>();
     WindowService = App.Services.GetRequiredService<WindowService>();
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
@@ -61,8 +70,6 @@ internal sealed partial class NotePage : Page
     SetEditorText();
 
     ChangeFlyoutTheme((ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme));
-
-    LoadImages();
 
     RegisterMessengers();
 
@@ -397,16 +404,6 @@ internal sealed partial class NotePage : Page
     {
       NotePage_ImagesGridView.Focus(FocusState.Programmatic);
     }
-  }
-
-  public void LoadImages()
-  {
-    ImageCollectionViewModel.SetImages(ViewModel.Note.Images);
-
-    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels!.Count > 0;
-
-    ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
-    ImageCollectionViewModel.ImageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
   }
 
   private void ImageViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateNoteImagePaths();
