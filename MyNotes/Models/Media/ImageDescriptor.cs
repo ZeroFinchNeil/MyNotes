@@ -1,15 +1,27 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Security.Cryptography;
+using System.Text.Json.Serialization;
 
 using MyNotes.AppConstants;
 
 namespace MyNotes.Models.Media;
 
-internal class ImageDescriptor : IEquatable<ImageDescriptor>
+[Debugging.ReferenceTracker]
+internal partial class ImageDescriptor : IEquatable<ImageDescriptor>
 {
+  public static ImageDescriptor Create(string originalFilePath)
+  {
+    byte[] randomBytes = new byte[16];
+    RandomNumberGenerator.Fill(randomBytes);
+    var fileName = System.IO.Path.ChangeExtension(Convert.ToHexStringLower(randomBytes), System.IO.Path.GetExtension(originalFilePath));
+    return new() { FileName = fileName };
+  }
+
+  public ImageDescriptor() { TrackReference(); }
+
   public required string FileName { get; init; }
 
   [JsonIgnore]
-  public string FilePath => System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderPath, FileName);
+  public string FilePath => System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderName, FileName);
 
   public bool Equals(ImageDescriptor? other) => other is not null && this.FileName == other.FileName;
 

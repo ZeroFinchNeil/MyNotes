@@ -1,21 +1,16 @@
-using MyNotes.Debugging;
 using MyNotes.Resources;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class UpdateUserNavigationDialog : ContentDialog
 {
   private readonly EditUserNavigationDialogViewModel ViewModel;
 
   public UpdateUserNavigationDialog(EditUserNavigationDialogViewModel viewmodel)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     ViewModel = viewmodel;
 

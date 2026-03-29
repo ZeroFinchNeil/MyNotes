@@ -1,9 +1,9 @@
-using MyNotes.Debugging;
 using MyNotes.Resources;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class ConfirmDeleteDialog : ContentDialog
 {
   private readonly ConfirmDeleteDialogViewModel ViewModel;
@@ -11,12 +11,7 @@ internal sealed partial class ConfirmDeleteDialog : ContentDialog
   #region #region Object Lifetime Management
   public ConfirmDeleteDialog(ConfirmDeleteDialogViewModel viewmodel)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     ViewModel = viewmodel;
 

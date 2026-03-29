@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.AppConstants;
-using MyNotes.Debugging;
 using MyNotes.ViewModels;
 
 using Windows.System;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class SettingsPage : Page
 {
   private readonly IServiceScope ServiceScope;
@@ -17,13 +17,7 @@ internal sealed partial class SettingsPage : Page
   #region Object Lifetime Management
   public SettingsPage()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
-
+    TrackReference();
     InitializeComponent();
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<SettingsViewModel>();
@@ -65,7 +59,7 @@ internal sealed partial class SettingsPage : Page
 
     bool state = await ViewModel.GetStartupTaskState();
     SettingsPage_General_StartupToggleSwitch.IsOn = state;
-   
+
     if (state)
       VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsNormalState), false);
 

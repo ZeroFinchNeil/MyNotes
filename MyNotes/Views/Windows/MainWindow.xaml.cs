@@ -1,12 +1,10 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Interop;
 using MyNotes.AppConstants;
-using MyNotes.Debugging;
+using MyNotes.Common.Interop;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Settings;
@@ -14,6 +12,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Views.Windows;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class MainWindow : Window
 {
   // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드
@@ -29,12 +28,7 @@ internal sealed partial class MainWindow : Window
   #region Object Lifetime Management
   public MainWindow(NavigationId? _initialNavigationId = null)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     SettingsService = App.Services.GetRequiredService<SettingsService>();
 

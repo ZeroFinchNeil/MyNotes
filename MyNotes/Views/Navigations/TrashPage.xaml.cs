@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -9,6 +8,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 public sealed partial class TrashPage : Page
 {
   private CoreNavigationViewModel? ViewModel;
@@ -17,13 +17,7 @@ public sealed partial class TrashPage : Page
   #region Object Lifetime Management
   public TrashPage()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
-
+    TrackReference();
     InitializeComponent();
     this.Loaded += TrashPage_Loaded;
     this.Unloaded += TrashPage_Unloaded;

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -9,6 +8,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class SearchResultsPage : Page
 {
   private SearchNavigationViewModel? ViewModel;
@@ -17,13 +17,7 @@ internal sealed partial class SearchResultsPage : Page
   #region Object Lifetime Management
   public SearchResultsPage()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
-
+    TrackReference();
     InitializeComponent();
 
     this.Loaded += SearchResultsPage_Loaded;

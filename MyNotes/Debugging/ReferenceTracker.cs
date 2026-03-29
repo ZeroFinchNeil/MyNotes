@@ -1,24 +1,35 @@
-﻿using System.Runtime.CompilerServices;
-
-using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
-using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Notes;
-using MyNotes.Views.Navigations;
-using MyNotes.Views.Notes;
-using MyNotes.Views.Windows;
+﻿using System.Collections.Concurrent;
 
 namespace MyNotes.Debugging;
 
 internal static class ReferenceTracker
 {
-  public static ConditionalWeakTable<Window, object?> WindowReference = new();
-  public static ConditionalWeakTable<Page, object?> PageReference = new();
-  public static ConditionalWeakTable<ViewModelBase, object?> ViewModelReference = new();
+  private static readonly ConcurrentDictionary<Type, ConcurrentBag<WeakReference>> _referenceTable = new();
 
-  public static ConditionalWeakTable<INavigation, object?> NavigationReference = new();
-  public static ConditionalWeakTable<Note, object?> NoteReference = new();
+  public static void Register(object obj)
+  {
+    Type t = obj.GetType();
+    if (_referenceTable.TryGetValue(t, out var references))
+    {
+      references.Add(new WeakReference(obj));
+    }
+    else
+    {
+      _referenceTable[t] = [new WeakReference(obj)];
+    }
+  }
 
-  public static ConditionalWeakTable<FrameworkElement, object?> ElementReference = new();
+  public static IReadOnlyDictionary<Type, IReadOnlyList<object?>> GetAliveReferences()
+  {
+    Dictionary<Type, IReadOnlyList<object?>> table = new();
+    foreach (var key in _referenceTable.Keys)
+    {
+      var references = _referenceTable[key].Where(wr => wr.IsAlive).Select(wr => wr.Target);
+      if (references.Any())
+      {
+        table[key] = [.. references];
+      }
+    }
+    return table;
+  }
 }

@@ -9,7 +9,6 @@ using Microsoft.Windows.Storage.Pickers;
 using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
-using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -17,6 +16,7 @@ using MyNotes.Models.UI;
 using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Notes;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
@@ -30,6 +30,7 @@ using Windows.System;
 
 namespace MyNotes.Views.Notes;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class NotePage : Page
 {
   private readonly NoteViewModel ViewModel;
@@ -41,12 +42,7 @@ internal sealed partial class NotePage : Page
   #region Object Lifetime Management
   internal NotePage(NoteWindow noteWindow, Note note)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
 
     var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
@@ -55,14 +51,12 @@ internal sealed partial class NotePage : Page
     ViewModel = noteViewModelProvider.Resolve(note);
     EditorViewModel = editorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
 
-    var imageViewModelProvider = App.Services.GetRequiredService<ImageViewModelProvider>();
-    ObservableCollection<ImageViewModel> imageViewModels = [.. ViewModel.Note.Images.Select(imageViewModelProvider.Resolve)];
-    ImageCollectionKey imageCollectionKey = new() { Key = note.Id.Value, CollectionReference = new(imageViewModels) };
+    var noteService = App.Services.GetRequiredService<NoteService>();
+    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(noteService.CreateImageCollectionKey(note));
+    var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
-    imageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
 
-    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(imageCollectionKey);
     SettingsService = App.Services.GetRequiredService<SettingsService>();
     WindowService = App.Services.GetRequiredService<WindowService>();
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
@@ -146,7 +140,7 @@ internal sealed partial class NotePage : Page
     EditorViewModel.UpdateEditorBodyText();
     EditorViewModel.Dispose();
 
-    ImageCollectionViewModel.ImageViewModels?.CollectionChanged -= ImageViewModels_CollectionChanged;
+    ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
 
     // 노트 완전 삭제 로직
     bool deleteNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(ViewModel.Note.Title) && string.IsNullOrWhiteSpace(ViewModel.Note.BodyPlainText);

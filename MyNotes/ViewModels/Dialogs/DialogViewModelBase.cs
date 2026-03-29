@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿namespace MyNotes.ViewModels.Dialogs;
 
-namespace MyNotes.ViewModels.Dialogs;
-
-internal abstract class DialogViewModelBase : ViewModelBase
+internal abstract partial class DialogViewModelBase : ViewModelBase
 {
 }

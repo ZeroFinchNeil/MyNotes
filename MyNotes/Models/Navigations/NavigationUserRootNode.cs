@@ -2,6 +2,7 @@
 
 namespace MyNotes.Models.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed class NavigationUserRootNode : NavigationUserCompositeNode
 {
   public static NavigationUserRootNode Instance => field ??= new()

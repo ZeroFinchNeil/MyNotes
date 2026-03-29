@@ -18,5 +18,7 @@ internal static class AppStrings
   public const string JsonEmptyObject = "{}";
   public const string JsonEmptyArray = "[]";
 
-  public const string ImageFolderPath = "Images";
+  public const string ImageFolderName = "Images";
+
+  public static ImmutableList<string> BitmapImageFileTypeFilter { get; } = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".ico"];
 }

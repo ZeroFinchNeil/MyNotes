@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Windows.Storage.Pickers;
 
@@ -38,14 +36,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
-
-  public void NavigateImage(ImageViewModel selection)
-  {
-    if (ImageViewModels.Contains(selection))
-    {
-      SelectedImage = selection;
-    }
-  }
 }
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
@@ -67,27 +57,26 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
           {
             ViewMode = PickerViewMode.Thumbnail
           };
-          picker.FileTypeFilter.Add(".jpg");
-          picker.FileTypeFilter.Add(".jpeg");
-          picker.FileTypeFilter.Add(".png");
-          picker.FileTypeFilter.Add(".bmp");
-          picker.FileTypeFilter.Add(".gif");
-          picker.FileTypeFilter.Add(".tiff");
-          picker.FileTypeFilter.Add(".ico");
+
+          foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
+          {
+            picker.FileTypeFilter.Add(fileType);
+          }
 
           foreach (var result in await picker.PickMultipleFilesAsync())
           {
             try
             {
+              // 원본 이미지 파일 가져오기
               var originalPath = result.Path;
               var originalFile = await StorageFile.GetFileFromPathAsync(originalPath);
-              byte[] randomBytes = new byte[16];
-              RandomNumberGenerator.Fill(randomBytes);
-              var fileName = System.IO.Path.ChangeExtension(Convert.ToHexStringLower(randomBytes), System.IO.Path.GetExtension(result.Path));
 
-              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderPath, CreationCollisionOption.OpenIfExists);
-              var copiedFile = await originalFile.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
-              ImageDescriptor imageDescriptor = new() { FileName = System.IO.Path.GetFileName(copiedFile.Path) };
+              // LocalFolder의 Image 폴더 안에 이미지 파일 복사
+              ImageDescriptor imageDescriptor = ImageDescriptor.Create(originalPath);
+
+              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists);
+              var copiedFile = await originalFile.CopyAsync(folder, imageDescriptor.FileName, NameCollisionOption.ReplaceExisting);
+
               if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
               {
                 ImageViewModels.Add(imageViewModel);
@@ -108,7 +97,10 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       {
         var imageViewerWindow = await WindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
         imageViewerWindow.Activate();
-        NavigateImage(imageViewModel);
+        if (ImageViewModels.Contains(imageViewModel))
+        {
+          SelectedImage = imageViewModel;
+        }
       }
     };
 
@@ -118,7 +110,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       {
         if (await imageViewModel.DeleteImageAsync())
         {
-          ImageViewModels?.Remove(imageViewModel);
+          ImageViewModels.Remove(imageViewModel);
         }
       }
     };

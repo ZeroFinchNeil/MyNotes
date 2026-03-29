@@ -419,7 +419,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 }
 
 #region Commands and Messengers
-internal sealed partial class NoteListViewModel : ViewModelBase
+partial class NoteListViewModel
 {
   public Command? AddNoteCommand { get; private set; }
 

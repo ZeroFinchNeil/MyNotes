@@ -3,7 +3,6 @@
 using Microsoft.UI.Content;
 
 using MyNotes.Common.Interop;
-using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Logging;
@@ -24,7 +23,7 @@ internal sealed class WindowService
   }
 
   #region Main Window
-  private WeakReference<MainWindow>? _mainWindow;
+  private WeakReference<MainWindow>? _mainWindowReference;
 
   /// <summary>
   /// <para>Retrieves the current main window instance if it exists and is not closed; otherwise, creates and returns a new main window.</para>
@@ -36,8 +35,8 @@ internal sealed class WindowService
   /// </param>
   public async Task<MainWindow> GetOrCreateMainWindow(NavigationId? navigationId = null)
   {
-    if (_mainWindow is not null
-        && _mainWindow.TryGetTarget(out var mainWindow))
+    if (_mainWindowReference is not null
+        && _mainWindowReference.TryGetTarget(out var mainWindow))
     {
       if (!mainWindow.IsClosed)
       {
@@ -48,12 +47,12 @@ internal sealed class WindowService
       else
       {
         mainWindow.Close();
-        _mainWindow = null;
+        _mainWindowReference = null;
       }
     }
 
     MainWindow newWindow = new(navigationId);
-    _mainWindow = new(newWindow);
+    _mainWindowReference = new(newWindow);
     await newWindow.LoadTask;
     return newWindow;
   }
@@ -62,8 +61,8 @@ internal sealed class WindowService
   {
     mainWindow = null;
 
-    if (_mainWindow is not null
-        && _mainWindow.TryGetTarget(out var m)
+    if (_mainWindowReference is not null
+        && _mainWindowReference.TryGetTarget(out var m)
         && !m.IsClosed)
     {
       mainWindow = m;
@@ -113,11 +112,11 @@ internal sealed class WindowService
   #endregion
 
   #region Note Windows
-  public Dictionary<NoteId, WeakReference<NoteWindow>> NoteWindows { get; } = new();
+  public Dictionary<NoteId, WeakReference<NoteWindow>> NoteWindowTable { get; } = new();
 
   public bool TryGetNoteWindow(NoteId noteId, [NotNullWhen(true)] out NoteWindow? noteWindow)
   {
-    if (NoteWindows.TryGetValue(noteId, out var wr)
+    if (NoteWindowTable.TryGetValue(noteId, out var wr)
       && wr.TryGetTarget(out var window)
       && !window.IsClosed)
     {
@@ -136,7 +135,7 @@ internal sealed class WindowService
 
     try
     {
-      if (NoteWindows.TryGetValue(noteId, out var wr)
+      if (NoteWindowTable.TryGetValue(noteId, out var wr)
         && wr.TryGetTarget(out var noteWindow)
         && !noteWindow.IsClosed)
       {
@@ -164,7 +163,7 @@ internal sealed class WindowService
         hWnd = Win32Interop.GetWindowFromWindowId(windowId);
         appWindow = AppWindow.GetFromWindowId(windowId);
       }
-      else if (NoteWindows.TryGetValue(noteId, out var wr)
+      else if (NoteWindowTable.TryGetValue(noteId, out var wr)
         && wr.TryGetTarget(out var noteWindow))
       {
         hWnd = WindowNative.GetWindowHandle(noteWindow);
@@ -179,7 +178,7 @@ internal sealed class WindowService
 
   public bool TryExecuteOnNoteWindow(NoteId noteId, Action<NoteWindow> action)
   {
-    if (NoteWindows.TryGetValue(noteId, out var wr)
+    if (NoteWindowTable.TryGetValue(noteId, out var wr)
         && wr.TryGetTarget(out var noteWindow))
     {
       action.Invoke(noteWindow);
@@ -190,26 +189,28 @@ internal sealed class WindowService
   #endregion
 
   #region ImageViewer Window
-  private WeakReference<ImageViewerWindow>? _imageViewerWindow;
+  private KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
 
   public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(ImageCollectionKey key)
   {
-    if (_imageViewerWindow is not null
-        && _imageViewerWindow.TryGetTarget(out var imageViewerWindow))
+    if (_imageViewerWindowPair is not null)
     {
-      if (!imageViewerWindow.IsClosed)
+      var pair = _imageViewerWindowPair.Value;
+      if (pair.Value.TryGetTarget(out var imageViewerWindow))
       {
-        return imageViewerWindow;
-      }
-      else
-      {
-        imageViewerWindow.Close();
-        _imageViewerWindow = null;
+        if (pair.Key == key && !imageViewerWindow.IsClosed)
+        {
+          return imageViewerWindow;
+        }
+        else
+        {
+          imageViewerWindow.Close();
+        }
       }
     }
 
     ImageViewerWindow newWindow = new(key);
-    _imageViewerWindow = new(newWindow);
+    _imageViewerWindowPair = new KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>(key, new(newWindow));
     return newWindow;
   }
 
@@ -217,12 +218,14 @@ internal sealed class WindowService
   {
     imageViewerWindow = null;
 
-    if (_imageViewerWindow is not null
-        && _imageViewerWindow.TryGetTarget(out var m)
-        && !m.IsClosed)
+    if (_imageViewerWindowPair is not null)
     {
-      imageViewerWindow = m;
-      return true;
+      var pair = _imageViewerWindowPair.Value;
+      if (pair.Value.TryGetTarget(out var w) && !w.IsClosed)
+      {
+        imageViewerWindow = w;
+        return true;
+      }
     }
 
     return false;
@@ -285,7 +288,7 @@ internal sealed class WindowService
         return true;
       }
 
-      foreach (var wr in NoteWindows.Values)
+      foreach (var wr in NoteWindowTable.Values)
       {
         if (wr.TryGetTarget(out var noteWindow)
           && !noteWindow.IsClosed

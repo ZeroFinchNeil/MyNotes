@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using MyNotes.Models.Navigations;
+﻿using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations;
 

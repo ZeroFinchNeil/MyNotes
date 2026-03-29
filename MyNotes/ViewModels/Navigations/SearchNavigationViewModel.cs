@@ -1,10 +1,4 @@
-﻿using MyNotes.AppConstants;
-using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
-using MyNotes.Services.Notes;
-using MyNotes.Services.Search;
-using MyNotes.Services.Settings;
-using MyNotes.ViewModels.Notes;
+﻿using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations;
 

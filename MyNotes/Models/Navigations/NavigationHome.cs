@@ -3,7 +3,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationHome : NavigationCoreNode, INavigationInitialTarget
+internal sealed partial class NavigationHome : NavigationCoreNode, INavigationInitialTarget
 {
   public static NavigationHome Instance => field ??= new()
   {

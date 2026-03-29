@@ -15,22 +15,22 @@
       <Button x:Name="DebugWindow_SeparatorButton"
               Content="Separator"
               Click="DebugWindow_SeparatorButton_Click" />
+      
       <MenuFlyoutSeparator />
+
       <Button x:Name="DebugWindow_GCButton"
               Content="GC"
               Click="DebugWindow_GCButton_Click" />
-      <Button x:Name="DebugWindow_DebugButton"
+      <Button x:Name="DebugWindow_ShowReferencesButton"
               Content="Show references"
-              Click="DebugWindow_DebugButton_Click" />
+              Click="DebugWindow_ShowReferencesButton_Click" />
+
       <MenuFlyoutSeparator />
-      <Button x:Name="DebugWindow_NewNoteButton"
-              Content="New note"
-              Click="DebugWindow_NewNoteButton_Click" />
+      
       <Button x:Name="DebugWindow_MainWindowButton"
               Content="Main window"
               Click="DebugWindow_MainWindowButton_Click" />
 
-      <MenuFlyoutSeparator />
       <MenuFlyoutSeparator />
       <Button x:Name="DebugWindow_ClearDatabaseButton"
               Content="Clear DB"

@@ -3,12 +3,12 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Messages;
 using MyNotes.AppConstants;
-using MyNotes.Debugging;
+using MyNotes.Common.Messages;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
+using MyNotes.Services.App;
 using MyNotes.Services.Logging;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
@@ -16,10 +16,10 @@ using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
-using MyNotes.Services.App;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class MainPage : Page
 {
   private readonly MainViewModel ViewModel;
@@ -33,13 +33,7 @@ internal sealed partial class MainPage : Page
   #region Object Lifetime Management
   public MainPage(MainWindow mainWindow, NavigationId? initialNavigationId = null)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
-
+    TrackReference();
     InitializeComponent();
 
     ServiceScope = App.Services.CreateScope();

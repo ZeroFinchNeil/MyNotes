@@ -6,7 +6,6 @@ using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Templates;
-using MyNotes.ViewModels.Navigations;
 
 namespace MyNotes.Services.Commands;
 

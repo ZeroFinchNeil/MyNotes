@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyNotes.ViewModels.Media.Providers;
+﻿namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageCollectionKey : IEquatable<ImageCollectionKey>
 {

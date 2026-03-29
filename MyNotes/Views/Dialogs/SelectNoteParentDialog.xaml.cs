@@ -1,20 +1,15 @@
-using MyNotes.Debugging;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class SelectNoteParentDialog : ContentDialog
 {
   private readonly SelectNoteParentDialogViewModel ViewModel;
 
   public SelectNoteParentDialog(SelectNoteParentDialogViewModel viewmodel)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
 
     ViewModel = viewmodel;

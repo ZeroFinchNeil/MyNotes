@@ -1,10 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-
-using MyNotes.Models.Modes;
+﻿using MyNotes.Models.Modes;
 using MyNotes.Models.Navigations;
-using MyNotes.Services.Navigations;
 using MyNotes.Templates;
-using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.Views.Dialogs;
 

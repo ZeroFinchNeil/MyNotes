@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
-using MyNotes.Debugging;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.App;
@@ -14,6 +13,7 @@ using MyNotes.Views.Notes;
 
 namespace MyNotes.Views.Windows;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class NoteWindow : Window
 {
   private readonly WindowService WindowService;
@@ -28,12 +28,7 @@ internal sealed partial class NoteWindow : Window
   #region Object Lifetime Management
   public NoteWindow(Note note)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.WindowReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     this.ExtendsContentIntoTitleBar = true;
 
@@ -42,7 +37,7 @@ internal sealed partial class NoteWindow : Window
 
     // WindowService에 등록
     NoteId = note.Id;
-    WindowService.NoteWindows[NoteId] = new WeakReference<NoteWindow>(this);
+    WindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
 
     // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -80,14 +75,13 @@ internal sealed partial class NoteWindow : Window
     this.Closed -= NoteWindow_Closed;
 
     // WindowService에서 Window 테이블에서 제거
-    WindowService.NoteWindows.Remove(NoteId);
+    WindowService.NoteWindowTable.Remove(NoteId);
   }
   #endregion
 
-  
   private void NoteWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
-    
+
     if (AppWindow.Presenter is OverlappedPresenter presenter)
     {
       WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };

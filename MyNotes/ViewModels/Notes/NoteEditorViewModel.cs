@@ -354,7 +354,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   #endregion
 }
 
-internal sealed partial class NoteEditorViewModel : ViewModelBase
+partial class NoteEditorViewModel
 {
   public Command<object>? UpdateSelectionCommand { get; private set; }
   public Command<object>? UpdateTextChangingCommand { get; private set; }

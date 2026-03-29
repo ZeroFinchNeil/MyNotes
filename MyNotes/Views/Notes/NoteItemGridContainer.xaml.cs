@@ -1,31 +1,22 @@
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Structures;
-using MyNotes.AppConstants;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Notes;
 using MyNotes.Models.Notes;
-
-using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Services.Navigations;
+using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class NoteItemGridContainer : UserControl
 {
   #region Object Lifetime Management
   public NoteItemGridContainer()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     this.Loaded += UserListPageNoteItemGridContainer_Loaded;
     this.Unloaded += UserListPageNoteItemGridContainer_Unloaded;

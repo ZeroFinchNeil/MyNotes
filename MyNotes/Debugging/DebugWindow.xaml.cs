@@ -1,14 +1,8 @@
-using System.Runtime.CompilerServices;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
 using MyNotes.Services.App;
 using MyNotes.Services.Database;
-using MyNotes.Services.Notes;
-using MyNotes.Views.Windows;
 
 namespace MyNotes.Debugging;
 
@@ -22,28 +16,14 @@ internal sealed partial class DebugWindow : Window
 
   private async void DebugWindow_SeparatorButton_Click(object sender, RoutedEventArgs e)
   {
-    Console.WriteLine();
-    Console.WriteLine("--------------------");
-    Console.WriteLine();
+    PrintSeparator();
   }
 
-  private async void DebugWindow_DebugButton_Click(object sender, RoutedEventArgs e)
+  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e)
   {
-    Console.WriteLine();
-    PrintSeparator();
-    PrintReference(ReferenceTracker.WindowReference, "Windows");
-    PrintReference(ReferenceTracker.PageReference, "Pages");
-    PrintReference(ReferenceTracker.ViewModelReference, "ViewModels");
-
-    PrintReference(ReferenceTracker.NavigationReference, "Navigations");
-    PrintReference(ReferenceTracker.NoteReference, "Notes");
-
-    PrintReference(ReferenceTracker.ElementReference, "Elements");
-    PrintPadding();
-    PrintSeparator();
-    Console.WriteLine();
-
-    _colorCount++;
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+    GC.Collect();
   }
 
   private static readonly List<ConsoleColor> _consoleColors = new()
@@ -56,52 +36,27 @@ internal sealed partial class DebugWindow : Window
 
   private static void PrintSeparator()
   {
-    Console.BackgroundColor = _consoleColors[_colorCount % _consoleColors.Count];
-    Console.WriteLine($"{"",90}");
-    Console.BackgroundColor = ConsoleColor.White;
+    Console.WriteLine();
+    Console.WriteLine("------------------------------------------------------------------------------------------------------------------------");
+    Console.WriteLine();
   }
 
-  private static void PrintPadding(string? text = null, ConsoleColor color = ConsoleColor.White)
+  private void DebugWindow_ShowReferencesButton_Click(object sender, RoutedEventArgs e)
   {
-    text ??= string.Empty;
-    var paddingColor = _consoleColors[_colorCount % _consoleColors.Count];
-    Console.BackgroundColor = paddingColor;
-    Console.Write("  ");
-    Console.BackgroundColor = ConsoleColor.White;
-    Console.Write(" ");
-    Console.BackgroundColor = color;
-    Console.Write($"{text,-84}");
-    Console.BackgroundColor = ConsoleColor.White;
-    Console.Write(" ");
-    Console.BackgroundColor = paddingColor;
-    Console.WriteLine("  ");
-    Console.BackgroundColor = ConsoleColor.White;
-  }
-
-  private static void PrintReference<T>(ConditionalWeakTable<T, object?> table, string title) where T : class
-  {
-    PrintPadding();
-    PrintPadding($"++ {title} ++", ConsoleColor.Yellow);
-
-    foreach (var kv in table)
+    PrintSeparator();
+    var table = ReferenceTracker.GetAliveReferences().OrderBy(pair => pair.Key.Name);
+    var paddingColor = _consoleColors[_colorCount++ % _consoleColors.Count];
+    foreach (var pair in table)
     {
-      PrintPadding(kv.Value?.ToString());
+      Console.BackgroundColor = paddingColor;
+      Console.Write(" ");
+      Console.BackgroundColor = ConsoleColor.White;
+      Console.WriteLine(" {0, 30} : {1}", pair.Key.Name, string.Join(", ", pair.Value.Where(obj => obj is not null).Select(obj => obj!.GetHashCode())));
+      Console.BackgroundColor = paddingColor;
+      Console.WriteLine(" ");
+      Console.BackgroundColor = ConsoleColor.White;
     }
-  }
-
-  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e)
-  {
-    GC.Collect();
-    GC.WaitForPendingFinalizers();
-    GC.Collect();
-  }
-
-  private async void DebugWindow_NewNoteButton_Click(object sender, RoutedEventArgs e)
-  {
-    Note note = new() { Created = DateTimeOffset.UtcNow, Id = NoteId.NewId(), NavigationId = NavigationId.NewId() };
-    note.Title = $"New note {note.Id.Value}";
-    var noteService = App.Services.GetRequiredService<NoteService>();
-    await noteService.OpenNoteWindow(note);
+    PrintSeparator();
   }
 
   private async void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)

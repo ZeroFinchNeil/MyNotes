@@ -104,6 +104,7 @@ internal static partial class NativeMethods
 
       Console.BackgroundColor = ConsoleColor.White;
       Console.ForegroundColor = ConsoleColor.Black;
+      Console.BufferWidth = 500;
       Console.Clear();
     }
 

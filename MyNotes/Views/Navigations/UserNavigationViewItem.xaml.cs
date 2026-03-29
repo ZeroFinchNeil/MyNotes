@@ -1,11 +1,6 @@
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Structures;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigations;
 using MyNotes.Templates;
@@ -14,17 +9,13 @@ using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class UserNavigationViewItem : DraggableNavigationViewItem
 {
   #region Object Lifetime Management
   public UserNavigationViewItem()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
     this.Loaded += MainPageUserNavigationViewItem_Loaded;
     this.Unloaded += MainPageUserNavigationViewItem_Unloaded;

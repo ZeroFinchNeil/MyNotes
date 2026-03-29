@@ -1,10 +1,5 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-using Microsoft.Extensions.DependencyInjection;
-
-using MyNotes.AppConstants;
-using MyNotes.Common.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;

@@ -1,19 +1,14 @@
-using MyNotes.Debugging;
 using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class NoteItemListContainer : UserControl
 {
   #region Object Lifetime Management
   public NoteItemListContainer()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.ElementReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     InitializeComponent();
 
     this.Loaded += UserListPageNoteItemListContainer_Loaded;

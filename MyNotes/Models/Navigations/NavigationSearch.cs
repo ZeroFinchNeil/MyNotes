@@ -1,23 +1,17 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 
 using MyNotes.Common.Collections;
-using MyNotes.Debugging;
 using MyNotes.Models.Notes;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class NavigationSearch : ObservableObject, INavigation, INavigationNoteList
 {
   public NavigationSearch()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
   }
 
   [ObservableProperty]

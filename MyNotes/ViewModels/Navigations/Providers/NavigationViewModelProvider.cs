@@ -35,7 +35,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     return newViewModel;
   }
 
-  public IReadOnlyList<NavigationViewModelBase> Resolve(IEnumerable<INavigation> navigations) => [..navigations.Select(Resolve)];
+  public IReadOnlyList<NavigationViewModelBase> Resolve(IEnumerable<INavigation> navigations) => [.. navigations.Select(Resolve)];
 
   public IReadOnlyList<T> Resolve<T>(IEnumerable<INavigation> navigations) where T : NavigationViewModelBase => [.. navigations.Select(Resolve).OfType<T>()];
 

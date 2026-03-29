@@ -258,7 +258,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
   #endregion
 }
 
-internal sealed partial class NoteViewModel : ViewModelBase
+partial class NoteViewModel
 {
   public Command<Note> OpenWindowCommand => NoteCommandService.OpenNoteWindowCommand;
   public Command<Note> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;

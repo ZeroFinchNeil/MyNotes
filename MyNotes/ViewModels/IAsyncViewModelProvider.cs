@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyNotes.ViewModels;
+﻿namespace MyNotes.ViewModels;
 
 internal interface IAsyncViewModelProvider<TModel, TViewModel> where TViewModel : class
 {

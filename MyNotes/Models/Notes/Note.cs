@@ -4,23 +4,18 @@ using CommunityToolkit.WinUI.Helpers;
 using Microsoft.UI.Xaml.Documents;
 
 using MyNotes.AppConstants;
-using MyNotes.Debugging;
 using MyNotes.Helpers;
 using MyNotes.Models.Media;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Models.Notes;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class Note : ObservableObject, IComparable<Note>
 {
   public Note()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.NoteReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
   }
 
   public required NoteId Id { get; init; }

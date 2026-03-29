@@ -1,10 +1,15 @@
 ﻿namespace MyNotes.Models.Navigations;
 
-internal sealed class NavigationUserNodeCollection : ObservableCollection<NavigationUserNode>
+[Debugging.ReferenceTracker]
+internal sealed partial class NavigationUserNodeCollection : ObservableCollection<NavigationUserNode>
 {
   private readonly NavigationUserCompositeNode _parent;
 
-  public NavigationUserNodeCollection(NavigationUserCompositeNode parent) => _parent = parent;
+  public NavigationUserNodeCollection(NavigationUserCompositeNode parent)
+  {
+    _parent = parent;
+    TrackReference();
+  }
 
   protected override void MoveItem(int oldIndex, int newIndex)
   {

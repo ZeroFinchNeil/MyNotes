@@ -16,6 +16,8 @@ using MyNotes.Services.Database.Entities;
 using MyNotes.Services.Search;
 using MyNotes.Services.Search.Entities;
 using MyNotes.Services.Settings;
+using MyNotes.ViewModels.Media;
+using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
 
 namespace MyNotes.Services.Notes;
@@ -26,18 +28,20 @@ internal sealed partial class NoteService : IDisposable
   private readonly SettingsService SettingsService;
   private readonly WindowService WindowService;
   private readonly SearchService SearchService;
+  private readonly ImageViewModelProvider ImageViewModelProvider;
 
   private readonly TaskCompletionSource InitializationTCS = new();
   public Task InitializationTask => InitializationTCS.Task;
 
   #region Object Lifetime Management
-  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService, WindowService windowService, SearchService searchService)
+  public NoteService(IDbContextFactory<AppDbContext> dbContextFactory, SettingsService settingsService, WindowService windowService, SearchService searchService, ImageViewModelProvider imageViewModelProvider)
   {
     // DI
     DbContextFactory = dbContextFactory;
     SettingsService = settingsService;
     WindowService = windowService;
     SearchService = searchService;
+    ImageViewModelProvider = imageViewModelProvider;
 
     _ = InitializeAsync();
   }
@@ -78,7 +82,7 @@ internal sealed partial class NoteService : IDisposable
   public async Task<NoteWindow> OpenNoteWindow(Note note, bool activate = true)
   {
     NoteWindow noteWindow =
-      WindowService.NoteWindows.TryGetValue(note.Id, out var wr)
+      WindowService.NoteWindowTable.TryGetValue(note.Id, out var wr)
       && wr.TryGetTarget(out var existingNoteWindow)
       && !existingNoteWindow.IsClosed
       ? existingNoteWindow
@@ -108,7 +112,7 @@ internal sealed partial class NoteService : IDisposable
 }
 
 #region Create (Add)
-internal sealed partial class NoteService : IDisposable
+partial class NoteService
 {
   /// <summary>
   /// <para>새 노트를 생성하고 데이터베이스에 비동기적으로 추가합니다. 노트는 기본 설정으로 초기화되며, 가능한 경우 현재 포커스가 있는 창을 기준으로 위치가 지정됩니다. 노트는 생성 후 검색을 위해 색인화됩니다.</para>
@@ -162,7 +166,7 @@ internal sealed partial class NoteService : IDisposable
 #endregion
 
 #region Read (Get and Find)
-internal sealed partial class NoteService : IDisposable
+partial class NoteService
 {
   /// <summary>
   /// 지정한 NoteId에 해당하는 노트를 데이터베이스에서 비동기적으로 검색합니다.
@@ -194,7 +198,7 @@ internal sealed partial class NoteService : IDisposable
 #endregion
 
 #region Update
-internal sealed partial class NoteService : IDisposable
+partial class NoteService
 {
   /// <summary>
   /// <para>노트 엔티티를 주어진 액션에 따라 데이터베이스에 비동기 업데이트합니다. 데이터베이스에 일치하는 id를 가진 엔티티가 없으면 액션이 실행되지 않고 변경사항이 저장되지 않습니다.</para>
@@ -245,7 +249,7 @@ internal sealed partial class NoteService : IDisposable
 #endregion
 
 #region Delete
-internal sealed partial class NoteService : IDisposable
+partial class NoteService
 {
   private async Task<bool> DeleteDbContextEntityAsync(NoteId noteId)
   {
@@ -270,7 +274,7 @@ internal sealed partial class NoteService : IDisposable
 #endregion
 
 #region Cache and Mapper
-internal sealed partial class NoteService : IDisposable
+partial class NoteService
 {
   private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
 
@@ -418,6 +422,12 @@ internal sealed partial class NoteService : IDisposable
     IsDeleted = false,
     IsWindowOpen = false,
     IsAlwaysOnTop = false,
+  };
+
+  public ImageCollectionKey CreateImageCollectionKey(Note note) => new()
+  {
+    Key = note.Id.Value,
+    CollectionReference = new WeakReference<ObservableCollection<ImageViewModel>>([.. note.Images.Select(ImageViewModelProvider.Resolve)])
   };
 }
 #endregion

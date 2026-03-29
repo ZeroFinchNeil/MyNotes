@@ -3,10 +3,10 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.AppConstants;
 using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Settings;

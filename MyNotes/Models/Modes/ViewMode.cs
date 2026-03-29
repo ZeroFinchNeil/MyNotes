@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyNotes.Models.Modes;
+﻿namespace MyNotes.Models.Modes;
 
 internal enum ViewMode
 {

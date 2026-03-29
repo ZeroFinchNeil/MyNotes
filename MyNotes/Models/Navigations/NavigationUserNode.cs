@@ -1,20 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Debugging;
 using MyNotes.Templates;
 
 namespace MyNotes.Models.Navigations;
 
+[Debugging.ReferenceTracker]
 internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode
 {
   public NavigationUserNode(Type pageType)
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.NavigationReference.Add(this, $"{GetType().Name.Replace("Navigation", ""),15}: {GetHashCode()}");
-    }
-#endif
+    TrackReference();
     PageType = pageType;
   }
 

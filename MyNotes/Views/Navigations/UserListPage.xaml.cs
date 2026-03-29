@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Collections;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.ViewModels.Navigations;
@@ -11,6 +10,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
+[Debugging.ReferenceTracker]
 internal sealed partial class UserListPage : Page
 {
   private UserLeafNavigationViewModel? ViewModel;
@@ -19,13 +19,7 @@ internal sealed partial class UserListPage : Page
   #region Object Lifetime Management
   public UserListPage()
   {
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      ReferenceTracker.PageReference.Add(this, $"{GetType().Name}: {GetHashCode()}");
-    }
-#endif
-
+    TrackReference();
     InitializeComponent();
 
     this.Loaded += UserListPage_Loaded;
