@@ -9,35 +9,82 @@
     <MicaBackdrop />
   </Window.SystemBackdrop>
 
-  <ScrollViewer Padding="12">
-    <StackPanel Spacing="8"
-                HorizontalAlignment="Center">
-      <Button x:Name="DebugWindow_SeparatorButton"
-              Content="Separator"
-              Click="DebugWindow_SeparatorButton_Click" />
-      
-      <MenuFlyoutSeparator />
+  <Grid ColumnSpacing="4">
+    <Grid.ColumnDefinitions>
+      <ColumnDefinition Width="200" />
+      <ColumnDefinition Width="Auto" />
+      <ColumnDefinition />
+    </Grid.ColumnDefinitions>
+    <ScrollViewer Padding="12"
+                  Grid.Column="0">
+      <StackPanel Spacing="8">
+        <Button x:Name="DebugWindow_GCButton"
+                HorizontalAlignment="Center"
+                Content="GC"
+                MinWidth="150"
+                Click="DebugWindow_GCButton_Click" />
+        <Button x:Name="DebugWindow_ShowReferencesButton"
+                HorizontalAlignment="Center"
+                Content="Show references"
+                MinWidth="150"
+                Click="DebugWindow_ShowReferencesButton_Click" />
 
-      <Button x:Name="DebugWindow_GCButton"
-              Content="GC"
-              Click="DebugWindow_GCButton_Click" />
-      <Button x:Name="DebugWindow_ShowReferencesButton"
-              Content="Show references"
-              Click="DebugWindow_ShowReferencesButton_Click" />
+        <MenuFlyoutSeparator />
 
-      <MenuFlyoutSeparator />
-      
-      <Button x:Name="DebugWindow_MainWindowButton"
-              Content="Main window"
-              Click="DebugWindow_MainWindowButton_Click" />
+        <Button x:Name="DebugWindow_SeparatorButton"
+                HorizontalAlignment="Center"
+                Content="Separator"
+                MinWidth="150"
+                Click="DebugWindow_SeparatorButton_Click" />
 
-      <MenuFlyoutSeparator />
-      <Button x:Name="DebugWindow_ClearDatabaseButton"
-              Content="Clear DB"
-              Click="DebugWindow_ClearDatabaseButton_Click" />
-      <Button x:Name="DebugWindow_CreateDatabaseButton"
-              Content="Create DB"
-              Click="DebugWindow_CreateDatabaseButton_Click" />
-    </StackPanel>
-  </ScrollViewer>
+        <MenuFlyoutSeparator />
+
+        <ToggleButton x:Name="DebugWindow_TrackFocusedElementToggleButton"
+                      HorizontalAlignment="Center"
+                      Content="Track Focused Element"
+                      MinWidth="150"
+                      Click="DebugWindow_TrackFocusedElementToggleButton_Click" />
+
+        <Button x:Name="DebugWindow_MainWindowButton"
+                HorizontalAlignment="Center"
+                Content="Main window"
+                MinWidth="150"
+                Click="DebugWindow_MainWindowButton_Click" />
+
+        <MenuFlyoutSeparator />
+        <Button x:Name="DebugWindow_ClearDatabaseButton"
+                HorizontalAlignment="Center"
+                Content="Clear DB"
+                MinWidth="150"
+                Click="DebugWindow_ClearDatabaseButton_Click" />
+        <Button x:Name="DebugWindow_CreateDatabaseButton"
+                HorizontalAlignment="Center"
+                Content="Create DB"
+                MinWidth="150"
+                Click="DebugWindow_CreateDatabaseButton_Click" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Rectangle Grid.Column="1"
+               Width="1"
+               VerticalAlignment="Stretch"
+               Stretch="Fill"
+               Fill="{StaticResource ControlStrokeColorDefault}"
+               Margin="0,12" />
+    
+    <ScrollViewer Grid.Column="2"
+                  Padding="12"
+                  HorizontalScrollMode="Enabled"
+                  HorizontalScrollBarVisibility="Auto"
+                  VerticalScrollMode="Enabled"
+                  VerticalScrollBarVisibility="Auto">
+      <Border x:Name="DebugWindow_FocusedElementBorder"
+              Padding="6"
+              CornerRadius="{StaticResource ControlCornerRadius}"
+              BorderThickness="2">
+        <TextBlock x:Name="DebugWindow_FocusedElementTextBlock"
+                   IsTextSelectionEnabled="True" />
+      </Border>
+    </ScrollViewer>
+  </Grid>
 </Window>

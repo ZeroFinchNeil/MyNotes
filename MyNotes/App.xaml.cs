@@ -160,7 +160,9 @@ public sealed partial class App : Application, IDisposable
   private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
   {
     if (e.ExceptionObject is Exception ex)
-    { WriteExceptionLog(ex); }
+    {
+      WriteExceptionLog(ex);
+    }
   }
 
   private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e) => WriteExceptionLog(e.Exception);

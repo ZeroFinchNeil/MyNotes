@@ -46,18 +46,24 @@ internal static partial class NativeMethods
       get
       {
         fixed (char* p = _faceName)
+        {
           return new string(p);
+        }
       }
       set
       {
         fixed (char* p = _faceName)
         {
           for (int i = 0; i < 32; i++)
+          {
             p[i] = '\0';
+          }
 
           int len = Math.Min(31, value.Length);
           for (int i = 0; i < len; i++)
+          {
             p[i] = value[i];
+          }
         }
       }
     }
@@ -79,13 +85,16 @@ internal static partial class NativeMethods
     if (consoleHwnd != IntPtr.Zero)
     {
       if (posX >= 0 && posY >= 0 && width >= 0 && height >= 0)
+      {
         MoveWindow(consoleHwnd, posX, posY, width, height, true);
+      }
       //uint SWP_NOMOVE = 0x0002;
       //uint SWP_NOSIZE = 0x0001;
       //uint SWP_SHOWWINDOW = 0x0040;
       //SetWindowPos(consoleHwnd, new IntPtr(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
 
-      SetConsoleFont("Cascadia Mono");
+      //SetConsoleFont("Cascadia Mono");
+      SetConsoleFont("D2Coding", 0, 18);
 
       int STD_INPUT_HANDLE = -10;
       uint ENABLE_EXTENDED_FLAGS = 0x0080;
@@ -120,7 +129,7 @@ internal static partial class NativeMethods
     {
       FaceName = fontName,
       dwFontSize = new COORD { X = width, Y = height },
-      FontFamily = 0x36,
+      FontFamily = 0x30,
       FontWeight = 400
     };
 
