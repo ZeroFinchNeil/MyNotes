@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -8,58 +9,45 @@ namespace MyNotes.ViewModels.Notes.Providers;
 
 internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<Note, NoteViewModel>
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
-
-  private readonly Dictionary<Note, WeakReference<NoteViewModel>> ResolvedViewModels = new();
+  private readonly ConcurrentDictionary<Note, ReferenceCounter<NoteViewModel>> ResolveTable = new();
 
   public NoteViewModel Resolve(Note note)
   {
-    if (TryResolve(note, out var viewmodel))
+    var rc = ResolveTable.GetOrAdd(note, n => new ReferenceCounter<NoteViewModel>()
     {
-      return viewmodel;
-    }
+      Instance = ActivatorUtilities.CreateInstance<NoteViewModel>(serviceProvider, n)
+    });
 
-    NoteViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteViewModel>(ServiceProvider, note);
-    ResolvedViewModels[note] = new WeakReference<NoteViewModel>(newViewModel);
-
-    return newViewModel;
+    rc.Increment();
+    return rc.Instance;
   }
 
   public bool TryResolve(Note note, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(note, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.Disposed)
+    if (ResolveTable.TryGetValue(note, out var rc))
     {
-      noteViewModel = viewmodel;
-      return true;
+      var viewmodel = rc.Instance;
+      if (!rc.HasNoReferences && !viewmodel.Disposed)
+      {
+        noteViewModel = viewmodel;
+        return true;
+      }
+      else
+      {
+        ResolveTable.TryRemove(note, out _);
+      }
     }
-
     noteViewModel = null;
     return false;
   }
 
   public bool Release(Note note)
   {
-    if (TryResolve(note, out var viewmodel))
+    if (ResolveTable.TryGetValue(note, out var rc) && rc.Decrement())
     {
-      if (!viewmodel.Disposed)
-        viewmodel.Dispose();
-      ResolvedViewModels.Remove(note);
+      ResolveTable.TryRemove(note, out _);
+      return true;
     }
     return false;
-  }
-
-  public void ReleaseAll()
-  {
-    foreach (var wr in ResolvedViewModels.Values)
-    {
-      if (wr.TryGetTarget(out var viewmodel))
-      {
-        if (!viewmodel.Disposed)
-          viewmodel.Dispose();
-      }
-    }
-    ResolvedViewModels.Clear();
   }
 }

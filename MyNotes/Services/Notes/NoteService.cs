@@ -64,7 +64,9 @@ internal sealed partial class NoteService : IDisposable
   public void Dispose()
   {
     if (Disposed)
+    {
       return;
+    }
 
     Disposed = true;
   }
@@ -232,7 +234,9 @@ partial class NoteService
         dbActions += dbAction(note);
       }
       if (_notePropertyToNoteSearchEntity.Contains(propertyName))
+      {
         _updateNoteSearchIndex = true;
+      }
     }
 
     if (dbActions is not null)

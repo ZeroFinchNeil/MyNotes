@@ -40,6 +40,9 @@ internal class ReferenceTrackerGenerator : IIncrementalGenerator
       {
         var ns = symbol.ContainingNamespace.IsGlobalNamespace ? null : symbol.ContainingNamespace.ToDisplayString();
         var className = symbol.Name;
+        var typeParams = symbol.TypeParameters.Length > 0 
+        ? $"<{string.Join(", ", symbol.TypeParameters.Select(t => t.Name))}>" 
+        : string.Empty;
 
         var sb = new StringBuilder();
         if (!string.IsNullOrEmpty(ns))
@@ -48,7 +51,7 @@ internal class ReferenceTrackerGenerator : IIncrementalGenerator
         }
 
         // partial class 생성
-        sb.AppendLine($"partial class {className}");
+        sb.AppendLine($"partial class {className}{typeParams}");
         sb.AppendLine("""
           {
             private void TrackReference()

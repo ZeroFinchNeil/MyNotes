@@ -3,7 +3,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.AppConstants;
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.App;
 using MyNotes.Services.Commands;
@@ -177,7 +176,7 @@ public sealed partial class App : Application, IDisposable
   public async Task OpenDebugWindow()
   {
     await Task.Delay(1000);
-    new DebugWindow().Activate();
+    new Views.Windows.DebugWindow().Activate();
   }
 
   private async Task LaunchArgumentsPipeServerStreamAsync()

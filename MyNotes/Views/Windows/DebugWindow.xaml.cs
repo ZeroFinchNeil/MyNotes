@@ -3,10 +3,11 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
 using MyNotes.Services.App;
 using MyNotes.Services.Database;
 
-namespace MyNotes.Debugging;
+namespace MyNotes.Views.Windows;
 
 internal sealed partial class DebugWindow : Window
 {
@@ -46,17 +47,30 @@ internal sealed partial class DebugWindow : Window
   private void DebugWindow_ShowReferencesButton_Click(object sender, RoutedEventArgs e)
   {
     PrintSeparator();
-    var table = ReferenceTracker.GetAliveReferences().OrderBy(pair => pair.Key.Name);
     var paddingColor = _consoleColors[_colorCount++ % _consoleColors.Count];
-    foreach (var pair in table)
+
+    var group = ReferenceTracker.GetAliveReferences()
+      .GroupBy(pair =>
+      {
+        string typeName = pair.Key.Name;
+        return typeName.Contains("ViewModel") ? 1 :
+        typeName.Contains("Container") ? 2 :
+        typeName.Contains("Dialog") ? 3 :
+        typeName.Contains("Page") ? 4 :
+        typeName.Contains("Window") ? 5 : 0;
+      });
+    foreach (var g in group)
     {
+      foreach (var pair in g.OrderBy(pair => pair.Key.Name))
+      {
+        Console.BackgroundColor = paddingColor;
+        Console.Write(" ");
+        Console.BackgroundColor = ConsoleColor.White;
+        Console.WriteLine(" {0, 25} : {1}", pair.Key.Name, string.Join(", ", pair.Value.Where(obj => obj is not null).Select(obj => obj!.GetHashCode())));
+      }
       Console.BackgroundColor = paddingColor;
-      Console.Write(" ");
+      Console.WriteLine(" ");
       Console.BackgroundColor = ConsoleColor.White;
-      Console.WriteLine(" {0, 30} : {1}", pair.Key.Name, string.Join(", ", pair.Value.Where(obj => obj is not null).Select(obj => obj!.GetHashCode())));
-      //Console.BackgroundColor = paddingColor;
-      //Console.WriteLine(" ");
-      //Console.BackgroundColor = ConsoleColor.White;
     }
     PrintSeparator();
   }
@@ -124,5 +138,13 @@ internal sealed partial class DebugWindow : Window
     DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.DarkGray);
     await Task.Delay(500);
     DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.Transparent);
+  }
+
+  private void DebugWindow_AlwaysOnTopToggleButton_Click(object sender, RoutedEventArgs e)
+  {
+    if (this.AppWindow.Presenter is OverlappedPresenter presenter)
+    {
+      presenter.IsAlwaysOnTop = DebugWindow_AlwaysOnTopToggleButton.IsChecked ?? false;
+    }
   }
 }

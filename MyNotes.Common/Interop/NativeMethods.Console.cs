@@ -97,17 +97,19 @@ internal static partial class NativeMethods
       SetConsoleFont("D2Coding", 0, 18);
 
       int STD_INPUT_HANDLE = -10;
+      uint ENABLE_WINDOW_INPUT = 0x0008;
+      uint ENABLE_QUICK_EDIT_MODE = 0x0040;
       uint ENABLE_EXTENDED_FLAGS = 0x0080;
       uint ENABLE_MOUSE_INPUT = 0x0010;
-      //uint ENABLE_QUICK_EDIT_MODE = 0x0040;
 
       var handle = GetStdHandle(STD_INPUT_HANDLE);
 
       if (GetConsoleMode(handle, out uint mode))
       {
-        //mode &= ~ENABLE_QUICK_EDIT_MODE;
-        mode |= ENABLE_MOUSE_INPUT;
-        mode |= ENABLE_EXTENDED_FLAGS;
+        mode &= ~ENABLE_WINDOW_INPUT;
+        mode &= ~ENABLE_QUICK_EDIT_MODE;
+        mode &= ~ENABLE_EXTENDED_FLAGS;
+        mode &= ~ENABLE_MOUSE_INPUT;
         SetConsoleMode(handle, mode);
       }
 

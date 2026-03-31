@@ -1,4 +1,7 @@
-﻿namespace MyNotes.Debugging;
+﻿using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Input;
+
+namespace MyNotes.Debugging;
 
 internal static class FocusTracker
 {

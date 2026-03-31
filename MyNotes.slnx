@@ -12,6 +12,10 @@
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
+  <Project Path="MyNotes.Debugging/MyNotes.Debugging.csproj" Id="5a27443c-69a6-4e9b-9f4d-f6c586f4fa78">
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|x86" Project="x86" />
+  </Project>
   <Project Path="MyNotes.Package/MyNotes.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5">
     <Deploy />
   </Project>
@@ -20,7 +24,10 @@
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
-  <Project Path="MyNotes.SourceGenerators/MyNotes.SourceGenerators.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3" />
+  <Project Path="MyNotes.SourceGenerators/MyNotes.SourceGenerators.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3">
+    <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="Release|x64" Project="x64" />
+  </Project>
   <Project Path="MyNotes.Templates/MyNotes.Templates.csproj" Id="0273b1f2-725c-486a-8490-3ab564ae93bd">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />

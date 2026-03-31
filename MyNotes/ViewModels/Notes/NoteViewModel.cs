@@ -50,12 +50,14 @@ internal sealed partial class NoteViewModel : ViewModelBase
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
+      UnregisterEventHandlers();
       _notePropertyDebounceTimer.Dispose();
-      Note.PropertyChanged -= Note_PropertyChanged;
 
       _ = UpdateNoteEntity();
       _ = NoteService.CommitSearchIndexAsync();
@@ -63,6 +65,12 @@ internal sealed partial class NoteViewModel : ViewModelBase
     }
 
     base.Dispose(disposing);
+  }
+
+  private void UnregisterEventHandlers()
+  {
+    _notePropertyDebounceTimer.Elapsed -= NotePropertyChangedDebounceTimer_Elapsed;
+    Note.PropertyChanged -= Note_PropertyChanged;
   }
   #endregion
 

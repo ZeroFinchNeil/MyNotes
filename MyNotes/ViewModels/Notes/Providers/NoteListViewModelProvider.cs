@@ -60,7 +60,10 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     if (TryResolve(navigation, out var viewmodel))
     {
       if (!viewmodel.Disposed)
+      {
         viewmodel.Dispose();
+      }
+
       ResolvedViewModels.Remove(navigation);
     }
     return false;
@@ -73,7 +76,9 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
       if (wr.TryGetTarget(out var viewmodel))
       {
         if (!viewmodel.Disposed)
+        {
           viewmodel.Dispose();
+        }
       }
     }
     ResolvedViewModels.Clear();

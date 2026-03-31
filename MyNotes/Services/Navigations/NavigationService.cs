@@ -27,7 +27,9 @@ internal sealed partial class NavigationService : IDisposable
     private set
     {
       if (field != value)
+      {
         field = value;
+      }
     }
   }
 
@@ -47,7 +49,9 @@ internal sealed partial class NavigationService : IDisposable
   public void Dispose()
   {
     if (Disposed)
+    {
       return;
+    }
 
     UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
 
@@ -105,7 +109,10 @@ internal sealed partial class NavigationService : IDisposable
           if (nodes.TryGetValue(childEntity.Id, out var childNode))
           {
             if (!childEntity.IsDeleted)
+            {
               compositeNode.ChildNodes.Add(childNode);
+            }
+
             omissions.Remove(childEntity);
           }
         }
@@ -158,27 +165,45 @@ internal sealed partial class NavigationService : IDisposable
           break;
         case nameof(NavigationUserCompositeNode.IsExpanded):
           if (node is NavigationUserCompositeNode compositeNodeIE)
+          {
             await UpdateNavigationEntityAsync(compositeNodeIE, entity => entity.IsExpanded = compositeNodeIE.IsExpanded);
+          }
+
           break;
         case nameof(NavigationUserLeafNode.NoteSortKey):
           if (node is NavigationUserLeafNode leafNodeNSK)
+          {
             await UpdateNavigationEntityAsync(leafNodeNSK, entity => entity.NoteSortKey = leafNodeNSK.NoteSortKey.AsInt());
+          }
+
           break;
         case nameof(NavigationUserLeafNode.NoteSortDirection):
           if (node is NavigationUserLeafNode leafNodeNSD)
+          {
             await UpdateNavigationEntityAsync(leafNodeNSD, entity => entity.NoteSortDirection = leafNodeNSD.NoteSortDirection.AsInt());
+          }
+
           break;
         case nameof(NavigationUserLeafNode.PreviewLayoutType):
           if (node is NavigationUserLeafNode leafNodePLT)
+          {
             await UpdateNavigationEntityAsync(leafNodePLT, entity => entity.PreviewLayoutType = leafNodePLT.PreviewLayoutType.AsInt());
+          }
+
           break;
         case nameof(NavigationUserLeafNode.PreviewTileSize):
           if (node is NavigationUserLeafNode leafNodePTS)
+          {
             await UpdateNavigationEntityAsync(leafNodePTS, entity => entity.PreviewTileSize = leafNodePTS.PreviewTileSize.AsInt());
+          }
+
           break;
         case nameof(NavigationUserLeafNode.PreviewTileRatio):
           if (node is NavigationUserLeafNode leafNodePTR)
+          {
             await UpdateNavigationEntityAsync(leafNodePTR, entity => entity.PreviewTileRatio = leafNodePTR.PreviewTileRatio.AsInt());
+          }
+
           break;
       }
     }
@@ -187,7 +212,9 @@ internal sealed partial class NavigationService : IDisposable
   private void ChangeCurrentNavigation(INavigation navigation)
   {
     if (CurrentNavigation == navigation)
+    {
       return;
+    }
 
     CurrentNavigation = navigation;
     CurrentNavigationChanged?.Invoke(this, navigation);
@@ -198,10 +225,15 @@ internal sealed partial class NavigationService : IDisposable
   public void PushNavigation(INavigation navigation)
   {
     if (CurrentNavigation == navigation)
+    {
       return;
+    }
 
     if (CurrentNavigation is not null)
+    {
       NavigationBackStack.Push(CurrentNavigation);
+    }
+
     ChangeCurrentNavigation(navigation);
   }
 
@@ -215,7 +247,7 @@ internal sealed partial class NavigationService : IDisposable
 }
 
 #region Models & Entities (CRUD)
-internal sealed partial class NavigationService : IDisposable
+partial class NavigationService
 {
   // Navigation 속성 변경 사항 DB에 반영
   public async Task UpdateNavigationEntityAsync(NavigationUserNode node, Action<NavigationEntity> action)

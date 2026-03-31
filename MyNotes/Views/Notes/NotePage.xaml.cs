@@ -151,31 +151,53 @@ internal sealed partial class NotePage : Page
 
     // 현재 내비게이션 내에 해당 노트가 있는지 확인 후
     // 존재하면 뷰모델 정리하지 않음
-    bool disposeViewModel = true;
-    var navigationService = App.Services.GetRequiredService<NavigationService>();
-    if (navigationService.CurrentNavigation is INavigationNoteList navigation)
-    {
-      ExtendedRequestMessage<NoteId, bool> message = new() { Request = ViewModel.Note.Id };
-      WeakReferenceMessenger.Default.Send(message, AppMessageTokens.IsNoteInListToken(navigation));
-      if (message.HasReceivedResponse && message.Response)
-      {
-        disposeViewModel = false;
-        if (deleteNote)
-        {
-          WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(ViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
-        }
-      }
-    }
-    if (!deleteNote && disposeViewModel)
-    {
-      ViewModel.Dispose();
-    }
+    //bool disposeViewModel = true;
+    //var navigationService = App.Services.GetRequiredService<NavigationService>();
+    //if (navigationService.CurrentNavigation is INavigationNoteList navigation)
+    //{
+    //  ExtendedRequestMessage<NoteId, bool> message = new() { Request = ViewModel.Note.Id };
+    //  WeakReferenceMessenger.Default.Send(message, AppMessageTokens.IsNoteInListToken(navigation));
+    //  if (message.HasReceivedResponse && message.Response)
+    //  {
+    //    disposeViewModel = false;
+    //    if (deleteNote)
+    //    {
+    //      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(ViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+    //    }
+    //  }
+    //}
+    //if (!deleteNote && disposeViewModel)
+    //{
+    //  ViewModel.Dispose();
+    //}
+    var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
+    noteViewModelProvider.Release(ViewModel.Note);
 
     UnregisterMessengers();
     Bindings.StopTracking();
   }
-  #endregion
 
+  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+  {
+    sender.Changed -= AppWindow_Changed;
+    sender.Closing -= AppWindow_Closing;
+
+    if (_isManualClose)
+      ViewModel.Note.IsWindowOpen = false;
+
+    IntPtr hWnd = Win32Interop.GetWindowFromWindowId(sender.Id);
+    if (hWnd != IntPtr.Zero)
+    {
+      // 원래 WndProc으로 복귀
+      _ = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _oldWndProc);
+    }
+    _newWndProcCallback = null;
+  }
+  #endregion
+}
+
+partial class NotePage
+{
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
@@ -262,23 +284,6 @@ internal sealed partial class NotePage : Page
         ViewModel.Note.Position = sender.Position;
       }
     }
-  }
-
-  private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
-  {
-    sender.Changed -= AppWindow_Changed;
-    sender.Closing -= AppWindow_Closing;
-
-    if (_isManualClose)
-      ViewModel.Note.IsWindowOpen = false;
-
-    IntPtr hWnd = Win32Interop.GetWindowFromWindowId(sender.Id);
-    if (hWnd != IntPtr.Zero)
-    {
-      // 원래 WndProc으로 복귀
-      _ = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _oldWndProc);
-    }
-    _newWndProcCallback = null;
   }
 
   private void NotePage_ViewModeRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
@@ -435,7 +440,7 @@ internal sealed partial class NotePage : Page
   }
 }
 
-internal sealed partial class NotePage : Page
+partial class NotePage
 {
   #region 상단 타이틀 바 영역
   // 타이틀바 드래그 영역 조정(로드 및 크기 변경 시)
@@ -499,7 +504,7 @@ internal sealed partial class NotePage : Page
 }
 
 #region Keyboard Accelerators
-internal sealed partial class NotePage : Page
+partial class NotePage
 {
   private readonly DispatcherTimer _infoBarDismissTimer = new() { Interval = TimeSpan.FromSeconds(2) };
 
@@ -571,7 +576,7 @@ internal sealed partial class NotePage : Page
 #endregion
 
 #region 메신저 및 커맨드
-internal sealed partial class NotePage : Page
+partial class NotePage
 {
   private void RegisterMessengers()
   {

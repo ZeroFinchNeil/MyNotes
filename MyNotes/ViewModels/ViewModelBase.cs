@@ -23,7 +23,9 @@ internal abstract partial class ViewModelBase : ObservableObject, IViewModel, ID
   protected virtual void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {

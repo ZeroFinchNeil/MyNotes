@@ -295,8 +295,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     foreach (var noteViewModel in NoteViewModels)
     {
       noteViewModel.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-      //if (!WindowService.NoteWindows.ContainsKey(noteViewModel.Note.Id))
-      //  noteViewModel.Dispose();
+      NoteViewModelProvider.Release(noteViewModel.Note);
     }
     NoteViewModels.Clear();
     NoteViewModels = null;

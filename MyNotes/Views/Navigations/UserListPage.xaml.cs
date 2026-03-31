@@ -56,6 +56,11 @@ internal sealed partial class UserListPage : Page
   private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
     Bindings.StopTracking();
+    if (ViewModel is not null)
+    {
+      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      noteListViewModelProvider.Release(ViewModel.Navigation);
+    }
   }
   #endregion
 
