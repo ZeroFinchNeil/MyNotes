@@ -14,6 +14,7 @@ namespace MyNotes.Views.Navigations;
 internal sealed partial class UserListPage : Page
 {
   private UserLeafNavigationViewModel? ViewModel;
+  private NoteListViewModelProvider? NoteListViewModelProvider;
   private NoteListViewModel? NoteListViewModel;
 
   #region Object Lifetime Management
@@ -33,19 +34,18 @@ internal sealed partial class UserListPage : Page
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       ViewModel = navigationViewModelProvider.Resolve(navigation) as UserLeafNavigationViewModel;
-      NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
-      if (ViewModel is not null)
-      {
-        NoteListViewModel.ChangePreviewLayout(UserListPage_NotesListGridView);
-      }
+      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
     }
   }
 
   protected override void OnNavigatedFrom(NavigationEventArgs e)
   {
-    NoteListViewModel?.Dispose();
+    if (ViewModel?.Navigation is NavigationUserLeafNode navigation)
+    {
+      NoteListViewModelProvider?.Release(navigation);
+    }
   }
 
   private async void UserListPage_Loaded(object sender, RoutedEventArgs e)

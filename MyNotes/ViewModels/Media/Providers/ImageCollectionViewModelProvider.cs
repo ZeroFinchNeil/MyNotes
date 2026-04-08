@@ -42,7 +42,10 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     if (TryResolve(key, out var viewmodel))
     {
       if (!viewmodel.Disposed)
+      {
         viewmodel.Dispose();
+      }
+
       ResolvedViewModels.Remove(key);
     }
     return false;

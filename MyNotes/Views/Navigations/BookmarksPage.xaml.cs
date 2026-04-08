@@ -12,6 +12,7 @@ namespace MyNotes.Views.Navigations;
 public sealed partial class BookmarksPage : Page
 {
   private CoreNavigationViewModel? ViewModel;
+  private NoteListViewModelProvider? NoteListViewModelProvider;
   private NoteListViewModel? NoteListViewModel;
 
   #region Object Lifetime Management
@@ -28,8 +29,8 @@ public sealed partial class BookmarksPage : Page
     if (e.Parameter is NavigationBookmarks navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
+      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
       if (navigationViewModelProvider.TryResolve(navigation, out var viewmodel)
           && viewmodel is CoreNavigationViewModel bookmarksViewModel)
       {
@@ -38,9 +39,13 @@ public sealed partial class BookmarksPage : Page
       }
     }
   }
+
   protected override void OnNavigatedFrom(NavigationEventArgs e)
   {
-    NoteListViewModel?.Dispose();
+    if (ViewModel?.Navigation is NavigationBookmarks navigation)
+    {
+      NoteListViewModelProvider?.Release(navigation);
+    }
   }
 
   private async void BookmarksPage_Loaded(object sender, RoutedEventArgs e)

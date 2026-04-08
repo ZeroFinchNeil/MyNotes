@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Text;
 
 using Microsoft.EntityFrameworkCore;
@@ -14,20 +15,13 @@ internal sealed partial class DebugWindow : Window
   public DebugWindow()
   {
     InitializeComponent();
-    this.AppWindow.MoveAndResize(new(0, 0, 700, 300));
+    double scale = DebugWindow_RootGrid.XamlRoot?.RasterizationScale ?? 1.0;
+    this.AppWindow.MoveAndResize(new(0, 0, (int)(800 * scale), (int)(950 * scale)));
   }
 
-  private async void DebugWindow_SeparatorButton_Click(object sender, RoutedEventArgs e)
-  {
-    PrintSeparator();
-  }
+  private async void DebugWindow_SeparatorButton_Click(object sender, RoutedEventArgs e) => PrintSeparator();
 
-  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e)
-  {
-    GC.Collect();
-    GC.WaitForPendingFinalizers();
-    GC.Collect();
-  }
+  private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e) => ExecuteGC();
 
   private static readonly List<ConsoleColor> _consoleColors = new()
   {
@@ -44,35 +38,117 @@ internal sealed partial class DebugWindow : Window
     Console.WriteLine();
   }
 
+  private static void PrintPadding(ConsoleColor paddingColor)
+  {
+    Console.BackgroundColor = paddingColor;
+    Console.WriteLine(" ");
+    Console.BackgroundColor = ConsoleColor.White;
+  }
+
+  private static void ExecuteGC()
+  {
+    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
+    GC.WaitForPendingFinalizers();
+    GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
+  }
+
+  public ObservableCollection<IGrouping<string?, DebugWindowReferenceItemGroup>> GroupItems { get; } = new();
+  public ObservableCollection<DebugWindowReferenceItemPropertyInfo> ReferencePropertyInfo { get; } = new();
+
+  private static readonly ImmutableList<string> GroupNames = ["NavigationViewModel", "NoteViewModel", "ViewModel", "Container", "Dialog", "Page", "Window", "Navigation", "Note"];
+
   private void DebugWindow_ShowReferencesButton_Click(object sender, RoutedEventArgs e)
   {
-    PrintSeparator();
-    var paddingColor = _consoleColors[_colorCount++ % _consoleColors.Count];
+    DebugWindow_ShowReferencesButton.IsEnabled = false;
+    ExecuteGC();
 
-    var group = ReferenceTracker.GetAliveReferences()
-      .GroupBy(pair =>
-      {
-        string typeName = pair.Key.Name;
-        return typeName.Contains("ViewModel") ? 1 :
-        typeName.Contains("Container") ? 2 :
-        typeName.Contains("Dialog") ? 3 :
-        typeName.Contains("Page") ? 4 :
-        typeName.Contains("Window") ? 5 : 0;
-      });
+    var references = ReferenceTracker.GetAliveReferences();
+    List<DebugWindowReferenceItemGroup> itemGroups = new();
+    var group = references
+      .GroupBy(pair => GroupNames.FirstOrDefault(name => pair.Key.Name.Contains(name)) ?? "Object");
+
     foreach (var g in group)
     {
       foreach (var pair in g.OrderBy(pair => pair.Key.Name))
       {
-        Console.BackgroundColor = paddingColor;
-        Console.Write(" ");
-        Console.BackgroundColor = ConsoleColor.White;
-        Console.WriteLine(" {0, 25} : {1}", pair.Key.Name, string.Join(", ", pair.Value.Where(obj => obj is not null).Select(obj => obj!.GetHashCode())));
+        List<DebugWindowReferenceItem> items = new();
+        var properties = pair.Key.GetProperties(BindingFlags.Public | BindingFlags.Instance);
+        var events = pair.Key.GetEvents(BindingFlags.Public | BindingFlags.Instance);
+        foreach (var obj in pair.Value)
+        {
+          if (obj is null)
+          {
+            continue;
+          }
+
+          DebugWindowReferenceItem item = new() { Type = pair.Key.Name, HashCode = obj.GetHashCode() };
+          try
+          {
+            foreach (var property in properties)
+            {
+              var indexParams = property.GetIndexParameters();
+              if (indexParams.Length == 0)
+              {
+                item.PropertyInfo.Add(new() { Name = property.Name, Value = property.GetValue(obj)?.ToString() ?? string.Empty });
+              }
+              else if (indexParams.First() is ParameterInfo parameterInfo && parameterInfo.ParameterType.Equals(typeof(int)))
+              {
+                int index = 0;
+                List<object> values = new();
+                while (index <= 10)
+                {
+                  try
+                  {
+                    var v = property.GetValue(obj, [index++]);
+                    if (v is null)
+                    {
+                      break;
+                    }
+                    values.Add(v);
+                  }
+                  catch
+                  {
+                    break;
+                  }
+                }
+
+                item.PropertyInfo.Add(new() { Name = property.Name, Value = string.Join(", ", values) });
+              }
+              else
+              {
+                item.PropertyInfo.Add(new() { Name = property.Name, Value = string.Empty });
+              }
+            }
+
+            foreach (var ev in events)
+            {
+              try
+              {
+                if (pair.Key.GetField(ev.Name)?.GetValue(obj) is Delegate handler)
+                {
+                  item.PropertyInfo.Add(new() { Name = $"{ev.Name} (event)", Value = string.Join(", ", handler.GetInvocationList().Select(h => h.Method.Name)) });
+                }
+              }
+              catch
+              { }
+            }
+          }
+          catch
+          { }
+          items.Add(item);
+        }
+
+        itemGroups.Add(new() { GroupName = g.Key, Type = pair.Key.Name, Descriptions = items });
       }
-      Console.BackgroundColor = paddingColor;
-      Console.WriteLine(" ");
-      Console.BackgroundColor = ConsoleColor.White;
     }
-    PrintSeparator();
+
+    GroupItems.Clear();
+    foreach (var i in itemGroups.GroupBy(item => item.GroupName).OrderBy(g => g.Key))
+    {
+      GroupItems.Add(i);
+    }
+
+    DebugWindow_ShowReferencesButton.IsEnabled = true;
   }
 
   private async void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
@@ -83,16 +159,40 @@ internal sealed partial class DebugWindow : Window
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)
   {
-    var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    await context.Database.EnsureDeletedAsync();
+    ContentDialog dialog = new()
+    {
+      XamlRoot = this.Content.XamlRoot,
+      Title = "Clear Database",
+      Content = "Clear Database",
+      PrimaryButtonText = "Yes",
+      CloseButtonText = "Cancel",
+      DefaultButton = ContentDialogButton.Close
+    };
+    if (await dialog.ShowAsync() is ContentDialogResult.Primary)
+    {
+      var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+      await using var context = await factory.CreateDbContextAsync();
+      await context.Database.EnsureDeletedAsync();
+    }
   }
 
   private async void DebugWindow_CreateDatabaseButton_Click(object sender, RoutedEventArgs e)
   {
-    var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-    await using var context = await factory.CreateDbContextAsync();
-    await context.Database.EnsureCreatedAsync();
+    ContentDialog dialog = new()
+    {
+      XamlRoot = this.Content.XamlRoot,
+      Title = "Create Database",
+      Content = "Create Database",
+      PrimaryButtonText = "Yes",
+      CloseButtonText = "Cancel",
+      DefaultButton = ContentDialogButton.Close
+    };
+    if (await dialog.ShowAsync() is ContentDialogResult.Primary)
+    {
+      var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+      await using var context = await factory.CreateDbContextAsync();
+      await context.Database.EnsureCreatedAsync();
+    }
   }
 
   private void DebugWindow_TrackFocusedElementToggleButton_Click(object sender, RoutedEventArgs e)
@@ -147,4 +247,43 @@ internal sealed partial class DebugWindow : Window
       presenter.IsAlwaysOnTop = DebugWindow_AlwaysOnTopToggleButton.IsChecked ?? false;
     }
   }
+
+  private void DebugWindow_DescriptionButton_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is Button button && button.DataContext is DebugWindowReferenceItem item)
+    {
+      ReferencePropertyInfo.Clear();
+      DebugWindow_ReferencePropertyInfosListView.Header = $"[ {item.Type} ]\r\n( {item.HashCode} )";
+      foreach (var info in item.PropertyInfo)
+      {
+        ReferencePropertyInfo.Add(info);
+      }
+    }
+  }
+
+  private Visibility IsStringEmpty(string word) => string.IsNullOrWhiteSpace(word) ? Visibility.Collapsed : Visibility.Visible;
+}
+
+internal record DebugWindowReferenceItemGroup
+{
+  public string? GroupName { get; set; }
+  public string? Type { get; set; }
+
+  public IReadOnlyList<DebugWindowReferenceItem>? Descriptions { get; set; }
+}
+
+internal record DebugWindowReferenceItem
+{
+  public string Type { get; set; } = string.Empty;
+
+  public int HashCode { get; set; }
+
+  public List<DebugWindowReferenceItemPropertyInfo> PropertyInfo { get; set; } = new();
+}
+
+internal record DebugWindowReferenceItemPropertyInfo
+{
+  public string Name { get; set; } = string.Empty;
+
+  public string Value { get; set; } = string.Empty;
 }

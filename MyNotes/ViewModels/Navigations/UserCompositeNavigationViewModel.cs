@@ -49,7 +49,9 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -123,12 +125,16 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     {
       var viewmodel = stack.Pop();
       if (containsSelf || viewmodel != this)
+      {
         action.Invoke(viewmodel);
+      }
 
       if (viewmodel is UserCompositeNavigationViewModel compositeViewModel)
       {
         foreach (var childViewModel in compositeViewModel.ChildNodeViewModels)
+        {
           stack.Push(childViewModel);
+        }
       }
     }
   }
@@ -142,13 +148,19 @@ internal partial class UserCompositeNavigationViewModel : UserNavigationViewMode
     {
       var viewmodel = stack.Pop();
       if (containsSelf || viewmodel != this)
+      {
         if (condition.Invoke(viewmodel))
+        {
           return viewmodel;
+        }
+      }
 
       if (viewmodel is UserCompositeNavigationViewModel compositeViewModel)
       {
         foreach (var childViewModel in compositeViewModel.ChildNodeViewModels)
+        {
           stack.Push(childViewModel);
+        }
       }
     }
 

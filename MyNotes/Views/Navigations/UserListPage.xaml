@@ -9,6 +9,7 @@
       xmlns:helpers="using:MyNotes.Helpers"
       xmlns:templates="using:MyNotes.Templates"
       xmlns:collections="using:MyNotes.Common.Collections">
+
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="64" />

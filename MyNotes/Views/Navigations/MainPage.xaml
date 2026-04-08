@@ -9,13 +9,12 @@
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
-      xmlns:helpers="using:MyNotes.Helpers"
-      xmlns:debug="using:MyNotes.Debugging">
+      xmlns:helpers="using:MyNotes.Helpers">
 
   <Page.Resources>
-    <CollectionViewSource x:Name="MainPage_CollectionViewSource"
+    <!--<CollectionViewSource x:Name="MainPage_MenuItemsCollectionViewSource"
                           IsSourceGrouped="True"
-                          Source="{x:Bind ViewModel.MenuItemsSource}" />
+                          Source="{x:Bind ViewModel.MenuItemsSource}" />-->
   </Page.Resources>
   <Grid x:Name="MainPage_RootGrid">
     <Grid.RowDefinitions>
@@ -65,13 +64,16 @@
                                 x:Uid="/MainPage/PaneToggleButton"
                                 Grid.Column="2"
                                 Content="&#xE700;"
-                                Click="MainPage_PaneToggleButton_Click">
+                                Command="{x:Bind ViewModel.ToggleNavigationPaneCommand}">
         <tmpls:AnimatedIconButton.AnimatedIconSource>
           <animatedvisuals:AnimatedGlobalNavigationButtonVisualSource />
         </tmpls:AnimatedIconButton.AnimatedIconSource>
 
         <tmpls:AnimatedIconButton.ContextFlyout>
           <MenuFlyout>
+            <MenuFlyoutItem x:Name="MainPage_ViewNavigationMenuFlyoutItem"
+                            Text="View Navigation"
+                            Click="MainPage_ViewNavigationMenuFlyoutItem_Click" />
             <MenuFlyoutItem x:Name="MainPage_OpenDebugWindowMenuFlyoutItem"
                             Text="Debug Window"
                             Click="MainPage_OpenDebugWindowMenuFlyoutItem_Click" />
@@ -116,7 +118,8 @@
                     IsBackButtonVisible="Collapsed"
                     IsPaneToggleButtonVisible="False"
                     IsSettingsVisible="False"
-                    MenuItemsSource="{x:Bind MainPage_CollectionViewSource.View}"
+                    IsPaneOpen="{x:Bind ViewModel.IsNavigationPaneOpen, Mode=OneWay}"
+                    MenuItemsSource="{x:Bind ViewModel.MenuItems}"
                     FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
                     SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=TwoWay}">
       <NavigationView.Resources>
@@ -143,6 +146,22 @@
             </DataTemplate>
           </local:MainPageNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
 
+          <!--사용자 루트 내비게이션 템플릿-->
+          <local:MainPageNavigationViewDataTemplateSelector.NavigationUserRootNodeTemplate>
+            <DataTemplate x:DataType="navigationvm:UserRootNavigationViewModel">
+              <NavigationViewItem Content="{x:Bind Navigation.Title}"
+                                  MenuItemsSource="{x:Bind ChildNodeViewModels}"
+                                  IsExpanded="True"
+                                  Visibility="Visible"
+                                  SelectsOnInvoked="False">
+                <NavigationViewItem.Icon>
+                  <ImageIcon Source="{x:Bind IconImage}" />
+                </NavigationViewItem.Icon>
+              </NavigationViewItem>
+            </DataTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.NavigationUserRootNodeTemplate>
+
+          <!--사용자 그룹 내비게이션 템플릿-->
           <local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
             <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
               <local:UserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
@@ -152,7 +171,6 @@
                                             CanDrag="True"
                                             AllowDrop="True"
                                             IsTabStop="True"
-                                            SelectsOnInvoked="False"
                                             PresenterDragStarting="MainPageUserNavigationViewItem_PresenterDragStarting"
                                             DragEnter="MainPageUserNavigationViewItem_DragEnter"
                                             DragOver="MainPageUserNavigationViewItem_DragOver"

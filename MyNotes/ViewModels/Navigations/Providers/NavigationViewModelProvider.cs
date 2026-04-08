@@ -71,22 +71,12 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     if (TryResolve(navigation, out var viewmodel))
     {
       if (!viewmodel.Disposed)
+      {
         viewmodel.Dispose();
+      }
+
       ResolvedViewModels.Remove(navigation);
     }
     return false;
-  }
-
-  public void ReleaseAll()
-  {
-    foreach (var wr in ResolvedViewModels.Values)
-    {
-      if (wr.TryGetTarget(out var viewmodel))
-      {
-        if (!viewmodel.Disposed)
-          viewmodel.Dispose();
-      }
-    }
-    ResolvedViewModels.Clear();
   }
 }

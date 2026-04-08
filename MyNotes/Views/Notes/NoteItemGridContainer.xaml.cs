@@ -29,6 +29,8 @@ internal sealed partial class NoteItemGridContainer : UserControl
 
   private void UserListPageNoteItemGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
+    Console.WriteLine("{0}: {1}", "Container Unloaded", true);
+
     Bindings.StopTracking();
   }
   #endregion  
@@ -50,7 +52,9 @@ internal sealed partial class NoteItemGridContainer : UserControl
   {
     _commandOverlayPersistenceTCS?.TrySetResult(false);
     if (!_preventCommandOverlayCollapse)
+    {
       VisualStateManager.GoToState(this, "CommandOverlayCollapsed", false);
+    }
   }
 
   private bool _preventCommandOverlayCollapse = false;
@@ -70,7 +74,10 @@ internal sealed partial class NoteItemGridContainer : UserControl
       {
         var targetNavigation = targetVM.Navigation;
         if (targetNavigation.Id == ViewModel.Note.NavigationId)
+        {
           continue;
+        }
+
         NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
         {
           Text = targetNavigation.Title,
@@ -81,28 +88,6 @@ internal sealed partial class NoteItemGridContainer : UserControl
       }
 
       NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
-
-      //RequestMessage<IReadOnlyList<UserLeafNavigationViewModel>> message = new();
-      //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
-      //if (message.HasReceivedResponse)
-      //{
-      //  foreach (var targetVM in message.Response)
-      //  {
-      //    if (targetVM.Navigation.Id == ViewModel.Note.NavigationId)
-      //      continue;
-      //    NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
-      //    {
-      //      Text = targetVM.Navigation.Title,
-      //      Icon = new ImageIcon() { Source = targetVM.IconImage },
-      //      Command = ViewModel.MoveToListCommand,
-      //      CommandParameter = new SourceTargetPair<Note, NavigationId> { Source = ViewModel.Note, Target = targetVM.Navigation.Id }
-      //    });
-      //  }
-
-      //  NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;
-      //}
-      //else
-      //  NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = false;
     }
   }
 

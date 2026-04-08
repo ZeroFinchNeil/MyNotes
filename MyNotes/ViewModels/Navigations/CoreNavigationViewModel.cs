@@ -15,7 +15,9 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -24,4 +26,6 @@ internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
     base.Dispose(disposing);
   }
   #endregion
+
+  public override string ToString() => $"{Navigation.Id.Value} ({Navigation.Title})";
 }

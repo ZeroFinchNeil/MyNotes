@@ -38,7 +38,9 @@ internal sealed partial class UserLeafNavigationViewModel : UserNavigationViewMo
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {

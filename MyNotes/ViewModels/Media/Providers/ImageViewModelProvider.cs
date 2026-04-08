@@ -44,22 +44,12 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     if (TryResolve(descriptor, out var viewmodel))
     {
       if (!viewmodel.Disposed)
+      {
         viewmodel.Dispose();
+      }
+
       ResolveTable.Remove(descriptor);
     }
     return false;
-  }
-
-  public void ReleaseAll()
-  {
-    foreach (var item in ResolveTable)
-    {
-      if (item.Value.TryGetTarget(out var viewmodel))
-      {
-        if (!viewmodel.Disposed)
-          viewmodel.Dispose();
-      }
-    }
-    ResolveTable.Clear();
   }
 }

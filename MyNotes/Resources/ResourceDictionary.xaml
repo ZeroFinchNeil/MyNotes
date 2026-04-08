@@ -890,13 +890,13 @@
                 xmlns:notevm="using:MyNotes.ViewModels.Notes"
                 xmlns:noteview="using:MyNotes.Views.Notes">
     <noteview:NoteItemGridContainer ViewModel="{Binding}"
-                               Margin="6" />
+                                    Margin="6" />
   </DataTemplate>
   <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutList"
                 x:DataType="notevm:NoteViewModel"
                 xmlns:notevm="using:MyNotes.ViewModels.Notes"
                 xmlns:noteview="using:MyNotes.Views.Notes">
     <noteview:NoteItemListContainer ViewModel="{Binding}"
-                               Margin="6" />
+                                    Margin="6" />
   </DataTemplate>
 </ResourceDictionary>

@@ -2,8 +2,11 @@
 
 namespace MyNotes.Models.UI;
 
-internal class DragUISession : IDisposable
+[Debugging.ReferenceTracker]
+internal sealed partial class DragUISession : IDisposable
 {
+  public DragUISession() { TrackReference(); }
+
   public required string FormatId
   {
     get => Disposed ? string.Empty : field;
@@ -30,9 +33,9 @@ internal class DragUISession : IDisposable
 
   public bool IsExpired => Disposed;
 
-  public bool Disposed { get; protected set; }
+  public bool Disposed { get; private set; }
 
-  protected virtual void Dispose(bool disposing)
+  private void Dispose(bool disposing)
   {
     if (!Disposed)
     {

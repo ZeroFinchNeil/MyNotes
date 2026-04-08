@@ -15,7 +15,6 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Navigations;
 using MyNotes.Services.Notes;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Media;
@@ -33,6 +32,9 @@ namespace MyNotes.Views.Notes;
 [Debugging.ReferenceTracker]
 internal sealed partial class NotePage : Page
 {
+  private readonly NoteViewModelProvider NoteViewModelProvider;
+  private readonly NoteEditorViewModelProvider NoteEditorViewModelProvider;
+
   private readonly NoteViewModel ViewModel;
   private readonly NoteEditorViewModel EditorViewModel;
   private readonly ImageCollectionViewModel ImageCollectionViewModel;
@@ -45,11 +47,12 @@ internal sealed partial class NotePage : Page
     TrackReference();
     InitializeComponent();
 
-    var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
-    var editorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    NoteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
+    NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+
     var imageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ViewModel = noteViewModelProvider.Resolve(note);
-    EditorViewModel = editorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
+    ViewModel = NoteViewModelProvider.Resolve(note);
+    EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
 
     var noteService = App.Services.GetRequiredService<NoteService>();
     ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(noteService.CreateImageCollectionKey(note));
@@ -138,7 +141,7 @@ internal sealed partial class NotePage : Page
   {
     // 에디터 내용을 저장 후 정리
     EditorViewModel.UpdateEditorBodyText();
-    EditorViewModel.Dispose();
+    NoteEditorViewModelProvider.Release(ViewModel.Note);
 
     ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
 
@@ -149,29 +152,7 @@ internal sealed partial class NotePage : Page
       await ViewModel.DeleteNoteEntity();
     }
 
-    // 현재 내비게이션 내에 해당 노트가 있는지 확인 후
-    // 존재하면 뷰모델 정리하지 않음
-    //bool disposeViewModel = true;
-    //var navigationService = App.Services.GetRequiredService<NavigationService>();
-    //if (navigationService.CurrentNavigation is INavigationNoteList navigation)
-    //{
-    //  ExtendedRequestMessage<NoteId, bool> message = new() { Request = ViewModel.Note.Id };
-    //  WeakReferenceMessenger.Default.Send(message, AppMessageTokens.IsNoteInListToken(navigation));
-    //  if (message.HasReceivedResponse && message.Response)
-    //  {
-    //    disposeViewModel = false;
-    //    if (deleteNote)
-    //    {
-    //      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(ViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
-    //    }
-    //  }
-    //}
-    //if (!deleteNote && disposeViewModel)
-    //{
-    //  ViewModel.Dispose();
-    //}
-    var noteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
-    noteViewModelProvider.Release(ViewModel.Note);
+    NoteViewModelProvider.Release(ViewModel.Note);
 
     UnregisterMessengers();
     Bindings.StopTracking();
@@ -183,7 +164,9 @@ internal sealed partial class NotePage : Page
     sender.Closing -= AppWindow_Closing;
 
     if (_isManualClose)
+    {
       ViewModel.Note.IsWindowOpen = false;
+    }
 
     IntPtr hWnd = Win32Interop.GetWindowFromWindowId(sender.Id);
     if (hWnd != IntPtr.Zero)
@@ -323,7 +306,9 @@ partial class NotePage
           suggestedFileName = suggestedFileName.Replace(ch, '_');
         }
         if (string.IsNullOrEmpty(suggestedFileName))
+        {
           suggestedFileName = $"MyNote_{DateTime.UtcNow:yyyyMMdd_hhmmss}";
+        }
 
         FileSavePicker picker = new(appWindow.Id)
         {
@@ -410,7 +395,9 @@ partial class NotePage
   private void UpdateNoteImagePaths()
   {
     if (ImageCollectionViewModel.ImageViewModels is null)
+    {
       return;
+    }
 
     ViewModel.Note.Images = [.. ImageCollectionViewModel.ImageViewModels.Select(vm => vm.ImageDescriptor)];
     ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels.Count > 0;
@@ -527,7 +514,10 @@ partial class NotePage
         actionAfterAutoClosed?.Invoke();
       }
       if (actionAfterAutoClosed is not null)
+      {
         _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick_WhenAutoClosed;
+      }
+
       _infoBarDismissTimer.Start();
     }
   }
@@ -553,17 +543,25 @@ partial class NotePage
   private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     if (NotePage_FindReplaceBox.IsOpen)
+    {
       VisualStateManager.GoToState(this, nameof(EditorSearchNone), false);
+    }
     else
+    {
       VisualStateManager.GoToState(this, nameof(EditorSearching), false);
+    }
   }
 
   private void NotePage_ReplaceKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     if (NotePage_FindReplaceBox.IsOpen)
+    {
       VisualStateManager.GoToState(this, nameof(EditorSearchNone), false);
+    }
     else
+    {
       VisualStateManager.GoToState(this, nameof(EditorSearching), false);
+    }
   }
 
   private void NotePage_RenameTitleKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)

@@ -26,4 +26,6 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
 
   [ObservableProperty]
   public partial BitmapImage? IconImage { get; set; }
+
+  public override string ToString() => $"{Navigation.Id.Value} ({Navigation.Title})";
 }

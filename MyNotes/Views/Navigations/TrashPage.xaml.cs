@@ -12,6 +12,7 @@ namespace MyNotes.Views.Navigations;
 public sealed partial class TrashPage : Page
 {
   private CoreNavigationViewModel? ViewModel;
+  private NoteListViewModelProvider? NoteListViewModelProvider;
   private NoteListViewModel? NoteListViewModel;
 
   #region Object Lifetime Management
@@ -28,8 +29,8 @@ public sealed partial class TrashPage : Page
     if (e.Parameter is NavigationTrash navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
+      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
       if (navigationViewModelProvider.TryResolve(navigation, out var viewmodel)
           && viewmodel is CoreNavigationViewModel trashViewModel)
       {
@@ -40,7 +41,10 @@ public sealed partial class TrashPage : Page
   }
   protected override void OnNavigatedFrom(NavigationEventArgs e)
   {
-    NoteListViewModel?.Dispose();
+    if (ViewModel?.Navigation is NavigationTrash navigation)
+    {
+      NoteListViewModelProvider?.Release(navigation);
+    }
   }
 
   private async void TrashPage_Loaded(object sender, RoutedEventArgs e)

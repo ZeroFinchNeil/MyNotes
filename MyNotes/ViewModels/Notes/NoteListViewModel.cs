@@ -21,6 +21,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly SearchService SearchService;
+  private readonly WindowService WindowService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
@@ -30,6 +31,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     SettingsService = settingsService;
     NoteService = noteService;
     SearchService = searchService;
+    WindowService = windowService;
     NoteViewModelProvider = noteViewModelProvider;
 
     Navigation = navigation;
@@ -44,7 +46,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -235,7 +239,10 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       case NavigationSearch search:
         var searchResult = await SearchService.SearchNoteIndexAsync(search.SearchText);
         if (searchResult is null)
+        {
           return;
+        }
+
         await foreach (var match in searchResult.Matches)
         {
           if (await NoteService.FindNoteAsync(NoteId.Create(match.NoteId)) is Note note)
@@ -288,7 +295,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   public void UnloadNoteViewModels()
   {
     if (NoteViewModels is null)
+    {
       return;
+    }
 
     NoteViewModels.CollectionChanged -= NoteViewModels_CollectionChanged;
 
@@ -303,9 +312,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   private void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
   {
-    if (sender is Note note)
+    if (sender is Note note
+        && NoteViewModelProvider.TryResolve(note, out var noteViewModel))
     {
-      var noteViewModel = NoteViewModelProvider.Resolve(note);
       switch (e.PropertyName)
       {
         case nameof(Note.Title):

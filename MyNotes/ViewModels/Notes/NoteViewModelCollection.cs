@@ -2,27 +2,34 @@
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewModel>
+[Debugging.ReferenceTracker]
+internal sealed partial class NoteViewModelCollection : ObservableCollection<NoteViewModel>
 {
-  private List<NoteViewModel> _items => (List<NoteViewModel>)Items;
+  private List<NoteViewModel> Inner => (List<NoteViewModel>)Items;
   public Comparer<NoteViewModel> Comparer { get; private set; }
 
   #region Object Lifetime Management
-  public NoteViewModelCollection(Comparer<Note> comparer) : base(new List<NoteViewModel>()) => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
-  public NoteViewModelCollection(Comparer<NoteViewModel> comparer) : base(new List<NoteViewModel>()) => Comparer = comparer;
-
-  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<Note> comparer) : base(new List<NoteViewModel>())
+  private NoteViewModelCollection() : base(new List<NoteViewModel>())
   {
-    Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
-    _items.AddRange(items);
-    _items.Sort(Comparer);
+    TrackReference();
+    Comparer = null!;
   }
 
-  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<NoteViewModel> comparer) : base(new List<NoteViewModel>())
+  public NoteViewModelCollection(Comparer<Note> comparer) : this() => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
+  public NoteViewModelCollection(Comparer<NoteViewModel> comparer) : this() => Comparer = comparer;
+
+  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<Note> comparer) : this()
+  {
+    Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
+    Inner.AddRange(items);
+    Inner.Sort(Comparer);
+  }
+
+  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<NoteViewModel> comparer) : this()
   {
     Comparer = comparer;
-    _items.AddRange(items);
-    _items.Sort(Comparer);
+    Inner.AddRange(items);
+    Inner.Sort(Comparer);
   }
   #endregion
 
@@ -34,29 +41,33 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
 
   protected override void SetItem(int index, NoteViewModel item)
   {
-    var oldItem = _items[index];
+    var oldItem = Inner[index];
     if (Comparer.Compare(oldItem, item) == 0)
     {
       base.SetItem(index, item);
       return;
     }
 
-    _items.RemoveAt(index);
+    Inner.RemoveAt(index);
 
     int newIndex = GetSortedIndex(item);
-    _items.Insert(newIndex, item);
+    Inner.Insert(newIndex, item);
 
     if (index == newIndex)
+    {
       OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Replace, item, oldItem));
+    }
     else
+    {
       OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, index));
+    }
   }
 
   protected override void MoveItem(int oldIndex, int newIndex) { }
 
   private int GetSortedIndex(NoteViewModel item)
   {
-    int index = _items.BinarySearch(item, Comparer);
+    int index = Inner.BinarySearch(item, Comparer);
     return (index >= 0) ? index : ~index;
   }
 
@@ -67,19 +78,25 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
 
   public void ReorderItem(NoteViewModel item)
   {
-    int oldIndex = _items.IndexOf(item);
+    int oldIndex = Inner.IndexOf(item);
     if (oldIndex < 0)
+    {
       return;
+    }
 
     int newIndex = GetSortedIndex(item);
     if (oldIndex == newIndex)
+    {
       return;
+    }
 
     if (oldIndex < newIndex)
+    {
       newIndex--;
+    }
 
-    _items.RemoveAt(oldIndex);
-    _items.Insert(newIndex, item);
+    Inner.RemoveAt(oldIndex);
+    Inner.Insert(newIndex, item);
 
     OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
   }
@@ -93,15 +110,15 @@ internal sealed class NoteViewModelCollection : ObservableCollection<NoteViewMod
   /// 이후 추가되는 항목도 이 Comparer에 따라 자동으로 정렬됩니다.
   public void Rearrange(Comparer<NoteViewModel> comparer)
   {
-    int count = _items.Count;
+    int count = Inner.Count;
     NoteViewModel[] temp = new NoteViewModel[count];
-    _items.CopyTo(0, temp, 0, count);
+    Inner.CopyTo(0, temp, 0, count);
 
     Clear();
 
     Comparer = comparer;
-    _items.AddRange(temp);
-    _items.Sort(Comparer);
-    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, _items, 0));
+    Inner.AddRange(temp);
+    Inner.Sort(Comparer);
+    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, Inner, 0));
   }
 }

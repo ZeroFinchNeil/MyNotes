@@ -46,22 +46,12 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
     if (TryResolve(note, out var viewmodel))
     {
       if (!viewmodel.Disposed)
+      {
         viewmodel.Dispose();
+      }
+
       ResolvedViewModels.Remove(note);
     }
     return false;
-  }
-
-  public void ReleaseAll()
-  {
-    foreach (var wr in ResolvedViewModels.Values)
-    {
-      if (wr.TryGetTarget(out var viewmodel))
-      {
-        if (!viewmodel.Disposed)
-          viewmodel.Dispose();
-      }
-    }
-    ResolvedViewModels.Clear();
   }
 }

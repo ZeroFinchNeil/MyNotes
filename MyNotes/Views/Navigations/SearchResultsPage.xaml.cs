@@ -12,6 +12,7 @@ namespace MyNotes.Views.Navigations;
 internal sealed partial class SearchResultsPage : Page
 {
   private SearchNavigationViewModel? ViewModel;
+  private NoteListViewModelProvider? NoteListViewModelProvider;
   private NoteListViewModel? NoteListViewModel;
 
   #region Object Lifetime Management
@@ -29,8 +30,8 @@ internal sealed partial class SearchResultsPage : Page
     if (e.Parameter is NavigationSearch navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      NoteListViewModel = noteListViewModelProvider.Resolve(navigation);
+      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
       if (navigationViewModelProvider.TryResolve(navigation, out var viewmodel)
           && viewmodel is SearchNavigationViewModel searchNavigationViewModel)
       {
@@ -42,7 +43,10 @@ internal sealed partial class SearchResultsPage : Page
 
   protected override void OnNavigatedFrom(NavigationEventArgs e)
   {
-    NoteListViewModel?.Dispose();
+    if (ViewModel?.Navigation is NavigationSearch navigation)
+    {
+      NoteListViewModelProvider?.Release(navigation);
+    }
   }
 
   private async void SearchResultsPage_Loaded(object sender, RoutedEventArgs e)

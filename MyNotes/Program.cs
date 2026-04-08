@@ -61,7 +61,7 @@ public class Program
     appInstance.Activated += OnActivated;
 #if DEBUG
     IntPtr consoleHWND = IntPtr.Zero;
-    consoleHWND = NativeMethods.SetConsole(0, 300, 800, 1000);
+    consoleHWND = NativeMethods.SetConsole(0, 850, 750, 540);
 #endif
     App? app = null;
     Application.Start((p) =>
@@ -148,13 +148,19 @@ public class Program
     var curRevision = (int)(version & 0x000000000000FFFFL);
 
     if (curMajor != major)
+    {
       return curMajor > major;
+    }
 
     if (curMinor != minor)
+    {
       return curMinor > minor;
+    }
 
     if (curBuild != build)
+    {
       return curBuild >= build;
+    }
 
     return curRevision >= revision;
   }

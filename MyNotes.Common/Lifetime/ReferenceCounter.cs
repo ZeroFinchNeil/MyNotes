@@ -1,4 +1,7 @@
-﻿namespace MyNotes.ViewModels;
+﻿using System;
+using System.Threading;
+
+namespace MyNotes.Common.Lifetime;
 
 [Debugging.ReferenceTracker]
 internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
@@ -11,10 +14,16 @@ internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
 
   public ReferenceCounter() { TrackReference(); }
 
-  public void Increment() => Interlocked.Increment(ref _referenceCount);
+  public void Increment()
+  {
+    Interlocked.Increment(ref _referenceCount);
+    Console.WriteLine("{0}: {1}", "Reference Count", ReferenceCount);
+  }
+
   public bool Decrement()
   {
     var newCount = Interlocked.Decrement(ref _referenceCount);
+    Console.WriteLine("{0}: {1}", "Reference Count", ReferenceCount);
     if (newCount == 0)
     {
       Instance.Dispose();

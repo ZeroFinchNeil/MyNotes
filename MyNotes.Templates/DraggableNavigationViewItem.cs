@@ -13,12 +13,12 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
   public DraggableNavigationViewItem()
   {
     DefaultStyleKey = typeof(NavigationViewItem);
-    DragStartingWeakEventListner = new(this)
+    DragStartingWeakEventListener = new(this)
     {
       OnEventAction = (instance, source, args) => instance.PresenterDragStarting?.Invoke(instance, args),
       OnDetachAction = (weakEventListener) => Presenter?.DragStarting -= weakEventListener.OnEvent
     };
-    DropCompletedWeakEventListner = new(this)
+    DropCompletedWeakEventListener = new(this)
     {
       OnEventAction = (instance, source, args) => instance?.PresenterDropCompleted?.Invoke(instance, args),
       OnDetachAction = (weakEventListener) => Presenter?.DropCompleted -= weakEventListener.OnEvent
@@ -53,8 +53,8 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
     Presenter?.CanDrag = this.CanDrag;
   }
 
-  private readonly WeakEventListener<DraggableNavigationViewItem, UIElement, DragStartingEventArgs> DragStartingWeakEventListner;
-  private readonly WeakEventListener<DraggableNavigationViewItem, UIElement, DropCompletedEventArgs> DropCompletedWeakEventListner;
+  private readonly WeakEventListener<DraggableNavigationViewItem, UIElement, DragStartingEventArgs> DragStartingWeakEventListener;
+  private readonly WeakEventListener<DraggableNavigationViewItem, UIElement, DropCompletedEventArgs> DropCompletedWeakEventListener;
   private readonly WeakEventListener<DraggableNavigationViewItem, object, DragEventArgs> DragEnterWeakEventHandler;
   private readonly WeakEventListener<DraggableNavigationViewItem, object, DragEventArgs> DragLeaveWeakEventHandler;
 
@@ -71,8 +71,8 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
 
   private void AttachWeakEventHandler()
   {
-    Presenter?.DragStarting += DragStartingWeakEventListner.OnEvent;
-    Presenter?.DropCompleted += DropCompletedWeakEventListner.OnEvent;
+    Presenter?.DragStarting += DragStartingWeakEventListener.OnEvent;
+    Presenter?.DropCompleted += DropCompletedWeakEventListener.OnEvent;
 
     Presenter?.DragEnter += DragEnterWeakEventHandler.OnEvent;
     Presenter?.DragLeave += DragLeaveWeakEventHandler.OnEvent;
@@ -80,8 +80,8 @@ public partial class DraggableNavigationViewItem : NavigationViewItem
 
   private void DetachWeakEventHandler()
   {
-    Presenter?.DragStarting -= DragStartingWeakEventListner.OnEvent;
-    Presenter?.DropCompleted -= DropCompletedWeakEventListner.OnEvent;
+    Presenter?.DragStarting -= DragStartingWeakEventListener.OnEvent;
+    Presenter?.DropCompleted -= DropCompletedWeakEventListener.OnEvent;
 
     Presenter?.DragEnter -= DragEnterWeakEventHandler.OnEvent;
     Presenter?.DragLeave -= DragLeaveWeakEventHandler.OnEvent;

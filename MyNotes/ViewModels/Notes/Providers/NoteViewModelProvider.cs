@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Lifetime;
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;

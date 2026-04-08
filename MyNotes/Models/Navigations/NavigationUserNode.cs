@@ -37,12 +37,16 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
     {
       var node = stack.Pop();
       if (func.Invoke(node))
+      {
         return node;
+      }
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
         foreach (var childNode in compositeNode.ChildNodes)
+        {
           stack.Push(childNode);
+        }
       }
     }
     return null;
@@ -59,4 +63,6 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
     int index = Parent.ChildNodes.IndexOf(this);
     return index >= 0 && index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
   }
+
+  public override string ToString() => $"{Id.Value} ({Title})";
 }

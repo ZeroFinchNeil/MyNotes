@@ -18,7 +18,9 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -29,7 +31,7 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
   }
   #endregion
 
-  private List<UserCompositeNavigationViewModel> GetAllGroupNavigationViewModels()
+  public List<UserCompositeNavigationViewModel> GetAllGroupNavigationViewModels()
   {
     List<UserCompositeNavigationViewModel> viewmodels = new();
 
@@ -42,14 +44,16 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
       foreach (var childViewModel in viewmodel.ChildNodeViewModels)
       {
         if (childViewModel is UserCompositeNavigationViewModel compositeViewModel)
+        {
           queue.Enqueue(compositeViewModel);
+        }
       }
     }
 
     return viewmodels;
   }
 
-  private List<UserLeafNavigationViewModel> GetAllListNavigationViewModels()
+  public List<UserLeafNavigationViewModel> GetAllListNavigationViewModels()
   {
     List<UserLeafNavigationViewModel> viewmodels = new();
     Queue<UserCompositeNavigationViewModel> queue = new();
@@ -66,6 +70,33 @@ internal sealed class UserRootNavigationViewModel : UserCompositeNavigationViewM
             viewmodels.Add(leaf);
             break;
           case UserCompositeNavigationViewModel composite:
+            queue.Enqueue(composite);
+            break;
+        }
+      }
+    }
+
+    return viewmodels;
+  }
+
+  public List<UserNavigationViewModel> GetAllNavigationViewModels()
+  {
+    List<UserNavigationViewModel> viewmodels = new();
+    Queue<UserCompositeNavigationViewModel> queue = new();
+
+    queue.Enqueue(this);
+    while (queue.Count > 0)
+    {
+      var viewmodel = queue.Dequeue();
+      foreach (var childViewModel in viewmodel.ChildNodeViewModels)
+      {
+        switch (childViewModel)
+        {
+          case UserLeafNavigationViewModel leaf:
+            viewmodels.Add(leaf);
+            break;
+          case UserCompositeNavigationViewModel composite:
+            viewmodels.Add(composite);
             queue.Enqueue(composite);
             break;
         }

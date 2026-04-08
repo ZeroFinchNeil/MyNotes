@@ -17,6 +17,8 @@ using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
 
+using WinRT;
+
 namespace MyNotes.Views.Navigations;
 
 [Debugging.ReferenceTracker]
@@ -173,11 +175,6 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private void MainPage_PaneToggleButton_Click(object sender, RoutedEventArgs e)
-  {
-    MainPage_NavigationView.IsPaneOpen = !MainPage_NavigationView.IsPaneOpen;
-  }
-
   private bool _preventNavigation = false;
 
   private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -186,7 +183,10 @@ internal sealed partial class MainPage : Page
     {
       case nameof(MainViewModel.CurrentNavigationViewModel):
         if (_preventNavigation)
+        {
           return;
+        }
+
         if (ViewModel.CurrentNavigationViewModel is NavigationViewModelBase { Navigation: INavigation navigation })
         {
           switch (navigation)
@@ -300,6 +300,7 @@ internal sealed partial class MainPage : Page
       e.AcceptedOperation = dragUISession.DataPackageOperation;
       e.DragUIOverride.Caption = dragUISession.DragUIOverrideCaption;
       dragUISession.Dispose();
+      _dragUISession = null;
     }
   }
 
@@ -307,24 +308,36 @@ internal sealed partial class MainPage : Page
   {
     e.Handled = true;
     _dispatcherTimer.Stop();
+    _dragUISession?.Dispose();
+    _dragUISession = null;
 
     if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
       if (sourceNavigation == targetNavigation)
+      {
         return;
+      }
+
       var sourceParentNavigation = sourceNavigation.Parent;
       var targetParentNavigation = targetNavigation.Parent;
       int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
 
+      bool synchronize = false;
       if (sourceParentNavigation == targetParentNavigation)
       {
-        int sourceIndex = sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation);
-        targetParentNavigation.ChildNodes.Move(sourceIndex, targetIndex);
+        if (sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation) == targetIndex)
+        {
+          return;
+        }
+        synchronize = true;
       }
-      else
+
+      sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
+      targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+
+      if (synchronize)
       {
-        sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
-        targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
+        ViewModel.SynchronizeNavigation();
       }
     }
   }
@@ -332,6 +345,27 @@ internal sealed partial class MainPage : Page
   private void MainPage_SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
   {
     ViewModel.SearchNoteCommand?.Execute(args.QueryText);
+  }
+
+  private void MainPage_ViewNavigationMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    Console.WriteLine("[IS NULL]");
+    foreach (var vm in ViewModel.UserRootNavigationViewModel.GetAllNavigationViewModels())
+    {
+      Console.WriteLine("{0}: {1}", vm.Navigation.Title, MainPage_NavigationView.ContainerFromMenuItem(vm) is null);
+    }
+
+    Console.WriteLine("\r\n[NavigationView]");
+    foreach (var item in MainPage_NavigationView.MenuItemsSource.As<IEnumerable>())
+    {
+      Console.WriteLine(item);
+    }
+
+    Console.WriteLine("\r\n[CollectionViewSource.Source]");
+    foreach (var item in ViewModel.MenuItems)
+    {
+      Console.WriteLine(item);
+    }
   }
 }
 
@@ -370,6 +404,7 @@ internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataT
 {
   public DataTemplate? NavigationCoreNodeTemplate { get; set; }
   public DataTemplate? NavigationSeparatorTemplate { get; set; }
+  public DataTemplate? NavigationUserRootNodeTemplate { get; set; }
   public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
   public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
 
@@ -379,6 +414,7 @@ internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataT
     {
       CoreNavigationViewModel => NavigationCoreNodeTemplate,
       SeparatorNavigationViewModel => NavigationSeparatorTemplate,
+      UserRootNavigationViewModel => NavigationUserRootNodeTemplate,
       UserCompositeNavigationViewModel => NavigationUserCompositeNodeTemplate,
       UserLeafNavigationViewModel => NavigationUserLeafNodeTemplate,
       _ => null

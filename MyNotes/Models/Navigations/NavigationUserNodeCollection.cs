@@ -40,15 +40,22 @@ internal sealed partial class NavigationUserNodeCollection : ObservableCollectio
   protected override void InsertItem(int index, NavigationUserNode item)
   {
     if (index < 0 || index > Count)
+    {
       return;
+    }
 
     if (item.Parent != _parent)
+    {
       item.Parent = _parent;
+    }
 
     if (Count == 0)
     {
       if (item.Position == int.MaxValue)
+      {
         item.Position = 0;
+      }
+
       base.InsertItem(index, item);
     }
     else if (index == 0)
@@ -71,7 +78,9 @@ internal sealed partial class NavigationUserNodeCollection : ObservableCollectio
   private void Reposition(int index)
   {
     if (index < 1 || index >= Count - 1)
+    {
       throw new IndexOutOfRangeException();
+    }
 
     int gap = 0;
     int hit;

@@ -4,9 +4,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
+using MyNotes.Common.Structures;
+
 namespace MyNotes.Common.Collections;
 
-public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, TRight>>, IReadOnlyBijectiveMap<TLeft, TRight> where TLeft : notnull where TRight : notnull
+public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectivePair<TLeft, TRight>>, IReadOnlyBijectiveMap<TLeft, TRight> where TLeft : notnull where TRight : notnull
 {
   private readonly Dictionary<TLeft, TRight> _leftToRight = new();
   private readonly Dictionary<TRight, TLeft> _rightToLeft = new();
@@ -19,9 +21,14 @@ public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, T
   public void Add(TLeft left, TRight right)
   {
     if (_leftToRight.ContainsKey(left))
+    {
       throw new ArgumentException($"The specified Left('{left}') value already exists.", nameof(left));
+    }
+
     if (_rightToLeft.ContainsKey(right))
+    {
       throw new ArgumentException($"The specified Right('{right}') value already exists.", nameof(right));
+    }
 
     _leftToRight[left] = right;
     _rightToLeft[right] = left;
@@ -30,7 +37,9 @@ public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, T
   public bool TryAdd(TLeft left, TRight right)
   {
     if (_leftToRight.ContainsKey(left) || _rightToLeft.ContainsKey(right))
+    {
       return false;
+    }
 
     _leftToRight[left] = right;
     _rightToLeft[right] = left;
@@ -79,7 +88,7 @@ public class BijectiveMap<TLeft, TRight> : IEnumerable<BijectiveMapPair<TLeft, T
   public bool ContainsLeft(TLeft left) => _leftToRight.ContainsKey(left);
   public bool ContainsRight(TRight right) => _rightToLeft.ContainsKey(right);
 
-  public IEnumerator<BijectiveMapPair<TLeft, TRight>> GetEnumerator() => _leftToRight.Select(kv => new BijectiveMapPair<TLeft, TRight>(kv.Key, kv.Value)).GetEnumerator();
+  public IEnumerator<BijectivePair<TLeft, TRight>> GetEnumerator() => _leftToRight.Select(kv => new BijectivePair<TLeft, TRight>(kv.Key, kv.Value)).GetEnumerator();
 
   IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

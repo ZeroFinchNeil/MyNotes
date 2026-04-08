@@ -52,7 +52,10 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
       {
         var targetNavigation = targetVM.Navigation;
         if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
+        {
           continue;
+        }
+
         MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
         {
           Text = targetNavigation.Title,
