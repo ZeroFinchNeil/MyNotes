@@ -17,8 +17,6 @@ using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
 
-using WinRT;
-
 namespace MyNotes.Views.Navigations;
 
 [Debugging.ReferenceTracker]
@@ -67,7 +65,7 @@ internal sealed partial class MainPage : Page
   {
     Bindings.Update();
     ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-    SetNavigation(_initialNavigationId);
+    ViewModel.NavigateTo(_initialNavigationId);
   }
 
   private void MainPage_Unloaded(object sender, RoutedEventArgs e)
@@ -103,30 +101,6 @@ internal sealed partial class MainPage : Page
   }
   #endregion
 
-  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    await App.Instance.OpenDebugWindow();
-  }
-
-  public void SetNavigation(NavigationId? navigationId) => ViewModel.SetNavigation(navigationId ?? _initialNavigationId);
-
-  private void MainPage_BackButton_LayoutUpdated(object? sender, object e)
-  {
-    MainPage_BackButton.LayoutUpdated -= MainPage_BackButton_LayoutUpdated;
-    SetRegionsForCustomTitleBar();
-  }
-
-  private bool _canGoBack = false;
-  private void MainPage_NavigationFrame_Navigated(object sender, NavigationEventArgs e)
-  {
-    bool canGoBack = MainPage_NavigationFrame.CanGoBack;
-    if (_canGoBack != canGoBack)
-    {
-      _canGoBack = canGoBack;
-      MainPage_BackButton.LayoutUpdated += MainPage_BackButton_LayoutUpdated;
-    }
-  }
-
   #region 타이틀바 드래그 영역 조정
   private void MainPage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
   {
@@ -134,6 +108,11 @@ internal sealed partial class MainPage : Page
   }
 
   private void MainPage_TitleBarGrid_SizeChanged(object sender, SizeChangedEventArgs e)
+  {
+    SetRegionsForCustomTitleBar();
+  }
+
+  private void MainPage_BackButton_IsEnabledChanged(object sender, DependencyPropertyChangedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
   }
@@ -166,11 +145,13 @@ internal sealed partial class MainPage : Page
 
   private void MainPage_BackButton_Click(object sender, RoutedEventArgs e)
   {
-    if (MainPage_NavigationFrame.CanGoBack)
+    _preventNavigation = true;
+    try
     {
-      _preventNavigation = true;
-      MainPage_NavigationFrame.GoBack();
-      ViewModel.PopNavigation();
+      ViewModel.NavigateBack();
+    }
+    finally
+    {
       _preventNavigation = false;
     }
   }
@@ -182,16 +163,14 @@ internal sealed partial class MainPage : Page
     switch (e.PropertyName)
     {
       case nameof(MainViewModel.CurrentNavigationViewModel):
-        if (_preventNavigation)
-        {
-          return;
-        }
-
         if (ViewModel.CurrentNavigationViewModel is NavigationViewModelBase { Navigation: INavigation navigation })
         {
           switch (navigation)
           {
             case NavigationUserCompositeNode:
+              return;
+            case NavigationSearch search:
+              MainPage_NavigationFrame.Navigate(search.PageType, navigation);
               return;
             case INavigationInitialTarget initialTarget:
               MainPage_NavigationFrame.Navigate(initialTarget.PageType, navigation);
@@ -200,22 +179,24 @@ internal sealed partial class MainPage : Page
               {
                 SettingsService.Save(AppSettingsDescriptors.InitialPageId, initialTarget.Id.Value);
               }
-              return;
+              break;
             case INavigationNode node:
               MainPage_NavigationFrame.Navigate(node.PageType, navigation);
               break;
-            case NavigationSearch search:
-              MainPage_NavigationFrame.Navigate(search.PageType, navigation);
-              break;
+            default:
+              return;
           }
 
-          ViewModel.AddListCommand?.NotifyCanExecuteChanged();
-          ViewModel.AddGroupCommand?.NotifyCanExecuteChanged();
-          ViewModel.PushNavigation(navigation);
+          if (!_preventNavigation)
+          {
+            ViewModel.NavigateTo(navigation);
+          }
         }
         break;
     }
   }
+
+  public void SetNavigation(NavigationId? navigationId) => ViewModel.NavigateTo(navigationId ?? _initialNavigationId);
 
   private void SetAppTheme(ElementTheme theme)
   {
@@ -232,6 +213,7 @@ internal sealed partial class MainPage : Page
     }
   }
 
+  #region Navigation Drag & Drop
   private NavigationViewModelBase? _sourceNavigationViewModel;
   private void MainPageUserNavigationViewItem_PresenterDragStarting(UIElement sender, DragStartingEventArgs args)
   {
@@ -304,71 +286,28 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private async void MainPageUserNavigationViewItem_Drop(object sender, DragEventArgs e)
+  private void MainPageUserNavigationViewItem_Drop(object sender, DragEventArgs e)
   {
     e.Handled = true;
     _dispatcherTimer.Stop();
     _dragUISession?.Dispose();
     _dragUISession = null;
 
-    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } } && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } }
+        && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
-      if (sourceNavigation == targetNavigation)
-      {
-        return;
-      }
-
-      var sourceParentNavigation = sourceNavigation.Parent;
-      var targetParentNavigation = targetNavigation.Parent;
-      int targetIndex = targetParentNavigation.ChildNodes.IndexOf(targetNavigation);
-
-      bool synchronize = false;
-      if (sourceParentNavigation == targetParentNavigation)
-      {
-        if (sourceParentNavigation.ChildNodes.IndexOf(sourceNavigation) == targetIndex)
-        {
-          return;
-        }
-        synchronize = true;
-      }
-
-      sourceParentNavigation.ChildNodes.Remove(sourceNavigation);
-      targetParentNavigation.ChildNodes.Insert(targetIndex, sourceNavigation);
-
-      if (synchronize)
-      {
-        ViewModel.SynchronizeNavigation();
-      }
+      ViewModel.MoveNavigation(new() { Source = sourceNavigation, Target = targetNavigation });
     }
   }
+  #endregion
 
-  private void MainPage_SearchAutoSuggestBox_QuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
+  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    ViewModel.SearchNoteCommand?.Execute(args.QueryText);
-  }
-
-  private void MainPage_ViewNavigationMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    Console.WriteLine("[IS NULL]");
-    foreach (var vm in ViewModel.UserRootNavigationViewModel.GetAllNavigationViewModels())
-    {
-      Console.WriteLine("{0}: {1}", vm.Navigation.Title, MainPage_NavigationView.ContainerFromMenuItem(vm) is null);
-    }
-
-    Console.WriteLine("\r\n[NavigationView]");
-    foreach (var item in MainPage_NavigationView.MenuItemsSource.As<IEnumerable>())
-    {
-      Console.WriteLine(item);
-    }
-
-    Console.WriteLine("\r\n[CollectionViewSource.Source]");
-    foreach (var item in ViewModel.MenuItems)
-    {
-      Console.WriteLine(item);
-    }
+    await App.Instance.OpenDebugWindow();
   }
 }
 
+#region Messengers
 internal sealed partial class MainPage : Page
 {
   private void RegisterMessengers()
@@ -399,6 +338,7 @@ internal sealed partial class MainPage : Page
     WeakReferenceMessenger.Default.UnregisterAll(this);
   }
 }
+#endregion
 
 internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataTemplateSelector
 {

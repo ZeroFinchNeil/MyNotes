@@ -43,8 +43,8 @@ public sealed partial class App : Application, IDisposable
     _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
     _ = appInitializeScope.ServiceProvider.GetRequiredService<SearchService>();
 
-    var navigationService = appInitializeScope.ServiceProvider.GetRequiredService<NavigationService>();
-    await navigationService.InitializationTask;
+    var navigationTreeService = appInitializeScope.ServiceProvider.GetRequiredService<NavigationTreeService>();
+    await navigationTreeService.InitializationTask;
 
     var noteService = appInitializeScope.ServiceProvider.GetRequiredService<NoteService>();
     await noteService.InitializationTask;
@@ -140,6 +140,7 @@ public sealed partial class App : Application, IDisposable
     services.AddSingleton<LoggingService>();
     services.AddSingleton<DialogService>();
     services.AddSingleton<NavigationService>();
+    services.AddSingleton<NavigationTreeService>();
     services.AddSingleton<SettingsService>();
     services.AddSingleton<NoteService>();
     services.AddSingleton<SearchService>();

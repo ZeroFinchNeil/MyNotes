@@ -6,16 +6,10 @@
       xmlns:navigationvm="using:MyNotes.ViewModels.Navigations"
       xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
       xmlns:tmpls="using:MyNotes.Templates"
-      xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:ui="using:CommunityToolkit.WinUI"
-      xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+      xmlns:mxi="using:Microsoft.Xaml.Interactivity"
       xmlns:helpers="using:MyNotes.Helpers">
 
-  <Page.Resources>
-    <!--<CollectionViewSource x:Name="MainPage_MenuItemsCollectionViewSource"
-                          IsSourceGrouped="True"
-                          Source="{x:Bind ViewModel.MenuItemsSource}" />-->
-  </Page.Resources>
   <Grid x:Name="MainPage_RootGrid">
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
@@ -53,8 +47,10 @@
                                 x:Uid="/MainPage/BackButton"
                                 Grid.Column="1"
                                 Content="&#xE72B;"
-                                Visibility="{x:Bind MainPage_NavigationFrame.CanGoBack, Mode=OneWay}"
-                                Click="MainPage_BackButton_Click">
+                                Visibility="{x:Bind ViewModel.CanNavigateBack, Mode=OneWay}"
+                                IsEnabled="{x:Bind ViewModel.CanNavigateBack, Mode=OneWay}"
+                                Click="MainPage_BackButton_Click"
+                                IsEnabledChanged="MainPage_BackButton_IsEnabledChanged">
         <tmpls:AnimatedIconButton.AnimatedIconSource>
           <animatedvisuals:AnimatedBackVisualSource />
         </tmpls:AnimatedIconButton.AnimatedIconSource>
@@ -71,9 +67,6 @@
 
         <tmpls:AnimatedIconButton.ContextFlyout>
           <MenuFlyout>
-            <MenuFlyoutItem x:Name="MainPage_ViewNavigationMenuFlyoutItem"
-                            Text="View Navigation"
-                            Click="MainPage_ViewNavigationMenuFlyoutItem_Click" />
             <MenuFlyoutItem x:Name="MainPage_OpenDebugWindowMenuFlyoutItem"
                             Text="Debug Window"
                             Click="MainPage_OpenDebugWindowMenuFlyoutItem_Click" />
@@ -99,8 +92,7 @@
                       Grid.Column="6"
                       QueryIcon="Find"
                       VerticalAlignment="Center"
-                      MaxWidth="330"
-                      QuerySubmitted="MainPage_SearchAutoSuggestBox_QuerySubmitted">
+                      MaxWidth="330">
         <AutoSuggestBox.TextBoxStyle>
           <Style TargetType="TextBox"
                  BasedOn="{StaticResource AutoSuggestBoxTextBoxStyle}">
@@ -108,6 +100,12 @@
                     Value="False" />
           </Style>
         </AutoSuggestBox.TextBoxStyle>
+        <mxi:Interaction.Behaviors>
+          <mxi:EventTriggerBehavior EventName="QuerySubmitted">
+            <mxi:InvokeCommandAction Command="{x:Bind ViewModel.SearchNoteCommand}"
+                                     CommandParameter="{x:Bind MainPage_SearchAutoSuggestBox.Text, Mode=OneWay}" />
+          </mxi:EventTriggerBehavior>
+        </mxi:Interaction.Behaviors>
       </AutoSuggestBox>
     </Grid>
     <!--#endregion -->
@@ -244,7 +242,7 @@
 
       <!-- 내비게이션 뷰 콘텐츠 프레임 -->
       <Frame x:Name="MainPage_NavigationFrame"
-             Navigated="MainPage_NavigationFrame_Navigated" />
+             IsNavigationStackEnabled="False" />
     </NavigationView>
     <!--#endregion -->
 

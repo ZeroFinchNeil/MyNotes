@@ -12,6 +12,7 @@ namespace MyNotes.Services.Commands;
 internal sealed class NavigationCommandService : ICommandService
 {
   private readonly NavigationService NavigationService;
+  private readonly NavigationTreeService NavigationTreeService;
   private readonly WindowService WindowService;
   private readonly DialogService DialogService;
 
@@ -22,9 +23,10 @@ internal sealed class NavigationCommandService : ICommandService
   public Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand { get; }
   public Command<NavigationUserNode> SetAsStartPageCommand { get; }
 
-  public NavigationCommandService(NavigationService navigationService, WindowService windowService, DialogService dialogService)
+  public NavigationCommandService(NavigationService navigationService, NavigationTreeService navigationTreeService, WindowService windowService, DialogService dialogService)
   {
     NavigationService = navigationService;
+    NavigationTreeService = navigationTreeService;
     WindowService = windowService;
     DialogService = dialogService;
 
@@ -37,9 +39,9 @@ internal sealed class NavigationCommandService : ICommandService
         {
           var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
           if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-              && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, icon: v.Icon, title: v.Title) is INavigation newNavigation)
+              && await NavigationTreeService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: false, icon: v.Icon, title: v.Title) is INavigation newNavigation)
           {
-            NavigationService.PushNavigation(newNavigation);
+            NavigationService.NavigateTo(newNavigation);
           }
         }
       }
@@ -54,9 +56,9 @@ internal sealed class NavigationCommandService : ICommandService
       {
         var result = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, true);
         if (result is { ContentDialogResult: ContentDialogResult.Primary, Value: (Icon, string) v }
-            && await NavigationService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
+            && await NavigationTreeService.AddUserNodeAsync(targetNode: navigation, isCompositeNode: true, icon: v.Icon, title: v.Title) is INavigation newNavigation)
         {
-          NavigationService.PushNavigation(newNavigation);
+          NavigationService.NavigateTo(newNavigation);
         }
       }
     }
@@ -98,7 +100,7 @@ internal sealed class NavigationCommandService : ICommandService
           var result = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetTypeName, navigation.Title, deleteMode);
           if (result.ContentDialogResult == ContentDialogResult.Primary)
           {
-            await NavigationService.DeleteUserNodeAsync(navigation, result.DeleteMode);
+            await NavigationTreeService.DeleteUserNodeAsync(navigation, result.DeleteMode);
           }
         }
       }
@@ -106,16 +108,7 @@ internal sealed class NavigationCommandService : ICommandService
 
     MoveToGroupCommand = new()
     {
-      ActionToExecute = (pair) =>
-      {
-        var sourceItem = pair.Source;
-        var targetGroup = pair.Target;
-        if (targetGroup.CanBeParentOf(sourceItem))
-        {
-          sourceItem.Parent.ChildNodes.Remove(sourceItem);
-          targetGroup.ChildNodes.Add(sourceItem);
-        }
-      }
+      ActionToExecute = (pair) => NavigationTreeService.MoveNavigationToGroup(pair)
     };
 
     SetAsStartPageCommand = new()

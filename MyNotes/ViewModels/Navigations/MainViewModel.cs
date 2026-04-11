@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
+using MyNotes.Common.Structures;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
@@ -14,6 +15,7 @@ namespace MyNotes.ViewModels;
 internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationService NavigationService;
+  private readonly NavigationTreeService NavigationTreeService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
   private readonly NavigationCommandService NavigationCommandService;
 
@@ -27,9 +29,6 @@ internal sealed partial class MainViewModel : ViewModelBase
   // Footer
   public IReadOnlyList<NavigationViewModelBase> FooterMenuItems { get; }
 
-  // For CollectionViewSource.Source
-  //public IEnumerable<IGrouping<object, NavigationViewModelBase>> MenuItemsSource { get; }
-
   private readonly ObservableCollection<NavigationViewModelBase> _menuItems;
   public ReadOnlyObservableCollection<NavigationViewModelBase> MenuItems { get; }
 
@@ -37,25 +36,17 @@ internal sealed partial class MainViewModel : ViewModelBase
   public partial NavigationViewModelBase? CurrentNavigationViewModel { get; set; }
 
   #region Object Lifetime Management
-  public MainViewModel(NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
+  public MainViewModel(NavigationService navigationService, NavigationTreeService navigationTreeService, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
   {
     // DI
     NavigationService = navigationService;
+    NavigationTreeService = navigationTreeService;
     NavigationViewModelProvider = navigationViewModelProvider;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
-    // Header
     HeaderMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationService.PrimaryCoreNavigations)];
-
-    // User
     UserRootNavigationViewModel = (UserRootNavigationViewModel)NavigationViewModelProvider.Resolve(NavigationService.UserRootNavigation);
-
-    // Footer
     FooterMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationService.SecondaryCoreNavigations)];
-
-    // For CollectionViewSource.Source
-    //MenuItemsSource = ImmutableArray.Create(new Grouping<object, NavigationViewModelBase>("Header", HeaderMenuItems), new Grouping<object, NavigationViewModelBase>("User", [UserRootNavigationViewModel]));
-
     _menuItems = [.. HeaderMenuItems, UserRootNavigationViewModel];
     MenuItems = new(_menuItems);
 
@@ -74,14 +65,31 @@ internal sealed partial class MainViewModel : ViewModelBase
     if (disposing)
     {
       NavigationService.CurrentNavigationChanged -= NavigationService_CurrentNavigationChanged;
-      NavigationService.ResetCurrentNavigation();
+      NavigationService.ResetNavigation();
     }
 
     base.Dispose(disposing);
   }
   #endregion
 
-  public void SetNavigation(NavigationId navigationId)
+  private void NavigationService_CurrentNavigationChanged(object sender, INavigation? args)
+  {
+    Console.WriteLine("{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
+    Console.WriteLine("{0}: {1}", "NavigationService.NavigationBackStack.Count", NavigationService.NavigationBackStack.Count);
+    Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+    SyncNavigation();
+    CanNavigateBack = NavigationService.NavigationBackStack.Count > 0;
+    Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+  }
+
+  public void NavigateTo(INavigation navigation)
+  {
+    AddListCommand.NotifyCanExecuteChanged();
+    AddGroupCommand.NotifyCanExecuteChanged();
+    NavigationService.NavigateTo(navigation);
+  }
+
+  public bool NavigateTo(NavigationId navigationId)
   {
     NavigationViewModelBase? viewmodel =
       HeaderMenuItems.FirstOrDefault(vm => vm.Navigation is NavigationCoreNode coreNode && coreNode.Id == navigationId)
@@ -91,39 +99,36 @@ internal sealed partial class MainViewModel : ViewModelBase
 
     if (viewmodel is not null)
     {
-      NavigationService.PushNavigation(viewmodel.Navigation);
+      NavigateTo(viewmodel.Navigation);
+      return true;
     }
+
+    return false;
   }
 
-  private void NavigationService_CurrentNavigationChanged(object sender, INavigation? args)
+  public void NavigateBack() => NavigationService.NavigateBack();
+
+  public void MoveNavigation(SourceTargetPair<NavigationUserNode, NavigationUserNode> navigationPair)
   {
-    CurrentNavigationViewModel = args switch
+    NavigationTreeService.MoveNavigation(navigationPair);
+    SyncNavigation();
+  }
+
+  public void SyncNavigation()
+  {
+    if (CurrentNavigationViewModel?.Navigation != NavigationService.CurrentNavigation)
     {
-      INavigationNode node when NavigationViewModelProvider.TryResolve(node, out var viewmodel) => viewmodel,
-      NavigationSearch search => NavigationViewModelProvider.Resolve(search),
-      _ => null
-    };
-  }
-
-  public void PushNavigation(INavigation navigation)
-  {
-    NavigationService.PushNavigation(navigation);
-  }
-
-  public void PopNavigation()
-  {
-    NavigationService.PopNavigationBackStack();
-  }
-
-  public void SynchronizeNavigation()
-  {
-    CurrentNavigationViewModel ??= NavigationService.CurrentNavigation switch
+      CurrentNavigationViewModel = NavigationService.CurrentNavigation switch
       {
         INavigationNode node when NavigationViewModelProvider.TryResolve(node, out var viewmodel) => viewmodel,
         NavigationSearch search => NavigationViewModelProvider.Resolve(search),
         _ => null
       };
+    }
   }
+
+  [ObservableProperty]
+  public partial bool CanNavigateBack { get; private set; } = false;
 
   [ObservableProperty]
   public partial bool IsNavigationPaneOpen { get; private set; } = true;
@@ -160,21 +165,8 @@ internal sealed partial class MainViewModel : ViewModelBase
           Title = $"Search Results for {searchText}"
         };
 
-        PushNavigation(navigationSearch);
+        NavigateTo(navigationSearch);
       }
     };
   }
-}
-
-/// <eventsubscription>
-/// </eventsubscription>
-
-public class Grouping<TKey, TElement>(TKey key, IEnumerable<TElement> items) : IGrouping<TKey, TElement>
-{
-  public TKey Key { get; } = key;
-  public IEnumerable<TElement> Items { get; } = items;
-
-  public IEnumerator<TElement> GetEnumerator() => Items.GetEnumerator();
-
-  IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 }

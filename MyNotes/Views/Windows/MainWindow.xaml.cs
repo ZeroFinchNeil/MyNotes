@@ -65,7 +65,9 @@ internal sealed partial class MainWindow : Window
     // 창 초기 크기 지정
     var windowSize = SettingsService.Load(AppSettingsDescriptors.MainWindowSize);
     if (windowSize.Width < minimumWindowSize.Width && windowSize.Height < minimumWindowSize.Height)
+    {
       windowSize = AppSettingsDescriptors.MainWindowSize.DefaultValue;
+    }
 
     _windowSize = windowSize.SizeInt32;
     AppWindow.Resize(new((int)(_windowSize.Width * scaleFactor), (int)(_windowSize.Height * scaleFactor)));
@@ -86,7 +88,9 @@ internal sealed partial class MainWindow : Window
     _windowPosition = windowPosition.PointInt32;
 
     if (ContainsPointInAreas(areas, _windowPosition))
+    {
       AppWindow.Move(_windowPosition);
+    }
 
     AppWindow.Changed += AppWindow_Changed;
 
@@ -163,7 +167,9 @@ internal sealed partial class MainWindow : Window
     foreach (var rect in areas)
     {
       if (rect.X <= point.X && rect.Y <= point.Y && point.X < rect.Width && point.Y < rect.Height)
+      {
         return true;
+      }
     }
 
     return false;

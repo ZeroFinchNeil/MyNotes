@@ -22,12 +22,16 @@ internal partial class NavigationUserCompositeNode : NavigationUserNode
     {
       var node = queue.Dequeue();
       if (containsSelf || this != node)
+      {
         action.Invoke(node);
+      }
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
         foreach (var childNode in compositeNode.ChildNodes)
+        {
           queue.Enqueue(childNode);
+        }
       }
     }
   }
@@ -43,14 +47,20 @@ internal partial class NavigationUserCompositeNode : NavigationUserNode
     {
       var node = stack.Pop();
       if (containsSelf || this != node)
+      {
         if (condition.Invoke(node))
+        {
           resultNodes.Add(node);
+        }
+      }
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
         int index = compositeNode.ChildNodes.Count - 1;
         for (int i = index; i >= 0; i--)
+        {
           stack.Push(compositeNode.ChildNodes[i]);
+        }
       }
     }
 
@@ -66,13 +76,19 @@ internal partial class NavigationUserCompositeNode : NavigationUserNode
     {
       var node = queue.Dequeue();
       if (containsSelf || this != node)
+      {
         if (condition.Invoke(node))
+        {
           return true;
+        }
+      }
 
       if (node is NavigationUserCompositeNode compositeNode)
       {
         foreach (var childNode in compositeNode.ChildNodes)
+        {
           queue.Enqueue(childNode);
+        }
       }
     }
 
