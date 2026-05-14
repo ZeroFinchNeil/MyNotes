@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Models.Settings;
+using MyNotes.Shared.Enums.Settings;
 
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;
@@ -9,14 +9,14 @@ namespace MyNotes.Helpers;
 
 internal static class IconHelper
 {
-  private static Uri GetMainUri(short icon) => new Uri($"ms-appx:///Assets/Icons/Main/{icon}");
+  private static Uri GetMainUri(int icon) => new Uri($"ms-appx:///Assets/Icons/Main/{icon}");
 
   private static readonly float PrimaryIconScale = 1.0f;
   private static readonly float BadgeIconScale = 0.5f;
 
-  public static BitmapImage GetIconImage(short icon) => new() { UriSource = GetMainUri(icon), DecodePixelType = DecodePixelType.Logical };
+  public static BitmapImage GetIconImage(int icon) => new() { UriSource = GetMainUri(icon), DecodePixelType = DecodePixelType.Logical };
 
-  public static async Task<BitmapImage> GetIconImage(short icon, GroupIconBadge groupIconBadge, bool showBadge)
+  public static async Task<BitmapImage> GetIconImage(int icon, GroupIconBadge groupIconBadge, bool showBadge)
   {
     var iconUri = GetMainUri(icon);
 
@@ -25,9 +25,9 @@ internal static class IconHelper
     if (showBadge && groupIconBadge != GroupIconBadge.None)
     {
       var iconFile = await StorageFile.GetFileFromApplicationUriAsync(iconUri);
-      short badge = groupIconBadge switch
+      int badge = groupIconBadge switch
       {
-        GroupIconBadge.Folder => (short)Templates.Icon.Emoji_OpenFileFolder,
+        GroupIconBadge.Folder => (int)Templates.Icon.Emoji_OpenFileFolder,
         _ => throw new ArgumentException("")
       };
       var badgeFile = await StorageFile.GetFileFromApplicationUriAsync(GetMainUri(badge));
@@ -83,7 +83,9 @@ internal static class IconHelper
 
           byte alpha = iconBytes[iconIndex + 3];
           if (alpha == 0)
+          {
             continue;
+          }
 
           outputBytes[dstIndex] = iconBytes[iconIndex];
           outputBytes[dstIndex + 1] = iconBytes[iconIndex + 1];
@@ -104,7 +106,9 @@ internal static class IconHelper
 
           byte alpha = badgeBytes[badgeIndex + 3];
           if (alpha == 0)
+          {
             continue;
+          }
 
           outputBytes[dstIndex] = badgeBytes[badgeIndex];
           outputBytes[dstIndex + 1] = badgeBytes[badgeIndex + 1];

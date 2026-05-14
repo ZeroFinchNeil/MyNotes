@@ -3,12 +3,12 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Helpers;
-using MyNotes.Models.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Views.Navigations;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Views.Windows;
 

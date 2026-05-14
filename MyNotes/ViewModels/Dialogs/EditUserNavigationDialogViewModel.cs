@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using MyNotes.Common.Commands;
-using MyNotes.Models.Modes;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Models.Navigations;
 using MyNotes.Templates;
 

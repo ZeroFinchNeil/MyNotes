@@ -1,5 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Domain.ValueObjects;
+
 namespace MyNotes.Models.Navigations;
 
 [Debugging.ReferenceTracker]

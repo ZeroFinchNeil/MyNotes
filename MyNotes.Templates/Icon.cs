@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.Templates;
 
-public enum Icon : short
+public enum Icon
 {
   Emoji_ChessPawn,
   Emoji_SpadeSuit,

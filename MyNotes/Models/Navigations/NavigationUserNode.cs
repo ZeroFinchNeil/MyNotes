@@ -1,5 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Templates;
 
 namespace MyNotes.Models.Navigations;
@@ -24,9 +25,6 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
 
   [ObservableProperty]
   public required partial string Title { get; set; }
-
-  [ObservableProperty]
-  public required partial int Position { get; set; }
 
   public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
   {

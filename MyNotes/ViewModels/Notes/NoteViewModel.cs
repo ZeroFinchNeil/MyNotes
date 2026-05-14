@@ -5,15 +5,18 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.AppConstants;
+using MyNotes.Application.Services.App;
+using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
-using MyNotes.Models.Navigations;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
-using MyNotes.Services.App;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Notes;
+using MyNotes.Services.Windows;
 using MyNotes.Templates.Media;
 
 namespace MyNotes.ViewModels.Notes;
@@ -25,10 +28,10 @@ internal sealed partial class NoteViewModel : ViewModelBase
   private readonly NoteService NoteService;
   private readonly JumpListService JumpListService;
 
-  public Note Note { get; }
+  public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel(WindowService windowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, Note note)
+  public NoteViewModel(WindowService windowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, NoteModel note)
   {
     // DI
     WindowService = windowService;
@@ -80,16 +83,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
   private static readonly double _notePropertyDebounceTimerInterval = 500;
   private readonly System.Timers.Timer _notePropertyDebounceTimer = new() { Interval = _notePropertyDebounceTimerInterval, AutoReset = false };
 
-  /// <summary>
-  /// Handles property change notifications for the associated note and updates related UI elements or application state
-  /// as needed.
-  /// </summary>
-  /// <remarks>This method responds to changes in note properties by updating UI components, managing
-  /// application state, and sending relevant messages. It is intended to be used with property change events from a
-  /// note object. The method is asynchronous and may trigger additional operations depending on which property was
-  /// changed.</remarks>
-  /// <param name="sender">The source of the property change event, typically the note instance whose property has changed.</param>
-  /// <param name="e">The event data containing information about the changed property.</param>
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     _notePropertyDebounceTimer.Start();
@@ -268,16 +261,16 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
 partial class NoteViewModel
 {
-  public Command<Note> OpenWindowCommand => NoteCommandService.OpenNoteWindowCommand;
-  public Command<Note> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;
-  public Command<Note> CloseWindowCommand => NoteCommandService.CloseNoteWindowCommand;
-  public Command<SourceTargetPair<Note, NavigationId>> MoveToListCommand => NoteCommandService.MoveNoteToListCommand;
+  public Command<NoteModel> OpenWindowCommand => NoteCommandService.OpenNoteWindowCommand;
+  public Command<NoteModel> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;
+  public Command<NoteModel> CloseWindowCommand => NoteCommandService.CloseNoteWindowCommand;
+  public Command<SourceTargetPair<NoteModel, NavigationId>> MoveToListCommand => NoteCommandService.MoveNoteToListCommand;
   public Command<NavigationId?> CreateNewNoteCommand => NoteCommandService.CreateNewNoteCommand;
-  public Command<Note> ViewListCommand => NoteCommandService.ViewListCommand;
+  public Command<NoteModel> ViewListCommand => NoteCommandService.ViewListCommand;
 
-  public Command<Note> RemoveNoteCommand => NoteCommandService.RemoveNoteCommand;
+  public Command<NoteModel> RemoveNoteCommand => NoteCommandService.RemoveNoteCommand;
 
-  public Command<Note> AddNoteToJumpListCommand => NoteCommandService.AddNoteToJumpListCommand;
+  public Command<NoteModel> AddNoteToJumpListCommand => NoteCommandService.AddNoteToJumpListCommand;
 
   private void RegisterMessengers()
   {

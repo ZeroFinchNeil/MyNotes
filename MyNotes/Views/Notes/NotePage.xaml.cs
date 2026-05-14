@@ -5,12 +5,9 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
-
-using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Helpers;
-using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.App;
@@ -26,6 +23,9 @@ using MyNotes.Views.Windows;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
 using Windows.System;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Views.Notes;
 
@@ -42,7 +42,7 @@ internal sealed partial class NotePage : Page
   private readonly WindowService WindowService;
 
   #region Object Lifetime Management
-  internal NotePage(NoteWindow noteWindow, Note note)
+  internal NotePage(NoteWindow noteWindow, NoteModel note)
   {
     TrackReference();
     InitializeComponent();

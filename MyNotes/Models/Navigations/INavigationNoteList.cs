@@ -1,5 +1,6 @@
 ﻿using MyNotes.Common.Collections;
-using MyNotes.Models.Notes;
+using MyNotes.Shared.Enums.Navigations;
+using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Models.Navigations;
 

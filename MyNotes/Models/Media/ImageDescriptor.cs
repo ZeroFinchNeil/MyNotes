@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using System.Text.Json.Serialization;
 
-using MyNotes.AppConstants;
+using MyNotes.Shared.Constants;
 
 namespace MyNotes.Models.Media;
 

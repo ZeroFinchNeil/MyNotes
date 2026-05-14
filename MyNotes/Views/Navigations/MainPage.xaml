@@ -130,23 +130,23 @@
         <local:MainPageNavigationViewDataTemplateSelector>
 
           <!-- 기본 내비게이션 템플릿 -->
-          <local:MainPageNavigationViewDataTemplateSelector.NavigationCoreNodeTemplate>
+          <local:MainPageNavigationViewDataTemplateSelector.CoreNavigationTemplate>
             <DataTemplate x:DataType="navigationvm:CoreNavigationViewModel">
               <NavigationViewItem Content="{x:Bind Navigation.Title}"
                                   Icon="{x:Bind Navigation.Icon}" />
             </DataTemplate>
-          </local:MainPageNavigationViewDataTemplateSelector.NavigationCoreNodeTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.CoreNavigationTemplate>
 
           <!-- 내비게이션 구분선 템플릿 -->
-          <local:MainPageNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
+          <local:MainPageNavigationViewDataTemplateSelector.SeparatorNavigationTemplate>
             <DataTemplate x:DataType="navigationvm:SeparatorNavigationViewModel">
               <NavigationViewItemSeparator />
             </DataTemplate>
-          </local:MainPageNavigationViewDataTemplateSelector.NavigationSeparatorTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.SeparatorNavigationTemplate>
 
           <!--사용자 루트 내비게이션 템플릿-->
-          <local:MainPageNavigationViewDataTemplateSelector.NavigationUserRootNodeTemplate>
-            <DataTemplate x:DataType="navigationvm:UserRootNavigationViewModel">
+          <local:MainPageNavigationViewDataTemplateSelector.UserRootGroupNavigationTemplate>
+            <DataTemplate x:DataType="navigationvm:UserRootGroupNavigationViewModel">
               <NavigationViewItem Content="{x:Bind Navigation.Title}"
                                   MenuItemsSource="{x:Bind ChildNodeViewModels}"
                                   IsExpanded="True"
@@ -157,11 +157,11 @@
                 </NavigationViewItem.Icon>
               </NavigationViewItem>
             </DataTemplate>
-          </local:MainPageNavigationViewDataTemplateSelector.NavigationUserRootNodeTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.UserRootGroupNavigationTemplate>
 
           <!--사용자 그룹 내비게이션 템플릿-->
-          <local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
-            <DataTemplate x:DataType="navigationvm:UserCompositeNavigationViewModel">
+          <local:MainPageNavigationViewDataTemplateSelector.UserGroupNavigationTemplate>
+            <DataTemplate x:DataType="navigationvm:UserGroupNavigationViewModel">
               <local:UserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
                                             MenuItemsSource="{x:Bind ChildNodeViewModels}"
                                             IsExpanded="{x:Bind Navigation.IsExpanded, Mode=TwoWay}"
@@ -178,11 +178,11 @@
                 </local:UserNavigationViewItem.Icon>
               </local:UserNavigationViewItem>
             </DataTemplate>
-          </local:MainPageNavigationViewDataTemplateSelector.NavigationUserCompositeNodeTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.UserGroupNavigationTemplate>
 
           <!--사용자 목록 내비게이션 템플릿-->
-          <local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
-            <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
+          <local:MainPageNavigationViewDataTemplateSelector.UserListNavigationTemplate>
+            <DataTemplate x:DataType="navigationvm:UserListNavigationViewModel">
               <local:UserNavigationViewItem Content="{x:Bind Navigation.Title, Mode=OneWay}"
                                             ViewModel="{x:Bind}"
                                             CanDrag="True"
@@ -197,7 +197,7 @@
                 </local:UserNavigationViewItem.Icon>
               </local:UserNavigationViewItem>
             </DataTemplate>
-          </local:MainPageNavigationViewDataTemplateSelector.NavigationUserLeafNodeTemplate>
+          </local:MainPageNavigationViewDataTemplateSelector.UserListNavigationTemplate>
         </local:MainPageNavigationViewDataTemplateSelector>
       </NavigationView.MenuItemTemplateSelector>
       <!--#endregion -->

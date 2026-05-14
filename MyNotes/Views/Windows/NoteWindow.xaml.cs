@@ -3,13 +3,14 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.App;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Views.Windows;
 
@@ -26,7 +27,7 @@ internal sealed partial class NoteWindow : Window
   public event EventHandler? Loaded;
 
   #region Object Lifetime Management
-  public NoteWindow(Note note)
+  public NoteWindow(NoteModel note)
   {
     TrackReference();
     InitializeComponent();

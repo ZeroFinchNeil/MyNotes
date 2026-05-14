@@ -1,17 +1,23 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.AppConstants;
+using MyNotes.Application.Contracts.Database.Enums.Notes;
+using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Services.App;
+using MyNotes.Application.Services.Navigations;
+using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Structures;
-using MyNotes.Models.Modes;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Mappers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
-using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Notes;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -22,47 +28,62 @@ namespace MyNotes.Services.Commands;
 internal sealed class NoteCommandService : ICommandService
 {
   private readonly NoteService NoteService;
-  private readonly NavigationService NavigationService;
-  private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly NoteWindowService NoteWindowService;
+  private readonly NoteModelFactory NoteModelFactory;
+  private readonly NoteModelProvider NoteModelProvider;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly NoteListViewModelProvider NoteListViewModelProvider;
-  private readonly WindowService WindowService;
+  private readonly NavigationController NavigationController;
+  private readonly NavigationViewModelProvider NavigationViewModelProvider;
+  private readonly MainWindowService MainWindowService;
   private readonly DialogService DialogService;
   private readonly JumpListService JumpListService;
 
-  public Command<Note> OpenNoteWindowCommand { get; }
-  public Command<Note> MinimizeNoteWindowCommand { get; }
-  public Command<Note> CloseNoteWindowCommand { get; }
-  public Command<SourceTargetPair<Note, NavigationId>> MoveNoteToListCommand { get; }
+  public Command<NoteModel> OpenNoteWindowCommand { get; }
+  public Command<NoteModel> MinimizeNoteWindowCommand { get; }
+  public Command<NoteModel> CloseNoteWindowCommand { get; }
+  public Command<SourceTargetPair<NoteModel, NavigationId>> MoveNoteToListCommand { get; }
   public Command<NavigationId?> CreateNewNoteCommand { get; }
-  public Command<Note> ViewListCommand { get; }
-  public Command<Note> RemoveNoteCommand { get; }
-  public Command<Note> AddNoteToJumpListCommand { get; }
+  public Command<NoteModel> ViewListCommand { get; }
+  public Command<NoteModel> RemoveNoteCommand { get; }
+  public Command<NoteModel> AddNoteToJumpListCommand { get; }
 
-  public NoteCommandService(NoteService noteService, NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, NoteViewModelProvider noteViewModelProvider, NoteListViewModelProvider noteListViewModelProvider, WindowService windowService, DialogService dialogService, JumpListService jumpListService)
+  public NoteCommandService(
+    NoteService noteService,
+    NoteWindowService noteWindowService,
+    NoteModelFactory noteModelFactory,
+    NoteModelProvider noteModelProvider,
+    NoteViewModelProvider noteViewModelProvider,
+    NoteListViewModelProvider noteListViewModelProvider,
+    NavigationController navigationController,
+    NavigationViewModelProvider navigationViewModelProvider,
+    MainWindowService mainWindowService,
+    DialogService dialogService,
+    JumpListService jumpListService
+    )
   {
     NoteService = noteService;
-    NavigationService = navigationService;
-    NavigationViewModelProvider = navigationViewModelProvider;
+    NoteWindowService = noteWindowService;
+    NoteModelFactory = noteModelFactory;
+    NoteModelProvider = noteModelProvider;
     NoteViewModelProvider = noteViewModelProvider;
     NoteListViewModelProvider = noteListViewModelProvider;
-    WindowService = windowService;
+    NavigationController = navigationController;
+    NavigationViewModelProvider = navigationViewModelProvider;
+    MainWindowService = mainWindowService;
     DialogService = dialogService;
     JumpListService = jumpListService;
 
     OpenNoteWindowCommand = new()
     {
-      ActionToExecute = async (note) =>
-      {
-        await NoteService.OpenNoteWindow(note);
-      }
+      ActionToExecute = async (noteModel) => await NoteWindowService.OpenNoteWindow(noteModel)
     };
 
     MinimizeNoteWindowCommand = new()
     {
       ActionToExecute = async (note) =>
       {
-        if (WindowService.TryGetNoteWindowInfo(note.Id, out _, out var appWindow))
+        if (NoteWindowService.TryGetNoteWindowInfo(note.Id, out _, out var appWindow))
         {
           var presenter = appWindow?.Presenter as OverlappedPresenter;
           presenter?.Minimize();
@@ -72,9 +93,9 @@ internal sealed class NoteCommandService : ICommandService
 
     CloseNoteWindowCommand = new()
     {
-      ActionToExecute = async (note) =>
+      ActionToExecute = async (noteModel) =>
       {
-        if (WindowService.TryGetNoteWindowInfo(note.Id, out IntPtr hWnd, out _))
+        if (NoteWindowService.TryGetNoteWindowInfo(noteModel.Id, out IntPtr hWnd, out _))
         {
           NativeMethods.SendMessage(hWnd, (uint)NativeMethods.WindowMessage.WM_SYSCOMMAND, (IntPtr)NativeMethods.SystemCommand.SC_CLOSE, IntPtr.Zero);
         }
@@ -85,18 +106,27 @@ internal sealed class NoteCommandService : ICommandService
     {
       ActionToExecute = async (pair) =>
       {
-        Note sourceNote = pair.Source;
+        NoteModel sourceNote = pair.Source;
         NavigationId oldNavigationId = sourceNote.NavigationId;
         NavigationId newNavigationId = pair.Target;
 
         if (sourceNote.NavigationId == newNavigationId)
+        {
           return;
+        }
 
         sourceNote.NavigationId = newNavigationId;
-        await NoteService.UpdateNoteEntityAsync(sourceNote, [nameof(Note.NavigationId)]);
+        UpdateNoteAppRequestDto updateNoteDto = new()
+        {
+          Id = sourceNote.Id,
+          NoteUpdateField = NoteUpdateFields.NavigationId,
+          NavigationId = newNavigationId
+        };
+
+        await NoteService.Modification.UpdateNoteAsync(updateNoteDto);
 
         if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
-            && s is UserLeafNavigationViewModel sourceViewModel
+            && s is UserListNavigationViewModel sourceViewModel
             && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel)
             && noteListViewModel.NoteViewModels?.FirstOrDefault(vm => vm.Note == sourceNote) is NoteViewModel sourceNoteViewModel)
         {
@@ -107,16 +137,17 @@ internal sealed class NoteCommandService : ICommandService
 
     CreateNewNoteCommand = new()
     {
-      ActionToExecute = async (id) =>
+      ActionToExecute = async (navigationId) =>
       {
-        if (id is NavigationId navigationId
-            && NavigationViewModelProvider.TryResolve(navigationId, out var nvm)
-            && nvm is UserLeafNavigationViewModel navigationViewModel)
+        if (navigationId is NavigationId targetNavigationId
+            && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
+            && nvm is UserListNavigationViewModel navigationViewModel)
         {
-          if (await NoteService.AddNoteAsync(navigationViewModel.Navigation) is Note newNote)
+          if (await NoteService.Creation.AddNoteAsync(navigationViewModel.Navigation.Id) is NoteAppResponseDto newNoteDto)
           {
-            NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNote);
-            await NoteService.OpenNoteWindow(newNote);
+            NoteModel newNoteModel = NoteModelProvider.Resolve(newNoteDto.Id, () => NoteModelFactory.Create(newNoteDto));
+            NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
+            await NoteWindowService.OpenNoteWindow(newNoteModel);
 
             if (NoteListViewModelProvider.TryResolve(navigationViewModel.Navigation, out var noteListViewModel)
                 && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
@@ -128,31 +159,32 @@ internal sealed class NoteCommandService : ICommandService
         }
         else
         {
-          Note newNote = await NoteService.AddNoteAsync(null);
-          NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNote);
-          await NoteService.OpenNoteWindow(newNote);
+          NoteId newNoteId = await NoteService.GetUniqueNoteIdAsync();
+          NoteModel newNoteModel = NoteModelProvider.Resolve(newNoteId, () => NoteModelFactory.CreateDefault(newNoteId));
+          NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
+          await NoteWindowService.OpenNoteWindow(newNoteModel);
         }
       }
     };
 
     ViewListCommand = new()
     {
-      ActionToExecute = async (note) =>
+      ActionToExecute = async (noteModel) =>
       {
-        var mainWindow = await WindowService.GetOrCreateMainWindow(note.NavigationId);
+        var mainWindow = await MainWindowService.GetOrCreate(noteModel.NavigationId);
         mainWindow.Activate();
       }
     };
 
     RemoveNoteCommand = new()
     {
-      ActionToExecute = async (note) =>
+      ActionToExecute = async (noteModel) =>
       {
-        if (WindowService.TryGetCurrentMainWindow(out var mainWindow)
+        if (MainWindowService.TryGetCurrentWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var deleteMode = DeleteMode.MoveToTrash;
-          var result = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", note.Title, deleteMode);
+          var result = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, deleteMode);
           if (result.ContentDialogResult == ContentDialogResult.Primary)
           {
             switch (result.DeleteMode)
@@ -160,14 +192,14 @@ internal sealed class NoteCommandService : ICommandService
               case DeleteMode.MoveToTrash:
                 break;
               case DeleteMode.Permanent:
-                await NoteService.DeleteNotePermanentlyAsync(note.Id);
+                await NoteService.DeleteNotePermanentlyAsync(noteModel.Id);
                 break;
             }
 
-            note.IsDeleted = true;
+            noteModel.IsDeleted = true;
 
-            if (NavigationService.CurrentNavigation is INavigationNoteList navigation
-                && NoteViewModelProvider.TryResolve(note, out var noteViewModel))
+            if (NavigationController.CurrentNavigation is INavigationNoteList navigation
+                && NoteViewModelProvider.TryResolve(noteModel, out var noteViewModel))
             {
               WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(noteViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
             }
@@ -178,10 +210,7 @@ internal sealed class NoteCommandService : ICommandService
 
     AddNoteToJumpListCommand = new()
     {
-      ActionToExecute = async (note) =>
-      {
-        await JumpListService.AddToJumpListAsync(note);
-      }
+      ActionToExecute = async (noteModel) => await JumpListService.AddToJumpListAsync(NoteMappers.ToDomain(noteModel))
     };
   }
 }

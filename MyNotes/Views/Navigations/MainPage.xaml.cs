@@ -1,16 +1,18 @@
-using CommunityToolkit.Mvvm.Messaging;
+ï»¿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
+using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
-using MyNotes.Helpers;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Logging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
-using MyNotes.Services.App;
-using MyNotes.Services.Logging;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
@@ -24,8 +26,8 @@ internal sealed partial class MainPage : Page
 {
   private readonly MainViewModel ViewModel;
   private readonly SettingsService SettingsService;
-  private readonly WindowService WindowService;
-  private readonly LoggingService LoggingService;
+  private readonly MainWindowService MainWindowService;
+  private readonly AppLogger LoggingService;
   private readonly IServiceScope ServiceScope;
 
   private readonly NavigationId _initialNavigationId;
@@ -39,22 +41,22 @@ internal sealed partial class MainPage : Page
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
     SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
-    WindowService = ServiceScope.ServiceProvider.GetRequiredService<WindowService>();
-    LoggingService = ServiceScope.ServiceProvider.GetRequiredService<LoggingService>();
+    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<MainWindowService>();
+    LoggingService = ServiceScope.ServiceProvider.GetRequiredService<AppLogger>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
 
-    // ½ÃÀÛ ³»ºñ°ÔÀÌ¼Ç(ÆäÀÌÁö) ¼³Á¤
+    // ì‹œìž‘ ë‚´ë¹„ê²Œì´ì…˜(íŽ˜ì´ì§€) ì„¤ì •
     _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsService.Load(AppSettingsDescriptors.InitialPageId));
 
-    // ¾Û Å×¸¶ ¼³Á¤ 
+    // ì•± í…Œë§ˆ ì„¤ì • 
     var theme = (ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme);
     this.RequestedTheme = theme;
 
-    // ¸Þ½ÅÀú µî·Ï
+    // ë©”ì‹ ì € ë“±ë¡
     RegisterMessengers();
 
-    // µå·¡±× UI Å¸ÀÌ¸Ó µî·Ï
+    // ë“œëž˜ê·¸ UI íƒ€ì´ë¨¸ ë“±ë¡
     SetDraggableNavigationTimer();
 
     this.Loaded += MainPage_Loaded;
@@ -81,27 +83,27 @@ internal sealed partial class MainPage : Page
       }
     });
 
-    // ÀÌº¥Æ® ÇÚµé·¯ ÇØÁ¦
+    // ì´ë²¤íŠ¸ í•¸ë“¤ëŸ¬ í•´ì œ
     ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
 
-    // Å¸ÀÌ¸Ó ÇØÁ¦
+    // íƒ€ì´ë¨¸ í•´ì œ
     ReleaseDraggableNavigationTimer();
 
-    // ¸Þ½ÅÀú ÇØÁ¦
+    // ë©”ì‹ ì € í•´ì œ
     UnregisterMessengers();
 
-    // ºä¸ðµ¨ ÇØÁ¦
+    // ë·°ëª¨ë¸ í•´ì œ
     ViewModel.Dispose();
 
-    // ¼­ºñ½º ½ºÄÚÇÁ ÇØÁ¦
+    // ì„œë¹„ìŠ¤ ìŠ¤ì½”í”„ í•´ì œ
     ServiceScope.Dispose();
 
-    // ¹ÙÀÎµù ÇØÁ¦
+    // ë°”ì¸ë”© í•´ì œ
     Bindings.StopTracking();
   }
   #endregion
 
-  #region Å¸ÀÌÆ²¹Ù µå·¡±× ¿µ¿ª Á¶Á¤
+  #region íƒ€ì´í‹€ë°” ë“œëž˜ê·¸ ì˜ì—­ ì¡°ì •
   private void MainPage_TitleBarGrid_Loaded(object sender, RoutedEventArgs e)
   {
     SetRegionsForCustomTitleBar();
@@ -119,15 +121,15 @@ internal sealed partial class MainPage : Page
 
   private void SetRegionsForCustomTitleBar()
   {
-    if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
-      // FlowDirection¿¡ µû¸¥ Ä¸¼Ç ÄÁÆ®·Ñ ¿©¹é ÁöÁ¤
+      // FlowDirectionì— ë”°ë¥¸ ìº¡ì…˜ ì»¨íŠ¸ë¡¤ ì—¬ë°± ì§€ì •
       RightPaddingColumn.Width = new GridLength(Math.Max(0, appWindow.TitleBar.RightInset) / scaleFactor);
       LeftPaddingColumn.Width = new GridLength(Math.Max(0, appWindow.TitleBar.LeftInset) / scaleFactor);
 
-      // µÚ·Î °¡±â ¹öÆ°, ¸Þ´º ¹öÆ°, °Ë»ö »óÀÚ ¿µ¿ª À§Ä¡¿Í Å©±â °è»ê
+      // ë’¤ë¡œ ê°€ê¸° ë²„íŠ¼, ë©”ë‰´ ë²„íŠ¼, ê²€ìƒ‰ ìƒìž ì˜ì—­ ìœ„ì¹˜ì™€ í¬ê¸° ê³„ì‚°
       var BackButtonPosition = MainPage_BackButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_BackButton.ActualWidth, MainPage_BackButton.ActualHeight));
       var PaneToggleButtonPosition = MainPage_PaneToggleButton.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_PaneToggleButton.ActualWidth, MainPage_PaneToggleButton.ActualHeight));
       var SearchBoxPosition = MainPage_SearchAutoSuggestBox.TransformToVisual(null).TransformBounds(new Rect(0, 0, MainPage_SearchAutoSuggestBox.ActualWidth, MainPage_SearchAutoSuggestBox.ActualHeight));
@@ -136,7 +138,7 @@ internal sealed partial class MainPage : Page
       RectInt32 PaneToggleButtonRect = PaneToggleButtonPosition.AsScaledRectInt32(scaleFactor);
       RectInt32 SearchBoxRect = SearchBoxPosition.AsScaledRectInt32(scaleFactor);
 
-      // Á¦¸ñ Ç¥½ÃÁÙ µå·¡±× Á¦¿ÜÇÒ ¿µ¿ª ¼³Á¤
+      // ì œëª© í‘œì‹œì¤„ ë“œëž˜ê·¸ ì œì™¸í•  ì˜ì—­ ì„¤ì •
       var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
     }
@@ -202,7 +204,7 @@ internal sealed partial class MainPage : Page
   {
     this.RequestedTheme = theme;
 
-    if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow))
+    if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow))
     {
       appWindow.TitleBar.PreferredTheme = theme switch
       {
@@ -286,7 +288,7 @@ internal sealed partial class MainPage : Page
     }
   }
 
-  private void MainPageUserNavigationViewItem_Drop(object sender, DragEventArgs e)
+  private async void MainPageUserNavigationViewItem_Drop(object sender, DragEventArgs e)
   {
     e.Handled = true;
     _dispatcherTimer.Stop();
@@ -296,7 +298,7 @@ internal sealed partial class MainPage : Page
     if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } }
         && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
     {
-      ViewModel.MoveNavigation(new() { Source = sourceNavigation, Target = targetNavigation });
+      await ViewModel.MoveNavigationAsync(new() { Source = sourceNavigation, Target = targetNavigation });
     }
   }
   #endregion
@@ -318,7 +320,7 @@ internal sealed partial class MainPage : Page
     {
       if (message.Value == WindowActivationState.Deactivated)
       {
-        if (WindowService.TryGetMainWindowInfo(this, out _, out var appWindow))
+        if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow))
         {
           var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
           _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
@@ -342,21 +344,21 @@ internal sealed partial class MainPage : Page
 
 internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataTemplateSelector
 {
-  public DataTemplate? NavigationCoreNodeTemplate { get; set; }
-  public DataTemplate? NavigationSeparatorTemplate { get; set; }
-  public DataTemplate? NavigationUserRootNodeTemplate { get; set; }
-  public DataTemplate? NavigationUserCompositeNodeTemplate { get; set; }
-  public DataTemplate? NavigationUserLeafNodeTemplate { get; set; }
+  public DataTemplate? CoreNavigationTemplate { get; set; }
+  public DataTemplate? SeparatorNavigationTemplate { get; set; }
+  public DataTemplate? UserRootGroupNavigationTemplate { get; set; }
+  public DataTemplate? UserGroupNavigationTemplate { get; set; }
+  public DataTemplate? UserListNavigationTemplate { get; set; }
 
   protected override DataTemplate? SelectTemplateCore(object item)
   {
     return item switch
     {
-      CoreNavigationViewModel => NavigationCoreNodeTemplate,
-      SeparatorNavigationViewModel => NavigationSeparatorTemplate,
-      UserRootNavigationViewModel => NavigationUserRootNodeTemplate,
-      UserCompositeNavigationViewModel => NavigationUserCompositeNodeTemplate,
-      UserLeafNavigationViewModel => NavigationUserLeafNodeTemplate,
+      CoreNavigationViewModel => CoreNavigationTemplate,
+      SeparatorNavigationViewModel => SeparatorNavigationTemplate,
+      UserRootGroupNavigationViewModel => UserRootGroupNavigationTemplate,
+      UserGroupNavigationViewModel => UserGroupNavigationTemplate,
+      UserListNavigationViewModel => UserListNavigationTemplate,
       _ => null
     };
   }

@@ -6,9 +6,15 @@ namespace MyNotes.Models.Navigations;
 
 internal partial class NavigationUserCompositeNode : NavigationUserNode
 {
+#if false
   public NavigationUserNodeCollection ChildNodes { get; }
 
   public NavigationUserCompositeNode() : base(typeof(HomePage)) { ChildNodes = new(this); }
+#endif
+
+  public ObservableCollection<NavigationUserNode> ChildNodes { get; } = new();
+
+  public NavigationUserCompositeNode() : base(typeof(HomePage)) { }
 
   [ObservableProperty]
   public partial bool IsExpanded { get; set; }

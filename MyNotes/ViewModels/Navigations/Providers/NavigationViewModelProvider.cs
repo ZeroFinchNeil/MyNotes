@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations.Providers;
@@ -23,9 +24,9 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     {
       NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
       NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserCompositeNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserLeafNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootGroupNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserGroupNavigationViewModel>(ServiceProvider, navigation),
+      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserListNavigationViewModel>(ServiceProvider, navigation),
       NavigationSearch => ActivatorUtilities.CreateInstance<SearchNavigationViewModel>(ServiceProvider, navigation),
       _ => throw new ArgumentException("Invalid navigation")
     };

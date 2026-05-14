@@ -1,0 +1,14 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace MyNotes.Application.Contracts.Search.Dtos.Notes;
+
+internal class NoteSearchDocumentDto
+{
+  public required Guid Id { get; init; }
+
+  public required string Title { get; set; }
+
+  public required string Body { get; set; }
+}

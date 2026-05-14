@@ -1,13 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Models.Modes;
+using MyNotes.Common.Enums.Modes;
 
 namespace MyNotes.ViewModels.Dialogs;
 
 internal sealed partial class ConfirmDeleteDialogViewModel : DialogViewModelBase
 {
   [ObservableProperty]
-  public partial string TargetTypeName { get; set; }
+  public partial string TargetCategory { get; set; }
 
   [ObservableProperty]
   public partial string TargetName { get; set; }
@@ -29,9 +29,9 @@ internal sealed partial class ConfirmDeleteDialogViewModel : DialogViewModelBase
   }
 
   #region Object Lifetime Management
-  public ConfirmDeleteDialogViewModel(string targetTypeName, string targetName, DeleteMode deleteMode)
+  public ConfirmDeleteDialogViewModel(string targetCategory, string targetName, DeleteMode deleteMode)
   {
-    TargetTypeName = targetTypeName;
+    TargetCategory = targetCategory;
     TargetName = targetName;
     DeleteMode = deleteMode;
 

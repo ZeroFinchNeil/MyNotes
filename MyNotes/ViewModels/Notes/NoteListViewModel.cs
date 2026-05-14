@@ -2,7 +2,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
@@ -13,6 +12,10 @@ using MyNotes.Services.Notes;
 using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Enums.Navigations;
+using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -180,14 +183,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
   }
 
-  private static Comparer<Note> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
+  private static Comparer<NoteModel> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
   {
-    (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Modified.CompareTo(y.Modified)),
-    (NoteSortKey.Modified, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Modified.CompareTo(x.Modified)),
-    (NoteSortKey.Created, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Created.CompareTo(y.Created)),
-    (NoteSortKey.Created, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Created.CompareTo(x.Created)),
-    (NoteSortKey.Title, SortDirection.Ascending) => Comparer<Note>.Create((x, y) => x.Title.CompareTo(y.Title)),
-    (NoteSortKey.Title, SortDirection.Descending) => Comparer<Note>.Create((x, y) => y.Title.CompareTo(x.Title)),
+    (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<NoteModel>.Create((x, y) => x.Modified.CompareTo(y.Modified)),
+    (NoteSortKey.Modified, SortDirection.Descending) => Comparer<NoteModel>.Create((x, y) => y.Modified.CompareTo(x.Modified)),
+    (NoteSortKey.Created, SortDirection.Ascending) => Comparer<NoteModel>.Create((x, y) => x.Created.CompareTo(y.Created)),
+    (NoteSortKey.Created, SortDirection.Descending) => Comparer<NoteModel>.Create((x, y) => y.Created.CompareTo(x.Created)),
+    (NoteSortKey.Title, SortDirection.Ascending) => Comparer<NoteModel>.Create((x, y) => x.Title.CompareTo(y.Title)),
+    (NoteSortKey.Title, SortDirection.Descending) => Comparer<NoteModel>.Create((x, y) => y.Title.CompareTo(x.Title)),
     _ => throw new ArgumentException("Invalid sorting")
   };
 
@@ -245,7 +248,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
         await foreach (var match in searchResult.Matches)
         {
-          if (await NoteService.FindNoteAsync(NoteId.Create(match.NoteId)) is Note note)
+          if (await NoteService.FindNoteAsync(NoteId.Create(match.NoteId)) is NoteModel note)
           {
             note.PropertyChanged += Note_PropertyChanged_WhileActive;
             NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
@@ -312,15 +315,15 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   private void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
   {
-    if (sender is Note note
+    if (sender is NoteModel note
         && NoteViewModelProvider.TryResolve(note, out var noteViewModel))
     {
       switch (e.PropertyName)
       {
-        case nameof(Note.Title):
+        case nameof(NoteModel.Title):
           NoteViewModels?.ReorderItem(noteViewModel);
           break;
-        case nameof(Note.IsBookmarked):
+        case nameof(NoteModel.IsBookmarked):
           if (!note.IsBookmarked && Navigation is NavigationBookmarks)
           {
             NoteViewModels?.Remove(noteViewModel);
@@ -437,7 +440,7 @@ partial class NoteListViewModel
       actionToExecute: async () =>
       {
         if (Navigation is NavigationUserLeafNode leaf
-            && await NoteService.AddNoteAsync(leaf) is Note note)
+            && await NoteService.AddNoteAsync(leaf) is NoteModel note)
         {
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
           NoteViewModels?.Add(noteViewModel);
@@ -451,7 +454,7 @@ partial class NoteListViewModel
   {
     WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
     {
-      if (message.Sender is Note targetNote)
+      if (message.Sender is NoteModel targetNote)
       {
         switch (Navigation)
         {

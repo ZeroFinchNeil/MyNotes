@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
+using MyNotes.Shared.Constants;
 using MyNotes.ViewModels;
 
 using Windows.System;
@@ -28,7 +28,9 @@ internal sealed partial class SettingsPage : Page
 
     // 초기 VisualState 결정
     if (ViewModel.IsAppLanguageChanged)
+    {
       VisualStateManager.GoToState(this, nameof(SettingsPage_LanguageSettingsWarningState), false);
+    }
 
     this.Loaded += SettingsPage_Loaded;
     this.Unloaded += SettingsPage_Unloaded;
@@ -61,7 +63,9 @@ internal sealed partial class SettingsPage : Page
     SettingsPage_General_StartupToggleSwitch.IsOn = state;
 
     if (state)
+    {
       VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsNormalState), false);
+    }
 
     _preventToggleChanging = false;
   }
@@ -70,18 +74,25 @@ internal sealed partial class SettingsPage : Page
   private async void SettingsPage_General_StartupToggleSwitch_Toggled(object sender, RoutedEventArgs e)
   {
     if (_preventToggleChanging)
+    {
       return;
+    }
 
     bool changedState = await ViewModel.ToggleStartupTaskState();
 
     if (SettingsPage_General_StartupToggleSwitch.IsOn == changedState)
+    {
       VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsNormalState), false);
+    }
     else
     {
       _preventToggleChanging = true;
       SettingsPage_General_StartupToggleSwitch.IsOn = changedState;
       if (!changedState)
+      {
         VisualStateManager.GoToState(this, nameof(SettingsPage_StartupSettingsWarningState), false);
+      }
+
       _preventToggleChanging = false;
     }
   }

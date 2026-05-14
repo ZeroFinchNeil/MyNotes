@@ -1,0 +1,29 @@
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+
+using MyNotes.Application.Contracts.Database.Dtos.Notes;
+using MyNotes.Application.Contracts.Database.Queries.Notes;
+using MyNotes.Domain.ValueObjects;
+
+namespace MyNotes.Application.Contracts.Database.Repositories.Notes;
+
+internal interface INoteRepository
+{
+  public Task<NoteId> GenerateUniqueNoteIdAsync();
+
+  public Task<NoteDbResponseDto?> GetNoteAsync(NoteId noteId);
+
+  public Task<NoteViewStateDbResponseDto?> GetNoteViewStateDtoAsync(NoteId noteId);
+
+  public Task<IReadOnlyList<NoteDbAggregateResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery);
+
+  public Task AddNoteAsync(CreateNoteDbRequestDto noteDbDto);
+
+  public Task AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto);
+
+  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true);
+
+  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true);
+
+  public Task<bool> DeleteNoteAsync(NoteId noteId);
+}

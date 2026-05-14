@@ -1,4 +1,4 @@
-﻿using MyNotes.Models.Notes;
+﻿using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Helpers;
 

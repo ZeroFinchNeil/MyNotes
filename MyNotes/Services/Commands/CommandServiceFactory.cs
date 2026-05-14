@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Services.Commands;
+﻿using MyNotes.Application.Services;
+
+namespace MyNotes.Services.Commands;
 
 internal class CommandServiceFactory() : IServiceFactory
 {

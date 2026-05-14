@@ -3,7 +3,6 @@
                x:Uid="SelectNoteParentDialog"
                xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-               xmlns:local="using:MyNotes.Views.Dialogs"
                xmlns:navigationvm="using:MyNotes.ViewModels.Navigations"
                Style="{StaticResource DefaultContentDialogStyle}"
                DefaultButton="Primary"
@@ -16,7 +15,7 @@
     <ListView ItemsSource="{x:Bind ViewModel.TargetNavigationViewModels}"
               SelectedItem="{x:Bind ViewModel.SelectedNavigationViewModel, Mode=TwoWay}">
       <ListView.ItemTemplate>
-        <DataTemplate x:DataType="navigationvm:UserLeafNavigationViewModel">
+        <DataTemplate x:DataType="navigationvm:UserListNavigationViewModel">
           <Grid ColumnSpacing="12">
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="Auto" />

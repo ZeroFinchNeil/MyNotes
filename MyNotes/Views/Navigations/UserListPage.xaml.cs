@@ -1,8 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Collections;
+using MyNotes.Shared.Enums.Navigations;
+using MyNotes.Shared.Enums.Notes;
 using MyNotes.Models.Navigations;
-using MyNotes.Models.Notes;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -13,7 +14,7 @@ namespace MyNotes.Views.Navigations;
 [Debugging.ReferenceTracker]
 internal sealed partial class UserListPage : Page
 {
-  private UserLeafNavigationViewModel? ViewModel;
+  private UserListNavigationViewModel? ViewModel;
   private NoteListViewModelProvider? NoteListViewModelProvider;
   private NoteListViewModel? NoteListViewModel;
 
@@ -35,7 +36,7 @@ internal sealed partial class UserListPage : Page
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
       NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      ViewModel = navigationViewModelProvider.Resolve(navigation) as UserLeafNavigationViewModel;
+      ViewModel = navigationViewModelProvider.Resolve(navigation) as UserListNavigationViewModel;
       NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
     }
   }

@@ -2,12 +2,12 @@
 
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Commands;
 using MyNotes.Models.Media;
-using MyNotes.Models.Notes;
 using MyNotes.Services.App;
 using MyNotes.ViewModels.Media.Providers;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.ViewModels.Media;
 

@@ -2,21 +2,21 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
-using MyNotes.Helpers;
 using MyNotes.Models.Notes;
+using MyNotes.Shared.Constants;
+using MyNotes.Common.Helpers;
 
 namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteEditorViewModel : ViewModelBase
 {
-  private readonly Note Note;
+  private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(Note note, RichEditTextDocument document)
+  public NoteEditorViewModel(NoteModel note, RichEditTextDocument document)
   {
     Note = note;
     Document = document;

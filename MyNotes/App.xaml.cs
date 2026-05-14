@@ -2,16 +2,16 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.AppConstants;
-using MyNotes.Models.Navigations;
-using MyNotes.Services.App;
-using MyNotes.Services.Commands;
-using MyNotes.Services.Database;
-using MyNotes.Services.Dialogs;
-using MyNotes.Services.Logging;
-using MyNotes.Services.Navigations;
-using MyNotes.Services.Notes;
-using MyNotes.Services.Search;
+using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Application.Contracts.Database.Repositories.Notes;
+using MyNotes.Application.Services.Notes;
+using MyNotes.Shared.Constants;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Database.Core;
+using MyNotes.Infrastructure.Database.Repositories;
+using MyNotes.Infrastructure.Logging;
+using MyNotes.Infrastructure.Search.Core;
+using MyNotes.Services;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
@@ -21,7 +21,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes;
 
-public sealed partial class App : Application, IDisposable
+public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 {
   internal static App Instance => (App)Current;
 
@@ -41,7 +41,7 @@ public sealed partial class App : Application, IDisposable
   {
     using var appInitializeScope = Services.CreateScope();
     _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
-    _ = appInitializeScope.ServiceProvider.GetRequiredService<SearchService>();
+    _ = appInitializeScope.ServiceProvider.GetRequiredService<AppSearchContext>();
 
     var navigationTreeService = appInitializeScope.ServiceProvider.GetRequiredService<NavigationTreeService>();
     await navigationTreeService.InitializationTask;
@@ -122,36 +122,22 @@ public sealed partial class App : Application, IDisposable
     ServiceCollection services = new();
 
     // ViewModel
-    services.AddScoped<MainViewModel>();
-    services.AddScoped<SettingsViewModel>();
-
-    services.AddSingleton<NavigationViewModelProvider>();
-    services.AddSingleton<DialogViewModelFactory>();
-    services.AddSingleton<NoteViewModelProvider>();
-    services.AddSingleton<NoteEditorViewModelProvider>();
-    services.AddSingleton<NoteListViewModelProvider>();
-
-    services.AddSingleton<ImageViewModelProvider>();
-    services.AddSingleton<ImageCollectionViewModelProvider>();
+    services.AddViewModelProviders();
+    services.AddViewModels();
 
     // Service
     services.AddSingleton<WindowService>();
     services.AddSingleton<JumpListService>();
-    services.AddSingleton<LoggingService>();
+    services.AddSingleton<AppLogger>();
     services.AddSingleton<DialogService>();
-    services.AddSingleton<NavigationService>();
-    services.AddSingleton<NavigationTreeService>();
     services.AddSingleton<SettingsService>();
-    services.AddSingleton<NoteService>();
-    services.AddSingleton<SearchService>();
 
-    services.AddKeyedSingleton<ICommandService, NavigationCommandService>(CommandServiceType.Navigation);
-    services.AddKeyedSingleton<ICommandService, NoteCommandService>(CommandServiceType.Note);
+    services.AddNavigationServices();
+    services.AddNoteServices();
+    services.AddCommandServices();
 
-    // DbContext
-    services.AddSingleton<AppDbContextTaskDispatcher>();
-    services.AddDbContextFactory<AppDbContext>();
-    services.AddScoped<AppDbContextInitializer>();
+    services.AddDbCoreServices();
+    services.AddSearchCoreServices();
 
     return services.BuildServiceProvider();
   }
@@ -170,7 +156,7 @@ public sealed partial class App : Application, IDisposable
   private void WriteExceptionLog(Exception ex)
   {
     Console.WriteLine("{0}: {1}", "Exception", ex);
-    var loggingService = Services.GetRequiredService<LoggingService>();
+    var loggingService = Services.GetRequiredService<AppLogger>();
     loggingService.Write(ex);
   }
 

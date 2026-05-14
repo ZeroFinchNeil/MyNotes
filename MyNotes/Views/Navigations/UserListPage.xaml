@@ -2,13 +2,11 @@
 <Page x:Class="MyNotes.Views.Navigations.UserListPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:local="using:MyNotes.Views.Navigations"
       xmlns:notes="using:MyNotes.Models.Notes"
-      xmlns:navigations="using:MyNotes.Models.Navigations"
-      xmlns:notevm="using:MyNotes.ViewModels.Notes"
-      xmlns:helpers="using:MyNotes.Helpers"
       xmlns:templates="using:MyNotes.Templates"
-      xmlns:collections="using:MyNotes.Common.Collections">
+      xmlns:collections="using:MyNotes.Common.Collections"
+      xmlns:noteEnums="using:MyNotes.Common.Enums.Notes"
+      xmlns:navEnums="using:MyNotes.Common.Enums.Navigations">
 
   <Grid>
     <Grid.RowDefinitions>
@@ -72,17 +70,17 @@
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Modified"
                                    Tag="{StaticResource NoteSortKeyModified}"
-                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, notes:NoteSortKey.Modified)}"
+                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Modified)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Created"
                                    Tag="{StaticResource NoteSortKeyCreated}"
-                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, notes:NoteSortKey.Created)}"
+                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Created)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Title"
                                    Tag="{StaticResource NoteSortKeyTitle}"
-                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, notes:NoteSortKey.Title)}"
+                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Title)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <MenuFlyoutSeparator />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
@@ -154,7 +152,7 @@
 
               <!--Style: View Ratio-->
               <templates:MenuFlyoutElementContainer Padding="8"
-                                                    Visibility="{x:Bind NoteListViewModel.VisibleWhenEquals(NoteListViewModel.PreviewLayoutType, navigations:PreviewLayoutType.Grid), Mode=OneWay}">
+                                                    Visibility="{x:Bind NoteListViewModel.VisibleWhenEquals(NoteListViewModel.PreviewLayoutType, navEnums:PreviewLayoutType.Grid), Mode=OneWay}">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

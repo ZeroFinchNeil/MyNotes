@@ -6,15 +6,15 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<Note, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteModel, NoteEditorViewModel>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<Note, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<NoteModel, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
 
-  NoteEditorViewModel IViewModelProvider<Note, NoteEditorViewModel>.Resolve(Note note) => throw new NotImplementedException();
+  NoteEditorViewModel IViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
 
-  public NoteEditorViewModel Resolve(Note note, RichEditTextDocument document)
+  public NoteEditorViewModel Resolve(NoteModel note, RichEditTextDocument document)
   {
     if (TryResolve(note, out var viewmodel))
     {
@@ -27,7 +27,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
     return newViewModel;
   }
 
-  public bool TryResolve(Note note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
+  public bool TryResolve(NoteModel note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
   {
     if (ResolvedViewModels.TryGetValue(note, out var wr)
         && wr.TryGetTarget(out var viewmodel)
@@ -41,7 +41,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
     return false;
   }
 
-  public bool Release(Note note)
+  public bool Release(NoteModel note)
   {
     if (TryResolve(note, out var viewmodel))
     {

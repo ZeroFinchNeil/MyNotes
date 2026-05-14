@@ -71,7 +71,9 @@ internal static partial class NativeMethods
       get
       {
         fixed (char* p = _dmDeviceName)
+        {
           return new string(p);
+        }
       }
     }
 
@@ -80,7 +82,9 @@ internal static partial class NativeMethods
       get
       {
         fixed (char* p = _dmFormName)
+        {
           return new string(p);
+        }
       }
     }
 
@@ -101,7 +105,9 @@ internal static partial class NativeMethods
       get
       {
         fixed (char* p = _szDevice)
+        {
           return new string(p);
+        }
       }
     }
 
@@ -131,7 +137,10 @@ internal static partial class NativeMethods
       MONITORINFOEX monitorInfo = new();
 
       if (GetMonitorInfo(hMonitor, ref monitorInfo))
+      {
         monitors.Add(monitorInfo);
+      }
+
       return true;
     }, IntPtr.Zero);
 

@@ -2,7 +2,6 @@
 <tmpls:DraggableNavigationViewItem x:Class="MyNotes.Views.Navigations.UserNavigationViewItem"
                                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                                   xmlns:local="using:MyNotes.Views.Navigations"
                                    xmlns:tmpls="using:MyNotes.Templates"
                                    xmlns:ui="using:CommunityToolkit.WinUI">
   <tmpls:DraggableNavigationViewItem.ContextFlyout>

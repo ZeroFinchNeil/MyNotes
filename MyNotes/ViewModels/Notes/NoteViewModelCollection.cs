@@ -15,10 +15,10 @@ internal sealed partial class NoteViewModelCollection : ObservableCollection<Not
     Comparer = null!;
   }
 
-  public NoteViewModelCollection(Comparer<Note> comparer) : this() => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
+  public NoteViewModelCollection(Comparer<NoteModel> comparer) : this() => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
   public NoteViewModelCollection(Comparer<NoteViewModel> comparer) : this() => Comparer = comparer;
 
-  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<Note> comparer) : this()
+  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<NoteModel> comparer) : this()
   {
     Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
     Inner.AddRange(items);
@@ -71,7 +71,7 @@ internal sealed partial class NoteViewModelCollection : ObservableCollection<Not
     return (index >= 0) ? index : ~index;
   }
 
-  public void Rearrange(Comparer<Note> comparer)
+  public void Rearrange(Comparer<NoteModel> comparer)
   {
     Rearrange(Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note)));
   }

@@ -4,7 +4,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="using:MyNotes.Views.Notes"
              xmlns:templates="using:MyNotes.Templates"
-             xmlns:helpers="using:MyNotes.Helpers"
+             xmlns:helpers="using:MyNotes.Common.Helpers"
              xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
 
   <Grid x:Name="NoteItem_RootGrid"

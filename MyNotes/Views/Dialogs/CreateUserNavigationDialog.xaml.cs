@@ -1,5 +1,5 @@
-using MyNotes.Helpers;
-using MyNotes.Resources;
+using MyNotes.Shared.Constants;
+using MyNotes.Common.Helpers;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;

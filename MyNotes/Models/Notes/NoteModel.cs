@@ -1,0 +1,97 @@
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Helpers;
+
+using Microsoft.UI.Xaml.Documents;
+
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
+using MyNotes.Common.Helpers;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Models.Media;
+
+namespace MyNotes.Models.Notes;
+
+[Debugging.ReferenceTracker]
+internal sealed partial class NoteModel : ObservableObject, IComparable<NoteModel>
+{
+  public NoteModel()
+  {
+    TrackReference();
+  }
+
+  // Domain Properties
+  public required NoteId Id { get; init; }
+
+  [ObservableProperty]
+  public required partial NavigationId NavigationId { get; set; }
+
+  public required DateTimeOffset Created { get; init; }
+
+  [ObservableProperty]
+  public partial DateTimeOffset Modified { get; private set; }
+
+  [ObservableProperty]
+  public partial string Title { get; set; } = string.Empty;
+
+  [ObservableProperty]
+  public partial string Body { get; set; } = string.Empty;
+
+  [ObservableProperty]
+  public partial string BodyPlainText { get; set; } = string.Empty;
+
+  [ObservableProperty]
+  public partial bool IsBookmarked { get; set; }
+
+  [ObservableProperty]
+  public partial bool IsDeleted { get; set; }
+
+  [ObservableProperty]
+  public partial Color BackgroundColor { get; set; } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
+
+  // Presentation Properties
+  public List<TextRange> HighlighterRanges { get; } = new();
+
+  [ObservableProperty]
+  public partial bool ShowBackgroundImage { get; set; }
+
+  [ObservableProperty]
+  public partial string? BackgroundImagePath { get; set; }
+
+  [ObservableProperty]
+  public partial double BackgroundImageOpacity { get; set; }
+
+  [ObservableProperty]
+  public partial double BackgroundImageBlur { get; set; }
+
+  [ObservableProperty]
+  public partial BackdropKind BackdropKind { get; set; } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
+
+  [ObservableProperty]
+  public partial double BackdropTintOpacity { get; set; }
+
+  [ObservableProperty]
+  public partial double BackdropLuminosityOpacity { get; set; }
+
+  [ObservableProperty]
+  public partial ImmutableList<ImageDescriptor> Images { get; set; } = [];
+
+  [ObservableProperty]
+  public partial bool ShowImagePanel { get; set; }
+
+  [ObservableProperty]
+  public partial double ImagePanelHeight { get; set; }
+
+  [ObservableProperty]
+  public partial SizeInt32 Size { get; set; } = AppSettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
+
+  [ObservableProperty]
+  public partial PointInt32 Position { get; set; } = AppSettingsDescriptors.NotePosition.DefaultValue.PointInt32;
+
+  [ObservableProperty]
+  public partial bool IsWindowOpen { get; set; }
+
+  [ObservableProperty]
+  public partial bool IsAlwaysOnTop { get; set; }
+
+  public int CompareTo(NoteModel? other) => other is null ? 1 : Created.CompareTo(other.Created);
+}

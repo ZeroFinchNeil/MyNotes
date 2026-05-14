@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Models.Navigations;
+﻿using MyNotes.Domain.ValueObjects;
+
+namespace MyNotes.Models.Navigations;
 
 internal interface INavigationNode : INavigation
 {

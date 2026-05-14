@@ -1,4 +1,4 @@
-using MyNotes.Resources;
+using MyNotes.Shared.Constants;
 using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;

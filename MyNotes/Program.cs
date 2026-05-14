@@ -1,8 +1,8 @@
 ﻿using System.IO.Pipes;
 
-using MyNotes.AppConstants;
 using MyNotes.Common.Interop;
 using MyNotes.Widget;
+using MyNotes.Shared.Constants;
 
 namespace MyNotes;
 

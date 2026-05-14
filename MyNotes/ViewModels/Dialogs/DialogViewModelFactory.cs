@@ -6,7 +6,7 @@ internal sealed class DialogViewModelFactory(IServiceProvider serviceProvider) :
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  public DialogViewModelBase Resolve(DialogType dialogType, params object[] parameters) => dialogType switch
+  public DialogViewModelBase Create(DialogType dialogType, params object[] parameters) => dialogType switch
   {
     DialogType.EditUserNavigation => ActivatorUtilities.CreateInstance<EditUserNavigationDialogViewModel>(ServiceProvider, parameters),
     DialogType.ConfirmDelete => ActivatorUtilities.CreateInstance<ConfirmDeleteDialogViewModel>(ServiceProvider, parameters),

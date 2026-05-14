@@ -1,5 +1,6 @@
 ﻿namespace MyNotes.Models.Navigations;
 
+[Obsolete("Position 관리를 Application 계층으로 위임함", true)]
 [Debugging.ReferenceTracker]
 internal sealed partial class NavigationUserNodeCollection : ObservableCollection<NavigationUserNode>
 {
@@ -11,6 +12,7 @@ internal sealed partial class NavigationUserNodeCollection : ObservableCollectio
     TrackReference();
   }
 
+#if false
   protected override void MoveItem(int oldIndex, int newIndex)
   {
     if (oldIndex < 0 || newIndex < 0
@@ -142,4 +144,5 @@ internal sealed partial class NavigationUserNodeCollection : ObservableCollectio
       }
     }
   }
+#endif
 }

@@ -8,13 +8,13 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<Note, NoteViewModel>
+internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteModel, NoteViewModel>
 {
-  private readonly ConcurrentDictionary<Note, ReferenceCounter<NoteViewModel>> ResolveTable = new();
+  private readonly ConcurrentDictionary<NoteModel, ReferenceCounter<NoteViewModel>> ResolveTable = new();
 
-  public NoteViewModel Resolve(Note note)
+  public NoteViewModel Resolve(NoteModel noteModel)
   {
-    var rc = ResolveTable.GetOrAdd(note, n => new ReferenceCounter<NoteViewModel>()
+    var rc = ResolveTable.GetOrAdd(noteModel, n => new ReferenceCounter<NoteViewModel>()
     {
       Instance = ActivatorUtilities.CreateInstance<NoteViewModel>(serviceProvider, n)
     });
@@ -23,9 +23,9 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
     return rc.Instance;
   }
 
-  public bool TryResolve(Note note, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
+  public bool TryResolve(NoteModel noteModel, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
   {
-    if (ResolveTable.TryGetValue(note, out var rc))
+    if (ResolveTable.TryGetValue(noteModel, out var rc))
     {
       var viewmodel = rc.Instance;
       if (!rc.HasNoReferences && !viewmodel.Disposed)
@@ -35,18 +35,18 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
       }
       else
       {
-        ResolveTable.TryRemove(note, out _);
+        ResolveTable.TryRemove(noteModel, out _);
       }
     }
     noteViewModel = null;
     return false;
   }
 
-  public bool Release(Note note)
+  public bool Release(NoteModel noteModel)
   {
-    if (ResolveTable.TryGetValue(note, out var rc) && rc.Decrement())
+    if (ResolveTable.TryGetValue(noteModel, out var rc) && rc.Decrement())
     {
-      ResolveTable.TryRemove(note, out _);
+      ResolveTable.TryRemove(noteModel, out _);
       return true;
     }
     return false;
