@@ -1,13 +1,15 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+﻿using MyNotes.Application.Enums.Navigations;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Dtos.Navigations;
 
 internal sealed record MoveUserNavigationAppResponseDto
 {
-  public required bool IsMoveAllowed { get; init; }
+  public required MoveUserNavigationResultKind ResultKind { get; init; }
 
-  public required IReadOnlyList<NavigationId> UpdatedNavigations { get; init; }
+  public required IReadOnlyList<NavigationId>? UpdatedNavigations { get; init; }
+
+  public bool IsMoveApplied => ResultKind is not MoveUserNavigationResultKind.Rejected && UpdatedNavigations is not null;
 
   public string? FailureMessage { get; init; }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Enums.Navigations;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Structures;
@@ -114,48 +115,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   public async Task MoveNavigationAsync(SourceTargetPair<NavigationUserNode, NavigationUserNode> navigationPair)
   {
-    var sourceNavigation = navigationPair.Source;
-    var targetNavigation = navigationPair.Target;
-
-    NavigationInsertPosition insertPosition;
-    var targetParent = targetNavigation.Parent;
-    var expectedTargetSiblings = targetParent.ChildNodes.Select(n => n.Id).ToList();
-    var targetIndex = targetParent.ChildNodes.IndexOf(targetNavigation);
-
-    if (sourceNavigation.Parent == targetParent)
-    {
-      var sourceIndex = targetParent.ChildNodes.IndexOf(sourceNavigation);
-      if (sourceIndex < 0 || targetIndex < 0)
-      {
-        //todo: 상세 예외로 교체
-        throw new InvalidOperationException();
-      }
-
-      if (sourceIndex == targetIndex)
-      {
-        return;
-      }
-
-      insertPosition = sourceIndex < targetIndex ? NavigationInsertPosition.After : NavigationInsertPosition.Before;
-
-      expectedTargetSiblings.RemoveAt(sourceIndex);
-    }
-    else
-    {
-      insertPosition = NavigationInsertPosition.Before;
-    }
-
-    expectedTargetSiblings.Insert(targetIndex, sourceNavigation.Id);
-
-    MoveUserNavigationAppRequestDto appRequestDto = new()
-    {
-      SourceNavigation = sourceNavigation.Id,
-      TargetNavigation = targetNavigation.Id,
-      NavigationInsertPosition = insertPosition,
-      ExpectedTargetSiblings = expectedTargetSiblings
-    };
-
-    await NavigationService.Arrangement.MoveUserNavigationAsync(appRequestDto);
+    NavigationCommandService.MoveRelativeToCommand.Execute(navigationPair);
     SyncNavigation();
   }
 
@@ -181,7 +141,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public Command<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public AsyncCommand<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
   public Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
 
   public Command? ToggleNavigationPaneCommand { get; private set; }
@@ -192,12 +152,12 @@ internal sealed partial class MainViewModel : ViewModelBase
   {
     ToggleNavigationPaneCommand = new()
     {
-      ActionToExecute = () => IsNavigationPaneOpen = !IsNavigationPaneOpen
+      ExecuteAction = () => IsNavigationPaneOpen = !IsNavigationPaneOpen
     };
 
     SearchNoteCommand = new()
     {
-      ActionToExecute = async (searchText) =>
+      ExecuteAction = async (searchText) =>
       {
         if (string.IsNullOrEmpty(searchText))
         {

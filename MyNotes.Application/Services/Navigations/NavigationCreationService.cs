@@ -29,7 +29,7 @@ internal sealed partial class NavigationCreationService
       UserNavigationGetFields = userNavigationGetFields,
       Id = insertTargetId
     };
-    GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbResponseDto = await NavigationRepository.GetUserNavigationFieldsAsync(getUserNavigationFieldsDbRequestDto);
+    GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbResponseDto = await NavigationRepository.GetUserNavigationFieldValuesAsync(getUserNavigationFieldsDbRequestDto);
 
     UserNavigationAppResponseDto? resultDto = null;
 
@@ -105,72 +105,4 @@ internal sealed partial class NavigationCreationService
 
     return resultDto;
   }
-
-#if false
-  // Navigation 인스턴스 생성 및 DB 테이블에 추가
-  public async Task<NavigationUserNode?> AddUserNodeAsync(INavigationNode? targetNode, bool isCompositeNode, Icon icon, string title)
-  {
-    NavigationUserNode? beforeNode = targetNode switch
-    {
-      NavigationUserLeafNode leaf => leaf,
-      NavigationUserCompositeNode composite => composite.ChildNodes.LastOrDefault(),
-      _ => NavigationService.UserRootNavigation.ChildNodes.LastOrDefault()
-    };
-
-    NavigationUserCompositeNode parentNode = beforeNode is null
-      ? targetNode switch
-      {
-        NavigationUserLeafNode leaf => leaf.Parent,
-        NavigationUserCompositeNode composite => composite,
-        _ => NavigationService.UserRootNavigation
-      }
-      : beforeNode.Parent;
-
-    NavigationUserNode newNode = isCompositeNode
-      ? new NavigationUserCompositeNode()
-      {
-        Id = NavigationId.NewId(),
-        Parent = parentNode,
-        Icon = icon,
-        Title = title,
-        Position = int.MaxValue,
-        IsExpanded = true
-      }
-      : new NavigationUserLeafNode()
-      {
-        Id = NavigationId.NewId(),
-        Parent = parentNode,
-        Icon = icon,
-        Title = title,
-        Position = int.MaxValue,
-      };
-
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-
-    if (!await context.NavigationEntities.AnyAsync(e => e.Id == newNode.Id.Value))
-    {
-      int index = beforeNode is null ? parentNode.ChildNodes.Count : parentNode.ChildNodes.IndexOf(beforeNode) + 1;
-      parentNode.ChildNodes.Insert(index, newNode);
-      newNode.PropertyChanged += UserNode_PropertyChanged;
-
-      NavigationEntity entity = new()
-      {
-        Id = newNode.Id.Value,
-        Title = newNode.Title,
-        Icon = (int)newNode.Icon,
-        Parent = newNode.Parent.Id.Value,
-        Position = newNode.Position,
-        IsComposite = isCompositeNode,
-        IsExpanded = isCompositeNode,
-        IsDeleted = false
-      };
-
-      context.NavigationEntities.Add(entity);
-      await context.SaveChangesAsync();
-      return newNode;
-    }
-
-    return null;
-  }
-#endif
 }
