@@ -9,7 +9,7 @@
     <Platforms>ARM64;x64;x86;AnyCPU</Platforms>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
@@ -26,7 +26,6 @@
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Services\Notes\NewFolder\" />
     <Folder Include="Validators\Notes\" />
     <Folder Include="Validators\Navigations\" />
   </ItemGroup>

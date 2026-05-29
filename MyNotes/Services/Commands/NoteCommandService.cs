@@ -76,12 +76,12 @@ internal sealed class NoteCommandService : ICommandService
 
     OpenNoteWindowCommand = new()
     {
-      ActionToExecute = async (noteModel) => await NoteWindowService.OpenNoteWindow(noteModel)
+      ExecuteAction = async (noteModel) => await NoteWindowService.OpenNoteWindow(noteModel)
     };
 
     MinimizeNoteWindowCommand = new()
     {
-      ActionToExecute = async (note) =>
+      ExecuteAction = async (note) =>
       {
         if (NoteWindowService.TryGetNoteWindowInfo(note.Id, out _, out var appWindow))
         {
@@ -93,7 +93,7 @@ internal sealed class NoteCommandService : ICommandService
 
     CloseNoteWindowCommand = new()
     {
-      ActionToExecute = async (noteModel) =>
+      ExecuteAction = async (noteModel) =>
       {
         if (NoteWindowService.TryGetNoteWindowInfo(noteModel.Id, out IntPtr hWnd, out _))
         {
@@ -104,7 +104,7 @@ internal sealed class NoteCommandService : ICommandService
 
     MoveNoteToListCommand = new()
     {
-      ActionToExecute = async (pair) =>
+      ExecuteAction = async (pair) =>
       {
         NoteModel sourceNote = pair.Source;
         NavigationId oldNavigationId = sourceNote.NavigationId;
@@ -137,7 +137,7 @@ internal sealed class NoteCommandService : ICommandService
 
     CreateNewNoteCommand = new()
     {
-      ActionToExecute = async (navigationId) =>
+      ExecuteAction = async (navigationId) =>
       {
         if (navigationId is NavigationId targetNavigationId
             && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
@@ -169,7 +169,7 @@ internal sealed class NoteCommandService : ICommandService
 
     ViewListCommand = new()
     {
-      ActionToExecute = async (noteModel) =>
+      ExecuteAction = async (noteModel) =>
       {
         var mainWindow = await MainWindowService.GetOrCreate(noteModel.NavigationId);
         mainWindow.Activate();
@@ -178,7 +178,7 @@ internal sealed class NoteCommandService : ICommandService
 
     RemoveNoteCommand = new()
     {
-      ActionToExecute = async (noteModel) =>
+      ExecuteAction = async (noteModel) =>
       {
         if (MainWindowService.TryGetCurrentWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
@@ -210,7 +210,7 @@ internal sealed class NoteCommandService : ICommandService
 
     AddNoteToJumpListCommand = new()
     {
-      ActionToExecute = async (noteModel) => await JumpListService.AddToJumpListAsync(NoteMappers.ToDomain(noteModel))
+      ExecuteAction = async (noteModel) => await JumpListService.AddToJumpListAsync(NoteMappers.ToDomain(noteModel))
     };
   }
 }

@@ -76,7 +76,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
   {
     SaveImageCommand = new()
     {
-      ActionToExecute = () =>
+      ExecuteAction = () =>
       {
       }
     };

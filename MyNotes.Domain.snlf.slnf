@@ -1,9 +1,0 @@
-{
-  "solution": {
-    "path": "MyNotes.sln",
-    "projects": [
-      "MyNotes.Domain\\MyNotes.Domain.csproj",
-      "MyNotes.Package\\MyNotes.Package.wapproj"
-    ]
-  }
-}

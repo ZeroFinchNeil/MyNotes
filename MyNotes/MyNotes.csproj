@@ -11,6 +11,7 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -51,7 +52,6 @@
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
     <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
-    <ProjectReference Include="..\MyNotes.Repositories\MyNotes.Repositories.csproj" />
     <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
     <ProjectReference Include="..\MyNotes.Widget\MyNotes.Widget.csproj" />
@@ -95,7 +95,6 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <ApplicationIcon>AppIcon.ico</ApplicationIcon>
-    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
     <SignAssembly>True</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

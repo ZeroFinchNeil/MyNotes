@@ -1,67 +1,69 @@
 <Solution>
   <Configurations>
     <Platform Name="Any CPU" />
-    <Platform Name="ARM64" />
     <Platform Name="x64" />
     <Platform Name="x86" />
+    <Platform Name="ARM64" />
   </Configurations>
   <Folder Name="/솔루션 항목/">
     <File Path=".editorconfig" />
   </Folder>
   <Project Path="MyNotes.Application.Contracts/MyNotes.Application.Contracts.csproj" Id="93cf9782-1686-4c15-a80d-fb4488e1c3ed">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Application/MyNotes.Application.csproj" Id="ad435a9c-892a-41a4-8901-25c59d47bd33">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Common/MyNotes.Common.csproj" Id="bd6710ff-b85e-48fd-806c-34525bf8751f">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Debugging/MyNotes.Debugging.csproj" Id="5a27443c-69a6-4e9b-9f4d-f6c586f4fa78">
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Domain/MyNotes.Domain.csproj" Id="1400896a-dc90-4f1c-8baf-472867fa8929">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Infrastructure/MyNotes.Infrastructure.csproj" Id="b6e13414-e00a-413b-a774-1ae894131615">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Package/MyNotes.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5">
     <Deploy />
   </Project>
   <Project Path="MyNotes.Shared/MyNotes.Shared.csproj" Id="ebefad2d-0331-479f-8cdf-b5f1f21bce26">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.SourceGenerators/MyNotes.SourceGenerators.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3">
     <Platform Solution="*|x86" Project="x86" />
-    <Platform Solution="Release|x64" Project="x64" />
+    <Platform Solution="*|x64" Project="x64" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Templates/MyNotes.Templates.csproj" Id="0273b1f2-725c-486a-8490-3ab564ae93bd">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes.Widget/MyNotes.Widget.csproj" Id="995e186e-3f1a-497d-a201-852032941386">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
   <Project Path="MyNotes/MyNotes.csproj">
-    <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
+    <Platform Solution="*|ARM64" Project="ARM64" />
   </Project>
 </Solution>

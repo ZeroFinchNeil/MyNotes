@@ -3,16 +3,16 @@ using System.Windows.Input;
 
 namespace MyNotes.Common.Commands;
 
-public partial class Command : ICommand
+public sealed partial class Command : ICommand
 {
-  public Action? ActionToExecute { get; init; }
+  public Action? ExecuteAction { get; init; }
   public Func<bool>? CanExecuteFunc { get; init; }
 
   public Command() { }
 
-  public Command(Action actionToExecute, Func<bool>? canExecuteFunc = null)
+  public Command(Action executeAction, Func<bool>? canExecuteFunc = null)
   {
-    ActionToExecute = actionToExecute;
+    ExecuteAction = executeAction;
     CanExecuteFunc = canExecuteFunc;
   }
 
@@ -25,22 +25,24 @@ public partial class Command : ICommand
   public void Execute(object? parameter = null)
   {
     if (!CanExecute(parameter))
+    {
       return;
+    }
 
-    ActionToExecute?.Invoke();
+    ExecuteAction?.Invoke();
   }
 }
 
-public partial class Command<T> : ICommand
+public sealed partial class Command<T> : ICommand
 {
-  public Action<T>? ActionToExecute { get; init; }
+  public Action<T>? ExecuteAction { get; init; }
   public Func<T, bool>? CanExecuteFunc { get; init; }
 
   public Command() { }
 
-  public Command(Action<T> actionToExecute, Func<T, bool>? canExecuteFunc = null)
+  public Command(Action<T> executeAction, Func<T, bool>? canExecuteFunc = null)
   {
-    ActionToExecute = actionToExecute;
+    ExecuteAction = executeAction;
     CanExecuteFunc = canExecuteFunc;
   }
 
@@ -54,12 +56,14 @@ public partial class Command<T> : ICommand
   public void Execute(object? parameter)
   {
     if (!CanExecute(parameter))
+    {
       return;
+    }
 
-    if (ActionToExecute is not null)
+    if (ExecuteAction is not null)
     {
       T param = parameter is null ? default! : (T)parameter;
-      ActionToExecute(param);
+      ExecuteAction(param);
     }
   }
 }

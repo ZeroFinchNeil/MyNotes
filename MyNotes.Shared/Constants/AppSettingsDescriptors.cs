@@ -25,7 +25,7 @@ internal static class AppSettingsDescriptors
 
   // Settings - General
   public static SettingsDescriptor<int> InitialPageType { get; } = new("InitialPageType", 0);
-  public static SettingsDescriptor<Guid> InitialPageId { get; } = new("InitialPageId", AppCoreNavigations.HomeId);
+  public static SettingsDescriptor<Guid> InitialPageId { get; } = new("InitialPageId", AppNavigationGuids.HomeId);
   public static SettingsDescriptor<bool> ConfirmBeforeDeleting { get; } = new("ConfirmBeforeDeleting", true);
 
   // Settings - Note

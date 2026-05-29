@@ -49,7 +49,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     InsertImageCommand = new()
     {
-      ActionToExecute = async (noteId) =>
+      ExecuteAction = async (noteId) =>
       {
         if (WindowService.TryGetNoteWindowInfo(noteId, out _, out var appWindow))
         {
@@ -93,7 +93,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     ShowImageCommand = new()
     {
-      ActionToExecute = async (imageViewModel) =>
+      ExecuteAction = async (imageViewModel) =>
       {
         var imageViewerWindow = await WindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
         imageViewerWindow.Activate();
@@ -106,7 +106,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     DeleteImageCommand = new()
     {
-      ActionToExecute = async (imageViewModel) =>
+      ExecuteAction = async (imageViewModel) =>
       {
         if (await imageViewModel.DeleteImageAsync())
         {
