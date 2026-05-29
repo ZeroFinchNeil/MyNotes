@@ -1,0 +1,479 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+
+using MyNotes.Application.Contracts.Database.Core;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations;
+using MyNotes.Application.Contracts.Database.Enums.Navigations;
+using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Database.Core;
+using MyNotes.Infrastructure.Database.Entities.Navigations;
+
+namespace MyNotes.Infrastructure.Database.Repositories.Navigations;
+
+internal class NavigationRepository : INavigationRepository
+{
+  private readonly IDbContextFactory<AppDbContext> DbContextFactory;
+
+  public NavigationRepository(IDbContextFactory<AppDbContext> dbContextFactory)
+  {
+    DbContextFactory = dbContextFactory;
+  }
+
+  public Task<IReadOnlyList<UserNavigationDbResponseDto>> GetAllUserNavigationsAsync()
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<NavigationId> GenerateUniqueUserNavigationIdAsync()
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<UserNavigationDbAggregateResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<UpdateUserNavigationDbResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationDbRequestDto updateUserNavigationDbRequestDto, bool updateIfChanged = true)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto)
+  {
+    throw new NotImplementedException();
+  }
+
+  private const int TemporarySourcePosition = int.MinValue;
+
+  public async Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext? appDbTransactionContext = null)
+  {
+    // Source Navigation을 포함하여 Position에 영향받는 모든 Navigation들의 Id, Parent, Position을 담아서 반환(이 때 반환되는 모든 Navigation의 Parent 속성 값은 모두 일치해야 함).
+    List<GetUserNavigationFieldValuesDbResponseDto> resultDtos = new();
+    UserNavigationGetFields userNavigationGetField = UserNavigationGetFields.Id | UserNavigationGetFields.Parent | UserNavigationGetFields.Position;
+
+    Guid sourceId = moveUserNavigationDbRequestDto.SourceNavigation.Value;
+    Guid targetId = moveUserNavigationDbRequestDto.TargetNavigation.Value;
+    NavigationInsertPosition insertPosition = moveUserNavigationDbRequestDto.NavigationInsertPosition;
+
+    if (sourceId == targetId)
+    {
+      throw new ArgumentException($"Source Navigation과 Target Navigation은 동일할 수 없습니다. SourceId={sourceId}, TargetId={targetId}", nameof(moveUserNavigationDbRequestDto));
+    }
+
+    AppDbContext context = appDbTransactionContext?.DbContext switch
+    {
+      AppDbContext appDbContext => appDbContext,
+      null when appDbTransactionContext is null => await DbContextFactory.CreateDbContextAsync(),
+      null => throw new InvalidOperationException("DB 트랜잭션 컨텍스트가 초기화되지 않았습니다."),
+      DbContext dbContext => throw new InvalidOperationException(
+          $"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {dbContext.GetType().FullName}")
+    };
+
+    await using IDbContextTransaction? localTransaction = appDbTransactionContext is null
+      ? await context.Database.BeginTransactionAsync()
+      : null;
+
+    bool ownsTransaction = localTransaction is not null;
+
+    try
+    {
+      var sourceEntity = await context.NavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == sourceId)
+        ?? throw new InvalidOperationException($"Source Navigation을 찾을 수 없습니다. Id={sourceId}");
+
+      var targetEntity = await context.NavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == targetId)
+        ?? throw new InvalidOperationException($"Target Navigation을 찾을 수 없습니다. Id={targetId}");
+
+      Guid oldSourceParent = sourceEntity.Parent;
+      Guid newSourceParent = insertPosition switch
+      {
+        NavigationInsertPosition.Before or NavigationInsertPosition.After => targetEntity.Parent,
+        NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild => targetEntity.Id,
+        _ => throw new NotSupportedException($"지원하지 않는 Navigation 삽입 위치입니다. InsertPosition={insertPosition}")
+      };
+      int oldSourcePosition = sourceEntity.Position;
+
+      // 1. siblingEntities는 sourceEntity 이동 완료 후 sourceEntity와 Parent가 같아질 형제 Entity 목록이며, Position 오름차순으로 조회
+      // 2. ToListAsync로 생성한 조회 결과 목록이므로 컬렉션 항목의 추가/제거/삽입은 DB 변경과 무관함
+      // 3. AsNoTracking으로 조회한 Entity들이므로 각 Entity의 속성 변경도 자동으로 DB에 반영되지 않음
+      // 4. DB 반영은 이후 명시적인 업데이트 로직에서 반영해야 함(ExecuteUpdateAsync 사용)
+      List<UserNavigationEntity> siblingEntities = await context.NavigationEntities
+        .AsNoTracking()
+        .Where(e => e.Parent == newSourceParent)
+        .OrderBy(e => e.Position)
+        .ToListAsync();
+
+      siblingEntities.RemoveAll(entity => entity.Id == sourceEntity.Id);
+
+      int insertedIndex = insertPosition switch
+      {
+        NavigationInsertPosition.Before => siblingEntities.IndexOf(targetEntity),
+        NavigationInsertPosition.After => siblingEntities.IndexOf(targetEntity) + 1,
+        NavigationInsertPosition.FirstChild => 0,
+        NavigationInsertPosition.LastChild => siblingEntities.Count,
+        _ => throw new NotSupportedException($"지원하지 않는 Navigation 삽입 위치입니다. InsertPosition={insertPosition}")
+      };
+
+      if (insertedIndex < 0)
+      {
+        throw new InvalidOperationException($"Target Navigation이 이동 후 형제 목록에 없습니다. TargetId={targetId}, NewSourceParent={newSourceParent}, InsertPosition={insertPosition}");
+      }
+
+      // sourceEntity의 Parent를 변경하고 임시 Position 설정 후 siblingsEntities에 삽입
+      if (!await EnsureTemporarySourceSlotIsAvailableAsync(context, newSourceParent))
+      {
+        throw new InvalidOperationException($"source Navigation 임시 Position이 이미 사용 중입니다. Parent={newSourceParent}, Position={TemporarySourcePosition}");
+      }
+
+      sourceEntity.Parent = newSourceParent;
+      sourceEntity.Position = TemporarySourcePosition;
+      int sourceTemporaryMoveRows =  await context.NavigationEntities
+        .Where(e => e.Id == sourceEntity.Id
+                    && e.Parent == oldSourceParent
+                    && e.Position == oldSourcePosition)
+        .ExecuteUpdateAsync(setters => setters
+          .SetProperty(e => e.Parent, sourceEntity.Parent)
+          .SetProperty(e => e.Position, sourceEntity.Position));
+
+      if (sourceTemporaryMoveRows != 1)
+      {
+        throw new InvalidOperationException($"source Navigation 임시 Position 반영에 실패했습니다. Id={sourceEntity.Id}, AffectedRows={sourceTemporaryMoveRows}");
+      }
+
+      siblingEntities.Insert(insertedIndex, sourceEntity);
+
+      // 위치 변경을 완료한 후에 영향받는 Navigation들만 Position을 수정할 수 있도록 repositionEntities 컬렉션 생성 후 위치 재조정
+      Dictionary<Guid, int> originalSiblingPositionById = siblingEntities.ToDictionary(e => e.Id, e => e.Position);
+      var affectedEntities = RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
+      if (affectedEntities.Count == 0)
+      {
+        throw new InvalidOperationException($"Navigation 재배치 결과 변경된 Position이 없습니다. SourceId={sourceId}, InsertedIndex={insertedIndex}, RepositionRangeKind={siblingsRepositionRangeKind}");
+      }
+      var affectedOrderedEntities = affectedEntities.OrderBy(e => e.Position).ToList();
+
+      switch (siblingsRepositionRangeKind)
+      {
+        case RepositionRangeKind.SourceOnly:
+          if (affectedOrderedEntities.Count != 1 || affectedOrderedEntities[0].Id != sourceId)
+          {
+            throw new InvalidOperationException("SourceOnly 재배치에서는 source Navigation만 Position이 변경되어야 합니다.");
+          }
+          break;
+        case RepositionRangeKind.ExpandedToLeft:
+          if (affectedOrderedEntities[^1].Id != sourceId)
+          {
+            throw new InvalidOperationException($"왼쪽 확장 재배치 결과에서 source가 마지막 Position이어야 합니다. SourceId={sourceId}, LastAffectedId={affectedOrderedEntities[^1].Id}");
+          }
+          for (int index = 0; index < affectedOrderedEntities.Count - 1; index++)
+          {
+            await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
+          }
+          break;
+        case RepositionRangeKind.ExpandedToRight:
+          if (affectedOrderedEntities[0].Id != sourceId)
+          {
+            throw new InvalidOperationException($"오른쪽 확장 재배치 결과에서 source가 첫 번째 Position이어야 합니다. SourceId={sourceId}, FirstAffectedId={affectedOrderedEntities[0].Id}");
+          }
+          for (int index = affectedOrderedEntities.Count - 1; index > 0; index--)
+          {
+            await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
+          }
+          break;
+        default:
+          throw new NotSupportedException(
+            $"지원하지 않는 RepositionRangeKind입니다. Kind={siblingsRepositionRangeKind}");
+      }
+
+      // sourceEntity의 정상 Position 반영
+      var sourceFinalMoveRows = await context.NavigationEntities
+        .Where(e => e.Id == sourceEntity.Id
+                    && e.Parent == newSourceParent
+                    && e.Position == TemporarySourcePosition)
+        .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, sourceEntity.Position));
+
+      if (sourceFinalMoveRows != 1)
+      {
+        throw new InvalidOperationException($"source Navigation 최종 Position 반영에 실패했습니다. source가 임시 위치에 없거나 동시 변경되었을 수 있습니다. Id={sourceEntity.Id}, Parent={newSourceParent}, ExpectedPosition={TemporarySourcePosition}, NewPosition={sourceEntity.Position}, AffectedRows={sourceFinalMoveRows}");
+      }
+
+      foreach (var siblingEntity in siblingEntities)
+      {
+        resultDtos.Add(new GetUserNavigationFieldValuesDbResponseDto()
+        {
+          UserNavigationGetFields = userNavigationGetField,
+          Id = NavigationId.Create(siblingEntity.Id),
+          Parent = NavigationId.Create(siblingEntity.Parent),
+          Position = siblingEntity.Position
+        });
+      }
+
+      if (ownsTransaction)
+      {
+        await localTransaction!.CommitAsync();
+      }
+
+      async Task UpdateSiblingPositionAsync(UserNavigationEntity siblingEntity)
+      {
+        if (!originalSiblingPositionById.TryGetValue(siblingEntity.Id, out var affectedEntityOriginalPosition))
+        {
+          throw new InvalidOperationException($"Navigation의 원래 Position을 찾을 수 없습니다. Id={siblingEntity.Id}, Parent={newSourceParent}");
+        }
+        int affectedRows = await context.NavigationEntities
+          .Where(e => e.Id == siblingEntity.Id
+                      && e.Parent == newSourceParent
+                      && e.Position == affectedEntityOriginalPosition)
+          .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, siblingEntity.Position));
+
+        if (affectedRows != 1)
+        {
+          throw new InvalidOperationException($"Navigation Position 업데이트에 실패했습니다. 형제 Navigation의 Position이 동시 변경되었을 수 있습니다. Id={siblingEntity.Id}, Parent={newSourceParent}, ExpectedPosition={affectedEntityOriginalPosition}, NewPosition={siblingEntity.Position}, AffectedRows={affectedRows}");
+        }
+      }
+    }
+    catch
+    {
+      if (ownsTransaction)
+      {
+        await localTransaction!.RollbackAsync();
+      }
+      throw;
+    }
+    finally
+    {
+      if (ownsTransaction)
+      {
+        await context.DisposeAsync();
+      }
+    }
+
+    return resultDtos;
+  }
+
+  private static async Task<bool> EnsureTemporarySourceSlotIsAvailableAsync(AppDbContext context, Guid parentId) =>
+    !await context.NavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == TemporarySourcePosition);
+
+  private const int DefaultPositionStep = 1024;
+  private const int MaxPositionStep = 4096;
+
+  /// <summary>
+  /// source 삽입 후 Position 재계산이 어떤 범위에서 발생했는지 나타냅니다.
+  /// </summary>
+  private enum RepositionRangeKind { SourceOnly, ExpandedToLeft, ExpandedToRight }
+
+  /// <summary>
+  /// 이동 후의 논리적 형제 순서에 맞춰 source 및 필요한 주변 Navigation의 Position을 다시 계산합니다.
+  /// </summary>
+  /// <remarks>
+  /// DB는 수정하지 않고 전달된 엔티티 인스턴스의 Position만 변경합니다.
+  /// <paramref name="entities"/>는 이동 후 형제 순서를 나타내며, <paramref name="insertedIndex"/>에는 source가 이미 포함되어 있어야 합니다.
+  /// source는 임시 Position을 가진 상태일 수 있으므로 실제 Position 값 기준 정렬은 전제하지 않습니다.
+  /// 반환 목록에는 Position이 실제로 변경된 Navigation만 포함되며, <paramref name="repositionRangeKind"/>에는 source만 변경됐는지 또는 source 포함 범위를 어느 쪽으로 확장해 재배치했는지가 설정됩니다.
+  /// </remarks>
+  /// <param name="entities">이동 후의 논리적 형제 순서를 나타내는 Navigation 목록입니다.</param>
+  /// <param name="insertedIndex">source Navigation의 인덱스입니다.</param>
+  /// <param name="repositionRangeKind">재배치된 범위의 종류입니다.</param>
+  /// <returns>Position 값이 실제로 변경된 Navigation 목록입니다.</returns>
+  /// <exception cref="ArgumentNullException"><paramref name="entities"/>가 null인 경우 발생합니다.</exception>
+  /// <exception cref="ArgumentOutOfRangeException"><paramref name="insertedIndex"/>가 범위를 벗어난 경우 발생합니다.</exception>
+  /// <exception cref="InvalidOperationException">Position 경계가 올바르지 않거나, 임시 Position을 정상 Position으로 사용하려 하거나, 필요한 간격을 확보할 수 없는 경우 발생합니다.</exception>
+  private static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind)
+  {
+    ArgumentNullException.ThrowIfNull(entities);
+
+    int count = entities.Count;
+    ArgumentOutOfRangeException.ThrowIfLessThan(insertedIndex, 0, nameof(insertedIndex));
+    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(insertedIndex, count, nameof(insertedIndex));
+
+    repositionRangeKind = RepositionRangeKind.SourceOnly;
+    List<UserNavigationEntity> affectedEntities = new();
+
+    // 추가한 후 컬렉션 항목이 하나라면 추가한 항목의 Position은 0임
+    if (count == 1)
+    {
+      SetPositionIfChanged(entities[insertedIndex], 0);
+      return affectedEntities;
+    }
+
+    // 항목이 맨 앞에 추가되었다면, 기존 첫 번째 항목의 Position보다 작은 Position을 계산하여 설정
+    if (insertedIndex == 0)
+    {
+      SetPositionIfChanged(entities[0], checked(entities[1].Position - CalculatePositionStep(1, null, entities[1].Position)));
+      return affectedEntities;
+    }
+
+    // 항목이 맨 뒤에 추가되었다면, 기존 맨 마지막 항목의 Position보다 큰 Position을 계산하여 설정
+    if (insertedIndex == count - 1)
+    {
+      SetPositionIfChanged(entities[^1], checked(entities[^2].Position + CalculatePositionStep(1, entities[^2].Position, null)));
+      return affectedEntities;
+    }
+
+    // 후보 Position이 앞뒤와 겹치지 않는다면 그대로 확정
+    int prevPos = entities[insertedIndex - 1].Position;
+    int nextPos = entities[insertedIndex + 1].Position;
+    long posDiff = (long)nextPos - prevPos;
+
+    if (posDiff < 0)
+    {
+      throw new InvalidOperationException($"Position 순서가 올바르지 않습니다. prevPos={prevPos}, nextPos={nextPos}");
+    }
+
+    // Position 변경된 범위 인덱스 양끝 중에 insertedIndex가 있으면
+    // 재조정 간격(step)을 계산하기 위해 insertedIndex의 왼쪽 혹은 오른쪽 항목의 Position을 알아야 함
+    // insertedIndex <= 0 이나 insertedIndex >= count - 1인 상황은 위에서 걸러짐
+    int? leftBoundaryPos = entities[insertedIndex - 1].Position;
+    int? rightBoundaryPos = entities[insertedIndex + 1].Position;
+
+    // 바로 양옆 사이에 빈 Position이 없으면 주변부를 확장 탐색
+    for (int indexGap = 1; ; indexGap++)
+    {
+      int leftIndex = insertedIndex - indexGap;
+      int rightIndex = insertedIndex + indexGap;
+
+      // 왼쪽 끝에 도달했을 경우
+      // 왼쪽 boundary가 없으므로 [0, insertedIndex] 범위를 오른쪽 boundary 기준으로 다시 배치
+      // source는 재배치 범위의 마지막 항목이 됨
+      if (leftIndex < 0)
+      {
+        RepositionRange(0, insertedIndex, null, rightBoundaryPos);
+        repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
+        return affectedEntities;
+      }
+
+      // 오른쪽 끝에 도달했을 경우
+      // 오른쪽 boundary가 없으므로 [insertedIndex, count - 1] 범위를 왼쪽 boundary 기준으로 다시 배치
+      // source는 재배치 범위의 첫 번째 항목이 됨
+      if (rightIndex >= count)
+      {
+        RepositionRange(insertedIndex, count - 1, leftBoundaryPos, null);
+        repositionRangeKind = RepositionRangeKind.ExpandedToRight;
+        return affectedEntities;
+      }
+
+      // 왼쪽에서 충분한 공간을 찾은 경우
+      // (leftIndex, insertedIndex + 1) 열린 구간 안에 [leftIndex + 1, insertedIndex] 범위를 다시 배치
+      // source는 재배치 범위의 마지막 항목이 됨
+      if ((long)nextPos - entities[leftIndex].Position > indexGap)
+      {
+        RepositionRange(leftIndex + 1, insertedIndex, entities[leftIndex].Position, rightBoundaryPos);
+        repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
+        return affectedEntities;
+      }
+
+      // 오른쪽에서 충분한 공간을 찾은 경우
+      // (insertedIndex - 1, rightIndex) 열린 구간 안에 [insertedIndex, rightIndex - 1] 범위를 다시 배치
+      // source는 재배치 범위의 첫 번째 항목이 됨
+      if ((long)entities[rightIndex].Position - prevPos > indexGap)
+      {
+        RepositionRange(insertedIndex, rightIndex - 1, leftBoundaryPos, entities[rightIndex].Position);
+        repositionRangeKind = RepositionRangeKind.ExpandedToRight;
+        return affectedEntities;
+      }
+    }
+
+    void SetPositionIfChanged(UserNavigationEntity entity, int newPosition)
+    {
+      if (newPosition == TemporarySourcePosition)
+      {
+        throw new InvalidOperationException($"임시 Position 값({TemporarySourcePosition})은 정상 Navigation Position으로 사용할 수 없습니다.");
+      }
+
+      if (entity.Position == newPosition)
+      {
+        return;
+      }
+
+      entity.Position = newPosition;
+      affectedEntities.Add(entity);
+    }
+
+    // 닫힌 구간 [startIndex, endIndex] 안의 인덱스를 가진 항목들의 Position을 재조정함
+    // Position 간격은 위 구간을 열린 구간((startIndex-1, endIndex + 1))으로 확장했을 때, 양끝 인덱스의 Position(경계 Position)들을 균등 분할하여 계산함
+    // 위 열린 구간에서 양끝이 존재하지 않는 인덱스가 있다면, 그곳에 null을 넣고 간격은 기본 간격으로 설정함
+    void RepositionRange(int startIndex, int endIndex, int? leftBoundaryPosition, int? rightBoundaryPosition)
+    {
+      ArgumentOutOfRangeException.ThrowIfLessThan(startIndex, 0, nameof(startIndex));
+      ArgumentOutOfRangeException.ThrowIfLessThan(endIndex, 0, nameof(endIndex));
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, count, nameof(startIndex));
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(endIndex, count, nameof(endIndex));
+
+      if (startIndex > endIndex)
+      {
+        throw new ArgumentException($"잘못된 Position 재배치 범위입니다. StartIndex={startIndex}, EndIndex={endIndex}");
+      }
+
+      int rangeCount = endIndex - startIndex + 1;
+      int calculatedStep = CalculatePositionStep(rangeCount, leftBoundaryPosition, rightBoundaryPosition);
+
+      for (int offset = 0; offset < rangeCount; offset++)
+      {
+        long newPosition = leftBoundaryPosition switch
+        {
+          // 왼쪽 경계가 있으면 왼쪽에서 오른쪽으로 step씩 증가
+          int => leftBoundaryPosition.Value + ((long)calculatedStep * (offset + 1)),
+          // 왼쪽 경계가 없고 오른쪽 경계만 있으면 오른쪽 경계에서 왼쪽으로 step씩 감소
+          null when rightBoundaryPosition is int => rightBoundaryPosition.Value - ((long)calculatedStep * (rangeCount - offset)),
+          // 경계가 둘 다 없는 경우는 전체 컬렉션 재배치에 해당
+          null => (long)calculatedStep * offset
+        };
+
+        SetPositionIfChanged(entities[startIndex + offset], checked((int)newPosition));
+      }
+    }
+
+    int CalculatePositionStep(int repositionItemCount, int? leftBoundaryPosition, int? rightBoundaryPosition)
+    {
+      ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(repositionItemCount, 0, nameof(repositionItemCount));
+      ArgumentOutOfRangeException.ThrowIfGreaterThan(repositionItemCount, count, nameof(repositionItemCount));
+
+      if (leftBoundaryPosition is int && rightBoundaryPosition is int)
+      {
+        long boundarySpan = (long)rightBoundaryPosition.Value - leftBoundaryPosition.Value;
+        if (boundarySpan <= 0)
+        {
+          throw new InvalidOperationException($"Position 경계 순서가 올바르지 않습니다.  Left={leftBoundaryPosition.Value}, Right={rightBoundaryPosition.Value}");
+        }
+
+        long boundaryStep = boundarySpan / (repositionItemCount + 1L);
+
+        return boundaryStep <= 0
+          ? throw new InvalidOperationException($"Position 재배치 간격을 확보할 수 없습니다. Left={leftBoundaryPosition.Value}, Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
+          : checked((int)boundaryStep);
+      }
+
+      long totalSpan = (long)entities[^1].Position - entities[0].Position;
+      int preferredStep = count < 2 || totalSpan <= 0
+        ? DefaultPositionStep
+        : (int)Math.Clamp(totalSpan / (count - 1L), DefaultPositionStep, MaxPositionStep);
+
+      if (leftBoundaryPosition is int)
+      {
+        long maxRightwardStep = ((long)int.MaxValue - leftBoundaryPosition.Value) / repositionItemCount;
+        return maxRightwardStep <= 0
+          ? throw new InvalidOperationException($"오른쪽 방향으로 Position 재배치 공간이 부족합니다. Left={leftBoundaryPosition.Value}, RangeCount={repositionItemCount}")
+          : checked((int)Math.Min(preferredStep, maxRightwardStep));
+      }
+
+      if (rightBoundaryPosition is int)
+      {
+        long maxLeftwardStep = ((long)rightBoundaryPosition.Value - (TemporarySourcePosition + 1)) / repositionItemCount;
+        return maxLeftwardStep <= 0
+          ? throw new InvalidOperationException($"왼쪽 방향으로 Position 재배치 공간이 부족합니다. Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
+          : checked((int)Math.Min(preferredStep, maxLeftwardStep));
+      }
+
+      return preferredStep;
+    }
+  }
+}

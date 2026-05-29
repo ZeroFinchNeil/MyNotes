@@ -12,7 +12,7 @@ using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Infrastructure.Mappers;
 
-namespace MyNotes.Infrastructure.Database.Repositories;
+namespace MyNotes.Infrastructure.Database.Repositories.Notes;
 
 internal class NoteRepository : INoteRepository
 {

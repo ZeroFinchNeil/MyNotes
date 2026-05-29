@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
-internal sealed class UserNavigationEntity : IDatabaseEntity<UserNavigationEntity>
+internal sealed class UserNavigationEntity : IDatabaseEntity<UserNavigationEntity>, IComparable<UserNavigationEntity>
 {
   [Key]
   public required Guid Id { get; init; }
@@ -26,4 +26,6 @@ internal sealed class UserNavigationEntity : IDatabaseEntity<UserNavigationEntit
 
   public override bool Equals(object? obj) => this.Equals(obj as UserNavigationEntity);
   public override int GetHashCode() => Id.GetHashCode();
+
+  public int CompareTo(UserNavigationEntity? other) => other is null ? 1 : this.Position.CompareTo(other.Position);
 }

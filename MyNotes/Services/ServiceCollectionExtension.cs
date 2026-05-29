@@ -1,12 +1,14 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Infrastructure.Database.Core;
-using MyNotes.Infrastructure.Database.Repositories;
+using MyNotes.Infrastructure.Database.Repositories.Navigations;
+using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
 using MyNotes.Services.Commands;
@@ -82,6 +84,8 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<AppDbContextTaskDispatcher>();
       services.AddDbContextFactory<AppDbContext>();
       services.AddScoped<AppDbContextInitializer>();
+      services.AddSingleton<IAppDbTransactionFactory, AppDbTransactionFactory>();
+      services.AddTransient<IAppDbTransaction, AppDbTransaction>();
     }
 
     public void AddSearchCoreServices()
