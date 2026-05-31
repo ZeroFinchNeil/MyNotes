@@ -138,7 +138,7 @@ internal class NavigationRepository : INavigationRepository
 
       sourceEntity.Parent = newSourceParent;
       sourceEntity.Position = TemporarySourcePosition;
-      int sourceTemporaryMoveRows =  await context.NavigationEntities
+      int sourceTemporaryMoveRows = await context.NavigationEntities
         .Where(e => e.Id == sourceEntity.Id
                     && e.Parent == oldSourceParent
                     && e.Position == oldSourcePosition)
@@ -155,7 +155,7 @@ internal class NavigationRepository : INavigationRepository
 
       // 위치 변경을 완료한 후에 영향받는 Navigation들만 Position을 수정할 수 있도록 repositionEntities 컬렉션 생성 후 위치 재조정
       Dictionary<Guid, int> originalSiblingPositionById = siblingEntities.ToDictionary(e => e.Id, e => e.Position);
-      var affectedEntities = RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
+      var affectedEntities = UserNavigationRepositioner.RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
       if (affectedEntities.Count == 0)
       {
         throw new InvalidOperationException($"Navigation 재배치 결과 변경된 Position이 없습니다. SourceId={sourceId}, InsertedIndex={insertedIndex}, RepositionRangeKind={siblingsRepositionRangeKind}");
@@ -271,118 +271,123 @@ internal class NavigationRepository : INavigationRepository
   /// </summary>
   private enum RepositionRangeKind { SourceOnly, ExpandedToLeft, ExpandedToRight }
 
-  /// <summary>
-  /// 이동 후의 논리적 형제 순서에 맞춰 source 및 필요한 주변 Navigation의 Position을 다시 계산합니다.
-  /// </summary>
-  /// <remarks>
-  /// DB는 수정하지 않고 전달된 엔티티 인스턴스의 Position만 변경합니다.
-  /// <paramref name="entities"/>는 이동 후 형제 순서를 나타내며, <paramref name="insertedIndex"/>에는 source가 이미 포함되어 있어야 합니다.
-  /// source는 임시 Position을 가진 상태일 수 있으므로 실제 Position 값 기준 정렬은 전제하지 않습니다.
-  /// 반환 목록에는 Position이 실제로 변경된 Navigation만 포함되며, <paramref name="repositionRangeKind"/>에는 source만 변경됐는지 또는 source 포함 범위를 어느 쪽으로 확장해 재배치했는지가 설정됩니다.
-  /// </remarks>
-  /// <param name="entities">이동 후의 논리적 형제 순서를 나타내는 Navigation 목록입니다.</param>
-  /// <param name="insertedIndex">source Navigation의 인덱스입니다.</param>
-  /// <param name="repositionRangeKind">재배치된 범위의 종류입니다.</param>
-  /// <returns>Position 값이 실제로 변경된 Navigation 목록입니다.</returns>
-  /// <exception cref="ArgumentNullException"><paramref name="entities"/>가 null인 경우 발생합니다.</exception>
-  /// <exception cref="ArgumentOutOfRangeException"><paramref name="insertedIndex"/>가 범위를 벗어난 경우 발생합니다.</exception>
-  /// <exception cref="InvalidOperationException">Position 경계가 올바르지 않거나, 임시 Position을 정상 Position으로 사용하려 하거나, 필요한 간격을 확보할 수 없는 경우 발생합니다.</exception>
-  private static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind)
+  private sealed class UserNavigationRepositioner
   {
-    ArgumentNullException.ThrowIfNull(entities);
+    private readonly IList<UserNavigationEntity> _entities;
+    private readonly List<UserNavigationEntity> _positionChangedEntities = new();
 
-    int count = entities.Count;
-    ArgumentOutOfRangeException.ThrowIfLessThan(insertedIndex, 0, nameof(insertedIndex));
-    ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(insertedIndex, count, nameof(insertedIndex));
+    private int Count => _entities.Count;
 
-    repositionRangeKind = RepositionRangeKind.SourceOnly;
-    List<UserNavigationEntity> affectedEntities = new();
-
-    // 추가한 후 컬렉션 항목이 하나라면 추가한 항목의 Position은 0임
-    if (count == 1)
+    private UserNavigationRepositioner(IList<UserNavigationEntity> entities)
     {
-      SetPositionIfChanged(entities[insertedIndex], 0);
-      return affectedEntities;
+      ArgumentNullException.ThrowIfNull(entities);
+      _entities = entities;
     }
 
-    // 항목이 맨 앞에 추가되었다면, 기존 첫 번째 항목의 Position보다 작은 Position을 계산하여 설정
-    if (insertedIndex == 0)
+    public static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind) => new UserNavigationRepositioner(entities)
+      .RepositionFromInsertedNavigation(insertedIndex, out repositionRangeKind);
+
+    private IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(int insertedIndex, out RepositionRangeKind repositionRangeKind)
     {
-      SetPositionIfChanged(entities[0], checked(entities[1].Position - CalculatePositionStep(1, null, entities[1].Position)));
-      return affectedEntities;
-    }
+      ArgumentOutOfRangeException.ThrowIfLessThan(insertedIndex, 0, nameof(insertedIndex));
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(insertedIndex, Count, nameof(insertedIndex));
 
-    // 항목이 맨 뒤에 추가되었다면, 기존 맨 마지막 항목의 Position보다 큰 Position을 계산하여 설정
-    if (insertedIndex == count - 1)
-    {
-      SetPositionIfChanged(entities[^1], checked(entities[^2].Position + CalculatePositionStep(1, entities[^2].Position, null)));
-      return affectedEntities;
-    }
+      repositionRangeKind = RepositionRangeKind.SourceOnly;
 
-    // 후보 Position이 앞뒤와 겹치지 않는다면 그대로 확정
-    int prevPos = entities[insertedIndex - 1].Position;
-    int nextPos = entities[insertedIndex + 1].Position;
-    long posDiff = (long)nextPos - prevPos;
-
-    if (posDiff < 0)
-    {
-      throw new InvalidOperationException($"Position 순서가 올바르지 않습니다. prevPos={prevPos}, nextPos={nextPos}");
-    }
-
-    // Position 변경된 범위 인덱스 양끝 중에 insertedIndex가 있으면
-    // 재조정 간격(step)을 계산하기 위해 insertedIndex의 왼쪽 혹은 오른쪽 항목의 Position을 알아야 함
-    // insertedIndex <= 0 이나 insertedIndex >= count - 1인 상황은 위에서 걸러짐
-    int? leftBoundaryPos = entities[insertedIndex - 1].Position;
-    int? rightBoundaryPos = entities[insertedIndex + 1].Position;
-
-    // 바로 양옆 사이에 빈 Position이 없으면 주변부를 확장 탐색
-    for (int indexGap = 1; ; indexGap++)
-    {
-      int leftIndex = insertedIndex - indexGap;
-      int rightIndex = insertedIndex + indexGap;
-
-      // 왼쪽 끝에 도달했을 경우
-      // 왼쪽 boundary가 없으므로 [0, insertedIndex] 범위를 오른쪽 boundary 기준으로 다시 배치
-      // source는 재배치 범위의 마지막 항목이 됨
-      if (leftIndex < 0)
+      // 추가한 후 컬렉션 항목이 하나라면 추가한 항목의 Position은 0임
+      if (Count == 1)
       {
-        RepositionRange(0, insertedIndex, null, rightBoundaryPos);
-        repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
-        return affectedEntities;
+        AddAffectedIfPositionChanged(_entities[insertedIndex], 0);
+        return _positionChangedEntities;
       }
 
-      // 오른쪽 끝에 도달했을 경우
-      // 오른쪽 boundary가 없으므로 [insertedIndex, count - 1] 범위를 왼쪽 boundary 기준으로 다시 배치
-      // source는 재배치 범위의 첫 번째 항목이 됨
-      if (rightIndex >= count)
+      // 항목이 맨 앞에 추가되었다면, 기존 첫 번째 항목의 Position보다 작은 Position을 계산하여 설정
+      if (insertedIndex == 0)
       {
-        RepositionRange(insertedIndex, count - 1, leftBoundaryPos, null);
-        repositionRangeKind = RepositionRangeKind.ExpandedToRight;
-        return affectedEntities;
+        AddAffectedIfPositionChanged(_entities[0], checked(_entities[1].Position - CalculatePositionStep(1, null, _entities[1].Position)));
+        return _positionChangedEntities;
       }
 
-      // 왼쪽에서 충분한 공간을 찾은 경우
-      // (leftIndex, insertedIndex + 1) 열린 구간 안에 [leftIndex + 1, insertedIndex] 범위를 다시 배치
-      // source는 재배치 범위의 마지막 항목이 됨
-      if ((long)nextPos - entities[leftIndex].Position > indexGap)
+      // 항목이 맨 뒤에 추가되었다면, 기존 맨 마지막 항목의 Position보다 큰 Position을 계산하여 설정
+      if (insertedIndex == Count - 1)
       {
-        RepositionRange(leftIndex + 1, insertedIndex, entities[leftIndex].Position, rightBoundaryPos);
-        repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
-        return affectedEntities;
+        AddAffectedIfPositionChanged(_entities[^1], checked(_entities[^2].Position + CalculatePositionStep(1, _entities[^2].Position, null)));
+        return _positionChangedEntities;
       }
 
-      // 오른쪽에서 충분한 공간을 찾은 경우
-      // (insertedIndex - 1, rightIndex) 열린 구간 안에 [insertedIndex, rightIndex - 1] 범위를 다시 배치
-      // source는 재배치 범위의 첫 번째 항목이 됨
-      if ((long)entities[rightIndex].Position - prevPos > indexGap)
+      // 후보 Position이 앞뒤와 겹치지 않는다면 그대로 확정
+      int prevPos = _entities[insertedIndex - 1].Position;
+      int nextPos = _entities[insertedIndex + 1].Position;
+      long posDiff = (long)nextPos - prevPos;
+
+      if (posDiff < 0)
       {
-        RepositionRange(insertedIndex, rightIndex - 1, leftBoundaryPos, entities[rightIndex].Position);
-        repositionRangeKind = RepositionRangeKind.ExpandedToRight;
-        return affectedEntities;
+        throw new InvalidOperationException($"Position 순서가 올바르지 않습니다. prevPos={prevPos}, nextPos={nextPos}");
+      }
+
+      // Position 변경된 범위 인덱스 양끝 중에 insertedIndex가 있으면
+      // 재조정 간격(step)을 계산하기 위해 insertedIndex의 왼쪽 혹은 오른쪽 항목의 Position을 알아야 함
+      // insertedIndex <= 0 이나 insertedIndex >= Count - 1인 상황은 위에서 걸러짐
+      int? leftBoundaryPos = _entities[insertedIndex - 1].Position;
+      int? rightBoundaryPos = _entities[insertedIndex + 1].Position;
+
+      // 바로 양옆 사이에 빈 Position이 없으면 주변부를 확장 탐색
+      for (int indexGap = 1; ; indexGap++)
+      {
+        int leftIndex = insertedIndex - indexGap;
+        int rightIndex = insertedIndex + indexGap;
+
+        // 왼쪽 끝에 도달했을 경우
+        // 왼쪽 boundary가 없으므로 [0, insertedIndex] 범위를 오른쪽 boundary 기준으로 다시 배치
+        // source는 재배치 범위의 마지막 항목이 됨
+        if (leftIndex < 0)
+        {
+          RepositionRange(0, insertedIndex, null, rightBoundaryPos);
+          repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
+          return _positionChangedEntities;
+        }
+
+        // 오른쪽 끝에 도달했을 경우
+        // 오른쪽 boundary가 없으므로 [insertedIndex, Count - 1] 범위를 왼쪽 boundary 기준으로 다시 배치
+        // source는 재배치 범위의 첫 번째 항목이 됨
+        if (rightIndex >= Count)
+        {
+          RepositionRange(insertedIndex, Count - 1, leftBoundaryPos, null);
+          repositionRangeKind = RepositionRangeKind.ExpandedToRight;
+          return _positionChangedEntities;
+        }
+
+        // 왼쪽에서 충분한 공간을 찾은 경우
+        // (leftIndex, insertedIndex + 1) 열린 구간 안에 [leftIndex + 1, insertedIndex] 범위를 다시 배치
+        // source는 재배치 범위의 마지막 항목이 됨
+        if ((long)nextPos - _entities[leftIndex].Position > indexGap)
+        {
+          RepositionRange(leftIndex + 1, insertedIndex, _entities[leftIndex].Position, rightBoundaryPos);
+          repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
+          return _positionChangedEntities;
+        }
+
+        // 오른쪽에서 충분한 공간을 찾은 경우
+        // (insertedIndex - 1, rightIndex) 열린 구간 안에 [insertedIndex, rightIndex - 1] 범위를 다시 배치
+        // source는 재배치 범위의 첫 번째 항목이 됨
+        if ((long)_entities[rightIndex].Position - prevPos > indexGap)
+        {
+          RepositionRange(insertedIndex, rightIndex - 1, leftBoundaryPos, _entities[rightIndex].Position);
+          repositionRangeKind = RepositionRangeKind.ExpandedToRight;
+          return _positionChangedEntities;
+        }
       }
     }
 
-    void SetPositionIfChanged(UserNavigationEntity entity, int newPosition)
+    private void AddAffectedIfPositionChanged(UserNavigationEntity entity, int newPosition)
+    {
+      if (TryUpdatePosition(entity, newPosition))
+      {
+        _positionChangedEntities.Add(entity);
+      }
+    }
+
+    private static bool TryUpdatePosition(UserNavigationEntity entity, int newPosition)
     {
       if (newPosition == TemporarySourcePosition)
       {
@@ -391,22 +396,22 @@ internal class NavigationRepository : INavigationRepository
 
       if (entity.Position == newPosition)
       {
-        return;
+        return false;
       }
 
       entity.Position = newPosition;
-      affectedEntities.Add(entity);
+      return true;
     }
 
     // 닫힌 구간 [startIndex, endIndex] 안의 인덱스를 가진 항목들의 Position을 재조정함
     // Position 간격은 위 구간을 열린 구간((startIndex-1, endIndex + 1))으로 확장했을 때, 양끝 인덱스의 Position(경계 Position)들을 균등 분할하여 계산함
     // 위 열린 구간에서 양끝이 존재하지 않는 인덱스가 있다면, 그곳에 null을 넣고 간격은 기본 간격으로 설정함
-    void RepositionRange(int startIndex, int endIndex, int? leftBoundaryPosition, int? rightBoundaryPosition)
+    private void RepositionRange(int startIndex, int endIndex, int? leftBoundaryPosition, int? rightBoundaryPosition)
     {
       ArgumentOutOfRangeException.ThrowIfLessThan(startIndex, 0, nameof(startIndex));
       ArgumentOutOfRangeException.ThrowIfLessThan(endIndex, 0, nameof(endIndex));
-      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, count, nameof(startIndex));
-      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(endIndex, count, nameof(endIndex));
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(startIndex, Count, nameof(startIndex));
+      ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(endIndex, Count, nameof(endIndex));
 
       if (startIndex > endIndex)
       {
@@ -428,14 +433,14 @@ internal class NavigationRepository : INavigationRepository
           null => (long)calculatedStep * offset
         };
 
-        SetPositionIfChanged(entities[startIndex + offset], checked((int)newPosition));
+        AddAffectedIfPositionChanged(_entities[startIndex + offset], checked((int)newPosition));
       }
     }
 
-    int CalculatePositionStep(int repositionItemCount, int? leftBoundaryPosition, int? rightBoundaryPosition)
+    private int CalculatePositionStep(int repositionItemCount, int? leftBoundaryPosition, int? rightBoundaryPosition)
     {
       ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(repositionItemCount, 0, nameof(repositionItemCount));
-      ArgumentOutOfRangeException.ThrowIfGreaterThan(repositionItemCount, count, nameof(repositionItemCount));
+      ArgumentOutOfRangeException.ThrowIfGreaterThan(repositionItemCount, Count, nameof(repositionItemCount));
 
       if (leftBoundaryPosition is int && rightBoundaryPosition is int)
       {
@@ -452,10 +457,10 @@ internal class NavigationRepository : INavigationRepository
           : checked((int)boundaryStep);
       }
 
-      long totalSpan = (long)entities[^1].Position - entities[0].Position;
-      int preferredStep = count < 2 || totalSpan <= 0
+      long totalSpan = (long)_entities[^1].Position - _entities[0].Position;
+      int preferredStep = Count < 2 || totalSpan <= 0
         ? DefaultPositionStep
-        : (int)Math.Clamp(totalSpan / (count - 1L), DefaultPositionStep, MaxPositionStep);
+        : (int)Math.Clamp(totalSpan / (Count - 1L), DefaultPositionStep, MaxPositionStep);
 
       if (leftBoundaryPosition is int)
       {
