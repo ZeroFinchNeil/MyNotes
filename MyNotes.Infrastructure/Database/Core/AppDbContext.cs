@@ -17,7 +17,9 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
   /// <summary>내비게이션 DB 엔티티</summary>
   public DbSet<UserNavigationEntity> NavigationEntities => Set<UserNavigationEntity>();
 
-  public DbSet<UserLeafNavigationViewStateEntity> NavigationViewStateEntities => Set<UserLeafNavigationViewStateEntity>();
+  public DbSet<UserLeafNavigationViewStateEntity> UserLeafNavigationViewStateEntity => Set<UserLeafNavigationViewStateEntity>();
+
+  public DbSet<UserCompositeNavigationViewStateEntity> UserCompositeNavigationViewStateEntity => Set<UserCompositeNavigationViewStateEntity>();
 
   /// <summary>노트 DB 엔티티</summary>
   public DbSet<NoteEntity> NoteEntities => Set<NoteEntity>();
@@ -60,6 +62,13 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
       .HasOne(e => e.Navigation)
       .WithOne()
       .HasForeignKey<UserLeafNavigationViewStateEntity>(e => e.Id)
+      .IsRequired()
+      .OnDelete(DeleteBehavior.Cascade);
+
+    modelBuilder.Entity<UserCompositeNavigationViewStateEntity>()
+      .HasOne(e => e.Navigation)
+      .WithOne()
+      .HasForeignKey<UserCompositeNavigationViewStateEntity>(e => e.Id)
       .IsRequired()
       .OnDelete(DeleteBehavior.Cascade);
 

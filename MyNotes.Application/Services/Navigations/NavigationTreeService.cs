@@ -1,5 +1,5 @@
 ﻿using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.ValueObjects;
 
@@ -22,8 +22,8 @@ internal sealed partial class NavigationTreeService
 
   public async Task<UserCompositeNavigationAppResponseDto> BuildNavigationTreeAsync()
   {
-    var userNavigationDbDtos = await NavigationRepository.GetAllUserNavigationsAsync();
-    var treeElements = userNavigationDbDtos.ToDictionary(dbDto => dbDto.Id, dto => new NavigationTreeElement() { Dto = UserNavigationMappers.ToAppDto(dto) });
+    var userNavigationDbAggregateResponseDto = await NavigationRepository.GetAllUserNavigationsAsync();
+    var treeElements = userNavigationDbAggregateResponseDto.ToDictionary(aggregateDbDto => aggregateDbDto.UserNavigationDbResponseDto.Id, dto => new NavigationTreeElement() { Dto = UserNavigationMappers.ToAppDto(dto) });
 
     UserCompositeNavigationAppResponseDto rootAppDto = new UserCompositeNavigationAppResponseDto()
     {

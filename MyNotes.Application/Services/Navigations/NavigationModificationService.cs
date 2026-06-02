@@ -1,7 +1,7 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.Entities.Navigations;
 

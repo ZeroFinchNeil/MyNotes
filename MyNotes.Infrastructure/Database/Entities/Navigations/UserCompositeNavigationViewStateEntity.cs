@@ -6,7 +6,7 @@ using System.Text;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
-internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserCompositeNavigationViewStateEntity>
+internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserCompositeNavigationViewStateEntity>, IUserNavigationViewStateEntity
 {
   [Key]
   public required Guid Id { get; init; }

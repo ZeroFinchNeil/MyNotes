@@ -1,7 +1,9 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Dtos.Navigations.Common;
+using MyNotes.Application.Dtos.Navigations.Creation;
 using MyNotes.Common.Exceptions;
 using MyNotes.Domain.Entities.Navigations;
 using MyNotes.Domain.ValueObjects;

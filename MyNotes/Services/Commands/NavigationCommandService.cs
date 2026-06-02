@@ -1,6 +1,8 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Dtos.Navigations.Arrangement;
+using MyNotes.Application.Dtos.Navigations.Creation;
+using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Enums.Navigations;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;

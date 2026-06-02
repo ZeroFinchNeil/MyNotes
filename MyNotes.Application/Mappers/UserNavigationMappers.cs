@@ -1,44 +1,20 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Arrangement;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Queries.Navigations;
-using MyNotes.Application.Dtos.Navigations;
+using MyNotes.Application.Dtos.Navigations.Arrangement;
+using MyNotes.Application.Dtos.Navigations.Common;
+using MyNotes.Application.Dtos.Navigations.Modification;
+using MyNotes.Application.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Queries.Navigations;
 using MyNotes.Domain.Entities.Navigations;
-using MyNotes.Templates;
 
 namespace MyNotes.Application.Mappers;
 
 internal static class UserNavigationMappers
 {
-#if false
-  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto) => userNavigationDbResponseDto.IsComposite
-    ? new UserCompositeNavigationAppResponseDto()
-    {
-      Id = userNavigationDbResponseDto.Id,
-      Parent = userNavigationDbResponseDto.Parent,
-      Icon = (Icon)userNavigationDbResponseDto.Icon,
-      Title = userNavigationDbResponseDto.Title,
-      Position = userNavigationDbResponseDto.Position,
-      IsDeleted = userNavigationDbResponseDto.IsDeleted,
-      Children = [],
-      IsExpanded = 
-    }
-    : new UserLeafNavigationAppResponseDto()
-    {
-      Id = userNavigationDbResponseDto.Id,
-      Parent = userNavigationDbResponseDto.Parent,
-      Icon = (Icon)userNavigationDbResponseDto.Icon,
-      Title = userNavigationDbResponseDto.Title,
-      Position = userNavigationDbResponseDto.Position,
-      IsDeleted = userNavigationDbResponseDto.IsDeleted,
-      NoteSortKey = ,
-      NoteSortDirection = ,
-      PreviewLayoutType = ,
-      PreviewTileSize = ,
-      PreviewTileRatio = ,
-    };
-#endif
-
-  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto)
+  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbAggregateResponseDto userNavigationDbAggregateResponseDto)
   {
     throw new NotImplementedException();
   }

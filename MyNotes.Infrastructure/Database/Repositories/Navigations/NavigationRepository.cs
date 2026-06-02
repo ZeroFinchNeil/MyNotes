@@ -7,12 +7,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Dtos.Navigations;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Arrangement;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
+using MyNotes.Infrastructure.Mappers;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Navigations;
 
@@ -25,9 +30,35 @@ internal class NavigationRepository : INavigationRepository
     DbContextFactory = dbContextFactory;
   }
 
-  public Task<IReadOnlyList<UserNavigationDbResponseDto>> GetAllUserNavigationsAsync()
+  public Task<IReadOnlyList<UserNavigationDbAggregateResponseDto>> GetAllUserNavigationsAsync()
   {
     throw new NotImplementedException();
+  }
+
+  public async Task<UserNavigationDbAggregateResponseDto?> GetUserNavigationByIdAsync(NavigationId id)
+  {
+    AppDbContext context = await DbContextFactory.CreateDbContextAsync();
+      
+    if (await context.NavigationEntities.FirstOrDefaultAsync(e => e.Id == id.Value) is UserNavigationEntity userNavigationEntity)
+    {
+      UserNavigationDbResponseDto userNavigationDbResponseDto = NavigationMappers.ToDto(userNavigationEntity);
+      UserNavigationViewStateDbResponseDto? userNavigationViewStateDbResponseDto = null;
+
+      if (userNavigationEntity.IsComposite)
+      {
+        if (await context.UserCompositeNavigationViewStateEntity.FirstOrDefaultAsync(e => e.Id == id.Value) is UserCompositeNavigationViewStateEntity userCompositeNavigationViewStateEntity)
+        {
+          userNavigationViewStateDbResponseDto = NavigationMappers.ToDto(userCompositeNavigationViewStateEntity);
+        }
+      }
+      else
+      {
+        if (await context.UserLeafNavigationViewStateEntity.FirstOrDefaultAsync(e => e.Id == id.Value) is UserLeafNavigationViewStateEntity userLeafNavigationViewStateEntity)
+        {
+          userNavigationViewStateDbResponseDto = NavigationMappers.ToDto(userLeafNavigationViewStateEntity);
+        }
+      }
+    }
   }
 
   public Task<NavigationId> GenerateUniqueUserNavigationIdAsync()
