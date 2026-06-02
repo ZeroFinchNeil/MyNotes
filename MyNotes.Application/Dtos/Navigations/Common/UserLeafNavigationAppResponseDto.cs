@@ -2,7 +2,7 @@
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 
-namespace MyNotes.Application.Dtos.Navigations;
+namespace MyNotes.Application.Dtos.Navigations.Common;
 
 internal sealed record UserLeafNavigationAppResponseDto : UserNavigationAppResponseDto
 {

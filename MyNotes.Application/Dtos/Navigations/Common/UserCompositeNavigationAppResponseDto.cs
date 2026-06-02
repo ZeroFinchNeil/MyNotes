@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Dtos.Navigations;
+﻿namespace MyNotes.Application.Dtos.Navigations.Common;
 
 internal record UserCompositeNavigationAppResponseDto : UserNavigationAppResponseDto
 {

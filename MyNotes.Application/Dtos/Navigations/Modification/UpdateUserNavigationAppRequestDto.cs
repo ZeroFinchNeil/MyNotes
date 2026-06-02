@@ -2,7 +2,7 @@
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Templates;
 
-namespace MyNotes.Application.Dtos.Navigations;
+namespace MyNotes.Application.Dtos.Navigations.Modification;
 
 internal sealed record UpdateUserNavigationAppRequestDto
 {

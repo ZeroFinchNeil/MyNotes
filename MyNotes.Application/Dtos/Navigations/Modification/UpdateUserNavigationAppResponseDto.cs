@@ -1,9 +1,10 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Templates;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Navigations;
+namespace MyNotes.Application.Dtos.Navigations.Modification;
 
-internal sealed record UpdateUserNavigationDbResponseDto
+internal sealed record UpdateUserNavigationAppResponseDto
 {
   public required NavigationId Id { get; init; }
 
@@ -13,7 +14,7 @@ internal sealed record UpdateUserNavigationDbResponseDto
 
   public bool? IsComposite { get; init; }
 
-  public short? Icon { get; set; }
+  public Icon? Icon { get; set; }
 
   public string? Title { get; set; }
 

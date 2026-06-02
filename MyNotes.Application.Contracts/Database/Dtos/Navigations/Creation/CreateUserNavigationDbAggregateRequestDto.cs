@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Database.Dtos.Navigations;
+﻿namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
 
 internal sealed record CreateUserNavigationDbAggregateRequestDto
 {

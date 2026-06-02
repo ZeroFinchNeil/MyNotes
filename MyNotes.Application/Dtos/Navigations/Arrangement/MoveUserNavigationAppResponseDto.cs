@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Enums.Navigations;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Dtos.Navigations;
+namespace MyNotes.Application.Dtos.Navigations.Arrangement;
 
 internal sealed record MoveUserNavigationAppResponseDto
 {

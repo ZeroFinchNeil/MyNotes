@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Navigations;
+namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 
 internal sealed record UpdateUserNavigationDbRequestDto
 {

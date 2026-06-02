@@ -1,7 +1,7 @@
 ﻿using MyNotes.Common.Enums.Modes;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Navigations;
+namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 
 internal sealed record DeleteUserNavigationDbRequestDto
 {
