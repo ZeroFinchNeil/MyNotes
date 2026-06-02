@@ -4,20 +4,22 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
+
 using MyNotes.Common.Collections;
 using MyNotes.Common.Messages;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Navigations;
+using MyNotes.Shared.Enums.Notes;
+using MyNotes.Shared.Enums.Settings;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
-using MyNotes.Shared.Constants;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
-using MyNotes.Shared.Enums.Settings;
 
 namespace MyNotes.ViewModels;
 
@@ -75,7 +77,9 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -231,9 +235,11 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   private void SetLastOpenedInitialPage()
   {
     if (InitialPageId == NavigationId.Home.Value || InitialPageId == NavigationId.Bookmarks.Value)
+    {
       return;
+    }
 
-    var viewmodels = NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationService.UserLeafNavigations);
+    var viewmodels = NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationController.UserLeafNavigations);
     if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
     {
       InitialPageId = viewmodels.Count > 0 ? viewmodels[0].Navigation.Id.Value : NavigationId.Home.Value;
@@ -257,7 +263,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   {
     var previousSelection = SelectedInitialPageOption;
 
-    foreach (var viewmodel in NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationService.UserLeafNavigations))
+    foreach (var viewmodel in NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationController.UserLeafNavigations))
     {
       InitialPageOptions.Add(viewmodel);
     }
@@ -394,8 +400,8 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
   private static readonly IReadOnlyDictionary<NoteSortKey, Func<string>> _noteSortKeyLocalizedStringMap = new Dictionary<NoteSortKey, Func<string>>()
   {
-    { Common.Enums.Notes.NoteSortKey.Created, () => LocalizedStrings.NoteSortKeyCreated },
-    { Common.Enums.Notes.NoteSortKey.Modified, () => LocalizedStrings.NoteSortKeyModified },
+    { Shared.Enums.Notes.NoteSortKey.Created, () => LocalizedStrings.NoteSortKeyCreated },
+    { Shared.Enums.Notes.NoteSortKey.Modified, () => LocalizedStrings.NoteSortKeyModified },
   };
 
   private static readonly IReadOnlyDictionary<SortDirection, Func<string>> _noteSortDirectionLocalizedStringMap = new Dictionary<SortDirection, Func<string>>()
@@ -459,30 +465,30 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
   private static readonly IReadOnlyDictionary<PreviewLayoutType, Func<string>> _previewLayoutTypeLocalizedStringMap = new Dictionary<PreviewLayoutType, Func<string>>()
   {
-    { Common.Enums.Navigations.PreviewLayoutType.Grid, () => LocalizedStrings.PreviewLayoutTypeGrid },
-    { Common.Enums.Navigations.PreviewLayoutType.List, () => LocalizedStrings.PreviewLayoutTypeList },
+    { Shared.Enums.Navigations.PreviewLayoutType.Grid, () => LocalizedStrings.PreviewLayoutTypeGrid },
+    { Shared.Enums.Navigations.PreviewLayoutType.List, () => LocalizedStrings.PreviewLayoutTypeList },
   };
 
   public IReadOnlyDictionary<PreviewLayoutType, Func<string>> PreviewLayoutTypeLocalizedStringMap => _previewLayoutTypeLocalizedStringMap;
 
   private static readonly IReadOnlyDictionary<PreviewTileSize, Func<string>> _previewTileSizeLocalizedStringMap = new Dictionary<PreviewTileSize, Func<string>>()
   {
-    { Common.Enums.Navigations.PreviewTileSize.Smallest, () => LocalizedStrings.PreviewTileSizeSmallest },
-    { Common.Enums.Navigations.PreviewTileSize.Smaller, () => LocalizedStrings.PreviewTileSizeSmaller  },
-    { Common.Enums.Navigations.PreviewTileSize.Small, () => LocalizedStrings.PreviewTileSizeSmall },
-    { Common.Enums.Navigations.PreviewTileSize.Medium, () => LocalizedStrings.PreviewTileSizeMedium },
-    { Common.Enums.Navigations.PreviewTileSize.Large, () => LocalizedStrings.PreviewTileSizeLarge },
-    { Common.Enums.Navigations.PreviewTileSize.Larger, () => LocalizedStrings.PreviewTileSizeLarger },
-    { Common.Enums.Navigations.PreviewTileSize.Largest, () => LocalizedStrings.PreviewTileSizeLargest},
+    { Shared.Enums.Navigations.PreviewTileSize.Smallest, () => LocalizedStrings.PreviewTileSizeSmallest },
+    { Shared.Enums.Navigations.PreviewTileSize.Smaller, () => LocalizedStrings.PreviewTileSizeSmaller  },
+    { Shared.Enums.Navigations.PreviewTileSize.Small, () => LocalizedStrings.PreviewTileSizeSmall },
+    { Shared.Enums.Navigations.PreviewTileSize.Medium, () => LocalizedStrings.PreviewTileSizeMedium },
+    { Shared.Enums.Navigations.PreviewTileSize.Large, () => LocalizedStrings.PreviewTileSizeLarge },
+    { Shared.Enums.Navigations.PreviewTileSize.Larger, () => LocalizedStrings.PreviewTileSizeLarger },
+    { Shared.Enums.Navigations.PreviewTileSize.Largest, () => LocalizedStrings.PreviewTileSizeLargest},
   };
 
   private static readonly IReadOnlyDictionary<PreviewTileRatio, Func<string>> _previewTileRatioLocalizedStringMap = new Dictionary<PreviewTileRatio, Func<string>>()
   {
-    { Common.Enums.Navigations.PreviewTileRatio.Shorter, () => LocalizedStrings.PreviewTileRatioShorter },
-    { Common.Enums.Navigations.PreviewTileRatio.Short, () => LocalizedStrings.PreviewTileRatioShort },
-    { Common.Enums.Navigations.PreviewTileRatio.Square, () => LocalizedStrings.PreviewTileRatioSquare },
-    { Common.Enums.Navigations.PreviewTileRatio.Tall, () => LocalizedStrings.PreviewTileRatioTall },
-    { Common.Enums.Navigations.PreviewTileRatio.Taller, () => LocalizedStrings.PreviewTileRatioTaller },
+    { Shared.Enums.Navigations.PreviewTileRatio.Shorter, () => LocalizedStrings.PreviewTileRatioShorter },
+    { Shared.Enums.Navigations.PreviewTileRatio.Short, () => LocalizedStrings.PreviewTileRatioShort },
+    { Shared.Enums.Navigations.PreviewTileRatio.Square, () => LocalizedStrings.PreviewTileRatioSquare },
+    { Shared.Enums.Navigations.PreviewTileRatio.Tall, () => LocalizedStrings.PreviewTileRatioTall },
+    { Shared.Enums.Navigations.PreviewTileRatio.Taller, () => LocalizedStrings.PreviewTileRatioTaller },
   };
 
   private static string SetPreviewLayoutContentText(PreviewLayoutType previewLayoutType, PreviewTileSize previewTileSize, PreviewTileRatio previewTileRatio) => $"{_previewLayoutTypeLocalizedStringMap[previewLayoutType].Invoke()} • {_previewTileSizeLocalizedStringMap[previewTileSize].Invoke()} • {_previewTileRatioLocalizedStringMap[previewTileRatio].Invoke()}";

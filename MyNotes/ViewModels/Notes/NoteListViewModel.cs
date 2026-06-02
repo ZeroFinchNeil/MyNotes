@@ -2,20 +2,20 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
-using MyNotes.Services.App;
-using MyNotes.Services.Notes;
-using MyNotes.Services.Search;
 using MyNotes.Services.Settings;
-using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
-using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
+using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -24,17 +24,17 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly SearchService SearchService;
-  private readonly WindowService WindowService;
+  private readonly NoteWindowService NoteWindowService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(SettingsService settingsService, NoteService noteService, SearchService searchService, WindowService windowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(SettingsService settingsService, NoteService noteService, SearchService searchService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
     SearchService = searchService;
-    WindowService = windowService;
+    NoteWindowService = noteWindowService;
     NoteViewModelProvider = noteViewModelProvider;
 
     Navigation = navigation;
@@ -232,7 +232,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var leafNotes = await NoteService.GetNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
+        var leafNotes = await NoteService.Retrieval.GetNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
         foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
@@ -248,7 +248,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
         await foreach (var match in searchResult.Matches)
         {
-          if (await NoteService.FindNoteAsync(NoteId.Create(match.NoteId)) is NoteModel note)
+          if (await NoteService.Retrieval.FindNoteAsync(NoteId.Create(match.NoteId)) is NoteModel note)
           {
             note.PropertyChanged += Note_PropertyChanged_WhileActive;
             NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
@@ -256,7 +256,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         break;
       case NavigationBookmarks bookmarks:
-        var bookmarksNotes = await NoteService.GetNotesAsync(e => e.IsBookmarked && !e.IsDeleted);
+        var bookmarksNotes = await NoteService.Retrieval.GetNotesAsync(e => e.IsBookmarked && !e.IsDeleted);
         foreach (var note in bookmarksNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
@@ -264,7 +264,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         break;
       case NavigationTrash trash:
-        var trashNotes = await NoteService.GetNotesAsync(e => e.IsDeleted);
+        var trashNotes = await NoteService.Retrieval.GetNotesAsync(e => e.IsDeleted);
         foreach (var note in trashNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
@@ -437,15 +437,15 @@ partial class NoteListViewModel
   private void SetCommands()
   {
     AddNoteCommand = new(
-      actionToExecute: async () =>
+      executeAction: async () =>
       {
         if (Navigation is NavigationUserLeafNode leaf
-            && await NoteService.AddNoteAsync(leaf) is NoteModel note)
+            && await NoteService.Creation.AddNoteAsync(leaf) is NoteModel note)
         {
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
           NoteViewModels?.Add(noteViewModel);
 
-          await NoteService.OpenNoteWindow(note);
+          await NoteService.Retrieval.OpenNoteWindow(note);
         }
       });
   }

@@ -32,13 +32,13 @@ internal sealed partial class NoteCreationService
     CreateNoteDbRequestDto noteDbDto = NoteMappers.ToDbDto(note);
     CreateNoteViewStateDbRequestDto noteViewStateDto = NoteFactory.CreateDefaultNoteViewStateDto(noteId);
 
-    await NoteRepository.AddNoteAsync(noteDbDto);
-    await NoteRepository.AddNoteViewStateAsync(noteViewStateDto);
+    var noteDbResponseDto = await NoteRepository.AddNoteAsync(noteDbDto);
+    var noteViewStateDbResponseDto =  await NoteRepository.AddNoteViewStateAsync(noteViewStateDto);
 
     // Search Index
     NoteSearchDocumentDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
     await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto);
 
-    return NoteMappers.ToAppDto(noteDbDto, noteViewStateDto);
+    return NoteMappers.ToAppDto(noteDbResponseDto, noteViewStateDbResponseDto);
   }
 }

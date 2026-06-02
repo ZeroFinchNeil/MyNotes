@@ -15,4 +15,6 @@ internal sealed record UserNavigationDbResponseDto
   public required string Title { get; init; }
 
   public required int Position { get; init; }
+
+  public required bool IsDeleted { get; init; }
 }

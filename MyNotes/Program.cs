@@ -64,7 +64,7 @@ public class Program
     consoleHWND = NativeMethods.SetConsole(0, 850, 750, 540);
 #endif
     App? app = null;
-    Application.Start((p) =>
+    Microsoft.UI.Xaml.Application.Start((p) =>
     {
       var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
       SynchronizationContext.SetSynchronizationContext(context);

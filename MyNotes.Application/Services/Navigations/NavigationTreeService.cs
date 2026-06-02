@@ -13,7 +13,6 @@ internal sealed partial class NavigationTreeService
   public NavigationTreeService(INavigationRepository navigationRepository)
   {
     NavigationRepository = navigationRepository;
-    _ = BuildNavigationTreeAsync();
   }
   #endregion
 

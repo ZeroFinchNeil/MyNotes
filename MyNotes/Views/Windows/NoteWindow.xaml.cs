@@ -4,20 +4,21 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Services.App;
+using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
-using MyNotes.Shared.Constants;
-using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Views.Windows;
 
 [Debugging.ReferenceTracker]
 internal sealed partial class NoteWindow : Window
 {
-  private readonly WindowService WindowService;
+  private readonly NoteWindowService NoteWindowService;
 
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
@@ -34,11 +35,11 @@ internal sealed partial class NoteWindow : Window
     this.ExtendsContentIntoTitleBar = true;
 
     var provider = App.Services.GetRequiredService<NoteViewModelProvider>();
-    WindowService = App.Services.GetRequiredService<WindowService>();
+    NoteWindowService = App.Services.GetRequiredService<NoteWindowService>();
 
     // WindowService에 등록
     NoteId = note.Id;
-    WindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
+    NoteWindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
 
     // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -76,7 +77,7 @@ internal sealed partial class NoteWindow : Window
     this.Closed -= NoteWindow_Closed;
 
     // WindowService에서 Window 테이블에서 제거
-    WindowService.NoteWindowTable.Remove(NoteId);
+    NoteWindowService.NoteWindowTable.Remove(NoteId);
   }
   #endregion
 

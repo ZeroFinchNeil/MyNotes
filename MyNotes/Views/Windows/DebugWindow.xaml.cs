@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
-using MyNotes.Services.App;
-using MyNotes.Services.Database;
+using MyNotes.Services.Windows;
 
 namespace MyNotes.Views.Windows;
 
@@ -153,8 +152,11 @@ internal sealed partial class DebugWindow : Window
 
   private async void DebugWindow_MainWindowButton_Click(object sender, RoutedEventArgs e)
   {
-    var windowService = App.Services.GetRequiredService<WindowService>();
-    (await windowService.GetOrCreateMainWindow()).Activate();
+    var mainWindowService = App.Services.GetRequiredService<MainWindowService>();
+    if (mainWindowService.TryGetCurrentWindow(out var mainWindow))
+    {
+      mainWindow.Activate();
+    }
   }
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)
@@ -209,20 +211,20 @@ internal sealed partial class DebugWindow : Window
   private async void FocusManager_GotFocus(object? sender, FocusManagerGotFocusEventArgs e)
   {
     StringBuilder sb = new();
-    var windowService = App.Services.GetRequiredService<WindowService>();
-    if (windowService.TryGetCurrentMainWindow(out var mainWindow)
+    var mainWindowService = App.Services.GetRequiredService<MainWindowService>();
+    if (mainWindowService.TryGetCurrentWindow(out var mainWindow)
       && FocusTracker.GetFocusedElement(mainWindow.Content.XamlRoot) is FrameworkElement mainWindowElement)
     {
       sb.AppendLine($"Main: [{mainWindowElement.GetType().Name}] {mainWindowElement.Name}");
     }
 
-    if (windowService.TryGetCurrentImageViewerWindow(out var imageWindow)
+    if (mainWindowService.TryGetCurrentImageViewerWindow(out var imageWindow)
       && FocusTracker.GetFocusedElement(imageWindow.Content.XamlRoot) is FrameworkElement imageWindowElement)
     {
       sb.AppendLine($"ImageViewer: [{imageWindowElement.GetType().Name}] {imageWindowElement.Name}");
     }
 
-    foreach (var wr in windowService.NoteWindowTable.Values)
+    foreach (var wr in mainWindowService.NoteWindowTable.Values)
     {
       if (wr.TryGetTarget(out var noteWindow))
       {

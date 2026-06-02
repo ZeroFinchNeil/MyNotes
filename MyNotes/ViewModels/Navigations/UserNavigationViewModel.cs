@@ -17,7 +17,7 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
 
   public override NavigationUserNode Navigation { get; }
 
-  public virtual Command<NavigationUserNode>? AddListCommand { get; }
+  public virtual AsyncCommand<NavigationUserNode>? AddListCommand { get; }
   public virtual Command<NavigationUserNode>? AddGroupCommand { get; }
   public virtual Command<NavigationUserNode>? UpdateCommand { get; }
   public virtual Command<NavigationUserNode>? DeleteCommand { get; }

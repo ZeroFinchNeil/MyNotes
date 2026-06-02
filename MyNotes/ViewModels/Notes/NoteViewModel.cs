@@ -23,7 +23,7 @@ namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteViewModel : ViewModelBase
 {
-  private readonly WindowService WindowService;
+  private readonly NoteWindowService NoteWindowService;
   private readonly NoteCommandService NoteCommandService;
   private readonly NoteService NoteService;
   private readonly JumpListService JumpListService;
@@ -31,10 +31,10 @@ internal sealed partial class NoteViewModel : ViewModelBase
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel(WindowService windowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, NoteModel note)
+  public NoteViewModel(NoteWindowService noteWindowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, JumpListService jumpListService, NoteModel note)
   {
     // DI
-    WindowService = windowService;
+    NoteWindowService = noteWindowService;
     NoteCommandService = (NoteCommandService)noteCommandService;
     NoteService = noteService;
     JumpListService = jumpListService;
@@ -120,7 +120,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
         }
         break;
       case nameof(Note.IsAlwaysOnTop):
-        WindowService.TryExecuteOnNoteWindow(Note.Id, noteWindow =>
+        NoteWindowService.TryExecuteOnNoteWindow(Note.Id, noteWindow =>
         {
           (noteWindow.AppWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = Note.IsAlwaysOnTop;
         });
@@ -170,7 +170,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public void ChangeNoteBackdrop()
   {
-    WindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
+    NoteWindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
     {
       noteWindow.SystemBackdrop = Note.BackdropKind switch
       {
@@ -195,7 +195,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   private void ChangeNoteBackdropProperties()
   {
-    WindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
+    NoteWindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
     {
       if (noteWindow.SystemBackdrop is ExtendedSystemBackdrop backdrop)
       {

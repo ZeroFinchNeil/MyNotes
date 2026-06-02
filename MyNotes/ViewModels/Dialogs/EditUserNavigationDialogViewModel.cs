@@ -51,7 +51,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
   private void SetCommands()
   {
     PrimaryButtonCommand = new(
-      actionToExecute: () => Result = (Icon, Title)
+      executeAction: () => Result = (Icon, Title)
     );
   }
 }

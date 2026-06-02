@@ -4,9 +4,10 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Helpers;
+using MyNotes.Constants;
 using MyNotes.Models.Notes;
 using MyNotes.Shared.Constants;
-using MyNotes.Common.Helpers;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -28,7 +29,9 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {
@@ -297,7 +300,9 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase
         {
           Document.Selection.ParagraphFormat.ListType = value;
           if (value is not MarkerType.None)
+          {
             _recentMarkerType = value;
+          }
         }
       }
     }
@@ -388,28 +393,31 @@ partial class NoteEditorViewModel
     Note.Body = editorText;
     Note.BodyPlainText = plainText;
     if (_shouldChangePreview)
+    {
       WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.UpdateNotePreviewToken(Note.Id));
+    }
+
     _shouldChangePreview = false;
   }
 
   private void SetCommands()
   {
     UpdateSelectionCommand = new(
-      actionToExecute: _ =>
+      executeAction: _ =>
       {
         _previousSelectionIndex = Document.Selection.GetIndex(0);
         UpdateSelectionFormatStates();
       });
 
     UpdateTextChangingCommand = new(
-      actionToExecute: _ =>
+      executeAction: _ =>
       {
         _currentSelectionIndex = Document.Selection.GetIndex(0);
         _shouldChangePreview = _previousSelectionIndex <= PreviewTextMaxLength && _currentSelectionIndex <= PreviewTextMaxLength;
       });
 
     UpdateTextChangedCommand = new(
-      actionToExecute: _ =>
+      executeAction: _ =>
       {
         UpdateSelectionFormatStates();
 
@@ -427,7 +435,7 @@ partial class NoteEditorViewModel
       });
 
     DecreaseSelectionFontSizeCommand = new(
-      actionToExecute: () =>
+      executeAction: () =>
       {
         var newFontSize = SelectionFontSize switch
         {
@@ -446,7 +454,7 @@ partial class NoteEditorViewModel
     );
 
     IncreaseSelectionFontSizeCommand = new(
-      actionToExecute: () =>
+      executeAction: () =>
       {
         var newFontSize = SelectionFontSize switch
         {
@@ -465,19 +473,19 @@ partial class NoteEditorViewModel
     );
 
     ChangeSelectionFontColorCommand = new(
-      actionToExecute: _ =>
+      executeAction: _ =>
       {
         Document.Selection.CharacterFormat.ForegroundColor = RecentFontColor;
       });
 
     ChangeSelectionHighlightColorCommand = new(
-      actionToExecute: _ =>
+      executeAction: _ =>
       {
         Document.Selection.CharacterFormat.BackgroundColor = RecentHighlightColor;
       });
 
     ChangeSelectionHighlightColorToAutomaticCommand = new(
-      actionToExecute: () =>
+      executeAction: () =>
       {
         SelectionHighlightColor = Colors.Transparent;
       },

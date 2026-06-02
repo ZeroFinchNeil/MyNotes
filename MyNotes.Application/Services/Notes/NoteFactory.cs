@@ -12,12 +12,10 @@ namespace MyNotes.Application.Services.Notes;
 internal sealed partial class NoteFactory
 {
   private readonly SettingsService SettingsService;
-  private readonly WindowService WindowService;
 
-  public NoteFactory(SettingsService settingsService, WindowService windowService)
+  public NoteFactory(SettingsService settingsService)
   {
     SettingsService = settingsService;
-    WindowService = windowService;
   }
 
   public Note CreateDefaultNote(NoteId noteId, NavigationId navigationId) => new()
@@ -36,6 +34,8 @@ internal sealed partial class NoteFactory
 
   public CreateNoteViewStateDbRequestDto CreateDefaultNoteViewStateDto(NoteId noteId)
   {
+    throw new NotImplementedException();
+#if false
     var defaultSize = SettingsService.Load(AppSettingsDescriptors.NoteSize);
     var defaultPosition = WindowService.GetPosition(defaultSize.SizeInt32);
 
@@ -59,6 +59,7 @@ internal sealed partial class NoteFactory
       IsWindowOpen = true,
       IsAlwaysOnTop = false,
     };
+#endif
   }
 
   public NoteSearchDocumentDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()

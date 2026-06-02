@@ -11,6 +11,7 @@ using MyNotes.Services.Commands;
 using MyNotes.Shared.Constants;
 using MyNotes.Helpers;
 using MyNotes.Shared.Enums.Settings;
+using MyNotes.Constants;
 
 namespace MyNotes.ViewModels.Navigations;
 
@@ -64,7 +65,7 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
 
   private void SetIconImage() => IconImage = IconHelper.GetIconImage((int)Navigation.Icon);
 
-  public override Command<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public override AsyncCommand<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
   public override Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
   public override Command<NavigationUserNode> UpdateCommand => NavigationCommandService.UpdateCommand;
   public override Command<NavigationUserNode> DeleteCommand => NavigationCommandService.DeleteCommand;

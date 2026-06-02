@@ -3,26 +3,28 @@
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Common.Commands;
-using MyNotes.Models.Media;
-using MyNotes.Services.App;
-using MyNotes.ViewModels.Media.Providers;
-using MyNotes.Shared.Constants;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Models.Media;
+using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
+using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
   private readonly ImageViewModelProvider ImageViewModelProvider;
-  private readonly WindowService WindowService;
+  private readonly NoteWindowService NoteWindowService;
+  private readonly ImageViewerWindowService ImageViewerWindowService;
 
   private ImageCollectionKey ImageCollectionKey { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, WindowService windowService, ImageCollectionKey imageCollectionKey)
+  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey imageCollectionKey)
   {
     ImageViewModelProvider = imageViewModelProvider;
-    WindowService = windowService;
+    NoteWindowService = noteWindowService;
+    ImageViewerWindowService = imageViewerWindowService;
 
     ImageCollectionKey = imageCollectionKey;
 
@@ -51,7 +53,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteAction = async (noteId) =>
       {
-        if (WindowService.TryGetNoteWindowInfo(noteId, out _, out var appWindow))
+        if (NoteWindowService.TryGetNoteWindowInfo(noteId, out _, out var appWindow))
         {
           FileOpenPicker picker = new(appWindow.OwnerWindowId)
           {
@@ -95,7 +97,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteAction = async (imageViewModel) =>
       {
-        var imageViewerWindow = await WindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
         imageViewerWindow.Activate();
         if (ImageViewModels.Contains(imageViewModel))
         {

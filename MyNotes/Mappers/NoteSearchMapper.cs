@@ -1,5 +1,5 @@
-﻿using MyNotes.Models.Notes;
-using MyNotes.Services.Search.Entities;
+﻿using MyNotes.Infrastructure.Search.Documents.Notes;
+using MyNotes.Models.Notes;
 
 namespace MyNotes.Mappers;
 

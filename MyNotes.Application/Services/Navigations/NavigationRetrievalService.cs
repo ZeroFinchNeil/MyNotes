@@ -13,10 +13,4 @@ internal sealed partial class NavigationRetrievalService
   {
     NavigationRepository = navigationRepository;
   }
-
-  public async Task<GetUserNavigationFieldValuesAppResponseDto> FindUserNavigationAsync(FindUserNavigationsAppQuery findUserNavigationsAppQuery)
-  {
-    FindUserNavigationsDbQuery query = UserNavigationMappers.ToDbQuery(findUserNavigationsAppQuery);
-    return UserNavigationMappers.ToAppDto(await NavigationRepository.GetUserNavigationFieldsAsync(query));
-  }
 }

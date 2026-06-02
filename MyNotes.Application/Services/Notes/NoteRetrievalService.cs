@@ -24,8 +24,8 @@ internal sealed partial class NoteRetrievalService
 
   public async Task<NoteAppResponseDto?> GetNoteAsync(NoteId noteId)
   {
-    return await NoteRepository.GetNoteAsync(noteId) is CreateNoteDbRequestDto noteDbDto
-      && await NoteRepository.GetNoteViewStateDtoAsync(noteId) is CreateNoteViewStateDbRequestDto noteViewStateDto
+    return await NoteRepository.GetNoteAsync(noteId) is NoteDbResponseDto noteDbDto
+      && await NoteRepository.GetNoteViewStateDtoAsync(noteId) is NoteViewStateDbResponseDto noteViewStateDto
       ? NoteMappers.ToAppDto(noteDbDto, noteViewStateDto)
       : null;
   }
@@ -44,7 +44,7 @@ internal sealed partial class NoteRetrievalService
   public async Task<IReadOnlyList<NoteAppResponseDto>> SearchNotesAsync()
   {
     List<NoteAppResponseDto> noteDtos = new();
-    NoteSearcher.
+    //NoteSearcher.
     return noteDtos.AsReadOnly();
   }
 }

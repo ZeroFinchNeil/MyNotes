@@ -2,22 +2,19 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Contracts.Database.Repositories.Notes;
+using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
-using MyNotes.Shared.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
-using MyNotes.Infrastructure.Database.Repositories;
 using MyNotes.Infrastructure.Logging;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Services;
+using MyNotes.Services.Commands;
+using MyNotes.Services.Dialogs;
+using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
-using MyNotes.ViewModels;
-using MyNotes.ViewModels.Dialogs;
-using MyNotes.ViewModels.Media.Providers;
-using MyNotes.ViewModels.Navigations.Providers;
-using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
 
 namespace MyNotes;
 
@@ -43,8 +40,8 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
     _ = appInitializeScope.ServiceProvider.GetRequiredService<AppDbContextInitializer>();
     _ = appInitializeScope.ServiceProvider.GetRequiredService<AppSearchContext>();
 
-    var navigationTreeService = appInitializeScope.ServiceProvider.GetRequiredService<NavigationTreeService>();
-    await navigationTreeService.InitializationTask;
+    var navigationController = appInitializeScope.ServiceProvider.GetRequiredService<NavigationController>();
+    await navigationController.InitializationTask;
 
     var noteService = appInitializeScope.ServiceProvider.GetRequiredService<NoteService>();
     await noteService.InitializationTask;
@@ -60,7 +57,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
     await InitializationTask;
 
     _ = LaunchArgumentsPipeServerStreamAsync();
-    var windowService = Services.GetRequiredService<WindowService>();
+    var mainWindowService = Services.GetRequiredService<MainWindowService>();
     var noteService = Services.GetRequiredService<NoteService>();
     var settingsService = Services.GetRequiredService<SettingsService>();
 
@@ -71,7 +68,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
         var noteWindowsCount = await noteService.OpenNoteWindowsForOpenEntities();
         if (noteWindowsCount == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
         {
-          var mainWindow = await windowService.GetOrCreateMainWindow();
+          var mainWindow = await mainWindowService.GetOrCreate();
           mainWindow.Activate();
         }
         break;
@@ -176,7 +173,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 
       using StreamReader sr = new(pipeServerStream);
 
-      var windowService = Services.GetRequiredService<WindowService>();
+      var mainWindowService = Services.GetRequiredService<MainWindowService>();
 
       string? arg;
       while ((arg = sr.ReadLine()?.Trim()) is not null)
@@ -185,14 +182,14 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
         switch (arg)
         {
           case AppStrings.LaunchArgument_JumpList_MainWindow:
-            (await windowService.GetOrCreateMainWindow(NavigationId.Home)).Activate();
+            (await mainWindowService.GetOrCreate(NavigationId.Home)).Activate();
             break;
           case AppStrings.LaunchArgument_JumpList_NewNote:
             var noteCommandService = Services.GetRequiredKeyedService<ICommandService>(CommandServiceType.Note) as NoteCommandService;
             noteCommandService?.CreateNewNoteCommand.Execute(null);
             break;
           case AppStrings.LaunchArgument_JumpList_Settings:
-            (await windowService.GetOrCreateMainWindow(NavigationId.Settings)).Activate();
+            (await mainWindowService.GetOrCreate(NavigationId.Settings)).Activate();
             break;
         }
       }

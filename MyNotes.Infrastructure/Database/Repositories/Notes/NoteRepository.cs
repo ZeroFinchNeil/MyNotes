@@ -35,21 +35,34 @@ internal class NoteRepository : INoteRepository
 
     return noteId;
   }
+  Task<NoteDbResponseDto> INoteRepository.AddNoteAsync(CreateNoteDbRequestDto noteDbDto)
+  {
+    throw new System.NotImplementedException();
+  }
+
+  Task<NoteViewStateDbResponseDto> INoteRepository.AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto)
+  {
+    throw new System.NotImplementedException();
+  }
 
   public async Task<NoteDbResponseDto?> GetNoteAsync(NoteId noteId)
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    return await context.NoteEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteEntity entity
-      ? NoteMappers.ToDto(entity)
-      : null;
+    throw new System.NotImplementedException();
+
+    //await using var context = await DbContextFactory.CreateDbContextAsync();
+    //return await context.NoteEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteEntity entity
+    //  ? NoteMappers.ToDto(entity)
+    //  : null;
   }
 
   public async Task<NoteViewStateDbResponseDto?> GetNoteViewStateDtoAsync(NoteId noteId)
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    return await context.NoteViewStateEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteViewStateEntity entity
-      ? NoteMappers.ToDto(entity)
-      : null;
+    throw new System.NotImplementedException();
+
+    //await using var context = await DbContextFactory.CreateDbContextAsync();
+    //return await context.NoteViewStateEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteViewStateEntity entity
+    //  ? NoteMappers.ToDto(entity)
+    //  : null;
   }
 
   public Task<IReadOnlyList<NoteDbAggregateResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery)
@@ -89,4 +102,5 @@ internal class NoteRepository : INoteRepository
   {
     throw new System.NotImplementedException();
   }
+
 }

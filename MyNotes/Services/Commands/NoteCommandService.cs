@@ -184,16 +184,17 @@ internal sealed class NoteCommandService : ICommandService
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
           var deleteMode = DeleteMode.MoveToTrash;
-          var result = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, deleteMode);
-          if (result.ContentDialogResult == ContentDialogResult.Primary)
+          var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, deleteMode);
+          if (dialogResponse.Result == ContentDialogResult.Primary)
           {
-            switch (result.DeleteMode)
+            switch (dialogResponse.Data)
             {
               case DeleteMode.MoveToTrash:
                 break;
               case DeleteMode.Permanent:
-                await NoteService.DeleteNotePermanentlyAsync(noteModel.Id);
-                break;
+                throw new NotImplementedException("완전 삭제 기능 구현");
+                //await NoteService.DeleteNotePermanentlyAsync(noteModel.Id);
+                //break;
             }
 
             noteModel.IsDeleted = true;

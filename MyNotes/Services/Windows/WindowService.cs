@@ -9,34 +9,35 @@ internal class WindowService : IWindowService
 {
   public bool TryGetFocusedWindow([NotNullWhen(true)] out Window? focusedWindow, out IntPtr hWnd)
   {
-    focusedWindow = null;
-    IntPtr systemWindowHandle = NativeMethods.GetForegroundWindow();
-    hWnd = IntPtr.Zero;
+    throw new NotImplementedException();
+    //focusedWindow = null;
+    //IntPtr systemWindowHandle = NativeMethods.GetForegroundWindow();
+    //hWnd = IntPtr.Zero;
 
-    if (systemWindowHandle != IntPtr.Zero)
-    {
-      if (TryGetCurrentMainWindow(out var mainWindow)
-        && WindowNative.GetWindowHandle(mainWindow) == systemWindowHandle)
-      {
-        focusedWindow = mainWindow;
-        hWnd = systemWindowHandle;
-        return true;
-      }
+    //if (systemWindowHandle != IntPtr.Zero)
+    //{
+    //  if (TryGetCurrentMainWindow(out var mainWindow)
+    //    && WindowNative.GetWindowHandle(mainWindow) == systemWindowHandle)
+    //  {
+    //    focusedWindow = mainWindow;
+    //    hWnd = systemWindowHandle;
+    //    return true;
+    //  }
 
-      foreach (var wr in NoteWindowTable.Values)
-      {
-        if (wr.TryGetTarget(out var noteWindow)
-          && !noteWindow.IsClosed
-          && WindowNative.GetWindowHandle(noteWindow) == systemWindowHandle)
-        {
-          focusedWindow = noteWindow;
-          hWnd = systemWindowHandle;
-          return true;
-        }
-      }
-    }
+    //  foreach (var wr in NoteWindowTable.Values)
+    //  {
+    //    if (wr.TryGetTarget(out var noteWindow)
+    //      && !noteWindow.IsClosed
+    //      && WindowNative.GetWindowHandle(noteWindow) == systemWindowHandle)
+    //    {
+    //      focusedWindow = noteWindow;
+    //      hWnd = systemWindowHandle;
+    //      return true;
+    //    }
+    //  }
+    //}
 
-    return false;
+    //return false;
   }
 
   public PointInt32 GetPosition(SizeInt32 windowSize)

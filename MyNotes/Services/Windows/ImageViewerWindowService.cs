@@ -1,4 +1,12 @@
-﻿using MyNotes.Application.Contracts.Windows;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using Microsoft.UI.Content;
+
+using MyNotes.Application.Contracts.Windows;
+using MyNotes.ViewModels.Media.Providers;
+using MyNotes.Views.Windows;
+
+using WinRT.Interop;
 
 namespace MyNotes.Services.Windows;
 
@@ -68,7 +76,8 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
     }
     catch (Exception e)
     {
-      LoggingService.Write(e);
+      throw new NotImplementedException("이미지 로딩 오류 시 예외 구현");
+      //LoggingService.Write(e);
     }
 
     return hWnd != IntPtr.Zero && appWindow is not null;
@@ -83,5 +92,4 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
     }
     return false;
   }
-
 }

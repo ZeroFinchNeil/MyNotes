@@ -5,15 +5,20 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
+
+using MyNotes.Application.Services.Notes;
+using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
-using MyNotes.Helpers;
+using MyNotes.Constants;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Services.App;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Notes;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.ViewModels.Notes;
@@ -23,9 +28,6 @@ using MyNotes.Views.Windows;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
 using Windows.System;
-using MyNotes.Shared.Constants;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Views.Notes;
 
@@ -39,7 +41,7 @@ internal sealed partial class NotePage : Page
   private readonly NoteEditorViewModel EditorViewModel;
   private readonly ImageCollectionViewModel ImageCollectionViewModel;
   private readonly SettingsService SettingsService;
-  private readonly WindowService WindowService;
+  private readonly NoteWindowService NoteWindowService;
 
   #region Object Lifetime Management
   internal NotePage(NoteWindow noteWindow, NoteModel note)
@@ -61,7 +63,7 @@ internal sealed partial class NotePage : Page
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
 
     SettingsService = App.Services.GetRequiredService<SettingsService>();
-    WindowService = App.Services.GetRequiredService<WindowService>();
+    NoteWindowService = App.Services.GetRequiredService<NoteWindowService>();
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
     SetEditorText();
@@ -80,7 +82,7 @@ internal sealed partial class NotePage : Page
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
+    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
     {
       appWindow.Changed += AppWindow_Changed;
 
@@ -184,7 +186,7 @@ partial class NotePage
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -288,7 +290,7 @@ partial class NotePage
   private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is MenuFlyoutItem item
-      && WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+      && NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       (string Extension, string Kind)? fileType = item.Tag switch
       {
@@ -365,7 +367,7 @@ partial class NotePage
 
   private async void NotePage_BrowseButton_Click(object sender, RoutedEventArgs e)
   {
-    if (WindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       FileOpenPicker picker = new(appWindow.Id);
       var result = await picker.PickSingleFileAsync();

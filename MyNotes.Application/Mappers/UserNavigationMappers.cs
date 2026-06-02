@@ -9,6 +9,7 @@ namespace MyNotes.Application.Mappers;
 
 internal static class UserNavigationMappers
 {
+#if false
   public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto) => userNavigationDbResponseDto.IsComposite
     ? new UserCompositeNavigationAppResponseDto()
     {
@@ -17,7 +18,9 @@ internal static class UserNavigationMappers
       Icon = (Icon)userNavigationDbResponseDto.Icon,
       Title = userNavigationDbResponseDto.Title,
       Position = userNavigationDbResponseDto.Position,
+      IsDeleted = userNavigationDbResponseDto.IsDeleted,
       Children = [],
+      IsExpanded = 
     }
     : new UserLeafNavigationAppResponseDto()
     {
@@ -25,8 +28,20 @@ internal static class UserNavigationMappers
       Parent = userNavigationDbResponseDto.Parent,
       Icon = (Icon)userNavigationDbResponseDto.Icon,
       Title = userNavigationDbResponseDto.Title,
-      Position = userNavigationDbResponseDto.Position
+      Position = userNavigationDbResponseDto.Position,
+      IsDeleted = userNavigationDbResponseDto.IsDeleted,
+      NoteSortKey = ,
+      NoteSortDirection = ,
+      PreviewLayoutType = ,
+      PreviewTileSize = ,
+      PreviewTileRatio = ,
     };
+#endif
+
+  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto)
+  {
+    throw new NotImplementedException();
+  }
 
   public static GetUserNavigationFieldValuesAppResponseDto ToAppDto(GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbDto)
   {

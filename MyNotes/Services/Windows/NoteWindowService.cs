@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using Microsoft.UI.Content;
+
 using MyNotes.Application.Contracts.Windows;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;

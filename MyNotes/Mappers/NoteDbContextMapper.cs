@@ -1,19 +1,18 @@
 ﻿using System.Text.Json;
 
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Models.Media;
 using MyNotes.Models.Notes;
-using MyNotes.Repositories.Database.Entities;
-using MyNotes.Services.Search.Entities;
-using MyNotes.ViewModels.Media;
-using MyNotes.ViewModels.Media.Providers;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Mappers;
 
+[Obsolete]
 internal static class NoteDbContextMapper
 {
+#if false
   private static readonly ImmutableDictionary<string, Func<NoteModel, Action<NoteEntity>>> _notePropertyToEntityActions = ImmutableDictionary.CreateRange(new Dictionary<string, Func<NoteModel, Action<NoteEntity>>>()
   {
     { nameof(NoteModel.NavigationId), note => e => e.Parent = note.NavigationId.Value },
@@ -130,4 +129,5 @@ internal static class NoteDbContextMapper
   {
     public NoteEntity ToEntity() => NoteToEntity(note);
   }
+#endif
 }

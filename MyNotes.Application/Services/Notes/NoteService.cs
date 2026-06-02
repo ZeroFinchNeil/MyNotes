@@ -17,14 +17,11 @@ internal sealed partial class NoteService : IDisposable
   public Task InitializationTask => InitializationTCS.Task;
 
   #region Object Lifetime Management
-  public NoteService(INoteRepository noteRepository, SettingsService settingsService, WindowService windowService, SearchService searchService, ImageViewModelProvider imageViewModelProvider, NoteCreationService noteCreationService, NoteRetrievalService noteRetrievalService, NoteModificationService noteModificationService)
+  public NoteService(INoteRepository noteRepository, SettingsService settingsService, NoteCreationService noteCreationService, NoteRetrievalService noteRetrievalService, NoteModificationService noteModificationService)
   {
     // DI
     NoteRepository = noteRepository;
     SettingsService = settingsService;
-    WindowService = windowService;
-    SearchService = searchService;
-    ImageViewModelProvider = imageViewModelProvider;
 
     Creation = noteCreationService;
     Retrieval = noteRetrievalService;
@@ -35,15 +32,16 @@ internal sealed partial class NoteService : IDisposable
 
   private async Task InitializeAsync()
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    var entities = context.NoteEntities.Where(e => e.Parent == NavigationId.Empty.Value);
-    foreach (var id in entities.Select(e => e.Id))
-    {
-      await SearchService.DeleteNoteIndexAsync(id);
-    }
-    context.NoteEntities.RemoveRange(entities);
+    //await using var context = await DbContextFactory.CreateDbContextAsync();
+    //var entities = context.NoteEntities.Where(e => e.Parent == NavigationId.Empty.Value);
+    //foreach (var id in entities.Select(e => e.Id))
+    //{
+    //  await SearchService.DeleteNoteIndexAsync(id);
+    //}
+    //context.NoteEntities.RemoveRange(entities);
 
-    InitializationTCS.TrySetResult();
+    //InitializationTCS.TrySetResult();
+    throw new NotImplementedException();
   }
 
   public bool Disposed { get; private set; }
@@ -63,18 +61,20 @@ internal sealed partial class NoteService : IDisposable
 
   public async Task<int> OpenNoteWindowsForOpenEntities()
   {
-    int result = 0;
-    foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
-    {
-      await OpenNoteWindow(note);
-      result++;
-    }
-    return result;
+    //int result = 0;
+    //foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
+    //{
+    //  await OpenNoteWindow(note);
+    //  result++;
+    //}
+    //return result;
+    throw new NotImplementedException();
   }
 
-  public Task CommitSearchIndexAsync() => SearchService.CommitAsync();
+  public Task CommitSearchIndexAsync() => throw new NotImplementedException();
 }
 
+#if false
 #region Create (Add)
 partial class NoteService
 {
@@ -165,3 +165,4 @@ partial class NoteService
   private readonly Dictionary<NoteId, WeakReference<Note>> NoteCache = new();
 }
 #endregion
+#endif

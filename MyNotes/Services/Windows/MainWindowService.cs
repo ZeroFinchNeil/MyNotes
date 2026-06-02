@@ -3,6 +3,7 @@
 using Microsoft.UI.Content;
 
 using MyNotes.Application.Contracts.Windows;
+using MyNotes.Application.Services.Logging;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Views.Windows;
 

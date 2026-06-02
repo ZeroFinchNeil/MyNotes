@@ -17,9 +17,9 @@ internal interface INoteRepository
 
   public Task<IReadOnlyList<NoteDbAggregateResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery);
 
-  public Task AddNoteAsync(CreateNoteDbRequestDto noteDbDto);
+  public Task<NoteDbResponseDto> AddNoteAsync(CreateNoteDbRequestDto noteDbDto);
 
-  public Task AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto);
+  public Task<NoteViewStateDbResponseDto> AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto);
 
   public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true);
 
