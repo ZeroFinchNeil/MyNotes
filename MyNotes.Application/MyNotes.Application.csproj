@@ -14,6 +14,14 @@
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Validators\**" />
+    <Content Remove="Validators\**" />
+    <EmbeddedResource Remove="Validators\**" />
+    <None Remove="Validators\**" />
+    <Page Remove="Validators\**" />
+    <PRIResource Remove="Validators\**" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.7" />
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.1721" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260416003" />
@@ -24,10 +32,6 @@
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
     <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Validators\Notes\" />
-    <Folder Include="Validators\Navigations\" />
   </ItemGroup>
   
 </Project>

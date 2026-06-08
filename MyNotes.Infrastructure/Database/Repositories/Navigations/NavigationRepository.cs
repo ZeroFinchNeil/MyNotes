@@ -30,40 +30,69 @@ internal class NavigationRepository : INavigationRepository
     DbContextFactory = dbContextFactory;
   }
 
-  public Task<IReadOnlyList<UserNavigationDbAggregateResponseDto>> GetAllUserNavigationsAsync()
+  public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync()
   {
-    throw new NotImplementedException();
-  }
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync();
+    var userNavigationEntities = await context.UserNavigationEntities.AsNoTracking().ToListAsync();
+    var navigationIds = userNavigationEntities.Select(e => e.Id).ToHashSet();
+    var compositeViewStateEntitiesById = await context.UserCompositeNavigationViewStateEntity
+      .AsNoTracking()
+      .Where(e => navigationIds.Contains(e.Id))
+      .ToDictionaryAsync(e => e.Id);
+    var leafViewStateEntitiesById = await context.UserLeafNavigationViewStateEntity
+      .AsNoTracking()
+      .Where(e => navigationIds.Contains(e.Id))
+      .ToDictionaryAsync(e => e.Id);
 
-  public async Task<UserNavigationDbAggregateResponseDto?> GetUserNavigationByIdAsync(NavigationId id)
-  {
-    AppDbContext context = await DbContextFactory.CreateDbContextAsync();
-      
-    if (await context.NavigationEntities.FirstOrDefaultAsync(e => e.Id == id.Value) is UserNavigationEntity userNavigationEntity)
+    return [.. userNavigationEntities.Select(userNavigationEntity =>
     {
-      UserNavigationDbResponseDto userNavigationDbResponseDto = NavigationMappers.ToDto(userNavigationEntity);
-      UserNavigationViewStateDbResponseDto? userNavigationViewStateDbResponseDto = null;
-
-      if (userNavigationEntity.IsComposite)
-      {
-        if (await context.UserCompositeNavigationViewStateEntity.FirstOrDefaultAsync(e => e.Id == id.Value) is UserCompositeNavigationViewStateEntity userCompositeNavigationViewStateEntity)
-        {
-          userNavigationViewStateDbResponseDto = NavigationMappers.ToDto(userCompositeNavigationViewStateEntity);
-        }
-      }
-      else
-      {
-        if (await context.UserLeafNavigationViewStateEntity.FirstOrDefaultAsync(e => e.Id == id.Value) is UserLeafNavigationViewStateEntity userLeafNavigationViewStateEntity)
-        {
-          userNavigationViewStateDbResponseDto = NavigationMappers.ToDto(userLeafNavigationViewStateEntity);
-        }
-      }
-    }
+      UserNavigationDbResponseDto userNavigationDbResponseDto = UserNavigationMappers.ToDto(userNavigationEntity);
+      UserNavigationViewStateDbResponseDto? userNavigationViewStateDbResponseDto = userNavigationEntity.IsComposite
+        ? compositeViewStateEntitiesById.TryGetValue(userNavigationEntity.Id, out var compositeViewStateEntity)
+          ? UserNavigationMappers.ToDto(compositeViewStateEntity)
+          : null
+        : leafViewStateEntitiesById.TryGetValue(userNavigationEntity.Id, out var leafViewStateEntity)
+          ? UserNavigationMappers.ToDto(leafViewStateEntity)
+          : null;
+      return userNavigationViewStateDbResponseDto is not null
+        ? new UserNavigationBundleDbResponseDto(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto)
+        : null;
+    }).OfType<UserNavigationBundleDbResponseDto>()];
   }
 
-  public Task<NavigationId> GenerateUniqueUserNavigationIdAsync()
+  public async Task<UserNavigationBundleDbResponseDto?> GetUserNavigationByIdAsync(NavigationId id)
   {
-    throw new NotImplementedException();
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync();
+
+    if (await context.UserNavigationEntities.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id.Value) is UserNavigationEntity userNavigationEntity)
+    {
+      UserNavigationDbResponseDto userNavigationDbResponseDto = UserNavigationMappers.ToDto(userNavigationEntity);
+      UserNavigationViewStateDbResponseDto? userNavigationViewStateDbResponseDto = userNavigationEntity.IsComposite
+        ? await context.UserCompositeNavigationViewStateEntity.AsNoTracking().FirstOrDefaultAsync(e => e.Id == userNavigationEntity.Id) is UserCompositeNavigationViewStateEntity compositeViewStateEntity
+          ? UserNavigationMappers.ToDto(compositeViewStateEntity)
+          : null
+        : await context.UserLeafNavigationViewStateEntity.AsNoTracking().FirstOrDefaultAsync(e => e.Id == userNavigationEntity.Id) is UserLeafNavigationViewStateEntity leafViewStateEntity
+          ? UserNavigationMappers.ToDto(leafViewStateEntity)
+          : null;
+      return userNavigationViewStateDbResponseDto is not null
+        ? new UserNavigationBundleDbResponseDto(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto)
+        : null;
+    }
+
+    return null;
+  }
+
+  public async Task<NavigationId> GenerateUniqueUserNavigationIdAsync()
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+
+    NavigationId navigationId;
+    do
+    {
+      navigationId = NavigationId.NewId();
+    } while (await context.UserNavigationEntities.AnyAsync(e => e.Id == navigationId.Value));
+
+    return navigationId;
   }
 
   public Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto)
@@ -71,7 +100,7 @@ internal class NavigationRepository : INavigationRepository
     throw new NotImplementedException();
   }
 
-  public Task<UserNavigationDbAggregateResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto)
+  public Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto)
   {
     throw new NotImplementedException();
   }
@@ -120,10 +149,10 @@ internal class NavigationRepository : INavigationRepository
 
     try
     {
-      var sourceEntity = await context.NavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == sourceId)
+      var sourceEntity = await context.UserNavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == sourceId)
         ?? throw new InvalidOperationException($"Source Navigation을 찾을 수 없습니다. Id={sourceId}");
 
-      var targetEntity = await context.NavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == targetId)
+      var targetEntity = await context.UserNavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == targetId)
         ?? throw new InvalidOperationException($"Target Navigation을 찾을 수 없습니다. Id={targetId}");
 
       Guid oldSourceParent = sourceEntity.Parent;
@@ -139,7 +168,7 @@ internal class NavigationRepository : INavigationRepository
       // 2. ToListAsync로 생성한 조회 결과 목록이므로 컬렉션 항목의 추가/제거/삽입은 DB 변경과 무관함
       // 3. AsNoTracking으로 조회한 Entity들이므로 각 Entity의 속성 변경도 자동으로 DB에 반영되지 않음
       // 4. DB 반영은 이후 명시적인 업데이트 로직에서 반영해야 함(ExecuteUpdateAsync 사용)
-      List<UserNavigationEntity> siblingEntities = await context.NavigationEntities
+      List<UserNavigationEntity> siblingEntities = await context.UserNavigationEntities
         .AsNoTracking()
         .Where(e => e.Parent == newSourceParent)
         .OrderBy(e => e.Position)
@@ -169,7 +198,7 @@ internal class NavigationRepository : INavigationRepository
 
       sourceEntity.Parent = newSourceParent;
       sourceEntity.Position = TemporarySourcePosition;
-      int sourceTemporaryMoveRows = await context.NavigationEntities
+      int sourceTemporaryMoveRows = await context.UserNavigationEntities
         .Where(e => e.Id == sourceEntity.Id
                     && e.Parent == oldSourceParent
                     && e.Position == oldSourcePosition)
@@ -227,7 +256,7 @@ internal class NavigationRepository : INavigationRepository
       }
 
       // sourceEntity의 정상 Position 반영
-      var sourceFinalMoveRows = await context.NavigationEntities
+      var sourceFinalMoveRows = await context.UserNavigationEntities
         .Where(e => e.Id == sourceEntity.Id
                     && e.Parent == newSourceParent
                     && e.Position == TemporarySourcePosition)
@@ -260,7 +289,7 @@ internal class NavigationRepository : INavigationRepository
         {
           throw new InvalidOperationException($"Navigation의 원래 Position을 찾을 수 없습니다. Id={siblingEntity.Id}, Parent={newSourceParent}");
         }
-        int affectedRows = await context.NavigationEntities
+        int affectedRows = await context.UserNavigationEntities
           .Where(e => e.Id == siblingEntity.Id
                       && e.Parent == newSourceParent
                       && e.Position == affectedEntityOriginalPosition)
@@ -292,7 +321,7 @@ internal class NavigationRepository : INavigationRepository
   }
 
   private static async Task<bool> EnsureTemporarySourceSlotIsAvailableAsync(AppDbContext context, Guid parentId) =>
-    !await context.NavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == TemporarySourcePosition);
+    !await context.UserNavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == TemporarySourcePosition);
 
   private const int DefaultPositionStep = 1024;
   private const int MaxPositionStep = 4096;
