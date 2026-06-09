@@ -1,4 +1,5 @@
-﻿using MyNotes.Application.Services.Navigations;
+﻿using MyNotes.Application.Dtos.Navigations.Common;
+using MyNotes.Application.Services.Navigations;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Services.Navigations;
@@ -8,7 +9,7 @@ internal sealed partial class NavigationController : IDisposable
   public readonly NavigationService NavigationService;
 
   public ImmutableList<INavigation> PrimaryCoreNavigations { get; } = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
-  public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
+  public NavigationUserRootNode UserRootNavigation { get; } = new();
   public ImmutableList<INavigation> SecondaryCoreNavigations { get; } = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
   public IReadOnlyList<NavigationUserNode> UserCompositeNavigations => UserRootNavigation.FindDescendants(node => node is NavigationUserCompositeNode, true);
   public IReadOnlyList<NavigationUserNode> UserLeafNavigations => UserRootNavigation.FindDescendants(node => node is NavigationUserLeafNode, false);
@@ -25,7 +26,11 @@ internal sealed partial class NavigationController : IDisposable
 
   private async Task InitializeAsync()
   {
-    await NavigationService.Tree.BuildNavigationTreeAsync();
+    var rootBundleAppResponseDto = await NavigationService.Tree.BuildNavigationTreeAsync();
+    foreach (var childDto in rootBundleAppResponseDto.Children)
+    {
+      UserRootNavigation.ChildNodes.Add(ToNode(childDto, UserRootNavigation));
+    }
     InitializationTCS.TrySetResult();
   }
 
@@ -43,6 +48,37 @@ internal sealed partial class NavigationController : IDisposable
     Disposed = true;
   }
   #endregion
+
+  private NavigationUserNode ToNode(UserNavigationBundleAppResponseDto dto, NavigationUserCompositeNode parentNode) => dto switch
+  {
+    UserCompositeNavigationBundleAppResponseDto compositeDto => ToCompositeNode(compositeDto, parentNode),
+    UserLeafNavigationBundleAppResponseDto leafDto => ToLeafNode(leafDto, parentNode),
+    _ => throw new InvalidOperationException($"지원하지 않는 navigation DTO 타입입니다: {dto.GetType().Name}")
+  };
+
+  private NavigationUserCompositeNode ToCompositeNode(UserCompositeNavigationBundleAppResponseDto compositeDto, NavigationUserCompositeNode parentNode)
+  {
+    NavigationUserCompositeNode compositeNode = new()
+    {
+      Id = compositeDto.Id,
+      Parent = parentNode,
+      Icon = compositeDto.UserNavigationDto.Icon,
+      Title = compositeDto.UserNavigationDto.Title,
+    };
+    foreach (var childDto in compositeDto.Children)
+    {
+      compositeNode.ChildNodes.Add(ToNode(childDto, compositeNode));
+    }
+    return compositeNode;
+  }
+
+  private NavigationUserLeafNode ToLeafNode(UserLeafNavigationBundleAppResponseDto dto, NavigationUserCompositeNode parentNode) => new()
+  {
+    Id = dto.UserNavigationDto.Id,
+    Parent = parentNode,
+    Icon = dto.UserNavigationDto.Icon,
+    Title = dto.UserNavigationDto.Title,
+  };
 
   public INavigation? CurrentNavigation
   {
