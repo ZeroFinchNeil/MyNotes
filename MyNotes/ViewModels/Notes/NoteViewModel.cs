@@ -85,6 +85,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
+#if false
     _notePropertyDebounceTimer.Start();
 
     // 뷰에 반영(TwoWay 바인딩 시) 
@@ -131,18 +132,28 @@ internal sealed partial class NoteViewModel : ViewModelBase
     {
       _changedNoteProperties.Add(e.PropertyName);
     }
+#endif
+    throw new NotImplementedException();
+
   }
 
   private async void NotePropertyChangedDebounceTimer_Elapsed(object? sender, System.Timers.ElapsedEventArgs e) => await UpdateNoteEntity();
 
   public async Task UpdateNoteEntity()
   {
+#if false
     await NoteService.UpdateNoteEntityAsync(Note, _changedNoteProperties);
     _changedNoteProperties.Clear();
+#endif
+    throw new NotImplementedException();
+
   }
   #endregion
 
+#if false
   public Task<bool> DeleteNoteEntity() => NoteService.DeleteNotePermanentlyAsync(Note.Id);
+
+#endif
 
   private readonly RichEditBox _previewRichEditBox = new();
   private string GetPreview(string body, int start, int end)

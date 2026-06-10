@@ -23,17 +23,15 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 {
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
-  private readonly SearchService SearchService;
   private readonly NoteWindowService NoteWindowService;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(SettingsService settingsService, NoteService noteService, SearchService searchService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
-    SearchService = searchService;
     NoteWindowService = noteWindowService;
     NoteViewModelProvider = noteViewModelProvider;
 
@@ -228,6 +226,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   public async Task LoadNoteViewModels()
   {
+#if false
     NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
     switch (Navigation)
     {
@@ -274,6 +273,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
 
     NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
+#endif
+    throw new NotImplementedException();
+
   }
 
   private void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -439,6 +441,7 @@ partial class NoteListViewModel
     AddNoteCommand = new(
       executeAction: async () =>
       {
+#if false
         if (Navigation is NavigationUserLeafNode leaf
             && await NoteService.Creation.AddNoteAsync(leaf) is NoteModel note)
         {
@@ -447,6 +450,9 @@ partial class NoteListViewModel
 
           await NoteService.Retrieval.OpenNoteWindow(note);
         }
+#endif
+        throw new NotImplementedException();
+
       });
   }
 

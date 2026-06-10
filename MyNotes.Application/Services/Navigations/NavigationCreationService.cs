@@ -63,7 +63,7 @@ internal sealed partial class NavigationCreationService
       // UserNavigation Domain Entity로 변환하여 도메인 속성 유효성 검사
       UserNavigation userNavigation = new(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
 
-      UserNavigationBundleDbResponseDto dbAggregateResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
+      UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
       {
         Id = newNavigationId,
         InsertTargetId = insertTargetId,
@@ -73,12 +73,10 @@ internal sealed partial class NavigationCreationService
         Title = userNavigation.Title,
       });
 
-      UserNavigationDbResponseDto dbResponseDto = dbAggregateResponseDto.UserNavigationDto;
-      UserNavigationViewStateDbResponseDto viewStateDbResponseDto = dbAggregateResponseDto.ViewStateDto;
+      UserNavigationDbResponseDto dbResponseDto = bundleDbResponseDto.UserNavigationDto;
+      UserNavigationViewStateDbResponseDto viewStateDbResponseDto = bundleDbResponseDto.ViewStateDto;
 
-      return new(
-        userNavigationDto: UserNavigationMappers.ToAppDto(dbResponseDto),
-        viewStateDto: UserNavigationMappers.ToAppDto(viewStateDbResponseDto));
+      return UserNavigationMappers.BundleAppDto(UserNavigationMappers.ToAppDto(dbResponseDto), UserNavigationMappers.ToAppDto(viewStateDbResponseDto));
     }
 
     return null;

@@ -1,5 +1,6 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Dtos.Navigations.Creation;
 using MyNotes.Application.Dtos.Navigations.Modification;
@@ -33,11 +34,11 @@ internal sealed class NavigationCommandService : ICommandService
   public Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand { get; }
   public Command<NavigationUserNode> SetAsStartPageCommand { get; }
 
-  public NavigationCommandService(NavigationController navigationController, NavigationService navigationService, MainWindowService mainWindowService, DialogService dialogService)
+  public NavigationCommandService(NavigationController navigationController, NavigationService navigationService, IMainWindowService mainWindowService, DialogService dialogService)
   {
     NavigationController = navigationController;
     NavigationService = navigationService;
-    MainWindowService = mainWindowService;
+    MainWindowService = mainWindowService as MainWindowService;
     DialogService = dialogService;
 
     AddListCommand = new()

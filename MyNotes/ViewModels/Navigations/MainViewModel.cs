@@ -2,9 +2,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Dtos.Navigations;
-using MyNotes.Application.Enums.Navigations;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Structures;

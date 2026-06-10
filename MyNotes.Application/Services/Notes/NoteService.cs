@@ -32,16 +32,17 @@ internal sealed partial class NoteService : IDisposable
 
   private async Task InitializeAsync()
   {
-    //await using var context = await DbContextFactory.CreateDbContextAsync();
-    //var entities = context.NoteEntities.Where(e => e.Parent == NavigationId.Empty.Value);
-    //foreach (var id in entities.Select(e => e.Id))
-    //{
-    //  await SearchService.DeleteNoteIndexAsync(id);
-    //}
-    //context.NoteEntities.RemoveRange(entities);
+#if false
+    await using var context = await DbContextFactory.CreateDbContextAsync();
+    var entities = context.NoteEntities.Where(e => e.Parent == NavigationId.Empty.Value);
+    foreach (var id in entities.Select(e => e.Id))
+    {
+      await SearchService.DeleteNoteIndexAsync(id);
+    }
+    context.NoteEntities.RemoveRange(entities);
+#endif
 
-    //InitializationTCS.TrySetResult();
-    throw new NotImplementedException();
+    InitializationTCS.TrySetResult();
   }
 
   public bool Disposed { get; private set; }
@@ -61,14 +62,16 @@ internal sealed partial class NoteService : IDisposable
 
   public async Task<int> OpenNoteWindowsForOpenEntities()
   {
-    //int result = 0;
-    //foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
-    //{
-    //  await OpenNoteWindow(note);
-    //  result++;
-    //}
-    //return result;
-    throw new NotImplementedException();
+#if false
+    int result = 0;
+    foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
+    {
+      await OpenNoteWindow(note);
+      result++;
+    }
+    return result;
+#endif
+    return 0;
   }
 
   public Task CommitSearchIndexAsync() => throw new NotImplementedException();

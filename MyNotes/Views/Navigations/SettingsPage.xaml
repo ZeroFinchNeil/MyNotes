@@ -8,7 +8,7 @@
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:helpers="using:MyNotes.Common.Helpers"
-      xmlns:settingsEnums="using:MyNotes.Common.Enums.Settings">
+      xmlns:settingsEnums="using:MyNotes.Shared.Enums.Settings">
 
   <!--#region Resources -->
   <Page.Resources>

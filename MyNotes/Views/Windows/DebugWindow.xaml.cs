@@ -161,6 +161,7 @@ internal sealed partial class DebugWindow : Window
 
   private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)
   {
+#if false
     ContentDialog dialog = new()
     {
       XamlRoot = this.Content.XamlRoot,
@@ -176,10 +177,14 @@ internal sealed partial class DebugWindow : Window
       await using var context = await factory.CreateDbContextAsync();
       await context.Database.EnsureDeletedAsync();
     }
+#endif
+    throw new NotImplementedException();
+
   }
 
   private async void DebugWindow_CreateDatabaseButton_Click(object sender, RoutedEventArgs e)
   {
+#if false
     ContentDialog dialog = new()
     {
       XamlRoot = this.Content.XamlRoot,
@@ -195,6 +200,9 @@ internal sealed partial class DebugWindow : Window
       await using var context = await factory.CreateDbContextAsync();
       await context.Database.EnsureCreatedAsync();
     }
+#endif
+    throw new NotImplementedException();
+
   }
 
   private void DebugWindow_TrackFocusedElementToggleButton_Click(object sender, RoutedEventArgs e)
@@ -210,6 +218,7 @@ internal sealed partial class DebugWindow : Window
 
   private async void FocusManager_GotFocus(object? sender, FocusManagerGotFocusEventArgs e)
   {
+#if false
     StringBuilder sb = new();
     var mainWindowService = App.Services.GetRequiredService<MainWindowService>();
     if (mainWindowService.TryGetCurrentWindow(out var mainWindow)
@@ -240,6 +249,8 @@ internal sealed partial class DebugWindow : Window
     DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.DarkGray);
     await Task.Delay(500);
     DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.Transparent);
+#endif
+    throw new NotImplementedException();
   }
 
   private void DebugWindow_AlwaysOnTopToggleButton_Click(object sender, RoutedEventArgs e)

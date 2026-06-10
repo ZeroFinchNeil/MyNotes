@@ -63,5 +63,17 @@ internal static class UserNavigationMappers
   {
     throw new NotImplementedException();
   }
+
+  public static UserNavigationBundleDbResponseDto BundleDbDto(UserNavigationDbResponseDto userNavigationDbResponseDto, UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto)
+  {
+    // composite와 leaf 구성에 따라 달리 구현
+    throw new NotImplementedException();
+  }
+
+  public static UserNavigationBundleAppResponseDto BundleAppDto(UserNavigationAppResponseDto userNavigationAppResponseDto, UserNavigationViewStateAppResponseDto userNavigationViewStateAppResponseDto)
+  {
+    // composite와 leaf 구성에 따라 달리 구현
+    throw new NotImplementedException();
+  }
 }
 

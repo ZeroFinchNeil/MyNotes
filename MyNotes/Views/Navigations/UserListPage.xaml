@@ -5,8 +5,8 @@
       xmlns:notes="using:MyNotes.Models.Notes"
       xmlns:templates="using:MyNotes.Templates"
       xmlns:collections="using:MyNotes.Common.Collections"
-      xmlns:noteEnums="using:MyNotes.Common.Enums.Notes"
-      xmlns:navEnums="using:MyNotes.Common.Enums.Navigations">
+      xmlns:noteEnums="using:MyNotes.Shared.Enums.Notes"
+      xmlns:navEnums="using:MyNotes.Shared.Enums.Navigations">
 
   <Grid>
     <Grid.RowDefinitions>

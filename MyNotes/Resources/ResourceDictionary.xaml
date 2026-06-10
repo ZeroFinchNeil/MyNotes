@@ -5,8 +5,8 @@
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates"
                     xmlns:collections="using:MyNotes.Common.Collections"
-                    xmlns:notes="using:MyNotes.Models.Notes"
-                    xmlns:navigations="using:MyNotes.Models.Navigations">
+                    xmlns:notes="using:MyNotes.Shared.Enums.Notes"
+                    xmlns:navigations="using:MyNotes.Shared.Enums.Navigations">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="ms-appx:///MyNotes.Templates/Themes/Generic.xaml" />
   </ResourceDictionary.MergedDictionaries>

@@ -4,6 +4,7 @@ using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
+using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Infrastructure.Database.Core;
@@ -13,6 +14,7 @@ using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Media.Providers;
@@ -25,6 +27,13 @@ internal static class ServiceCollectionExtension
 {
   extension(IServiceCollection services)
   {
+    public void AddWindowServices()
+    {
+      services.AddSingleton<IMainWindowService, MainWindowService>();
+      services.AddSingleton<INoteWindowService, NoteWindowService>();
+      services.AddSingleton<IImageViewerWindowService, ImageViewerWindowService>();
+    }
+
     public void AddNoteServices()
     {
       services.AddSingleton<INoteRepository, NoteRepository>();
@@ -45,6 +54,7 @@ internal static class ServiceCollectionExtension
 
       services.AddSingleton<NavigationService>();
 
+      services.AddSingleton<NavigationArrangementService>();
       services.AddSingleton<NavigationTreeService>();
       services.AddSingleton<NavigationCreationService>();
       services.AddSingleton<NavigationRetrievalService>();

@@ -12,6 +12,7 @@ using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Mappers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
@@ -57,7 +58,9 @@ internal sealed partial class NotePage : Page
     EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
 
     var noteService = App.Services.GetRequiredService<NoteService>();
-    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(noteService.CreateImageCollectionKey(note));
+
+    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(NoteImageCollectionMapper.CreateImageCollectionKey(note));
+
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
@@ -112,12 +115,12 @@ internal sealed partial class NotePage : Page
       {
         var dialogService = App.Services.GetRequiredService<DialogService>();
         var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-        var result = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
-        var contentDialogResult = result.ContentDialogResult;
+        var dialogResponse = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
+        var contentDialogResult = dialogResponse.Result;
         switch (contentDialogResult)
         {
           case ContentDialogResult.Primary:
-            if (result.navigationId is NavigationId parentId && parentId != NavigationId.Empty)
+            if (dialogResponse.Data is NavigationId parentId && parentId != NavigationId.Empty)
             {
               ViewModel.Note.NavigationId = parentId;
 
@@ -151,7 +154,11 @@ internal sealed partial class NotePage : Page
     bool deleteNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(ViewModel.Note.Title) && string.IsNullOrWhiteSpace(ViewModel.Note.BodyPlainText);
     if (deleteNote)
     {
+#if false
       await ViewModel.DeleteNoteEntity();
+#endif
+      throw new NotImplementedException();
+
     }
 
     NoteViewModelProvider.Release(ViewModel.Note);

@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -57,7 +58,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
     await InitializationTask;
 
     _ = LaunchArgumentsPipeServerStreamAsync();
-    var mainWindowService = Services.GetRequiredService<MainWindowService>();
+    var mainWindowService = Services.GetRequiredService<IMainWindowService>() as MainWindowService;
     var noteService = Services.GetRequiredService<NoteService>();
     var settingsService = Services.GetRequiredService<SettingsService>();
 
@@ -123,12 +124,12 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
     services.AddViewModels();
 
     // Service
-    services.AddSingleton<WindowService>();
     services.AddSingleton<JumpListService>();
     services.AddSingleton<AppLogger>();
     services.AddSingleton<DialogService>();
     services.AddSingleton<SettingsService>();
 
+    services.AddWindowServices();
     services.AddNavigationServices();
     services.AddNoteServices();
     services.AddCommandServices();
@@ -173,7 +174,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 
       using StreamReader sr = new(pipeServerStream);
 
-      var mainWindowService = Services.GetRequiredService<MainWindowService>();
+      var mainWindowService = Services.GetRequiredService<IMainWindowService>() as MainWindowService;
 
       string? arg;
       while ((arg = sr.ReadLine()?.Trim()) is not null)

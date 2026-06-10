@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Contracts.Windows;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
@@ -41,7 +42,7 @@ internal sealed partial class MainPage : Page
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
     SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
-    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<MainWindowService>();
+    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<IMainWindowService>() as MainWindowService;
     LoggingService = ServiceScope.ServiceProvider.GetRequiredService<AppLogger>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
