@@ -14,7 +14,17 @@ namespace MyNotes.Application.Mappers;
 
 internal static class UserNavigationMappers
 {
-  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbAggregateResponseDto userNavigationDbAggregateResponseDto)
+  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto)
+  {
+    throw new NotImplementedException();
+  }
+
+  public static UserNavigationBundleAppResponseDto ToAppDto(UserNavigationBundleDbResponseDto userNavigationBundleDbResponseDto)
+  {
+    throw new NotImplementedException();
+  }
+
+  public static UserNavigationViewStateAppResponseDto ToAppDto(UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto)
   {
     throw new NotImplementedException();
   }

@@ -31,7 +31,7 @@ internal sealed class UserRootGroupNavigationViewModel : UserGroupNavigationView
   }
   #endregion
 
-  public List<UserGroupNavigationViewModel> GetAllGroupNavigationViewModels()
+  public IReadOnlyList<UserGroupNavigationViewModel> GetAllGroupNavigationViewModels()
   {
     List<UserGroupNavigationViewModel> viewmodels = new();
 
@@ -53,7 +53,7 @@ internal sealed class UserRootGroupNavigationViewModel : UserGroupNavigationView
     return viewmodels;
   }
 
-  public List<UserListNavigationViewModel> GetAllListNavigationViewModels()
+  public IReadOnlyList<UserListNavigationViewModel> GetAllListNavigationViewModels()
   {
     List<UserListNavigationViewModel> viewmodels = new();
     Queue<UserGroupNavigationViewModel> queue = new();
@@ -79,7 +79,7 @@ internal sealed class UserRootGroupNavigationViewModel : UserGroupNavigationView
     return viewmodels;
   }
 
-  public List<UserNavigationViewModel> GetAllNavigationViewModels()
+  public IReadOnlyList<UserNavigationViewModel> GetAllNavigationViewModels()
   {
     List<UserNavigationViewModel> viewmodels = new();
     Queue<UserGroupNavigationViewModel> queue = new();

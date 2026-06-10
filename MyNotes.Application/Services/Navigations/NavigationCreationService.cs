@@ -1,9 +1,11 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Dtos.Navigations.Creation;
+using MyNotes.Application.Mappers;
 using MyNotes.Common.Exceptions;
 using MyNotes.Domain.Entities.Navigations;
 using MyNotes.Domain.ValueObjects;
@@ -18,7 +20,7 @@ internal sealed partial class NavigationCreationService
     NavigationRepository = navigationRepository;
   }
 
-  public async Task<UserNavigationAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto)
+  public async Task<UserNavigationBundleAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto)
   {
     NavigationId insertTargetId = createUserNavigationAppRequestDto.InsertTargetId;
     NavigationInsertPosition insertPosition = createUserNavigationAppRequestDto.NavigationInsertPosition;
@@ -32,8 +34,6 @@ internal sealed partial class NavigationCreationService
       Id = insertTargetId
     };
     GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbResponseDto = await NavigationRepository.GetUserNavigationFieldValuesAsync(getUserNavigationFieldsDbRequestDto);
-
-    UserNavigationAppResponseDto? resultDto = null;
 
     // Application과 Infra DB의 Target Navigation 정보 일치 확인 후 새 Navigation 추가
     if (getUserNavigationFieldsDbResponseDto.UserNavigationGetFields.Equals(getUserNavigationFieldsDbRequestDto)
@@ -63,7 +63,7 @@ internal sealed partial class NavigationCreationService
       // UserNavigation Domain Entity로 변환하여 도메인 속성 유효성 검사
       UserNavigation userNavigation = new(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
 
-      UserNavigationDbAggregateResponseDto userNavigationDbAggregateResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
+      UserNavigationBundleDbResponseDto dbAggregateResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
       {
         Id = newNavigationId,
         InsertTargetId = insertTargetId,
@@ -73,38 +73,14 @@ internal sealed partial class NavigationCreationService
         Title = userNavigation.Title,
       });
 
-      UserNavigationDbResponseDto userNavigationDbResponseDto = userNavigationDbAggregateResponseDto.UserNavigationDbResponseDto;
-      UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto = userNavigationDbAggregateResponseDto.UserNavigationViewStateDbResponseDto;
+      UserNavigationDbResponseDto dbResponseDto = dbAggregateResponseDto.UserNavigationDto;
+      UserNavigationViewStateDbResponseDto viewStateDbResponseDto = dbAggregateResponseDto.ViewStateDto;
 
-      resultDto = createUserNavigationAppRequestDto.IsComposite
-        ? new UserCompositeNavigationAppResponseDto()
-        {
-          Id = newNavigationId,
-          Parent = insertTargetId,
-          Icon = (Templates.Icon)userNavigationDbResponseDto.Icon,
-          Title = userNavigationDbResponseDto.Title,
-          Position = userNavigationDbResponseDto.Position,
-          IsDeleted = false,
-          Children = [],
-          IsExpanded = true
-        }
-        : new UserLeafNavigationAppResponseDto()
-        {
-          Id = newNavigationId,
-          Parent = insertTargetId,
-          Icon = (Templates.Icon)userNavigationDbResponseDto.Icon,
-          Title = userNavigationDbResponseDto.Title,
-          Position = int.MaxValue,
-          IsDeleted = false,
-          NoteSortKey = null,
-          NoteSortDirection = null,
-          PreviewLayoutType = null,
-          PreviewTileSize = null,
-          PreviewTileRatio = null
-        };
-
+      return new(
+        userNavigationDto: UserNavigationMappers.ToAppDto(dbResponseDto),
+        viewStateDto: UserNavigationMappers.ToAppDto(viewStateDbResponseDto));
     }
 
-    return resultDto;
+    return null;
   }
 }

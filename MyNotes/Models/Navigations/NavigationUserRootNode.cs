@@ -1,22 +1,20 @@
 ﻿using MyNotes.Shared.Constants;
 using MyNotes.Domain.ValueObjects;
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace MyNotes.Models.Navigations;
 
 [Debugging.ReferenceTracker]
 internal sealed partial class NavigationUserRootNode : NavigationUserCompositeNode
 {
-  public static NavigationUserRootNode Instance => field ??= new()
+  [SetsRequiredMembers]
+  public NavigationUserRootNode()
   {
-    Id = NavigationId.UserRoot,
-    Parent = null!,
-    Icon = Templates.Icon.System_Library,
-    Title = LocalizedStrings.NavigationUserRootNodeDisplayName,
-    PageType = typeof(Page)
-  };
-
-  private NavigationUserRootNode()
-  {
+    Id = NavigationId.UserRoot;
+    Icon = Templates.Icon.System_Library;
+    Title = LocalizedStrings.NavigationUserRootNodeDisplayName;
+    PageType = typeof(Page);
     Parent = this;
   }
 }

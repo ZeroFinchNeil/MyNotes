@@ -13,20 +13,8 @@ internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserComp
 
   [ForeignKey(nameof(Id))]
   public UserNavigationEntity? Navigation { get; init; }
-
-  public Guid? RestorePrevious { get; set; }
-
-  public Guid? RestoreNext { get; set; }
-
-  public int? NoteSortKey { get; set; }
-
-  public int? NoteSortDirection { get; set; }
-
-  public int? PreviewLayoutType { get; set; }
-
-  public int? PreviewTileSize { get; set; }
-
-  public int? PreviewTileRatio { get; set; }
+  
+  public required bool IsExpanded { get; set; }
 
   public bool Equals(UserCompositeNavigationViewStateEntity? other) => other is not null && other.Id == Id;
 

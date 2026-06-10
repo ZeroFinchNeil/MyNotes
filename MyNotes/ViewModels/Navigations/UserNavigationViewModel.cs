@@ -10,7 +10,7 @@ namespace MyNotes.ViewModels.Navigations;
 
 internal abstract partial class UserNavigationViewModel : NavigationViewModelBase
 {
-  public UserNavigationViewModel(NavigationUserNode navigation)
+  protected UserNavigationViewModel(NavigationUserNode navigation)
   {
     Navigation = navigation;
   }

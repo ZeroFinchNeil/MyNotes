@@ -23,4 +23,6 @@ public static class AppStrings
   public const string ImageFolderName = "Images";
 
   public static ImmutableList<string> BitmapImageFileTypeFilter { get; } = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".ico"];
+
+  public const string UserRootNavigationName = "Root";
 }

@@ -7,7 +7,7 @@ namespace MyNotes.Models.Navigations;
 [Debugging.ReferenceTracker]
 internal abstract partial class NavigationCoreNode : ObservableObject, INavigationNode
 {
-  public NavigationCoreNode(Type pageType)
+  protected NavigationCoreNode(Type pageType)
   {
     TrackReference();
     PageType = pageType;

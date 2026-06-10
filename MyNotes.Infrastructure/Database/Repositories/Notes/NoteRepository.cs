@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using MyNotes.Application.Contracts.Database.Dtos.Notes;
 using MyNotes.Application.Contracts.Database.Queries.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Notes;
@@ -102,5 +101,4 @@ internal class NoteRepository : INoteRepository
   {
     throw new System.NotImplementedException();
   }
-
 }

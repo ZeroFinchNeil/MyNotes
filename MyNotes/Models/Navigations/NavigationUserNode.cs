@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Templates;
@@ -8,7 +10,7 @@ namespace MyNotes.Models.Navigations;
 [Debugging.ReferenceTracker]
 internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode
 {
-  public NavigationUserNode(Type pageType)
+  protected NavigationUserNode(Type pageType)
   {
     TrackReference();
     PageType = pageType;
@@ -26,40 +28,18 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
   [ObservableProperty]
   public required partial string Title { get; set; }
 
-  public static NavigationUserNode? FindUserNode(Func<NavigationUserNode, bool> func)
-  {
-    Stack<NavigationUserNode> stack = new();
-    stack.Push(NavigationUserRootNode.Instance);
-
-    while (stack.Count > 0)
-    {
-      var node = stack.Pop();
-      if (func.Invoke(node))
-      {
-        return node;
-      }
-
-      if (node is NavigationUserCompositeNode compositeNode)
-      {
-        foreach (var childNode in compositeNode.ChildNodes)
-        {
-          stack.Push(childNode);
-        }
-      }
-    }
-    return null;
-  }
-
-  public NavigationUserNode? FindPreviousNode()
+  public bool TryGetPrevious([NotNullWhen(true)] out NavigationUserNode? previousNode)
   {
     int index = Parent.ChildNodes.IndexOf(this);
-    return index > 0 ? Parent.ChildNodes[index - 1] : null;
+    previousNode = index > 0 ? Parent.ChildNodes[index - 1] : null;
+    return previousNode is not null;
   }
 
-  public NavigationUserNode? FindNextNode()
+  public bool TryGetNext([NotNullWhen(true)] out NavigationUserNode? nextNode)
   {
     int index = Parent.ChildNodes.IndexOf(this);
-    return index >= 0 && index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
+    nextNode = index >= 0 && index < Parent.ChildNodes.Count - 1 ? Parent.ChildNodes[index + 1] : null;
+    return nextNode is not null;
   }
 
   public override string ToString() => $"{Id.Value} ({Title})";
