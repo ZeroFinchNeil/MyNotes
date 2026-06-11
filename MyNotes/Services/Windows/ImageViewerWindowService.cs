@@ -2,7 +2,6 @@
 
 using Microsoft.UI.Content;
 
-using MyNotes.Application.Contracts.Windows;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
 

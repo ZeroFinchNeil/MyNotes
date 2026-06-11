@@ -34,6 +34,7 @@
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
     <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
+    <ProjectReference Include="..\MyNotes.Shell.Contracts\MyNotes.Shell.Contracts.csproj" />
   </ItemGroup>
   
 </Project>

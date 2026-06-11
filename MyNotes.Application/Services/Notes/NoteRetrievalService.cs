@@ -1,7 +1,6 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Dtos.Notes;
 using MyNotes.Application.Mappers;
 using MyNotes.Application.Queries.Notes;
@@ -13,13 +12,11 @@ internal sealed partial class NoteRetrievalService
 {
   private readonly INoteRepository NoteRepository;
   private readonly INoteSearcher NoteSearcher;
-  private readonly INoteWindowService NoteWindowService;
 
-  public NoteRetrievalService(INoteRepository noteRepository, INoteSearcher noteSearcher, INoteWindowService noteWindowService)
+  public NoteRetrievalService(INoteRepository noteRepository, INoteSearcher noteSearcher)
   {
     NoteRepository = noteRepository;
     NoteSearcher = noteSearcher;
-    NoteWindowService = noteWindowService;
   }
 
   public async Task<NoteAppResponseDto?> GetNoteAsync(NoteId noteId)

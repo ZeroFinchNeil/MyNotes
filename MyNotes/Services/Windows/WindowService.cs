@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using MyNotes.Application.Contracts.Windows;
 using MyNotes.Common.Interop;
+using MyNotes.Shell.Contracts.Windows;
 
 namespace MyNotes.Services.Windows;
 

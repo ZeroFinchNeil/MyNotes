@@ -4,7 +4,6 @@ using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Infrastructure.Database.Core;

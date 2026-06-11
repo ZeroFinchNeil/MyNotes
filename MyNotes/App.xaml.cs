@@ -2,7 +2,6 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Windows;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -119,10 +118,6 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
   {
     ServiceCollection services = new();
 
-    // ViewModel
-    services.AddViewModelProviders();
-    services.AddViewModels();
-
     // Service
     services.AddSingleton<JumpListService>();
     services.AddSingleton<AppLogger>();
@@ -136,6 +131,10 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 
     services.AddDbCoreServices();
     services.AddSearchCoreServices();
+
+    // ViewModel
+    services.AddViewModelProviders();
+    services.AddViewModels();
 
     return services.BuildServiceProvider();
   }

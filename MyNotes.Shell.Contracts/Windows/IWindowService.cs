@@ -5,7 +5,7 @@ using Microsoft.UI.Xaml;
 
 using Windows.Graphics;
 
-namespace MyNotes.Application.Contracts.Windows;
+namespace MyNotes.Shell.Contracts.Windows;
 
 internal interface IWindowService
 {
