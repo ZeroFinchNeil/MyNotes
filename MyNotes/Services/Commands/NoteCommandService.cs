@@ -83,7 +83,7 @@ internal sealed class NoteCommandService : ICommandService
     {
       ExecuteAction = async (note) =>
       {
-        if (NoteWindowService.TryGetNoteWindowInfo(note.Id, out _, out var appWindow))
+        if (NoteWindowService.TryGetWindowInfo(note.Id, out _, out var appWindow))
         {
           var presenter = appWindow?.Presenter as OverlappedPresenter;
           presenter?.Minimize();
@@ -95,7 +95,7 @@ internal sealed class NoteCommandService : ICommandService
     {
       ExecuteAction = async (noteModel) =>
       {
-        if (NoteWindowService.TryGetNoteWindowInfo(noteModel.Id, out IntPtr hWnd, out _))
+        if (NoteWindowService.TryGetWindowInfo(noteModel.Id, out IntPtr hWnd, out _))
         {
           NativeMethods.SendMessage(hWnd, (uint)NativeMethods.WindowMessage.WM_SYSCOMMAND, (IntPtr)NativeMethods.SystemCommand.SC_CLOSE, IntPtr.Zero);
         }

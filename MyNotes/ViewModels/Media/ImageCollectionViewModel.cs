@@ -53,7 +53,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteAction = async (noteId) =>
       {
-        if (NoteWindowService.TryGetNoteWindowInfo(noteId, out _, out var appWindow))
+        if (NoteWindowService.TryGetWindowInfo(noteId, out _, out var appWindow))
         {
           FileOpenPicker picker = new(appWindow.OwnerWindowId)
           {

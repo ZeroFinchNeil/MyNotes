@@ -57,7 +57,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
     await InitializationTask;
 
     _ = LaunchArgumentsPipeServerStreamAsync();
-    var mainWindowService = Services.GetRequiredService<IMainWindowService>() as MainWindowService;
+    var mainWindowService = Services.GetRequiredService<MainWindowService>();
     var noteService = Services.GetRequiredService<NoteService>();
     var settingsService = Services.GetRequiredService<SettingsService>();
 
@@ -173,7 +173,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 
       using StreamReader sr = new(pipeServerStream);
 
-      var mainWindowService = Services.GetRequiredService<IMainWindowService>() as MainWindowService;
+      var mainWindowService = Services.GetRequiredService<MainWindowService>();
 
       string? arg;
       while ((arg = sr.ReadLine()?.Trim()) is not null)

@@ -33,11 +33,11 @@ internal sealed class NavigationCommandService : ICommandService
   public Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand { get; }
   public Command<NavigationUserNode> SetAsStartPageCommand { get; }
 
-  public NavigationCommandService(NavigationController navigationController, NavigationService navigationService, IMainWindowService mainWindowService, DialogService dialogService)
+  public NavigationCommandService(NavigationController navigationController, NavigationService navigationService, MainWindowService mainWindowService, DialogService dialogService)
   {
     NavigationController = navigationController;
     NavigationService = navigationService;
-    MainWindowService = mainWindowService as MainWindowService;
+    MainWindowService = mainWindowService;
     DialogService = dialogService;
 
     AddListCommand = new()

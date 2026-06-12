@@ -85,7 +85,7 @@ internal sealed partial class NotePage : Page
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
-    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
+    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
     {
       appWindow.Changed += AppWindow_Changed;
 
@@ -193,7 +193,7 @@ partial class NotePage
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
-    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -297,7 +297,7 @@ partial class NotePage
   private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is MenuFlyoutItem item
-      && NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+      && NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       (string Extension, string Kind)? fileType = item.Tag switch
       {
@@ -374,7 +374,7 @@ partial class NotePage
 
   private async void NotePage_BrowseButton_Click(object sender, RoutedEventArgs e)
   {
-    if (NoteWindowService.TryGetNoteWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
     {
       FileOpenPicker picker = new(appWindow.Id);
       var result = await picker.PickSingleFileAsync();
