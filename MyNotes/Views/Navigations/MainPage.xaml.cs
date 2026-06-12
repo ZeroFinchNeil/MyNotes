@@ -41,7 +41,7 @@ internal sealed partial class MainPage : Page
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
     SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
-    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<IMainWindowService>() as MainWindowService;
+    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<MainWindowService>();
     LoggingService = ServiceScope.ServiceProvider.GetRequiredService<AppLogger>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);

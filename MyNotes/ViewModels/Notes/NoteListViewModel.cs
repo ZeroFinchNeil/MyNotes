@@ -15,6 +15,7 @@ using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
+using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
@@ -28,7 +29,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;

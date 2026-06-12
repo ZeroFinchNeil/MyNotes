@@ -11,9 +11,11 @@ using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
+using MyNotes.Infrastructure.Windowing;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Windows;
+using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
 using MyNotes.ViewModels.Media.Providers;
@@ -28,9 +30,10 @@ internal static class ServiceCollectionExtension
   {
     public void AddWindowServices()
     {
-      services.AddSingleton<IMainWindowService, MainWindowService>();
-      services.AddSingleton<INoteWindowService, NoteWindowService>();
-      services.AddSingleton<IImageViewerWindowService, ImageViewerWindowService>();
+      services.AddSingleton<INativeWindowing, NativeWindowing>();
+      services.AddSingleton<MainWindowService>();
+      services.AddSingleton<NoteWindowService>();
+      services.AddSingleton<ImageViewerWindowService>();
     }
 
     public void AddNoteServices()

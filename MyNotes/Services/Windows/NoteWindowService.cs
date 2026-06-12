@@ -3,18 +3,26 @@
 using Microsoft.UI.Content;
 
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Windowing;
 using MyNotes.Models.Notes;
+using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;
 
 using WinRT.Interop;
 
 namespace MyNotes.Services.Windows;
 
-internal class NoteWindowService : WindowService, INoteWindowService
+internal class NoteWindowService
 {
+  private readonly INativeWindowing NativeWindowing;
   public Dictionary<NoteId, WeakReference<NoteWindow>> NoteWindowTable { get; } = new();
 
-  public bool TryGetNoteWindow(NoteId noteId, [NotNullWhen(true)] out NoteWindow? noteWindow)
+  public NoteWindowService(INativeWindowing nativeWindowing)
+  {
+    NativeWindowing = nativeWindowing;
+  }
+
+  public bool TryGetCurrentWindow(NoteId noteId, [NotNullWhen(true)] out NoteWindow? noteWindow)
   {
     if (NoteWindowTable.TryGetValue(noteId, out var wr)
       && wr.TryGetTarget(out var window)
@@ -28,7 +36,7 @@ internal class NoteWindowService : WindowService, INoteWindowService
     return false;
   }
 
-  public bool TryGetNoteWindowInfo(NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  public bool TryGetWindowInfo(NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {
     hWnd = IntPtr.Zero;
     appWindow = null;
@@ -49,7 +57,7 @@ internal class NoteWindowService : WindowService, INoteWindowService
     return hWnd != IntPtr.Zero && appWindow is not null;
   }
 
-  public bool TryGetNoteWindowInfo(FrameworkElement element, NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  public bool TryGetWindowInfo(FrameworkElement element, NoteId noteId, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {
     hWnd = IntPtr.Zero;
     appWindow = null;
@@ -76,7 +84,7 @@ internal class NoteWindowService : WindowService, INoteWindowService
     return hWnd != IntPtr.Zero && appWindow is not null;
   }
 
-  public bool TryExecuteOnNoteWindow(NoteId noteId, Action<NoteWindow> action)
+  public bool TryExecuteOnWindow(NoteId noteId, Action<NoteWindow> action)
   {
     if (NoteWindowTable.TryGetValue(noteId, out var wr)
         && wr.TryGetTarget(out var noteWindow))

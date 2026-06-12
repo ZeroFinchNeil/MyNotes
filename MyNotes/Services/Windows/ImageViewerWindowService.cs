@@ -2,6 +2,8 @@
 
 using Microsoft.UI.Content;
 
+using MyNotes.Infrastructure.Windowing;
+using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
 
@@ -9,9 +11,15 @@ using WinRT.Interop;
 
 namespace MyNotes.Services.Windows;
 
-internal class ImageViewerWindowService : WindowService, IImageViewerWindowService
+internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
 {
+  private readonly INativeWindowing NativeWindowing;
   private KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
+
+  public ImageViewerWindowService(INativeWindowing nativeWindowing)
+  {
+    NativeWindowing = nativeWindowing;
+  }
 
   public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(ImageCollectionKey key)
   {
@@ -36,7 +44,7 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
     return newWindow;
   }
 
-  public bool TryGetCurrentImageViewerWindow([NotNullWhen(true)] out ImageViewerWindow? imageViewerWindow)
+  public bool TryGetCurrentWindow([NotNullWhen(true)] out ImageViewerWindow? imageViewerWindow)
   {
     imageViewerWindow = null;
 
@@ -53,7 +61,7 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
     return false;
   }
 
-  public bool TryGetImageViewerWindowInfo(FrameworkElement element, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
+  public bool TryGetWindowInfo(FrameworkElement element, out IntPtr hWnd, [NotNullWhen(true)] out AppWindow? appWindow)
   {
     hWnd = IntPtr.Zero;
     appWindow = null;
@@ -67,7 +75,7 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
         hWnd = Win32Interop.GetWindowFromWindowId(windowId);
         appWindow = AppWindow.GetFromWindowId(windowId);
       }
-      else if (TryGetCurrentImageViewerWindow(out var imageViewerWindow))
+      else if (TryGetCurrentWindow(out var imageViewerWindow))
       {
         hWnd = WindowNative.GetWindowHandle(imageViewerWindow);
         appWindow = imageViewerWindow.AppWindow;
@@ -75,16 +83,16 @@ internal class ImageViewerWindowService : WindowService, IImageViewerWindowServi
     }
     catch (Exception e)
     {
-      throw new NotImplementedException("이미지 로딩 오류 시 예외 구현");
+      throw new NotImplementedException("이미지 로딩 오류 시 예외 구현", e);
       //LoggingService.Write(e);
     }
 
     return hWnd != IntPtr.Zero && appWindow is not null;
   }
 
-  public bool TryExecuteOnImageViewerWindow(Action<ImageViewerWindow> action)
+  public bool TryExecuteOnWindow(Action<ImageViewerWindow> action)
   {
-    if (TryGetCurrentImageViewerWindow(out var imageViewerWindow))
+    if (TryGetCurrentWindow(out var imageViewerWindow))
     {
       action.Invoke(imageViewerWindow);
       return true;

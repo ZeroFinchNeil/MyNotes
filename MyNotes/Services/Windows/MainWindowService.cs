@@ -4,15 +4,23 @@ using Microsoft.UI.Content;
 
 using MyNotes.Application.Services.Logging;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Windowing;
+using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;
 
 using WinRT.Interop;
 
 namespace MyNotes.Services.Windows;
 
-internal class MainWindowService : WindowService, IMainWindowService
+internal class MainWindowService : IWindowService<MainWindow>
 {
+  private readonly INativeWindowing NativeWindowing;
   private WeakReference<MainWindow>? _mainWindowReference;
+
+  public MainWindowService(INativeWindowing nativeWindowing)
+  {
+    NativeWindowing = nativeWindowing;
+  }
 
   /// <summary>
   /// <para>Retrieves the current main window instance if it exists and is not closed; otherwise, creates and returns a new main window.</para>
@@ -89,7 +97,7 @@ internal class MainWindowService : WindowService, IMainWindowService
     return hWnd != IntPtr.Zero && appWindow is not null;
   }
 
-  public bool TryExecuteOnMainWindow(Action<MainWindow> action)
+  public bool TryExecuteOnWindow(Action<MainWindow> action)
   {
     if (TryGetCurrentWindow(out var mainWindow))
     {

@@ -181,7 +181,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public void ChangeNoteBackdrop()
   {
-    NoteWindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
+    NoteWindowService.TryExecuteOnWindow(Note.Id, (noteWindow) =>
     {
       noteWindow.SystemBackdrop = Note.BackdropKind switch
       {
@@ -206,7 +206,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   private void ChangeNoteBackdropProperties()
   {
-    NoteWindowService.TryExecuteOnNoteWindow(Note.Id, (noteWindow) =>
+    NoteWindowService.TryExecuteOnWindow(Note.Id, (noteWindow) =>
     {
       if (noteWindow.SystemBackdrop is ExtendedSystemBackdrop backdrop)
       {
