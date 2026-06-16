@@ -1,7 +1,7 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Mappers;
 using MyNotes.Application.Queries.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -19,28 +19,33 @@ internal sealed partial class NoteRetrievalService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteAppResponseDto?> GetNoteAsync(NoteId noteId)
+  public async Task<NoteBundleAppResponseDto?> GetNoteAsync(NoteId noteId)
   {
-    return await NoteRepository.GetNoteAsync(noteId) is NoteDbResponseDto noteDbDto
+    return await NoteRepository.GetNoteByIdAsync(noteId) is NoteDbResponseDto noteDbDto
       && await NoteRepository.GetNoteViewStateDtoAsync(noteId) is NoteViewStateDbResponseDto noteViewStateDto
       ? NoteMappers.ToAppDto(noteDbDto, noteViewStateDto)
       : null;
   }
 
-  public async Task<IReadOnlyList<NoteAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByNavigationIdAsync(NavigationId navigationId)
   {
-    List<NoteAppResponseDto> noteDtos = new();
+    throw new NotImplementedException();
+  }
+
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)
+  {
+    List<NoteBundleAppResponseDto> noteDtos = new();
     var noteDbAggregateDtos = await NoteRepository.FindNotesAsync(NoteMappers.ToDbQuery(findNotesQuery));
     foreach (var noteDbAggregateDto in noteDbAggregateDtos)
     {
-      noteDtos.Add(NoteMappers.ToAppDto(noteDbAggregateDto.NoteDbResponseDto, noteDbAggregateDto.NoteViewStateDbResponseDto));
+      noteDtos.Add(NoteMappers.ToAppDto(noteDbAggregateDto.NoteDto, noteDbAggregateDto.ViewStateDto));
     }
     return noteDtos.AsReadOnly();
   }
 
-  public async Task<IReadOnlyList<NoteAppResponseDto>> SearchNotesAsync()
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> SearchNotesAsync()
   {
-    List<NoteAppResponseDto> noteDtos = new();
+    List<NoteBundleAppResponseDto> noteDtos = new();
     //NoteSearcher.
     return noteDtos.AsReadOnly();
   }

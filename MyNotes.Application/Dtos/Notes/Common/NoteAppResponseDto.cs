@@ -1,10 +1,8 @@
-﻿using System;
+﻿using MyNotes.Domain.ValueObjects;
 
-using MyNotes.Domain.ValueObjects;
+namespace MyNotes.Application.Dtos.Notes.Common;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Notes;
-
-internal record CreateNoteDbRequestDto
+internal sealed record NoteAppResponseDto
 {
   public required NoteId Id { get; init; }
 
@@ -12,13 +10,13 @@ internal record CreateNoteDbRequestDto
 
   public required DateTimeOffset Created { get; init; }
 
-  public DateTimeOffset Modified { get; init; }
+  public required DateTimeOffset Modified { get; init; }
 
   public required string Title { get; init; }
 
   public required string Body { get; init; }
 
-  public required string BackgroundColor { get; init; }
+  public required string BodyPlainText { get; init; }
 
   public required bool IsBookmarked { get; init; }
 

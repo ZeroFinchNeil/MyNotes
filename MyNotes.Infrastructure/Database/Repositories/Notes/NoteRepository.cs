@@ -3,7 +3,9 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
-using MyNotes.Application.Contracts.Database.Dtos.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 using MyNotes.Application.Contracts.Database.Queries.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -44,7 +46,7 @@ internal class NoteRepository : INoteRepository
     throw new System.NotImplementedException();
   }
 
-  public async Task<NoteDbResponseDto?> GetNoteAsync(NoteId noteId)
+  public async Task<NoteDbResponseDto?> GetNoteByIdAsync(NoteId noteId)
   {
     throw new System.NotImplementedException();
 
@@ -64,7 +66,12 @@ internal class NoteRepository : INoteRepository
     //  : null;
   }
 
-  public Task<IReadOnlyList<NoteDbAggregateResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery)
+  public Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByNavigationAsync(NavigationId navigationId)
+  {
+    throw new System.NotImplementedException();
+  }
+
+  public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery)
   {
     throw new System.NotImplementedException();
   }

@@ -1,8 +1,8 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -22,7 +22,7 @@ internal sealed partial class NoteCreationService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteAppResponseDto> AddNoteAsync(NavigationId navigationId)
+  public async Task<NoteBundleAppResponseDto> AddNoteAsync(NavigationId navigationId)
   {
     // Generate new note id
     NoteId noteId = await NoteRepository.GenerateUniqueNoteIdAsync();

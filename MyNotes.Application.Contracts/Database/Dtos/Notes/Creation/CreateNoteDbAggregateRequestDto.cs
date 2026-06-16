@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 
 internal record CreateNoteDbAggregateRequestDto
 {

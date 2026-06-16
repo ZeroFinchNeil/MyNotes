@@ -2,9 +2,9 @@
 
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Notes;
+namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 
-internal class CreateNoteViewStateDbRequestDto
+internal class NoteViewStateDbResponseDto
 {
   public required NoteId Id { get; init; }
 

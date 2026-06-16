@@ -2,7 +2,8 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
@@ -143,7 +144,7 @@ internal sealed class NoteCommandService : ICommandService
             && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
             && nvm is UserListNavigationViewModel navigationViewModel)
         {
-          if (await NoteService.Creation.AddNoteAsync(navigationViewModel.Navigation.Id) is NoteAppResponseDto newNoteDto)
+          if (await NoteService.Creation.AddNoteAsync(navigationViewModel.Navigation.Id) is NoteBundleAppResponseDto newNoteDto)
           {
             NoteModel newNoteModel = NoteModelProvider.Resolve(newNoteDto.Id, () => NoteModelFactory.Create(newNoteDto));
             NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);

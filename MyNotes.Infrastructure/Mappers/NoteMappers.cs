@@ -1,6 +1,6 @@
 ﻿using System;
 
-using MyNotes.Application.Contracts.Database.Dtos.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 
 namespace MyNotes.Infrastructure.Mappers;

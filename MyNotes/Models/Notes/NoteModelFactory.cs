@@ -1,12 +1,12 @@
 ﻿using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Mappers;
 
 namespace MyNotes.Models.Notes;
 
-internal class NoteModelFactory : IModelFactory<NoteAppResponseDto, NoteModel>
+internal class NoteModelFactory : IModelFactory<NoteBundleAppResponseDto, NoteModel>
 {
   private readonly INoteRepository NoteRepository;
 
@@ -15,7 +15,7 @@ internal class NoteModelFactory : IModelFactory<NoteAppResponseDto, NoteModel>
     NoteRepository = noteRepository;
   }
 
-  public NoteModel Create(NoteAppResponseDto noteDto)
+  public NoteModel Create(NoteBundleAppResponseDto noteDto)
   {
     return NoteMappers.ToModel(noteDto);
   }

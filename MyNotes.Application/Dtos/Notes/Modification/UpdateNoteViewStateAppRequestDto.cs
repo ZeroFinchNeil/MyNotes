@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Dtos.Notes;
+namespace MyNotes.Application.Dtos.Notes.Modification;
 
 internal sealed record UpdateNoteViewStateAppRequestDto
 {

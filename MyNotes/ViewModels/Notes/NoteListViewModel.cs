@@ -227,7 +227,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 
   public async Task LoadNoteViewModels()
   {
-#if false
     NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
     switch (Navigation)
     {
@@ -274,9 +273,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
 
     NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
-#endif
-    throw new NotImplementedException();
-
   }
 
   private void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

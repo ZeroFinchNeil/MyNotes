@@ -1,11 +1,9 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
-using MyNotes.Application.Services.App;
-using MyNotes.Shared.Constants;
-using MyNotes.Common.Helpers;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Settings;
+using MyNotes.Shared.Constants;
 
 namespace MyNotes.Application.Services.Notes;
 

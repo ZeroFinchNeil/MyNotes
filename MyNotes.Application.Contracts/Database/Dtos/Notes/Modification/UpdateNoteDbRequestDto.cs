@@ -1,9 +1,11 @@
-﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
+﻿using System;
+
+using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Dtos.Notes;
+namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 
-internal sealed record UpdateNoteAppRequestDto
+internal class UpdateNoteDbRequestDto
 {
   public required NoteId Id { get; init; }
 
@@ -25,11 +27,3 @@ internal sealed record UpdateNoteAppRequestDto
 
   public bool? IsDeleted { get; init; }
 }
-
-/*
-UpdateNoteAppRequestDto dto = new()
-{
-  Id = ,
-  NoteUpdateField = ,
-};
-*/

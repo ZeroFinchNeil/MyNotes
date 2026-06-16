@@ -1,7 +1,10 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 using MyNotes.Application.Contracts.Database.Queries.Notes;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Queries.Notes;
 using MyNotes.Domain.Entities.Notes;
 
@@ -9,7 +12,7 @@ namespace MyNotes.Application.Mappers;
 
 internal static class NoteMappers
 {
-  public static NoteAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto) => new()
+  public static NoteBundleAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto) => new()
   {
     Id = noteDbResponseDto.Id,
     NavigationId = noteDbResponseDto.NavigationId,

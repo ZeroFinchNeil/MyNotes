@@ -1,8 +1,8 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Mappers;
 
 namespace MyNotes.Application.Services.Notes;
@@ -32,7 +32,7 @@ internal sealed partial class NoteModificationService
 
     if (noteUpdateField.HasFlag(NoteUpdateFields.Title) || noteUpdateField.HasFlag(NoteUpdateFields.Body))
     {
-      searchSuccess = await NoteRepository.GetNoteAsync(updateNoteDto.Id) is NoteDbResponseDto noteDbDto && await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(noteDbDto));
+      searchSuccess = await NoteRepository.GetNoteByIdAsync(updateNoteDto.Id) is NoteDbResponseDto noteDbDto && await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(noteDbDto));
     }
 
     return dbSuccess && searchSuccess;

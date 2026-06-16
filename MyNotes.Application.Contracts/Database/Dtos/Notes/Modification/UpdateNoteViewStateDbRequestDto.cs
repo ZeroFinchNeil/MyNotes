@@ -3,7 +3,7 @@
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Notes;
+namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 
 internal class UpdateNoteViewStateDbRequestDto
 {
