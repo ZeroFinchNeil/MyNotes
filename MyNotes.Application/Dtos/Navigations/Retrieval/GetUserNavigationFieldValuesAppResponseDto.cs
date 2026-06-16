@@ -5,7 +5,7 @@ namespace MyNotes.Application.Dtos.Navigations.Retrieval;
 
 internal sealed record GetUserNavigationFieldValuesAppResponseDto
 {
-  public required UserNavigationGetFields UserNavigationGetFields { get; init; }
+  public required UserNavigationGetFields GetFields { get; init; }
 
   public NavigationId? Id { get; init; }
 
