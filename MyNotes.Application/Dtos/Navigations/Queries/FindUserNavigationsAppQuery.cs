@@ -1,6 +1,6 @@
 ﻿using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Queries.Navigations;
+namespace MyNotes.Application.Dtos.Navigations.Queries;
 
 internal sealed record FindUserNavigationsAppQuery
 {

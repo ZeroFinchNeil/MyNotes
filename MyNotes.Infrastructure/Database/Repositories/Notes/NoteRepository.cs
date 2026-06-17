@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
-using MyNotes.Application.Contracts.Database.Queries.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;

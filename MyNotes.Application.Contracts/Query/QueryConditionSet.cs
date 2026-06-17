@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace MyNotes.Application.Contracts.Queries;
+using MyNotes.Application.Contracts.Query;
+
+namespace MyNotes.Application.Contracts.Database.Query;
 
 internal class QueryConditionSet<TKey, TCondition> where TKey : notnull where TCondition : IQueryCondition
 {

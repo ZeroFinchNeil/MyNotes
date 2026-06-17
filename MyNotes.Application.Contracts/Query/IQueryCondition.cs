@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Queries;
+﻿namespace MyNotes.Application.Contracts.Query;
 
 internal interface IQueryCondition
 { }

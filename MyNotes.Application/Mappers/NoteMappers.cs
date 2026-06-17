@@ -1,18 +1,20 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
-using MyNotes.Application.Contracts.Database.Queries.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
-using MyNotes.Application.Queries.Notes;
+using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Domain.Entities.Notes;
 
 namespace MyNotes.Application.Mappers;
 
 internal static class NoteMappers
 {
-  public static NoteBundleAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto) => new()
+  public static NoteBundleAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto)
+#if false
+    => new()
   {
     Id = noteDbResponseDto.Id,
     NavigationId = noteDbResponseDto.NavigationId,
@@ -40,6 +42,8 @@ internal static class NoteMappers
     IsWindowOpen = noteViewStateDbResponseDto.IsWindowOpen,
     IsAlwaysOnTop = noteViewStateDbResponseDto.IsAlwaysOnTop
   };
+#endif
+    => throw new NotImplementedException();
 
   public static CreateNoteDbRequestDto ToDbDto(Note note) => new()
   {
@@ -77,27 +81,34 @@ internal static class NoteMappers
     IsDeleted = updateNoteAppDto.IsDeleted
   };
 
-  public static UpdateNoteViewStateDbRequestDto ToDbDto(UpdateNoteViewStateAppRequestDto updateNoteViewStateDto) => new()
+  public static UpdateNoteViewStateDbRequestDto ToDbDto(UpdateNoteViewStateAppRequestDto updateNoteViewStateDto)
   {
-    Id = updateNoteViewStateDto.Id,
-    NoteViewStateUpdateField = updateNoteViewStateDto.NoteViewStateUpdateField,
-    ShowBackgroundImage = updateNoteViewStateDto.ShowBackgroundImage,
-    BackgroundImagePath = updateNoteViewStateDto.BackgroundImagePath,
-    BackgroundImageOpacity = updateNoteViewStateDto.BackgroundImageOpacity,
-    BackgroundImageBlur = updateNoteViewStateDto.BackgroundImageBlur,
-    BackdropKind = updateNoteViewStateDto.BackdropKind,
-    BackdropTintOpacity = updateNoteViewStateDto.BackdropTintOpacity,
-    BackdropLuminosityOpacity = updateNoteViewStateDto.BackdropLuminosityOpacity,
-    Images = updateNoteViewStateDto.Images,
-    ShowImagePanel = updateNoteViewStateDto.ShowImagePanel,
-    ImagePanelHeight = updateNoteViewStateDto.ImagePanelHeight,
-    Width = updateNoteViewStateDto.Width,
-    Height = updateNoteViewStateDto.Height,
-    PositionX = updateNoteViewStateDto.PositionX,
-    PositionY = updateNoteViewStateDto.PositionY,
-    IsWindowOpen = updateNoteViewStateDto.IsWindowOpen,
-    IsAlwaysOnTop = updateNoteViewStateDto.IsAlwaysOnTop
-  };
+#if false
+    return new()
+    {
+      Id = updateNoteViewStateDto.Id,
+      NoteViewStateUpdateField = updateNoteViewStateDto.NoteViewStateUpdateField,
+      ShowBackgroundImage = updateNoteViewStateDto.ShowBackgroundImage,
+      BackgroundImagePath = updateNoteViewStateDto.BackgroundImagePath,
+      BackgroundImageOpacity = updateNoteViewStateDto.BackgroundImageOpacity,
+      BackgroundImageBlur = updateNoteViewStateDto.BackgroundImageBlur,
+      BackdropKind = updateNoteViewStateDto.BackdropKind,
+      BackdropTintOpacity = updateNoteViewStateDto.BackdropTintOpacity,
+      BackdropLuminosityOpacity = updateNoteViewStateDto.BackdropLuminosityOpacity,
+      Images = updateNoteViewStateDto.Images,
+      ShowImagePanel = updateNoteViewStateDto.ShowImagePanel,
+      ImagePanelHeight = updateNoteViewStateDto.ImagePanelHeight,
+      Width = updateNoteViewStateDto.Width,
+      Height = updateNoteViewStateDto.Height,
+      PositionX = updateNoteViewStateDto.PositionX,
+      PositionY = updateNoteViewStateDto.PositionY,
+      IsWindowOpen = updateNoteViewStateDto.IsWindowOpen,
+      IsAlwaysOnTop = updateNoteViewStateDto.IsAlwaysOnTop
+    };
+#endif
+
+    throw new NotImplementedException();
+  }
 
   public static NoteSearchDocumentDto ToSearchDocumentDto(NoteDbResponseDto noteDbResponseDto) => new()
   {

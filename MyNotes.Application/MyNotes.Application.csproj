@@ -33,8 +33,5 @@
     <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Dtos\Notes\Creation\" />
-  </ItemGroup>
   
 </Project>

@@ -23,8 +23,5 @@
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
     <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Database\Queries\Navigations\Conditions\" />
-  </ItemGroup>
   
 </Project>

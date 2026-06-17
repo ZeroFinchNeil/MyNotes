@@ -1,10 +1,13 @@
-﻿using MyNotes.Application.Contracts.Database.Queries.Notes.Conditions;
-using MyNotes.Application.Contracts.Queries;
+﻿using System;
+
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries.Conditions;
+using MyNotes.Application.Contracts.Database.Query;
+using MyNotes.Application.Contracts.Query;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Queries.Notes;
+namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 
-internal sealed record FindNotesAppQuery
+internal sealed record FindNotesDbQuery
 {
   public NoteId? NoteId { get; init; }
 

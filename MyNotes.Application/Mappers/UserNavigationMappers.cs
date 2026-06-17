@@ -1,13 +1,13 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Queries;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
-using MyNotes.Application.Contracts.Database.Queries.Navigations;
 using MyNotes.Application.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Dtos.Navigations.Modification;
+using MyNotes.Application.Dtos.Navigations.Queries;
 using MyNotes.Application.Dtos.Navigations.Retrieval;
-using MyNotes.Application.Queries.Navigations;
 using MyNotes.Domain.Entities.Navigations;
 
 namespace MyNotes.Application.Mappers;

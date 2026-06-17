@@ -2,8 +2,8 @@
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Application.Mappers;
-using MyNotes.Application.Queries.Notes;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Services.Notes;
@@ -19,7 +19,7 @@ internal sealed partial class NoteRetrievalService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteBundleAppResponseDto?> GetNoteAsync(NoteId noteId)
+  public async Task<NoteBundleAppResponseDto?> GetNoteByIdAsync(NoteId noteId)
   {
     return await NoteRepository.GetNoteByIdAsync(noteId) is NoteDbResponseDto noteDbDto
       && await NoteRepository.GetNoteViewStateDtoAsync(noteId) is NoteViewStateDbResponseDto noteViewStateDto
@@ -27,7 +27,7 @@ internal sealed partial class NoteRetrievalService
       : null;
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByNavigationIdAsync(NavigationId navigationId)
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByParentAsync(NavigationId parentId)
   {
     throw new NotImplementedException();
   }

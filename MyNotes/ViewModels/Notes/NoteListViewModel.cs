@@ -231,7 +231,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var leafNotes = await NoteService.Retrieval.GetNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
+        var leafNotes = await NoteService.Retrieval.FindNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
         foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;

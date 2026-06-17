@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Database.Queries.Notes.Enums;
+﻿namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Queries.Enums;
 
 internal enum ComparisonOperator
 {

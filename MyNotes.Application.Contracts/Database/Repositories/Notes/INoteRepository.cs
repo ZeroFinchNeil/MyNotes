@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
-using MyNotes.Application.Contracts.Database.Queries.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Contracts.Database.Repositories.Notes;
