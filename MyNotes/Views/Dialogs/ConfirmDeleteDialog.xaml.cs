@@ -3,7 +3,7 @@ using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ConfirmDeleteDialog : ContentDialog
 {
   private readonly ConfirmDeleteDialogViewModel ViewModel;

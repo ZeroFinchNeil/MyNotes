@@ -21,15 +21,15 @@ internal sealed partial class NoteRetrievalService
 
   public async Task<NoteBundleAppResponseDto?> GetNoteByIdAsync(NoteId noteId)
   {
-    return await NoteRepository.GetNoteByIdAsync(noteId) is NoteDbResponseDto noteDbDto
-      && await NoteRepository.GetNoteViewStateDtoAsync(noteId) is NoteViewStateDbResponseDto noteViewStateDto
-      ? NoteMappers.ToAppDto(noteDbDto, noteViewStateDto)
+    return await NoteRepository.GetNoteByIdAsync(noteId) is NoteBundleDbResponseDto dbDto
+      ? NoteMappers.ToAppDto(dbDto)
       : null;
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByParentAsync(NavigationId parentId)
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false)
   {
-    throw new NotImplementedException();
+    var dbDtos = await NoteRepository.GetNotesByParentAsync(parentId, includeDeleted);
+    return [.. dbDtos.Select(NoteMappers.ToAppDto)];
   }
 
   public async Task<IReadOnlyList<NoteBundleAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)
@@ -43,7 +43,7 @@ internal sealed partial class NoteRetrievalService
     return noteDtos.AsReadOnly();
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> SearchNotesAsync()
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> SearchNotesAsync(SearchNotesAppQuery searchNotesAppQuery)
   {
     List<NoteBundleAppResponseDto> noteDtos = new();
     //NoteSearcher.

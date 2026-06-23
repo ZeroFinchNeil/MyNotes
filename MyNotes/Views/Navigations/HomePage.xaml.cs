@@ -1,6 +1,6 @@
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class HomePage : Page
 {
   public HomePage()

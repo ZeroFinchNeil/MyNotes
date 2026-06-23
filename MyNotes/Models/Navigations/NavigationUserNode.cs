@@ -7,7 +7,7 @@ using MyNotes.Templates;
 
 namespace MyNotes.Models.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode
 {
   protected NavigationUserNode(Type pageType)

@@ -10,7 +10,7 @@ using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NoteItemGridContainer : UserControl
 {
   #region Object Lifetime Management

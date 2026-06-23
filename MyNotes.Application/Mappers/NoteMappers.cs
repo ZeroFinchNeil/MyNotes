@@ -6,12 +6,15 @@ using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Dtos.Notes.Queries;
+using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.Entities.Notes;
 
 namespace MyNotes.Application.Mappers;
 
+[AssemblyLocal]
 internal static class NoteMappers
 {
+  public static void Test() { }
   public static NoteBundleAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto)
 #if false
     => new()
@@ -44,6 +47,8 @@ internal static class NoteMappers
   };
 #endif
     => throw new NotImplementedException();
+
+  public static NoteBundleAppResponseDto ToAppDto(NoteBundleDbResponseDto noteBundleDbResponseDto) => throw new NotImplementedException();
 
   public static CreateNoteDbRequestDto ToDbDto(Note note) => new()
   {

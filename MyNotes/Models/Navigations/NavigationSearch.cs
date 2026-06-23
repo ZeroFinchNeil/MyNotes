@@ -7,7 +7,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NavigationSearch : ObservableObject, INavigation, INavigationNoteList
 {
   public NavigationSearch()

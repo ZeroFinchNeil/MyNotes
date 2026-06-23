@@ -5,7 +5,7 @@ using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.Views.Media;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ImageViewerPage : Page
 {
   private readonly ImageCollectionViewModel ViewModel;

@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
@@ -24,88 +28,97 @@ internal class NoteRepository : INoteRepository
     DbContextFactory = dbContextFactory;
   }
 
-  public async Task<NoteId> GenerateUniqueNoteIdAsync()
+  public async Task<NoteId> GenerateUniqueNoteIdAsync(CancellationToken cancellationToken = default)
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync();
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
     NoteId noteId;
     do
     {
       noteId = NoteId.NewId();
-    } while (await context.NoteEntities.AnyAsync(e => e.Id == noteId.Value));
+    } while (await context.NoteEntities.AnyAsync(e => e.Id == noteId.Value, cancellationToken));
 
     return noteId;
   }
-  Task<NoteDbResponseDto> INoteRepository.AddNoteAsync(CreateNoteDbRequestDto noteDbDto)
+  public Task<NoteDbResponseDto> AddNoteAsync(CreateNoteDbRequestDto noteDbDto, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
-  }
-
-  Task<NoteViewStateDbResponseDto> INoteRepository.AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto)
-  {
-    throw new System.NotImplementedException();
-  }
-
-  public async Task<NoteDbResponseDto?> GetNoteByIdAsync(NoteId noteId)
-  {
-    throw new System.NotImplementedException();
+    throw new NotImplementedException();
+    //NoteEntity entity = NoteMappers.ToEntity(noteDbDto);
 
     //await using var context = await DbContextFactory.CreateDbContextAsync();
-    //return await context.NoteEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteEntity entity
-    //  ? NoteMappers.ToDto(entity)
-    //  : null;
+    //context.NoteEntities.Add(entity);
+    //await context.SaveChangesAsync();
   }
 
-  public async Task<NoteViewStateDbResponseDto?> GetNoteViewStateDtoAsync(NoteId noteId)
+  public Task<NoteViewStateDbResponseDto> AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    throw new NotImplementedException();
+
+    //NoteViewStateEntity entity = NoteMappers.ToEntity(noteViewStateDbDto);
 
     //await using var context = await DbContextFactory.CreateDbContextAsync();
-    //return await context.NoteViewStateEntities.FirstOrDefaultAsync(e => e.Id == noteId.Value) is NoteViewStateEntity entity
-    //  ? NoteMappers.ToDto(entity)
-    //  : null;
+    //context.NoteViewStateEntities.Add(entity);
+    //await context.SaveChangesAsync();
   }
 
-  public Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByNavigationAsync(NavigationId navigationId)
+  public async Task<NoteBundleDbResponseDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await context.NoteEntities
+      .AsNoTracking()
+      .Where(e => e.Id == noteId.Value)
+      .Join(
+        context.NoteViewStateEntities.AsNoTracking(),
+        outer => outer.Id,
+        inner => inner.Id,
+        (outer, inner) => NoteMappers.ToDto(outer, inner))
+      .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery)
+  public async Task<NoteViewStateDbResponseDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    return await context.NoteViewStateEntities
+      .AsNoTracking()
+      .Where(e => e.Id == noteId.Value)
+      .Select(e => NoteMappers.ToDto(e))
+      .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public async Task AddNoteAsync(CreateNoteDbRequestDto noteDbDto)
+  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
-    NoteEntity entity = NoteMappers.ToEntity(noteDbDto);
-
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    context.NoteEntities.Add(entity);
-    await context.SaveChangesAsync();
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    Expression<Func<NoteEntity, bool>> predicate = includeDeleted
+      ? e => e.Parent == parentId.Value
+      : e => e.Parent == parentId.Value && e.IsDeleted == false;
+    return await context.NoteEntities
+      .AsNoTracking()
+      .Where(predicate)
+      .Join(
+        context.NoteViewStateEntities.AsNoTracking(),
+        outer => outer.Id,
+        inner => inner.Id,
+        (outer, inner) => NoteMappers.ToDto(outer, inner))
+      .ToListAsync(cancellationToken);
   }
 
-  public async Task AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto noteViewStateDbDto)
+  public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default)
   {
-    NoteViewStateEntity entity = NoteMappers.ToEntity(noteViewStateDbDto);
-
-    await using var context = await DbContextFactory.CreateDbContextAsync();
-    context.NoteViewStateEntities.Add(entity);
-    await context.SaveChangesAsync();
+    throw new NotImplementedException();
   }
 
-  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true)
+  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    throw new NotImplementedException();
   }
 
-  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true)
+  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    throw new NotImplementedException();
   }
 
-  public Task<bool> DeleteNoteAsync(NoteId noteId)
+  public Task<bool> DeleteNoteAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    throw new NotImplementedException();
   }
 }

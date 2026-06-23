@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace MyNotes.Models.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NavigationUserRootNode : NavigationUserCompositeNode
 {
   [SetsRequiredMembers]

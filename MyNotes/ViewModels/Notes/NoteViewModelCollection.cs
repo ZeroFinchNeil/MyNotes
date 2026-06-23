@@ -2,7 +2,7 @@
 
 namespace MyNotes.ViewModels.Notes;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NoteViewModelCollection : ObservableCollection<NoteViewModel>
 {
   private List<NoteViewModel> Inner => (List<NoteViewModel>)Items;

@@ -21,7 +21,7 @@ using Windows.ApplicationModel.DataTransfer;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class MainPage : Page
 {
   private readonly MainViewModel ViewModel;

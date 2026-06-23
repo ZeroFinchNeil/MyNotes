@@ -9,7 +9,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 public sealed partial class BookmarksPage : Page
 {
   private CoreNavigationViewModel? ViewModel;

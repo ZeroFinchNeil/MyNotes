@@ -2,7 +2,7 @@ using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NoteItemListContainer : UserControl
 {
   #region Object Lifetime Management

@@ -11,7 +11,7 @@ using MyNotes.Models.Media;
 
 namespace MyNotes.Models.Notes;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NoteModel : ObservableObject, IComparable<NoteModel>
 {
   public NoteModel()

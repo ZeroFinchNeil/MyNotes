@@ -2,7 +2,7 @@ using MyNotes.ViewModels.Dialogs;
 
 namespace MyNotes.Views.Dialogs;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class SelectNoteParentDialog : ContentDialog
 {
   private readonly SelectNoteParentDialogViewModel ViewModel;

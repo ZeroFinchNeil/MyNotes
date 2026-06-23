@@ -11,7 +11,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class UserListPage : Page
 {
   private UserListNavigationViewModel? ViewModel;

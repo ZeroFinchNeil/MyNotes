@@ -2,12 +2,14 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Mappers;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Settings;
@@ -15,6 +17,8 @@ using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
+using MyNotes.Shared.Queries.Conditions;
+using MyNotes.Shared.Queries.Enums;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels.Notes.Providers;
 
@@ -25,15 +29,17 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
+  private readonly NoteModelFactory NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteModelFactory noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
     NoteWindowService = noteWindowService;
+    NoteModelFactory = noteModelFactory;
     NoteViewModelProvider = noteViewModelProvider;
 
     Navigation = navigation;
@@ -231,7 +237,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var leafNotes = await NoteService.Retrieval.FindNotesAsync(e => !e.IsDeleted && e.Parent == leaf.Id.Value);
+        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteMappers.ToModel);
         foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
@@ -239,13 +245,30 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         break;
       case NavigationSearch search:
-        var searchResult = await SearchService.SearchNoteIndexAsync(search.SearchText);
-        if (searchResult is null)
+        SearchNotesAppQuery searchNotesAppQuery = new()
+        {
+          TitleConditions = new QueryConditionSet<string, TitleQueryCondition>()
+          {
+            Key = search.SearchText,
+            Conditions = [new TitleMatchTypeQueryCondition() { Condition = TitleMatchType.Contains }]
+          }
+        };
+        var searchResults = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
+        if (searchResults.Count == 0)
         {
           return;
         }
 
-        await foreach (var match in searchResult.Matches)
+        foreach(var searchResult in searchResults)
+        {
+          NoteId noteId = searchResult.Id;
+          NoteModelFactory.GetOrCreate(noteId)
+          note.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+          NoteMappers.ToModel()
+        }
+
+        await foreach (var match in searchResults.Matches)
         {
           if (await NoteService.Retrieval.FindNoteAsync(NoteId.Create(match.NoteId)) is NoteModel note)
           {

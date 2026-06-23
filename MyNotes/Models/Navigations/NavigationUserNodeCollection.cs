@@ -1,7 +1,7 @@
 ﻿namespace MyNotes.Models.Navigations;
 
 [Obsolete("Position 관리를 Application 계층으로 위임함", true)]
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NavigationUserNodeCollection : ObservableCollection<NavigationUserNode>
 {
   private readonly NavigationUserCompositeNode _parent;
