@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace MyNotes.SourceGenerators;
+namespace MyNotes.Analyzer.SourceGenerators;
 
 [Generator(LanguageNames.CSharp)]
 internal class ReferenceTrackerGenerator : IIncrementalGenerator

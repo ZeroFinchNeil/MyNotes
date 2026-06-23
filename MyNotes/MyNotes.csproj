@@ -55,7 +55,7 @@
     <ProjectReference Include="..\MyNotes.Shell.Contracts\MyNotes.Shell.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
     <ProjectReference Include="..\MyNotes.Widget\MyNotes.Widget.csproj" />
-    <ProjectReference Include="..\MyNotes.SourceGenerators\MyNotes.SourceGenerators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\MyNotes.Analyzer\MyNotes.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>

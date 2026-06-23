@@ -52,7 +52,7 @@
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
   </Project>
-  <Project Path="MyNotes.SourceGenerators/MyNotes.SourceGenerators.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3">
+  <Project Path="MyNotes.Analyzer/MyNotes.Analyzer.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3">
     <Platform Solution="*|ARM64" Project="ARM64" />
     <Platform Solution="*|x64" Project="x64" />
     <Platform Solution="*|x86" Project="x86" />
