@@ -13,7 +13,7 @@ using MyNotes.Views.Navigations;
 
 namespace MyNotes.Views.Windows;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class MainWindow : Window
 {
   // ServiceProvider(DI)로 주입받은 뷰모델/서비스 필드

@@ -7,7 +7,7 @@ using Windows.System;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class SettingsPage : Page
 {
   private readonly IServiceScope ServiceScope;

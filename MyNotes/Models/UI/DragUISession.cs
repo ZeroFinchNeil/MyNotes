@@ -2,7 +2,7 @@
 
 namespace MyNotes.Models.UI;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class DragUISession : IDisposable
 {
   public DragUISession() { TrackReference(); }

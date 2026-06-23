@@ -5,7 +5,7 @@ using MyNotes.Shared.Constants;
 
 namespace MyNotes.Models.Media;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal partial class ImageDescriptor : IEquatable<ImageDescriptor>
 {
   public static ImageDescriptor Create(string originalFilePath)

@@ -32,7 +32,7 @@ using Windows.System;
 
 namespace MyNotes.Views.Notes;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NotePage : Page
 {
   private readonly NoteViewModelProvider NoteViewModelProvider;

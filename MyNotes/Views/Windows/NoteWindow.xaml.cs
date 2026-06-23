@@ -15,7 +15,7 @@ using MyNotes.Views.Notes;
 
 namespace MyNotes.Views.Windows;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NoteWindow : Window
 {
   private readonly NoteWindowService NoteWindowService;

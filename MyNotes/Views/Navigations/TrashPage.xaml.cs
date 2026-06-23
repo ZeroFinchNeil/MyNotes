@@ -9,7 +9,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 public sealed partial class TrashPage : Page
 {
   private CoreNavigationViewModel? ViewModel;

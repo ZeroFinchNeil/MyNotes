@@ -3,7 +3,7 @@ using MyNotes.Views.Media;
 
 namespace MyNotes.Views.Windows;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ImageViewerWindow : Window
 {
   #region Object Lifetime Management

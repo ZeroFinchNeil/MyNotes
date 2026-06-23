@@ -10,7 +10,7 @@ using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.Views.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class UserNavigationViewItem : DraggableNavigationViewItem
 {
   #region Object Lifetime Management

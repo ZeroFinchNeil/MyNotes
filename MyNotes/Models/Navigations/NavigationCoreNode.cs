@@ -4,7 +4,7 @@ using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Models.Navigations;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal abstract partial class NavigationCoreNode : ObservableObject, INavigationNode
 {
   protected NavigationCoreNode(Type pageType)
