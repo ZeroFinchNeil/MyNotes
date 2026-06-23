@@ -1,6 +1,5 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries.Conditions;
-using MyNotes.Application.Contracts.Database.Query;
-using MyNotes.Domain.ValueObjects;
+﻿using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Application.Dtos.Notes.Queries;
 
