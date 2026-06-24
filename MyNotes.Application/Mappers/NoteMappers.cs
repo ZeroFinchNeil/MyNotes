@@ -122,3 +122,11 @@ internal static class NoteMappers
     Body = RtfTextConverter.ToPlainText(noteDbResponseDto.Body)
   };
 }
+
+internal static class NoteMappingExtensions
+{
+  extension(NoteBundleDbResponseDto dto)
+  {
+    public NoteBundleAppResponseDto ToAppDto() => NoteMappers.ToAppDto(dto);
+  }
+}

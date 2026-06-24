@@ -245,6 +245,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         }
         break;
       case NavigationSearch search:
+        //todo: 검색 조건에 따른 쿼리 구성
         SearchNotesAppQuery searchNotesAppQuery = new()
         {
           TitleConditions = new QueryConditionSet<string, TitleQueryCondition>()
@@ -253,44 +254,35 @@ internal sealed partial class NoteListViewModel : ViewModelBase
             Conditions = [new TitleMatchTypeQueryCondition() { Condition = TitleMatchType.Contains }]
           }
         };
-        var searchResults = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
-        if (searchResults.Count == 0)
+        var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
+        if (searchResultDtos.Count == 0)
         {
           return;
         }
 
-        foreach(var searchResult in searchResults)
+        foreach(var searchResultDto in searchResultDtos)
         {
-          NoteId noteId = searchResult.Id;
-          NoteModelFactory.GetOrCreate(noteId)
-          note.PropertyChanged += Note_PropertyChanged_WhileActive;
-          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
-          NoteMappers.ToModel()
-        }
-
-        await foreach (var match in searchResults.Matches)
-        {
-          if (await NoteService.Retrieval.FindNoteAsync(NoteId.Create(match.NoteId)) is NoteModel note)
-          {
-            note.PropertyChanged += Note_PropertyChanged_WhileActive;
-            NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
-          }
+          NoteModel searchedNote = NoteModelFactory.Create(searchResultDto);
+          searchedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(searchedNote));
         }
         break;
       case NavigationBookmarks bookmarks:
-        var bookmarksNotes = await NoteService.Retrieval.GetNotesAsync(e => e.IsBookmarked && !e.IsDeleted);
-        foreach (var note in bookmarksNotes)
+        var bookmarkResultDtos = await NoteService.Retrieval.GetBookmarkedNotesAsync();
+        foreach (var bookmarkResultDto in bookmarkResultDtos)
         {
-          note.PropertyChanged += Note_PropertyChanged_WhileActive;
-          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+          NoteModel bookmarkedNote = NoteModelFactory.Create(bookmarkResultDto);
+          bookmarkedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(bookmarkedNote));
         }
         break;
       case NavigationTrash trash:
-        var trashNotes = await NoteService.Retrieval.GetNotesAsync(e => e.IsDeleted);
-        foreach (var note in trashNotes)
+        var trashResultDtos = await NoteService.Retrieval.GetTrashedNotesAsync();
+        foreach (var trashResultDto in trashResultDtos)
         {
-          note.PropertyChanged += Note_PropertyChanged_WhileActive;
-          NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
+          NoteModel trashedNote = NoteModelFactory.Create(trashResultDto);
+          trashedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
+          NoteViewModels.Add(NoteViewModelProvider.Resolve(trashedNote));
         }
         break;
     }

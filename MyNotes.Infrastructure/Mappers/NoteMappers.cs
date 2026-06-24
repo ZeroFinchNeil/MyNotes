@@ -18,5 +18,4 @@ internal static class NoteMappers
 
   public static CreateNoteDbRequestDto ToDto(NoteEntity noteDbDto) => throw new NotImplementedException();
   public static NoteViewStateDbResponseDto ToDto(NoteViewStateEntity noteDbDto) => throw new NotImplementedException();
-
 }

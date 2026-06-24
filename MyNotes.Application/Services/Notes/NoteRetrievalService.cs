@@ -22,7 +22,7 @@ internal sealed partial class NoteRetrievalService
   public async Task<NoteBundleAppResponseDto?> GetNoteByIdAsync(NoteId noteId)
   {
     return await NoteRepository.GetNoteByIdAsync(noteId) is NoteBundleDbResponseDto dbDto
-      ? NoteMappers.ToAppDto(dbDto)
+      ? dbDto.ToAppDto()
       : null;
   }
 
@@ -30,6 +30,20 @@ internal sealed partial class NoteRetrievalService
   {
     var dbDtos = await NoteRepository.GetNotesByParentAsync(parentId, includeDeleted);
     return [.. dbDtos.Select(NoteMappers.ToAppDto)];
+  }
+
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetBookmarkedNotesAsync(bool includeDeleted = false)
+  {
+    FindNotesAppQuery findNotesAppQuery = includeDeleted 
+      ? new() { IsBookmarked = true, }
+      : new() { IsBookmarked = true, IsDeleted = false };
+    return await FindNotesAsync(findNotesAppQuery);
+  }
+
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetTrashedNotesAsync()
+  {
+    FindNotesAppQuery findNotesAppQuery = new() { IsDeleted = true };
+    return await FindNotesAsync(findNotesAppQuery);
   }
 
   public async Task<IReadOnlyList<NoteBundleAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)

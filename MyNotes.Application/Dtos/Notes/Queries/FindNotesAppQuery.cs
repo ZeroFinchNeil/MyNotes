@@ -14,4 +14,8 @@ internal sealed record FindNotesAppQuery
   public QueryConditionSet<DateTimeOffset, CreatedQueryCondition>? CreatedConditions { get; init; }
 
   public QueryConditionSet<DateTimeOffset, ModifiedQueryCondition>? ModifiedConditions { get; init; }
+
+  public bool? IsBookmarked { get; init; }
+
+  public bool? IsDeleted { get; init; }
 }

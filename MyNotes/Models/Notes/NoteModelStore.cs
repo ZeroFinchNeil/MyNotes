@@ -15,7 +15,7 @@ internal sealed class NoteModelStore : IModelStore<NoteId, NoteModel>
     throw new NotImplementedException();
   }
 
-  public NoteModel Upsert<TSource>(NoteId key, Func<NoteId, NoteModel> factory, Action<NoteModel, TSource> updater)
+  public NoteModel AddOrUpdate<TSource>(NoteId key, Func<NoteId, NoteModel> factory, Action<NoteModel, TSource> updater)
   {
     throw new NotImplementedException();
   }
