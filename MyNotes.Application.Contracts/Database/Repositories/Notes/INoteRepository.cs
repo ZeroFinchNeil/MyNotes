@@ -22,9 +22,7 @@ internal interface INoteRepository
 
   public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default);
 
-  public Task<NoteDbResponseDto> AddNoteAsync(CreateNoteDbRequestDto noteDbDto, CancellationToken cancellationToken = default);
-
-  public Task<NoteViewStateDbResponseDto> AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto, CancellationToken cancellationToken = default);
+  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, CancellationToken cancellationToken = default);
 
   public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
 

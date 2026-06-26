@@ -49,10 +49,10 @@ internal sealed partial class NoteRetrievalService
   public async Task<IReadOnlyList<NoteBundleAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)
   {
     List<NoteBundleAppResponseDto> noteDtos = new();
-    var noteDbAggregateDtos = await NoteRepository.FindNotesAsync(NoteMappers.ToDbQuery(findNotesQuery));
-    foreach (var noteDbAggregateDto in noteDbAggregateDtos)
+    var dbResponseDtos = await NoteRepository.FindNotesAsync(NoteMappers.ToDbQuery(findNotesQuery));
+    foreach (var dbResponseDto in dbResponseDtos)
     {
-      noteDtos.Add(NoteMappers.ToAppDto(noteDbAggregateDto.NoteDto, noteDbAggregateDto.ViewStateDto));
+      noteDtos.Add(dbResponseDto.ToAppDto());
     }
     return noteDtos.AsReadOnly();
   }

@@ -32,7 +32,7 @@ internal sealed partial class NoteModificationService
 
     if (noteUpdateField.HasFlag(NoteUpdateFields.Title) || noteUpdateField.HasFlag(NoteUpdateFields.Body))
     {
-      searchSuccess = await NoteRepository.GetNoteByIdAsync(updateNoteDto.Id) is NoteDbResponseDto noteDbDto && await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(noteDbDto));
+      searchSuccess = await NoteRepository.GetNoteByIdAsync(updateNoteDto.Id) is NoteBundleDbResponseDto dbResponseDto && await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(dbResponseDto.NoteDto));
     }
 
     return dbSuccess && searchSuccess;

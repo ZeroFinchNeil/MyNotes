@@ -40,24 +40,13 @@ internal class NoteRepository : INoteRepository
 
     return noteId;
   }
-  public Task<NoteDbResponseDto> AddNoteAsync(CreateNoteDbRequestDto noteDbDto, CancellationToken cancellationToken = default)
+  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, CancellationToken cancellationToken = default)
   {
     throw new NotImplementedException();
     //NoteEntity entity = NoteMappers.ToEntity(noteDbDto);
 
     //await using var context = await DbContextFactory.CreateDbContextAsync();
     //context.NoteEntities.Add(entity);
-    //await context.SaveChangesAsync();
-  }
-
-  public Task<NoteViewStateDbResponseDto> AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
-
-    //NoteViewStateEntity entity = NoteMappers.ToEntity(noteViewStateDbDto);
-
-    //await using var context = await DbContextFactory.CreateDbContextAsync();
-    //context.NoteViewStateEntities.Add(entity);
     //await context.SaveChangesAsync();
   }
 

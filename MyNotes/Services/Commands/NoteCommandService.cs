@@ -14,6 +14,7 @@ using MyNotes.Common.Structures;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Mappers;
+using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Dialogs;
@@ -30,8 +31,7 @@ internal sealed class NoteCommandService : ICommandService
 {
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
-  private readonly NoteModelFactory NoteModelFactory;
-  private readonly NoteModelStore NoteModelProvider;
+  private readonly IModelFactory<NoteBundleAppResponseDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly NoteListViewModelProvider NoteListViewModelProvider;
   private readonly NavigationController NavigationController;
@@ -52,8 +52,7 @@ internal sealed class NoteCommandService : ICommandService
   public NoteCommandService(
     NoteService noteService,
     NoteWindowService noteWindowService,
-    NoteModelFactory noteModelFactory,
-    NoteModelStore noteModelProvider,
+    IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory,
     NoteViewModelProvider noteViewModelProvider,
     NoteListViewModelProvider noteListViewModelProvider,
     NavigationController navigationController,
@@ -66,7 +65,6 @@ internal sealed class NoteCommandService : ICommandService
     NoteService = noteService;
     NoteWindowService = noteWindowService;
     NoteModelFactory = noteModelFactory;
-    NoteModelProvider = noteModelProvider;
     NoteViewModelProvider = noteViewModelProvider;
     NoteListViewModelProvider = noteListViewModelProvider;
     NavigationController = navigationController;
@@ -146,7 +144,7 @@ internal sealed class NoteCommandService : ICommandService
         {
           if (await NoteService.Creation.AddNoteAsync(navigationViewModel.Navigation.Id) is NoteBundleAppResponseDto newNoteDto)
           {
-            NoteModel newNoteModel = NoteModelProvider.Resolve(newNoteDto.Id, () => NoteModelFactory.Create(newNoteDto));
+            NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);
             NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
             await NoteWindowService.OpenNoteWindow(newNoteModel);
 
@@ -160,10 +158,12 @@ internal sealed class NoteCommandService : ICommandService
         }
         else
         {
-          NoteId newNoteId = await NoteService.GetUniqueNoteIdAsync();
-          NoteModel newNoteModel = NoteModelProvider.Resolve(newNoteId, () => NoteModelFactory.CreateDefault(newNoteId));
-          NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
-          await NoteWindowService.OpenNoteWindow(newNoteModel);
+          //todo: JumpList에 의해 생성되는 등 Parent Navigation이 정해지지 않았을 때 노트 생성 로직 구현
+
+          //NoteId newNoteId = await NoteService.GetUniqueNoteIdAsync();
+          //NoteModel newNoteModel = NoteModelStore.Resolve(newNoteId, () => NoteModelFactory.CreateDefault(newNoteId));
+          //NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
+          //await NoteWindowService.OpenNoteWindow(newNoteModel);
         }
       }
     };

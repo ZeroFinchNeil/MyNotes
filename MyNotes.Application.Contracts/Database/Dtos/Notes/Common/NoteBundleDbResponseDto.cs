@@ -4,7 +4,7 @@ using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 
-internal record NoteBundleDbResponseDto
+internal sealed record NoteBundleDbResponseDto
 {
   public NoteId Id => NoteDto.Id;
 
