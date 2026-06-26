@@ -3,7 +3,7 @@ using System.Threading;
 
 namespace MyNotes.Common.Lifetime;
 
-[Debugging.ReferenceTracker]
+[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
 {
   public required T Instance { get; init; }
