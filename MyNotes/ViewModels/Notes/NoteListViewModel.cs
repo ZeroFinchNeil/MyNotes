@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
@@ -10,6 +11,7 @@ using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Mappers;
+using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Settings;
@@ -29,12 +31,12 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
-  private readonly NoteModelFactory NoteModelFactory;
+  private readonly IModelFactory<NoteBundleAppResponseDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, NoteModelFactory noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
@@ -248,11 +250,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         //todo: 검색 조건에 따른 쿼리 구성
         SearchNotesAppQuery searchNotesAppQuery = new()
         {
-          TitleConditions = new QueryConditionSet<string, TitleQueryCondition>()
-          {
-            Key = search.SearchText,
-            Conditions = [new TitleMatchTypeQueryCondition() { Condition = TitleMatchType.Contains }]
-          }
+          TitleConditions = QueryConditionSet<string, StringMatchTypeQueryCondition>.Create(
+            key: search.SearchText,
+            conditions: [StringMatchTypeQueryCondition.Create(StringMatchType.Contains)])
         };
         var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
         if (searchResultDtos.Count == 0)

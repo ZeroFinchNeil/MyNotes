@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.Shared.Queries.Enums;
 
-internal enum TitleMatchType
+internal enum StringMatchType
 {
   Exact,
   Contains

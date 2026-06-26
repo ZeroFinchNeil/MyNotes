@@ -1,6 +1,5 @@
 ﻿using System;
 
-using MyNotes.Application.Contracts.Query;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Queries.Conditions;
 
@@ -12,9 +11,17 @@ internal sealed record FindNotesDbQuery
 
   public NavigationId? NavigationId { get; init; }
 
-  public QueryConditionSet<string, TitleQueryCondition>? TitleConditions { get; init; }
+  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? CreatedConditions { get; init; }
 
-  public QueryConditionSet<DateTimeOffset, CreatedQueryCondition>? CreatedConditions { get; init; }
+  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? ModifiedConditions { get; init; }
 
-  public QueryConditionSet<DateTimeOffset, ModifiedQueryCondition>? ModifiedConditions { get; init; }
+  public QueryConditionSet<string, StringMatchTypeQueryCondition>? TitleConditions { get; init; }
+
+  public QueryConditionSet<string, StringMatchTypeQueryCondition>? BodyConditions { get; init; }
+
+  public string? BackgroundColor { get; init; }
+
+  public bool? IsBookmarked { get; init; }
+
+  public bool? IsDeleted { get; init; }
 }

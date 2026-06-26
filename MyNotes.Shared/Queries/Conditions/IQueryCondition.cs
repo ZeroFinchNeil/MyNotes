@@ -3,7 +3,12 @@
 internal interface IQueryCondition
 { }
 
-internal interface IQueryCondition<T> : IQueryCondition where T : notnull
+internal interface IQueryCondition<out TCondition> : IQueryCondition where TCondition : notnull
 {
-  public T Condition { get; }
+  public TCondition Condition { get; }
+}
+
+internal interface IQueryCondition<TCondition, TSelf> : IQueryCondition<TCondition> where TCondition : notnull where TSelf : IQueryCondition<TCondition, TSelf>
+{
+  static abstract TSelf Create(TCondition condition);
 }

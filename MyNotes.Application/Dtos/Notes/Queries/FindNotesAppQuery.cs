@@ -9,11 +9,11 @@ internal sealed record FindNotesAppQuery
 
   public NavigationId? NavigationId { get; init; }
 
-  public QueryConditionSet<string, TitleQueryCondition>? TitleConditions { get; init; }
+  public QueryConditionSet<string, StringMatchTypeQueryCondition>? TitleConditions { get; init; }
 
-  public QueryConditionSet<DateTimeOffset, CreatedQueryCondition>? CreatedConditions { get; init; }
+  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? CreatedConditions { get; init; }
 
-  public QueryConditionSet<DateTimeOffset, ModifiedQueryCondition>? ModifiedConditions { get; init; }
+  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? ModifiedConditions { get; init; }
 
   public bool? IsBookmarked { get; init; }
 
