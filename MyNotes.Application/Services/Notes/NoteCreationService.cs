@@ -4,6 +4,7 @@ using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Mappers;
+using MyNotes.Common.Querying;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 

@@ -1,10 +1,13 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
+using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Application.Mappers;
+using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Application.Services.Notes;
 
@@ -34,15 +37,28 @@ internal sealed partial class NoteRetrievalService
 
   public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetBookmarkedNotesAsync(bool includeDeleted = false)
   {
-    FindNotesAppQuery findNotesAppQuery = includeDeleted 
-      ? new() { IsBookmarked = true, }
-      : new() { IsBookmarked = true, IsDeleted = false };
+    FindNotesAppQuery findNotesAppQuery = includeDeleted
+      ? new()
+      {
+        NoteFindFields = NoteFindFields.BookmarkedCondition,
+        BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
+      }
+      : new()
+      {
+        NoteFindFields = NoteFindFields.BookmarkedCondition | NoteFindFields.DeletedCondition,
+        BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
+        DeletedCondition = EqualityQueryCondition<bool>.Create(false, EqualityMatchType.Equals)
+      };
     return await FindNotesAsync(findNotesAppQuery);
   }
 
   public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetTrashedNotesAsync()
   {
-    FindNotesAppQuery findNotesAppQuery = new() { IsDeleted = true };
+    FindNotesAppQuery findNotesAppQuery = new()
+    {
+      NoteFindFields = NoteFindFields.DeletedCondition,
+      DeletedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals)
+    };
     return await FindNotesAsync(findNotesAppQuery);
   }
 

@@ -6,12 +6,13 @@ namespace MyNotes.Application.Contracts.Database.Enums.Notes;
 internal enum NoteUpdateFields
 {
   None,
-  NavigationId,
+  ParentId,
   Created,
   Modified,
   Title,
   Body,
   BodyPlainText,
+  BackgroundColor,
   IsBookmarked,
   IsDeleted
 }

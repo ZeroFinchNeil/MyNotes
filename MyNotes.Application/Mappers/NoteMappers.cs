@@ -8,6 +8,7 @@ using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.Entities.Notes;
+using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Application.Mappers;
 
@@ -19,7 +20,7 @@ internal static class NoteMappers
   public static CreateNoteDbRequestDto ToCreateDbDto(Note note) => new()
   {
     Id = note.Id,
-    NavigationId = note.NavigationId,
+    NavigationId = note.ParentId,
     Created = note.Created,
     Modified = note.Modified,
     Title = note.Title,
@@ -31,8 +32,9 @@ internal static class NoteMappers
 
   public static FindNotesDbQuery ToDbQuery(FindNotesAppQuery findNotesQuery) => new()
   {
-    NoteId = findNotesQuery.NoteId,
-    NavigationId = findNotesQuery.NavigationId,
+    NoteFindFields = findNotesQuery.NoteFindFields,
+    NoteIdCondition = EqualityQueryCondition<Guid>.Create(findNotesQuery.NoteIdCondition.Target.Value, findNotesQuery.NoteIdCondition.Condition),
+    ParentIdCondition = EqualityQueryCondition<Guid>.Create(findNotesQuery.ParentIdCondition.Target.Value, findNotesQuery.ParentIdCondition.Condition),
     TitleConditions = findNotesQuery.TitleConditions,
     CreatedConditions = findNotesQuery.CreatedConditions,
     ModifiedConditions = findNotesQuery.ModifiedConditions
@@ -42,7 +44,7 @@ internal static class NoteMappers
   {
     Id = updateNoteAppDto.Id,
     NoteUpdateField = updateNoteAppDto.NoteUpdateField,
-    NavigationId = updateNoteAppDto.NavigationId,
+    NavigationId = updateNoteAppDto.ParentId,
     Created = updateNoteAppDto.Created,
     Modified = updateNoteAppDto.Modified,
     Title = updateNoteAppDto.Title,

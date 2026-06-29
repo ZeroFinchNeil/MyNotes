@@ -1,5 +1,7 @@
 ﻿using System;
 
+using MyNotes.Application.Contracts.Database.Enums.Notes;
+using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Queries.Conditions;
 
@@ -7,21 +9,23 @@ namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 
 internal sealed record FindNotesDbQuery
 {
-  public NoteId? NoteId { get; init; }
+  public required NoteFindFields NoteFindFields { get; init; }
 
-  public NavigationId? NavigationId { get; init; }
+  public AggregationMode AggregationMode { get; init; } = AggregationMode.All;
 
-  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? CreatedConditions { get; init; }
+  public EqualityQueryCondition<Guid>? NoteIdCondition { get; init; }
 
-  public QueryConditionSet<DateTimeOffset, ComparisonOperatorQueryCondition>? ModifiedConditions { get; init; }
+  public EqualityQueryCondition<Guid>? ParentIdCondition { get; init; }
 
-  public QueryConditionSet<string, StringMatchTypeQueryCondition>? TitleConditions { get; init; }
+  public QueryConditionSet<StringQueryCondition>? TitleConditions { get; init; }
 
-  public QueryConditionSet<string, StringMatchTypeQueryCondition>? BodyConditions { get; init; }
+  public QueryConditionSet<ComparisonQueryCondition<DateTimeOffset>>? CreatedConditions { get; init; }
 
-  public string? BackgroundColor { get; init; }
+  public QueryConditionSet<ComparisonQueryCondition<DateTimeOffset>>? ModifiedConditions { get; init; }
 
-  public bool? IsBookmarked { get; init; }
+  public string? BackgroundColorConditions { get; init; }
 
-  public bool? IsDeleted { get; init; }
+  public EqualityQueryCondition<bool>? BookmarkedCondition { get; init; }
+
+  public EqualityQueryCondition<bool>? DeletedCondition { get; init; }
 }

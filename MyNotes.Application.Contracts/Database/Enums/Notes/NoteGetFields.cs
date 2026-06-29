@@ -8,12 +8,13 @@ namespace MyNotes.Application.Contracts.Database.Enums.Notes;
 internal enum NoteGetFields
 {
   None,
-  NavigationId,
+  ParentId,
   Created,
   Modified,
   Title,
   Body,
   BodyPlainText,
+  BackgroundColor,
   IsBookmarked,
   IsDeleted
 }

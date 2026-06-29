@@ -1,15 +1,17 @@
 ﻿using System.Collections.Generic;
 
+using MyNotes.Common.Querying;
+
 namespace MyNotes.Shared.Queries.Conditions;
 
-internal interface IQueryConditionSet<out TKey, out TCondition> where TKey : notnull where TCondition : IQueryCondition
+internal interface IQueryConditionSet<out TCondition> where TCondition : IQueryCondition
 {
-  public TKey Key { get; }
+  public IReadOnlyList<TCondition> Conditions { get; }
 
-  public IEnumerable<TCondition> Conditions { get; }
+  public JoinOperator ConditionOperator { get; }
 }
 
-internal interface IQueryConditionSet<TKey, TCondition, TSelf> : IQueryConditionSet<TKey, TCondition> where TKey : notnull where TCondition : IQueryCondition where TSelf : IQueryConditionSet<TKey, TCondition, TSelf>
+internal interface IQueryConditionSet<TCondition, TSelf> : IQueryConditionSet<TCondition> where TCondition : IQueryCondition where TSelf : IQueryConditionSet<TCondition, TSelf>
 {
-  public static abstract TSelf Create(TKey key, IEnumerable<TCondition> conditions);
+  public static abstract TSelf Create(IReadOnlyList<TCondition> conditions, JoinOperator conditionOperator = JoinOperator.And);
 }

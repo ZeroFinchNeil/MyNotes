@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Common.Collections;
+﻿namespace MyNotes.Common.Querying;
 
 public enum SortDirection
 {

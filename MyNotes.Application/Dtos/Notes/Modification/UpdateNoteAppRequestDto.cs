@@ -9,7 +9,7 @@ internal sealed record UpdateNoteAppRequestDto
 
   public required NoteUpdateFields NoteUpdateField { get; init; }
 
-  public NavigationId? NavigationId { get; init; }
+  public NavigationId? ParentId { get; init; }
 
   public DateTimeOffset? Created { get; init; }
 

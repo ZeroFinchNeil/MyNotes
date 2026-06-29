@@ -5,8 +5,8 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
-using MyNotes.Common.Collections;
 using MyNotes.Common.Messages;
+using MyNotes.Common.Querying;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Navigations;

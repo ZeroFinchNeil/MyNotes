@@ -1,11 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Common.Collections;
 using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Views.Navigations;
+using MyNotes.Common.Querying;
 
 namespace MyNotes.Models.Navigations;
 

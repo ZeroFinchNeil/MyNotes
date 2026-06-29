@@ -1,8 +1,12 @@
-﻿namespace MyNotes.Shared.Queries.Conditions;
+﻿using System;
 
-internal class QueryCondition<TCondition, TSelf> : IQueryCondition<TCondition, TSelf> where TCondition : notnull where TSelf : QueryCondition<TCondition, TSelf>, new()
+namespace MyNotes.Shared.Queries.Conditions;
+
+internal class QueryCondition<TTarget, TCondition> : IQueryCondition<TTarget, TCondition, QueryCondition<TTarget, TCondition>> where TTarget : notnull where TCondition : Enum
 {
-  public static TSelf Create(TCondition condition) => new() { Condition = condition };
+  public static QueryCondition<TTarget, TCondition> Create(TTarget target, TCondition condition) => new() { Target = target, Condition = condition };
+
+  public required TTarget Target { get; init; }
 
   public required TCondition Condition { get; init; }
 }

@@ -8,6 +8,7 @@ using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
+using MyNotes.Common.Querying;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Mappers;
@@ -20,7 +21,6 @@ using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Shared.Queries.Conditions;
-using MyNotes.Shared.Queries.Enums;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels.Notes.Providers;
 
@@ -250,9 +250,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         //todo: 검색 조건에 따른 쿼리 구성
         SearchNotesAppQuery searchNotesAppQuery = new()
         {
-          TitleConditions = QueryConditionSet<string, StringMatchTypeQueryCondition>.Create(
-            key: search.SearchText,
-            conditions: [StringMatchTypeQueryCondition.Create(StringMatchType.Contains)])
+          TitleConditions = QueryConditionSet<StringQueryCondition>.Create(
+            conditions: [StringQueryCondition.Create(target: search.SearchText, condition: TextMatchType.Contains)])
         };
         var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
         if (searchResultDtos.Count == 0)
@@ -260,7 +259,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
           return;
         }
 
-        foreach(var searchResultDto in searchResultDtos)
+        foreach (var searchResultDto in searchResultDtos)
         {
           NoteModel searchedNote = NoteModelFactory.Create(searchResultDto);
           searchedNote.PropertyChanged += Note_PropertyChanged_WhileActive;

@@ -7,7 +7,7 @@ internal sealed record SearchNotesAppQuery
 {
   public NoteId? NoteId { get; init; }
 
-  public QueryConditionSet<string, StringMatchTypeQueryCondition>? TitleConditions { get; init; }
+  public QueryConditionSet<StringQueryCondition>? TitleConditions { get; init; }
 
-  public QueryConditionSet<string, StringMatchTypeQueryCondition>? BodyConditions { get; init; }
+  public QueryConditionSet<StringQueryCondition>? BodyConditions { get; init; }
 }

@@ -118,8 +118,8 @@ internal sealed class NoteCommandService : ICommandService
         UpdateNoteAppRequestDto updateNoteDto = new()
         {
           Id = sourceNote.Id,
-          NoteUpdateField = NoteUpdateFields.NavigationId,
-          NavigationId = newNavigationId
+          NoteUpdateField = NoteUpdateFields.ParentId,
+          ParentId = newNavigationId
         };
 
         await NoteService.Modification.UpdateNoteAsync(updateNoteDto);

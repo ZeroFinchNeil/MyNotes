@@ -6,7 +6,7 @@ internal sealed record NoteAppResponseDto
 {
   public required NoteId Id { get; init; }
 
-  public required NavigationId NavigationId { get; init; }
+  public required NavigationId ParentId { get; init; }
 
   public required DateTimeOffset Created { get; init; }
 

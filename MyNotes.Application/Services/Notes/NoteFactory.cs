@@ -19,7 +19,7 @@ internal sealed partial class NoteFactory
   public Note CreateDefaultNote(NoteId noteId, NavigationId navigationId) => new()
   {
     Id = noteId,
-    NavigationId = navigationId,
+    ParentId = navigationId,
     Created = DateTimeOffset.UtcNow,
     Modified = DateTimeOffset.UtcNow,
     Title = string.Empty,
