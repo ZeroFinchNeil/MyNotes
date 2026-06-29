@@ -30,6 +30,56 @@ internal class NavigationRepository : INavigationRepository
     DbContextFactory = dbContextFactory;
   }
 
+  // 추후 join을 이용한 방식으로 리팩터링: 예시 ->
+  // public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync(CancellationToken cancellationToken = default)
+  //{
+  //  await using AppDbContext context =
+  //      await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+  //  // Composite Navigation과 Composite ViewState를 공유 키 Id로 조인합니다.
+  //  var compositePairs = await context.UserNavigationEntities
+  //      .AsNoTracking()
+  //      .Where(navigation => navigation.IsComposite)
+  //      .Join(
+  //          context.UserCompositeNavigationViewStateEntity.AsNoTracking(),
+  //          navigation => navigation.Id,
+  //          viewState => viewState.Id,
+  //          (navigation, viewState) => new
+  //          {
+  //            Navigation = navigation,
+  //            ViewState = viewState
+  //          })
+  //      .ToListAsync(cancellationToken);
+
+  //  // Leaf Navigation과 Leaf ViewState를 공유 키 Id로 조인합니다.
+  //  var leafPairs = await context.UserNavigationEntities
+  //      .AsNoTracking()
+  //      .Where(navigation => !navigation.IsComposite)
+  //      .Join(
+  //          context.UserLeafNavigationViewStateEntity.AsNoTracking(),
+  //          navigation => navigation.Id,
+  //          viewState => viewState.Id,
+  //          (navigation, viewState) => new
+  //          {
+  //            Navigation = navigation,
+  //            ViewState = viewState
+  //          })
+  //      .ToListAsync(cancellationToken);
+
+  //  var compositeBundles = compositePairs.Select(pair =>
+  //      new UserNavigationBundleDbResponseDto(
+  //          UserNavigationMappers.ToDto(pair.Navigation),
+  //          UserNavigationMappers.ToDto(pair.ViewState)));
+
+  //  var leafBundles = leafPairs.Select(pair =>
+  //      new UserNavigationBundleDbResponseDto(
+  //          UserNavigationMappers.ToDto(pair.Navigation),
+  //          UserNavigationMappers.ToDto(pair.ViewState)));
+
+  //  return compositeBundles
+  //      .Concat(leafBundles)
+  //      .ToArray();
+  //}
   public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync()
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync();
