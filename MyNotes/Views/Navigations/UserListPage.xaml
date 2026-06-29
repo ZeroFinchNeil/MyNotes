@@ -4,7 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:notes="using:MyNotes.Models.Notes"
       xmlns:templates="using:MyNotes.Templates"
-      xmlns:collections="using:MyNotes.Common.Collections"
+      xmlns:querying="using:MyNotes.Common.Querying"
       xmlns:noteEnums="using:MyNotes.Shared.Enums.Notes"
       xmlns:navEnums="using:MyNotes.Shared.Enums.Navigations">
 
@@ -86,12 +86,12 @@
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Ascending"
                                    Tag="{StaticResource SortDirectionAscending}"
-                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortDirection, collections:SortDirection.Ascending)}"
+                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortDirection, querying:SortDirection.Ascending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Descending"
                                    Tag="{StaticResource SortDirectionDescending}"
-                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortDirection, collections:SortDirection.Descending)}"
+                                   IsChecked="{x:Bind NoteListViewModel.Equals(NoteListViewModel.NoteSortDirection, querying:SortDirection.Descending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
             </MenuFlyoutSubItem>
 

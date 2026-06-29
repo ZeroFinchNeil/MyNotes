@@ -8,7 +8,7 @@ internal sealed class Note
 {
   public required NoteId Id { get; init; }
 
-  public required NavigationId NavigationId { get; set; }
+  public required NavigationId ParentId { get; set; }
 
   public required DateTimeOffset Created { get; init; }
 

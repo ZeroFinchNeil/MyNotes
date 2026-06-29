@@ -2,7 +2,7 @@
 
 using Microsoft.UI.Xaml;
 
-using MyNotes.Common.Collections;
+using MyNotes.Common.Querying;
 using MyNotes.Common.Structures;
 
 using Windows.Foundation;

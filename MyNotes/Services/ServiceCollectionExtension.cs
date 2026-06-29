@@ -4,14 +4,18 @@ using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
 using MyNotes.Infrastructure.Windowing;
+using MyNotes.Models;
+using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Windows;
@@ -38,9 +42,12 @@ internal static class ServiceCollectionExtension
 
     public void AddNoteServices()
     {
-      services.AddSingleton<INoteRepository, NoteRepository>();
-      services.AddSingleton<INoteSearcher, NoteSearcher>();
+      // Presentation
+      services.AddSingleton<IModelFactory<NoteBundleAppResponseDto, NoteModel>, NoteModelFactory>();
+      services.AddSingleton<IModelUpdater<NoteBundleAppResponseDto, NoteModel>, NoteModelUpdater>();
+      services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
 
+      // Application
       services.AddSingleton<NoteService>();
 
       services.AddSingleton<NoteCreationService>();
@@ -48,6 +55,10 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NoteModificationService>();
 
       services.AddSingleton<NoteFactory>();
+
+      // Infrastructure
+      services.AddSingleton<INoteRepository, NoteRepository>();
+      services.AddSingleton<INoteSearcher, NoteSearcher>();
     }
 
     public void AddNavigationServices()

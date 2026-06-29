@@ -1,4 +1,4 @@
-﻿using MyNotes.Common.Collections;
+﻿using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;

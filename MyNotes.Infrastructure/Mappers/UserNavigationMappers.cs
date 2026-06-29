@@ -1,10 +1,12 @@
 ﻿using System;
 
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Debugging.Attributes;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 
 namespace MyNotes.Infrastructure.Mappers;
 
+[AssemblyLocal]
 internal static class UserNavigationMappers
 {
   public static UserNavigationEntity ToEntity(UserNavigationDbResponseDto userNavigationDbResponseDto) => throw new NotImplementedException();

@@ -1,31 +1,20 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+﻿using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Mappers;
 
 namespace MyNotes.Models.Notes;
 
-internal class NoteModelFactory : IModelFactory<NoteAppResponseDto, NoteModel>
+internal class NoteModelFactory : IModelFactory<NoteBundleAppResponseDto, NoteModel>
 {
-  private readonly INoteRepository NoteRepository;
+  private readonly IModelStore<NoteId, NoteModel> Store;
 
-  public NoteModelFactory(INoteRepository noteRepository)
+  public NoteModelFactory(IModelStore<NoteId, NoteModel> store)
   {
-    NoteRepository = noteRepository;
+    Store = store;
   }
 
-  public NoteModel Create(NoteAppResponseDto noteDto)
+  public NoteModel Create(NoteBundleAppResponseDto noteBundleAppResponseDto)
   {
-    return NoteMappers.ToModel(noteDto);
-  }
-
-  public NoteModel CreateDefault(NoteId noteId)
-  {
-    throw new NotImplementedException();
-    //return new()
-    //{
-
-    //};
+    return Store.AddOrUpdate<NoteBundleAppResponseDto>(noteBundleAppResponseDto.Id, _ => noteBundleAppResponseDto.ToModel(), (model, dto) => model.Apply(dto));
   }
 }

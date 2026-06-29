@@ -1,9 +1,10 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
-using MyNotes.Application.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Mappers;
+using MyNotes.Common.Querying;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 
@@ -22,23 +23,21 @@ internal sealed partial class NoteCreationService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteAppResponseDto> AddNoteAsync(NavigationId navigationId)
+  public async Task<NoteBundleAppResponseDto> AddNoteAsync(NavigationId navigationId, CancellationToken cancellation = default)
   {
     // Generate new note id
-    NoteId noteId = await NoteRepository.GenerateUniqueNoteIdAsync();
+    NoteId noteId = await NoteRepository.GenerateUniqueNoteIdAsync(cancellation);
 
     // Database
     Note note = NoteFactory.CreateDefaultNote(noteId, navigationId);
-    CreateNoteDbRequestDto noteDbDto = NoteMappers.ToDbDto(note);
-    CreateNoteViewStateDbRequestDto noteViewStateDto = NoteFactory.CreateDefaultNoteViewStateDto(noteId);
+    CreateNoteBundleDbRequestDto appRequestDto = new(noteDto: note.ToCreateDbDto(), viewStateDto: NoteFactory.CreateDefaultNoteViewStateDto(noteId));
 
-    var noteDbResponseDto = await NoteRepository.AddNoteAsync(noteDbDto);
-    var noteViewStateDbResponseDto =  await NoteRepository.AddNoteViewStateAsync(noteViewStateDto);
+    var dbResponseDto = await NoteRepository.AddNoteAsync(appRequestDto, cancellation);
 
-    // Search Index
+    // Add to Search Index
     NoteSearchDocumentDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
-    await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto);
+    _ = await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto, cancellation);
 
-    return NoteMappers.ToAppDto(noteDbResponseDto, noteViewStateDbResponseDto);
+    return dbResponseDto.ToAppDto();
   }
 }

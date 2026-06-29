@@ -136,7 +136,7 @@ internal sealed class AppSearchContext : IDisposable
   }
 
   #region Write And Update
-  public async Task WriteNoteIndexAsync(NoteSearchDocument entity, CancellationToken cancellationToken = default)
+  public async Task<bool> WriteNoteIndexAsync(NoteSearchDocument entity, CancellationToken cancellationToken = default)
   {
     //var doc = new Document()
     //  {
@@ -153,17 +153,30 @@ internal sealed class AppSearchContext : IDisposable
       };
 
     Term term = new(nameof(NoteSearchDocument.Id), entity.Id.ToString());
-    SearchIndexingOperationRequest request = new(() =>
+    if (cancellationToken.IsCancellationRequested)
     {
-      if (!cancellationToken.IsCancellationRequested)
+      return false;
+    }
+
+    SearchIndexingOperationRequest<bool> request = new(() =>
+    {
+      bool updated = false;
+      try
       {
         NoteSearchWriter.UpdateDocument(term, doc);
+        updated = true;
       }
+      catch
+      {
+
+      }
+      return updated;
     });
+
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
     CommitCount++;
     _commitTimer.Start();
-    await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
   }
   #endregion
 

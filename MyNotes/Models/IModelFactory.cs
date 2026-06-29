@@ -4,7 +4,7 @@ using System.Text;
 
 namespace MyNotes.Models;
 
-internal interface IModelFactory<TKey, TModel> where TKey : notnull where TModel : class
+internal interface IModelFactory<in TSource, out TModel> where TSource : notnull where TModel : class
 {
-  public TModel Create(TKey key);
+  public TModel Create(TSource source);
 }

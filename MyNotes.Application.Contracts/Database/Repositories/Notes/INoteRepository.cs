@@ -1,29 +1,32 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
-using MyNotes.Application.Contracts.Database.Dtos.Notes;
-using MyNotes.Application.Contracts.Database.Queries.Notes;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Contracts.Database.Repositories.Notes;
 
 internal interface INoteRepository
 {
-  public Task<NoteId> GenerateUniqueNoteIdAsync();
+  public Task<NoteId> GenerateUniqueNoteIdAsync(CancellationToken cancellationToken = default);
 
-  public Task<NoteDbResponseDto?> GetNoteAsync(NoteId noteId);
+  public Task<NoteBundleDbResponseDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
-  public Task<NoteViewStateDbResponseDto?> GetNoteViewStateDtoAsync(NoteId noteId);
+  public Task<NoteViewStateDbResponseDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<NoteDbAggregateResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery);
+  public Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default);
 
-  public Task<NoteDbResponseDto> AddNoteAsync(CreateNoteDbRequestDto noteDbDto);
+  public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default);
 
-  public Task<NoteViewStateDbResponseDto> AddNoteViewStateAsync(CreateNoteViewStateDbRequestDto dto);
+  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, CancellationToken cancellationToken = default);
 
-  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true);
+  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
 
-  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true);
+  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
 
-  public Task<bool> DeleteNoteAsync(NoteId noteId);
+  public Task<bool> DeleteNoteAsync(NoteId noteId, CancellationToken cancellationToken = default);
 }
