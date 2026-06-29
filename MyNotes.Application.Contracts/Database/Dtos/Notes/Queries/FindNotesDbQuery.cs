@@ -2,7 +2,6 @@
 
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Common.Querying;
-using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
@@ -28,4 +27,40 @@ internal sealed record FindNotesDbQuery
   public EqualityQueryCondition<bool>? BookmarkedCondition { get; init; }
 
   public EqualityQueryCondition<bool>? DeletedCondition { get; init; }
+
+  public void ThrowIfInvalid()
+  {
+    if (NoteFindFields.HasFlag(NoteFindFields.NoteIdCondition) && NoteIdCondition is null)
+    {
+      throw new InvalidOperationException(nameof(NoteIdCondition));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.ParentIdCondition) && ParentIdCondition is null)
+    {
+      throw new InvalidOperationException(nameof(ParentIdCondition));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.TitleConditions) && TitleConditions is null)
+    {
+      throw new InvalidOperationException(nameof(TitleConditions));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.CreatedConditions) && CreatedConditions is null)
+    {
+      throw new InvalidOperationException(nameof(CreatedConditions));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.ModifiedConditions) && ModifiedConditions is null)
+    {
+      throw new InvalidOperationException(nameof(ModifiedConditions));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.BackgroundColorConditions) && BackgroundColorConditions is null)
+    {
+      throw new InvalidOperationException(nameof(BackgroundColorConditions));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.BookmarkedCondition) && BookmarkedCondition is null)
+    {
+      throw new InvalidOperationException(nameof(BookmarkedCondition));
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.DeletedCondition) && DeletedCondition is null)
+    {
+      throw new InvalidOperationException(nameof(DeletedCondition));
+    }
+  }
 }

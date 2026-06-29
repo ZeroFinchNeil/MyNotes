@@ -2,6 +2,7 @@
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
+using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
@@ -30,15 +31,29 @@ internal static class NoteMappers
     IsDeleted = note.IsDeleted
   };
 
-  public static FindNotesDbQuery ToDbQuery(FindNotesAppQuery findNotesQuery) => new()
+  public static FindNotesDbQuery ToDbQuery(FindNotesAppQuery query)
   {
-    NoteFindFields = findNotesQuery.NoteFindFields,
-    NoteIdCondition = EqualityQueryCondition<Guid>.Create(findNotesQuery.NoteIdCondition.Target.Value, findNotesQuery.NoteIdCondition.Condition),
-    ParentIdCondition = EqualityQueryCondition<Guid>.Create(findNotesQuery.ParentIdCondition.Target.Value, findNotesQuery.ParentIdCondition.Condition),
-    TitleConditions = findNotesQuery.TitleConditions,
-    CreatedConditions = findNotesQuery.CreatedConditions,
-    ModifiedConditions = findNotesQuery.ModifiedConditions
-  };
+    var noteFindFields = query.NoteFindFields;
+
+    if (noteFindFields == NoteFindFields.None)
+    {
+      throw new ArgumentException("", nameof(query));
+    }
+    query.ThrowIfInvalid();
+    return new()
+    {
+      NoteFindFields = noteFindFields,
+      AggregationMode = query.AggregationMode,
+      NoteIdCondition = query.NoteIdCondition is null ? null : EqualityQueryCondition<Guid>.Create(query.NoteIdCondition.Target.Value, query.NoteIdCondition.Condition),
+      ParentIdCondition = query.ParentIdCondition is null ? null : EqualityQueryCondition<Guid>.Create(query.ParentIdCondition.Target.Value, query.ParentIdCondition.Condition),
+      TitleConditions = query.TitleConditions,
+      CreatedConditions = query.CreatedConditions,
+      ModifiedConditions = query.ModifiedConditions,
+      BackgroundColorConditions = query.BackgroundColorConditions,
+      BookmarkedCondition = query.BookmarkedCondition,
+      DeletedCondition = query.DeletedCondition
+    };
+  }
 
   public static UpdateNoteDbRequestDto ToDbDto(UpdateNoteAppRequestDto updateNoteAppDto) => new()
   {

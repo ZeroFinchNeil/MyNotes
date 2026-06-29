@@ -26,4 +26,40 @@ internal sealed record FindNotesAppQuery
   public EqualityQueryCondition<bool>? BookmarkedCondition { get; init; }
 
   public EqualityQueryCondition<bool>? DeletedCondition { get; init; }
+
+  public void ThrowIfInvalid()
+  {
+    if (NoteFindFields.HasFlag(NoteFindFields.NoteIdCondition) && NoteIdCondition is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.ParentIdCondition) && ParentIdCondition is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.TitleConditions) && TitleConditions is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.CreatedConditions) && CreatedConditions is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.ModifiedConditions) && ModifiedConditions is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.BackgroundColorConditions) && BackgroundColorConditions is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.BookmarkedCondition) && BookmarkedCondition is null)
+    {
+      throw new ArgumentException("");
+    }
+    if (NoteFindFields.HasFlag(NoteFindFields.DeletedCondition) && DeletedCondition is null)
+    {
+      throw new ArgumentException("");
+    }
+  }
 }
