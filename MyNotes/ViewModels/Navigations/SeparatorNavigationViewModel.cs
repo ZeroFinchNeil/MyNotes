@@ -14,7 +14,9 @@ internal sealed partial class SeparatorNavigationViewModel : NavigationViewModel
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
+    {
       return;
+    }
 
     if (disposing)
     {

@@ -1,13 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Querying;
+using MyNotes.Models.Navigations;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
-using MyNotes.Models.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
-using MyNotes.Common.Querying;
 
 namespace MyNotes.Views.Navigations;
 

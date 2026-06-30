@@ -18,7 +18,7 @@ public sealed partial class EnumToIntConverter : DependencyObject, IValueConvert
       ? (object)(int)(ValueType)enumValue
       : throw new ArgumentException($"Value is not a type of {EnumType}");
 
-  public object ConvertBack(object value, Type targetType, object parameter, string language) => value is int intValue 
-    ? Enum.ToObject(EnumType, intValue) 
+  public object ConvertBack(object value, Type targetType, object parameter, string language) => value is int intValue
+    ? Enum.ToObject(EnumType, intValue)
     : throw new ArgumentException("Value is not a type of int");
 }

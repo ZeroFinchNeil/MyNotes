@@ -8,8 +8,6 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Notes;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
@@ -17,6 +15,8 @@ using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
 using MyNotes.Templates.Media;
 
 namespace MyNotes.ViewModels.Notes;

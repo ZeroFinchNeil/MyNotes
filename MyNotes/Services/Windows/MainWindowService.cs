@@ -4,7 +4,6 @@ using Microsoft.UI.Content;
 
 using MyNotes.Application.Services.Logging;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Infrastructure.Windowing;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;
 

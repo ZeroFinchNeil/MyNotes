@@ -3,11 +3,11 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.UI.Xaml.Documents;
 
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Notes;
 using MyNotes.Common.Helpers;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Media;
+using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Models.Notes;
 

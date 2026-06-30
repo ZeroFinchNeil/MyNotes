@@ -10,7 +10,7 @@ public static class ExpressionExtensions
   {
     public Expression<Func<T, bool>> AndAll()
     {
-      if(expressions.Count == 0)
+      if (expressions.Count == 0)
       {
         return _ => true;
       }
@@ -18,7 +18,7 @@ public static class ExpressionExtensions
       var parameter = Expression.Parameter(typeof(T), "T");
       Expression? combinedExpression = null;
 
-      foreach(var expression in expressions)
+      foreach (var expression in expressions)
       {
         var replacedExpression = new ParameterExpressionVisitor(expression.Parameters[0], parameter).Visit(expression.Body)
           ?? throw new InvalidOperationException("조건식 파라미터 치환에 실패했습니다.");

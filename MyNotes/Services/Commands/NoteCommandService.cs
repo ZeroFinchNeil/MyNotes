@@ -5,7 +5,6 @@ using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Services.App;
-using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;

@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-using MyNotes.Common.Structures;
+﻿using MyNotes.Common.Structures;
 
 using Windows.Foundation.Collections;
-using Windows.Storage;
 
 namespace MyNotes.Services.Settings;
 

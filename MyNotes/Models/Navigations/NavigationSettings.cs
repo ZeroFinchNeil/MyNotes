@@ -1,7 +1,7 @@
 ﻿using Microsoft.UI.Xaml.Controls.AnimatedVisuals;
 
-using MyNotes.Shared.Constants;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Constants;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;

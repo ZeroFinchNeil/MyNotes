@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
@@ -13,7 +11,7 @@ internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserComp
 
   [ForeignKey(nameof(Id))]
   public UserNavigationEntity? Navigation { get; init; }
-  
+
   public required bool IsExpanded { get; set; }
 
   public bool Equals(UserCompositeNavigationViewStateEntity? other) => other is not null && other.Id == Id;

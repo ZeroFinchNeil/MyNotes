@@ -6,12 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
+using MyNotes.Constants;
+using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
-using MyNotes.Shared.Constants;
-using MyNotes.Helpers;
 using MyNotes.Shared.Enums.Settings;
-using MyNotes.Constants;
 
 namespace MyNotes.ViewModels.Navigations;
 

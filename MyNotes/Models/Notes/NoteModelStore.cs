@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Infrastructure.Mappers;
 
 namespace MyNotes.Models.Notes;
 

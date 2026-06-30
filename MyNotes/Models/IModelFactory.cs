@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyNotes.Models;
+﻿namespace MyNotes.Models;
 
 internal interface IModelFactory<in TSource, out TModel> where TSource : notnull where TModel : class
 {

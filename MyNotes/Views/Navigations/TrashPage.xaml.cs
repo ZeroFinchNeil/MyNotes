@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Models.Navigations;
+using MyNotes.Shared.Enums.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;

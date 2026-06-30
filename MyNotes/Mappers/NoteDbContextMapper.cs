@@ -1,13 +1,4 @@
-﻿using System.Text.Json;
-
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Infrastructure.Database.Entities.Notes;
-using MyNotes.Models.Media;
-using MyNotes.Models.Notes;
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Notes;
-
-namespace MyNotes.Mappers;
+﻿namespace MyNotes.Mappers;
 
 [Obsolete]
 internal static class NoteDbContextMapper
