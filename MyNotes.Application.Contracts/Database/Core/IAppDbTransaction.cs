@@ -6,7 +6,7 @@ namespace MyNotes.Application.Contracts.Database.Core;
 
 internal interface IAppDbTransaction : IAppDbTransactionContext, IAsyncDisposable
 {
-  public Task InitializeAsync();
+  public Task InitializeAsync(CancellationToken cancellationToken = default);
 
   public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 

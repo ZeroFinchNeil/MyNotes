@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -16,10 +17,10 @@ internal sealed class AppDbTransactionFactory : IAppDbTransactionFactory
     ServiceProvider = serviceProvider;
   }
 
-  public async Task<IAppDbTransaction> CreateAsync()
+  public async Task<IAppDbTransaction> CreateAsync(CancellationToken cancellationToken = default)
   {
     IAppDbTransaction transaction = ServiceProvider.GetRequiredService<IAppDbTransaction>();
-    await transaction.InitializeAsync();
+    await transaction.InitializeAsync(cancellationToken);
     return transaction;
   }
 }

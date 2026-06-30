@@ -29,15 +29,15 @@ internal sealed partial class AppDbTransaction : IAppDbTransaction, IAppDbTransa
     DbContextFactory = dbContextFactory;
   }
 
-  public async Task InitializeAsync()
+  public async Task InitializeAsync(CancellationToken cancellationToken = default)
   {
     if (Transaction is not null)
     {
       throw new InvalidOperationException("트랜잭션이 이미 초기화되었습니다.");
     }
 
-    AppDbContext = await DbContextFactory.CreateDbContextAsync();
-    Transaction = await AppDbContext.Database.BeginTransactionAsync();
+    AppDbContext = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    Transaction = await AppDbContext.Database.BeginTransactionAsync(cancellationToken);
   }
 
   public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
