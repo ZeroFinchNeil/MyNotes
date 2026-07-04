@@ -11,6 +11,5 @@ internal enum UserNavigationGetFields
   IsComposite = 1 << 2,
   Icon = 1 << 3,
   Title = 1 << 4,
-  Position = 1 << 5,
-  IsDeleted = 1 << 6
+  IsDeleted = 1 << 5,
 }

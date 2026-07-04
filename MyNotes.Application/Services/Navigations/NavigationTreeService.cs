@@ -23,14 +23,14 @@ internal sealed partial class NavigationTreeService
 
   public async Task<UserCompositeNavigationBundleAppResponseDto> BuildNavigationTreeAsync()
   {
-    var dbAggregateResponseDto = await NavigationRepository.GetAllUserNavigationsAsync();
+    var dbBundleResponseDto = await NavigationRepository.GetAllUserNavigationsAsync();
 
-    var treeElementsById = dbAggregateResponseDto.ToDictionary(
-      aggregateDto => aggregateDto.UserNavigationDto.Id,
-      aggregateDto => new NavigationTreeElement()
+    var treeElementsById = dbBundleResponseDto.ToDictionary(
+      bundleDbDto => bundleDbDto.UserNavigationDto.Id,
+      bundleDbDto => new NavigationTreeElement()
       {
-        BundleDto = UserNavigationMappers.ToAppDto(aggregateDto),
-        Position = aggregateDto.UserNavigationDto.Position
+        BundleDto = UserNavigationMappers.ToAppDto(bundleDbDto),
+        Position = bundleDbDto.UserNavigationDto.Position
       });
 
     UserCompositeNavigationBundleAppResponseDto rootAppDto = new(

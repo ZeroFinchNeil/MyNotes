@@ -17,5 +17,5 @@ internal sealed record GetUserNavigationFieldValuesDbResponseDto
 
   public string? Title { get; init; }
 
-  public int? Position { get; init; }
+  public bool? IsDeleted { get; init; }
 }

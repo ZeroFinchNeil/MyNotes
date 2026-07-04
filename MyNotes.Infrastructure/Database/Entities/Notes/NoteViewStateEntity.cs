@@ -12,37 +12,37 @@ internal sealed class NoteViewStateEntity : IDatabaseEntity<NoteViewStateEntity>
   [ForeignKey(nameof(Id))]
   public NoteEntity? Note { get; init; }
 
-  public required bool ShowBackgroundImage { get; set; }
+  public required bool ShowBackgroundImage { get; init; }
 
-  public required string? BackgroundImagePath { get; set; }
+  public required string? BackgroundImagePath { get; init; }
 
-  public required double BackgroundImageOpacity { get; set; }
+  public required double BackgroundImageOpacity { get; init; }
 
-  public required double BackgroundImageBlur { get; set; }
+  public required double BackgroundImageBlur { get; init; }
 
-  public required int BackdropKind { get; set; }
+  public required int BackdropKind { get; init; }
 
-  public required double BackdropTintOpacity { get; set; }
+  public required double BackdropTintOpacity { get; init; }
 
-  public required double BackdropLuminosityOpacity { get; set; }
+  public required double BackdropLuminosityOpacity { get; init; }
 
-  public required string Images { get; set; }
+  public required string Images { get; init; }
 
-  public required bool ShowImagePanel { get; set; }
+  public required bool ShowImagePanel { get; init; }
 
-  public required double ImagePanelHeight { get; set; }
+  public required double ImagePanelHeight { get; init; }
 
-  public required int Width { get; set; }
+  public required int Width { get; init; }
 
-  public required int Height { get; set; }
+  public required int Height { get; init; }
 
-  public required int PositionX { get; set; }
+  public required int PositionX { get; init; }
 
-  public required int PositionY { get; set; }
+  public required int PositionY { get; init; }
 
-  public required bool IsWindowOpen { get; set; }
+  public required bool IsWindowOpen { get; init; }
 
-  public required bool IsAlwaysOnTop { get; set; }
+  public required bool IsAlwaysOnTop { get; init; }
 
   public bool Equals(NoteViewStateEntity? other) => other is not null && other.Id == Id;
 

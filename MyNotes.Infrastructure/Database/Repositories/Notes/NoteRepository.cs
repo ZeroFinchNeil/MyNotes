@@ -40,7 +40,7 @@ internal class NoteRepository : INoteRepository
     do
     {
       noteId = NoteId.NewId();
-    } while (await context.NoteEntities.AnyAsync(e => e.Id == noteId.Value, cancellationToken));
+    } while (await context.NoteEntities.AsNoTracking().AnyAsync(e => e.Id == noteId.Value, cancellationToken));
 
     return noteId;
   }
@@ -98,7 +98,6 @@ internal class NoteRepository : INoteRepository
   public async Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default)
   {
     //todo: DB에서 쿼리 조건에 따른 노트 가져오기
-    //important: 구현중
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
     var expressions = MakeExpressions(findNotesDbQuery);

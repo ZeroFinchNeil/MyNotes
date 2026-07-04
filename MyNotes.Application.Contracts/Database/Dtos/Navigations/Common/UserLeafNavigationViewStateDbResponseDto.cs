@@ -4,10 +4,6 @@ namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
 
 internal sealed record UserLeafNavigationViewStateDbResponseDto : UserNavigationViewStateDbResponseDto
 {
-  public required Guid? RestorePrevious { get; init; }
-
-  public required Guid? RestoreNext { get; init; }
-
   public required int? NoteSortKey { get; init; }
 
   public required int? NoteSortDirection { get; init; }

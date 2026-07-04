@@ -14,7 +14,7 @@ internal sealed record UserCompositeNavigationBundleAppResponseDto : UserNavigat
 
   public ImmutableList<UserNavigationBundleAppResponseDto> Children
   {
-    get => field;
+    get;
     init
     {
       ArgumentNullException.ThrowIfNull(value);

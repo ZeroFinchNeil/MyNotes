@@ -1,6 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Dtos.Navigations.Arrangement;
+using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Dtos.Navigations.Creation;
 using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Enums.Navigations;
@@ -261,33 +262,38 @@ internal sealed class NavigationCommandService : ICommandService
     };
   }
 
-  private async Task AddNavigationAsync(NavigationUserNode navigation, bool isNavigationComposite)
+  private async Task AddNavigationAsync(NavigationUserNode targetNavigation, bool isNavigationComposite, CancellationToken cancellationToken = default)
   {
     if (MainWindowService.TryGetCurrentWindow(out var mainWindow) && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
     {
-      var dialogResponse = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, navigation, EditMode.Create, false);
+      var dialogResponse = await DialogService.ShowEditUserNavigationDialogAsync(xamlRoot, targetNavigation, EditMode.Create, false);
       if (dialogResponse is { Result: ContentDialogResult.Primary, Data: (Icon, string) v })
       {
-        (NavigationInsertPosition navigationInsertPosition, NavigationId parentId) = navigation switch
+        NavigationInsertPosition navigationInsertPosition = targetNavigation switch
         {
-          NavigationUserCompositeNode => (NavigationInsertPosition.LastChild, navigation.Id),
-          NavigationUserLeafNode => (NavigationInsertPosition.After, navigation.Parent.Id),
-          _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {navigation.GetType().FullName}")
+          NavigationUserCompositeNode => NavigationInsertPosition.LastChild,
+          NavigationUserLeafNode => NavigationInsertPosition.After,
+          _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {targetNavigation.GetType().FullName}")
         };
 
         CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto = new()
         {
-          InsertTargetId = navigation.Id,
+          InsertTargetId = targetNavigation.Id,
           NavigationInsertPosition = navigationInsertPosition,
-          ParentId = parentId,
           IsComposite = isNavigationComposite,
           Icon = v.Icon,
           Title = v.Title,
         };
 
-        if (await NavigationService.Creation.AddUserNavigationAsync(createUserNavigationAppRequestDto) is INavigation newNavigation)
+        if (await NavigationService.Creation.AddUserNavigationAsync(createUserNavigationAppRequestDto, cancellationToken) is UserNavigationBundleAppResponseDto responseDto)
         {
-          NavigationController.NavigateTo(newNavigation);
+          Console.WriteLine("{0}: {1}", "responseDto", responseDto);
+          //NavigationUserNode navigation = new()
+          //NavigationController.NavigateTo(navigation);
+        }
+        else
+        {
+          throw new Exception();
         }
       }
     }

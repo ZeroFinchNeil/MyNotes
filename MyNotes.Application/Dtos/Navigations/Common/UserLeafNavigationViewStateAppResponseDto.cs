@@ -7,10 +7,6 @@ namespace MyNotes.Application.Dtos.Navigations.Common;
 
 internal sealed record UserLeafNavigationViewStateAppResponseDto : UserNavigationViewStateAppResponseDto
 {
-  public required NavigationId? RestorePrevious { get; init; }
-
-  public required NavigationId? RestoreNext { get; init; }
-
   public required NoteSortKey? NoteSortKey { get; init; }
 
   public required SortDirection? NoteSortDirection { get; init; }

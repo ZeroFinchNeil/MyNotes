@@ -31,7 +31,11 @@ internal readonly record struct NavigationId
 
   public static bool IsValidId(Guid id) => id >= _allowedLowerBound && id <= _allowedUpperBound;
 
+  public static bool IsValidParentId(Guid id) => id == UserRoot.Value || IsValidId(id);
+
   public static bool IsValidId(NavigationId navigationId) => IsValidId(navigationId.Value);
+
+  public static bool IsValidParentId(NavigationId navigationId) => IsValidParentId(navigationId.Value);
 
   public static NavigationId NewId()
   {
@@ -50,7 +54,7 @@ internal readonly record struct NavigationId
 
   public NavigationId() => throw new InvalidOperationException("NavigationId has not been properly initialized.");
 
-  public static NavigationId Create(Guid id) => IsValidId(id) ? new(id) : throw new ArgumentException("NavigationId cannot be generated because the given Guid is in a reserved range.", nameof(id));
+  public static NavigationId Create(Guid id) => IsValidParentId(id) ? new(id) : throw new ArgumentException("NavigationId cannot be generated because the given Guid is in a reserved range.", nameof(id));
 
   public static NavigationId Create(string id) => Create(Guid.Parse(id));
 

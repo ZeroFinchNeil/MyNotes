@@ -38,7 +38,7 @@ internal sealed class UserNavigation
       throw new InvalidArgumentValueException("유효하지 않은 Id입니다.", nameof(id));
     }
 
-    if (!NavigationId.IsValidId(parent))
+    if (!NavigationId.IsValidParentId(parent))
     {
       throw new InvalidArgumentValueException("유효하지 않은 Parent Id입니다.", nameof(parent));
     }

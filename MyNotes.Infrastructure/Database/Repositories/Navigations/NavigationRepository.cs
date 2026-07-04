@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,13 +17,14 @@ using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Constants.Navigations;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 using MyNotes.Infrastructure.Mappers;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Navigations;
 
-internal class NavigationRepository : INavigationRepository
+internal partial class NavigationRepository : INavigationRepository
 {
   private readonly IDbContextFactory<AppDbContext> DbContextFactory;
 
@@ -31,56 +33,20 @@ internal class NavigationRepository : INavigationRepository
     DbContextFactory = dbContextFactory;
   }
 
-  // 추후 join을 이용한 방식으로 리팩터링: 예시 ->
-  // public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync(CancellationToken cancellationToken = default)
-  //{
-  //  await using AppDbContext context =
-  //      await DbContextFactory.CreateDbContextAsync(cancellationToken);
+  #region Retrieval
+  public async Task<NavigationId> GenerateUniqueUserNavigationIdAsync(CancellationToken cancellationToken = default)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-  //  // Composite Navigation과 Composite ViewState를 공유 키 Id로 조인합니다.
-  //  var compositePairs = await context.UserNavigationEntities
-  //      .AsNoTracking()
-  //      .Where(navigation => navigation.IsComposite)
-  //      .Join(
-  //          context.UserCompositeNavigationViewStateEntity.AsNoTracking(),
-  //          navigation => navigation.Id,
-  //          viewState => viewState.Id,
-  //          (navigation, viewState) => new
-  //          {
-  //            Navigation = navigation,
-  //            ViewState = viewState
-  //          })
-  //      .ToListAsync(cancellationToken);
+    NavigationId navigationId;
+    do
+    {
+      navigationId = NavigationId.NewId();
+    } while (await context.UserNavigationEntities.AsNoTracking().AnyAsync(e => e.Id == navigationId.Value, cancellationToken));
 
-  //  // Leaf Navigation과 Leaf ViewState를 공유 키 Id로 조인합니다.
-  //  var leafPairs = await context.UserNavigationEntities
-  //      .AsNoTracking()
-  //      .Where(navigation => !navigation.IsComposite)
-  //      .Join(
-  //          context.UserLeafNavigationViewStateEntity.AsNoTracking(),
-  //          navigation => navigation.Id,
-  //          viewState => viewState.Id,
-  //          (navigation, viewState) => new
-  //          {
-  //            Navigation = navigation,
-  //            ViewState = viewState
-  //          })
-  //      .ToListAsync(cancellationToken);
+    return navigationId;
+  }
 
-  //  var compositeBundles = compositePairs.Select(pair =>
-  //      new UserNavigationBundleDbResponseDto(
-  //          UserNavigationMappers.ToDto(pair.Navigation),
-  //          UserNavigationMappers.ToDto(pair.ViewState)));
-
-  //  var leafBundles = leafPairs.Select(pair =>
-  //      new UserNavigationBundleDbResponseDto(
-  //          UserNavigationMappers.ToDto(pair.Navigation),
-  //          UserNavigationMappers.ToDto(pair.ViewState)));
-
-  //  return compositeBundles
-  //      .Concat(leafBundles)
-  //      .ToArray();
-  //}
   public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync(CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -133,27 +99,85 @@ internal class NavigationRepository : INavigationRepository
     return null;
   }
 
-  public async Task<NavigationId> GenerateUniqueUserNavigationIdAsync(CancellationToken cancellationToken = default)
+  public async Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto, CancellationToken cancellationToken = default)
+  {
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+    var id = getUserNavigationFieldsDbRequestDto.Id;
+    var getFields = getUserNavigationFieldsDbRequestDto.UserNavigationGetFields;
+    return await context.UserNavigationEntities
+      .AsNoTracking()
+      .Where(e => e.Id == id.Value)
+      .Select(e => new GetUserNavigationFieldValuesDbResponseDto()
+      {
+        UserNavigationGetFields = getFields,
+        Id = getFields.HasFlag(UserNavigationGetFields.Id) ? NavigationId.Create(e.Id) : null,
+        Parent = getFields.HasFlag(UserNavigationGetFields.Parent) ? NavigationId.Create(e.Parent) : null,
+        IsComposite = getFields.HasFlag(UserNavigationGetFields.IsComposite) ? e.IsComposite : null,
+        Icon = getFields.HasFlag(UserNavigationGetFields.Icon) ? e.Icon : null,
+        Title = getFields.HasFlag(UserNavigationGetFields.Title) ? e.Title : null,
+        IsDeleted = getFields.HasFlag(UserNavigationGetFields.IsDeleted) ? e.IsDeleted : null,
+      })
+      .FirstOrDefaultAsync(cancellationToken)
+      ?? new GetUserNavigationFieldValuesDbResponseDto() { UserNavigationGetFields = UserNavigationGetFields.None };
+  }
+  #endregion
+
+  public async Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    NavigationId navigationId;
-    do
+    UserNavigationEntity entity = UserNavigationMappers.ToEntity(createUserNavigationDbRequestDto);
+
+    var entities = context.UserNavigationEntities.AsNoTracking();
+    var insertTargetId = createUserNavigationDbRequestDto.InsertTargetId;
+    var insertPosition = createUserNavigationDbRequestDto.NavigationInsertPosition;
+    RepositionRangeKind kind;
+    IReadOnlyList<UserNavigationEntity> es = insertPosition switch
     {
-      navigationId = NavigationId.NewId();
-    } while (await context.UserNavigationEntities.AnyAsync(e => e.Id == navigationId.Value, cancellationToken));
+      NavigationInsertPosition.Before =>
+        await entities.FirstOrDefaultAsync(e => e.Id == insertTargetId.Value, cancellationToken) is UserNavigationEntity entity1
+          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity, entity1], 0, out kind)
+          : throw new InvalidOperationException(),
+      NavigationInsertPosition.After =>
+        await entities.FirstOrDefaultAsync(e => e.Id == insertTargetId.Value, cancellationToken) is UserNavigationEntity entity2
+          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity2, entity], 1, out kind)
+          : throw new InvalidOperationException(),
+      NavigationInsertPosition.FirstChild =>
+        await entities.Where(e => e.Parent == insertTargetId.Value).OrderBy(e => e.Position).FirstOrDefaultAsync(cancellationToken) is UserNavigationEntity entity3
+          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity3, entity], 0, out kind)
+          : UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity], 0, out kind),
+      NavigationInsertPosition.LastChild =>
+        await entities.Where(e => e.Parent == insertTargetId.Value).OrderBy(e => e.Position).FirstOrDefaultAsync(cancellationToken) is UserNavigationEntity entity4
+          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity, entity4], 0, out kind)
+          : UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity], 0, out kind),
+      _ => throw new InvalidOperationException(),
+    };
 
-    return navigationId;
-  }
+    entity.Position = kind is RepositionRangeKind.SourceOnly && es.Count == 1 && es[0].Id == entity.Id
+      ? es[0].Position
+      : throw new InvalidOperationException();
 
-  public Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
-  }
+    await context.UserNavigationEntities.AddAsync(entity, cancellationToken);
+    UserNavigationDbResponseDto userNavigationDbResponseDto = UserNavigationMappers.ToDto(entity);
 
-  public Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
+    UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto;
+    if (createUserNavigationDbRequestDto.IsComposite)
+    {
+      var compositeViewStateEntity = UserCompositeNavigationViewStateEntity.CreateDefault(entity.Id);
+      await context.UserCompositeNavigationViewStateEntity.AddAsync(compositeViewStateEntity, cancellationToken);
+      userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(compositeViewStateEntity);
+    }
+    else
+    {
+      var leafViewStateEntity = UserLeafNavigationViewStateEntity.CreateDefault(entity.Id);
+      await context.UserLeafNavigationViewStateEntity.AddAsync(UserLeafNavigationViewStateEntity.CreateDefault(entity.Id), cancellationToken);
+      userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(leafViewStateEntity);
+    }
+
+    return await context.SaveChangesAsync(cancellationToken) == 0
+      ? throw new InvalidOperationException()
+      : UserNavigationMappers.BundleDbDto(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto);
   }
 
   public Task<UpdateUserNavigationDbResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationDbRequestDto updateUserNavigationDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
@@ -166,13 +190,11 @@ internal class NavigationRepository : INavigationRepository
     throw new NotImplementedException();
   }
 
-  private const int TemporarySourcePosition = int.MinValue;
-
   public async Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext? appDbTransactionContext = null, CancellationToken cancellationToken = default)
   {
     // Source Navigation을 포함하여 Position에 영향받는 모든 Navigation들의 Id, Parent, Position을 담아서 반환(이 때 반환되는 모든 Navigation의 Parent 속성 값은 모두 일치해야 함).
     List<GetUserNavigationFieldValuesDbResponseDto> resultDtos = new();
-    UserNavigationGetFields userNavigationGetField = UserNavigationGetFields.Id | UserNavigationGetFields.Parent | UserNavigationGetFields.Position;
+    UserNavigationGetFields userNavigationGetField = UserNavigationGetFields.Id | UserNavigationGetFields.Parent;
 
     Guid sourceId = moveUserNavigationDbRequestDto.SourceNavigation.Value;
     Guid targetId = moveUserNavigationDbRequestDto.TargetNavigation.Value;
@@ -186,7 +208,7 @@ internal class NavigationRepository : INavigationRepository
     AppDbContext context = appDbTransactionContext?.DbContext switch
     {
       AppDbContext appDbContext => appDbContext,
-      null when appDbTransactionContext is null => await DbContextFactory.CreateDbContextAsync(),
+      null when appDbTransactionContext is null => await DbContextFactory.CreateDbContextAsync(cancellationToken),
       null => throw new InvalidOperationException("DB 트랜잭션 컨텍스트가 초기화되지 않았습니다."),
       DbContext dbContext => throw new InvalidOperationException(
           $"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {dbContext.GetType().FullName}")
@@ -244,11 +266,11 @@ internal class NavigationRepository : INavigationRepository
       // sourceEntity의 Parent를 변경하고 임시 Position 설정 후 siblingsEntities에 삽입
       if (!await EnsureTemporarySourceSlotIsAvailableAsync(context, newSourceParent))
       {
-        throw new InvalidOperationException($"source Navigation 임시 Position이 이미 사용 중입니다. Parent={newSourceParent}, Position={TemporarySourcePosition}");
+        throw new InvalidOperationException($"source Navigation 임시 Position이 이미 사용 중입니다. Parent={newSourceParent}, Position={UserNavigationEntitySettings.TemporaryPosition}");
       }
 
       sourceEntity.Parent = newSourceParent;
-      sourceEntity.Position = TemporarySourcePosition;
+      sourceEntity.Position = UserNavigationEntitySettings.TemporaryPosition;
       int sourceTemporaryMoveRows = await context.UserNavigationEntities
         .Where(e => e.Id == sourceEntity.Id
                     && e.Parent == oldSourceParent
@@ -267,7 +289,7 @@ internal class NavigationRepository : INavigationRepository
 
       // 위치 변경을 완료한 후에 영향받는 Navigation들만 Position을 수정할 수 있도록 repositionEntities 컬렉션 생성 후 위치 재조정
       Dictionary<Guid, int> originalSiblingPositionById = siblingEntities.ToDictionary(e => e.Id, e => e.Position);
-      var affectedEntities = UserNavigationRepositioner.RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
+      var affectedEntities = UserNavigationEntityRepositioning.RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
       if (affectedEntities.Count == 0)
       {
         throw new InvalidOperationException($"Navigation 재배치 결과 변경된 Position이 없습니다. SourceId={sourceId}, InsertedIndex={insertedIndex}, RepositionRangeKind={siblingsRepositionRangeKind}");
@@ -311,12 +333,12 @@ internal class NavigationRepository : INavigationRepository
       var sourceFinalMoveRows = await context.UserNavigationEntities
         .Where(e => e.Id == sourceEntity.Id
                     && e.Parent == newSourceParent
-                    && e.Position == TemporarySourcePosition)
+                    && e.Position == UserNavigationEntitySettings.TemporaryPosition)
         .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, sourceEntity.Position), cancellationToken);
 
       if (sourceFinalMoveRows != 1)
       {
-        throw new InvalidOperationException($"source Navigation 최종 Position 반영에 실패했습니다. source가 임시 위치에 없거나 동시 변경되었을 수 있습니다. Id={sourceEntity.Id}, Parent={newSourceParent}, ExpectedPosition={TemporarySourcePosition}, NewPosition={sourceEntity.Position}, AffectedRows={sourceFinalMoveRows}");
+        throw new InvalidOperationException($"source Navigation 최종 Position 반영에 실패했습니다. source가 임시 위치에 없거나 동시 변경되었을 수 있습니다. Id={sourceEntity.Id}, Parent={newSourceParent}, ExpectedPosition={UserNavigationEntitySettings.TemporaryPosition}, NewPosition={sourceEntity.Position}, AffectedRows={sourceFinalMoveRows}");
       }
 
       foreach (var siblingEntity in siblingEntities)
@@ -325,8 +347,7 @@ internal class NavigationRepository : INavigationRepository
         {
           UserNavigationGetFields = userNavigationGetField,
           Id = NavigationId.Create(siblingEntity.Id),
-          Parent = NavigationId.Create(siblingEntity.Parent),
-          Position = siblingEntity.Position
+          Parent = NavigationId.Create(siblingEntity.Parent)
         });
       }
 
@@ -373,30 +394,31 @@ internal class NavigationRepository : INavigationRepository
   }
 
   private static async Task<bool> EnsureTemporarySourceSlotIsAvailableAsync(AppDbContext context, Guid parentId) =>
-    !await context.UserNavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == TemporarySourcePosition);
+    !await context.UserNavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == UserNavigationEntitySettings.TemporaryPosition);
 
-  private const int DefaultPositionStep = 1024;
-  private const int MaxPositionStep = 4096;
+}
 
+internal partial class NavigationRepository
+{
   /// <summary>
   /// source 삽입 후 Position 재계산이 어떤 범위에서 발생했는지 나타냅니다.
   /// </summary>
   private enum RepositionRangeKind { SourceOnly, ExpandedToLeft, ExpandedToRight }
 
-  private sealed class UserNavigationRepositioner
+  private sealed class UserNavigationEntityRepositioning
   {
     private readonly IList<UserNavigationEntity> _entities;
     private readonly List<UserNavigationEntity> _positionChangedEntities = new();
 
     private int Count => _entities.Count;
 
-    private UserNavigationRepositioner(IList<UserNavigationEntity> entities)
+    private UserNavigationEntityRepositioning(IList<UserNavigationEntity> entities)
     {
       ArgumentNullException.ThrowIfNull(entities);
       _entities = entities;
     }
 
-    public static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind) => new UserNavigationRepositioner(entities)
+    public static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind) => new UserNavigationEntityRepositioning(entities)
       .RepositionFromInsertedNavigation(insertedIndex, out repositionRangeKind);
 
     private IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(int insertedIndex, out RepositionRangeKind repositionRangeKind)
@@ -501,9 +523,9 @@ internal class NavigationRepository : INavigationRepository
 
     private static bool TryUpdatePosition(UserNavigationEntity entity, int newPosition)
     {
-      if (newPosition == TemporarySourcePosition)
+      if (newPosition == UserNavigationEntitySettings.TemporaryPosition)
       {
-        throw new InvalidOperationException($"임시 Position 값({TemporarySourcePosition})은 정상 Navigation Position으로 사용할 수 없습니다.");
+        throw new InvalidOperationException($"임시 Position 값({UserNavigationEntitySettings.TemporaryPosition})은 정상 Navigation Position으로 사용할 수 없습니다.");
       }
 
       if (entity.Position == newPosition)
@@ -571,8 +593,8 @@ internal class NavigationRepository : INavigationRepository
 
       long totalSpan = (long)_entities[^1].Position - _entities[0].Position;
       int preferredStep = Count < 2 || totalSpan <= 0
-        ? DefaultPositionStep
-        : (int)Math.Clamp(totalSpan / (Count - 1L), DefaultPositionStep, MaxPositionStep);
+        ? UserNavigationEntitySettings.DefaultPositionStep
+        : (int)Math.Clamp(totalSpan / (Count - 1L), UserNavigationEntitySettings.DefaultPositionStep, UserNavigationEntitySettings.MaxPositionStep);
 
       if (leftBoundaryPosition is int)
       {
@@ -584,7 +606,7 @@ internal class NavigationRepository : INavigationRepository
 
       if (rightBoundaryPosition is int)
       {
-        long maxLeftwardStep = ((long)rightBoundaryPosition.Value - (TemporarySourcePosition + 1)) / repositionItemCount;
+        long maxLeftwardStep = ((long)rightBoundaryPosition.Value - (UserNavigationEntitySettings.TemporaryPosition + 1)) / repositionItemCount;
         return maxLeftwardStep <= 0
           ? throw new InvalidOperationException($"왼쪽 방향으로 Position 재배치 공간이 부족합니다. Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
           : checked((int)Math.Min(preferredStep, maxLeftwardStep));
@@ -594,3 +616,54 @@ internal class NavigationRepository : INavigationRepository
     }
   }
 }
+
+// 추후 join을 이용한 방식으로 리팩터링: 예시 ->
+// public async Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync(CancellationToken cancellationToken = default)
+//{
+//  await using AppDbContext context =
+//      await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+//  // Composite Navigation과 Composite ViewState를 공유 키 Id로 조인합니다.
+//  var compositePairs = await context.UserNavigationEntities
+//      .AsNoTracking()
+//      .Where(navigation => navigation.IsComposite)
+//      .Join(
+//          context.UserCompositeNavigationViewStateEntity.AsNoTracking(),
+//          navigation => navigation.Id,
+//          viewState => viewState.Id,
+//          (navigation, viewState) => new
+//          {
+//            Navigation = navigation,
+//            ViewState = viewState
+//          })
+//      .ToListAsync(cancellationToken);
+
+//  // Leaf Navigation과 Leaf ViewState를 공유 키 Id로 조인합니다.
+//  var leafPairs = await context.UserNavigationEntities
+//      .AsNoTracking()
+//      .Where(navigation => !navigation.IsComposite)
+//      .Join(
+//          context.UserLeafNavigationViewStateEntity.AsNoTracking(),
+//          navigation => navigation.Id,
+//          viewState => viewState.Id,
+//          (navigation, viewState) => new
+//          {
+//            Navigation = navigation,
+//            ViewState = viewState
+//          })
+//      .ToListAsync(cancellationToken);
+
+//  var compositeBundles = compositePairs.Select(pair =>
+//      new UserNavigationBundleDbResponseDto(
+//          UserNavigationMappers.ToDto(pair.Navigation),
+//          UserNavigationMappers.ToDto(pair.ViewState)));
+
+//  var leafBundles = leafPairs.Select(pair =>
+//      new UserNavigationBundleDbResponseDto(
+//          UserNavigationMappers.ToDto(pair.Navigation),
+//          UserNavigationMappers.ToDto(pair.ViewState)));
+
+//  return compositeBundles
+//      .Concat(leafBundles)
+//      .ToArray();
+//}

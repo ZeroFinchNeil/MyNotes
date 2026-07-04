@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
-internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserCompositeNavigationViewStateEntity>, IUserNavigationViewStateEntity
+internal class UserCompositeNavigationViewStateEntity : IUserNavigationViewStateEntity<UserCompositeNavigationViewStateEntity>, IDatabaseEntity<UserCompositeNavigationViewStateEntity>
 {
   [Key]
   public required Guid Id { get; init; }
@@ -18,4 +18,10 @@ internal class UserCompositeNavigationViewStateEntity : IDatabaseEntity<UserComp
 
   public override bool Equals(object? obj) => this.Equals(obj as UserCompositeNavigationViewStateEntity);
   public override int GetHashCode() => Id.GetHashCode();
+
+  public static UserCompositeNavigationViewStateEntity CreateDefault(Guid id) => new()
+  {
+    Id = id,
+    IsExpanded = true
+  };
 }

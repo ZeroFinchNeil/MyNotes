@@ -7,6 +7,8 @@ internal sealed record CreateUserNavigationDbRequestDto
 {
   public required NavigationId Id { get; init; }
 
+  public required NavigationId ParentId { get; init; }
+
   public required NavigationId InsertTargetId { get; init; }
 
   public required NavigationInsertPosition NavigationInsertPosition { get; init; }
@@ -17,12 +19,3 @@ internal sealed record CreateUserNavigationDbRequestDto
 
   public required string Title { get; init; }
 }
-
-/*
-Id = ,
-TargetId = ,
-NavigationInsertPosition = ,
-IsComposite = ,
-Icon = ,
-Title = ,
-*/

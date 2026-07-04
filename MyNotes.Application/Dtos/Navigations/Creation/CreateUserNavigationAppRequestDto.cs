@@ -10,7 +10,7 @@ internal sealed record CreateUserNavigationAppRequestDto
 
   public required NavigationInsertPosition NavigationInsertPosition { get; init; }
 
-  public required NavigationId ParentId { get; init; }
+  //public required NavigationId ParentId { get; init; }
 
   public required bool IsComposite { get; init; }
 

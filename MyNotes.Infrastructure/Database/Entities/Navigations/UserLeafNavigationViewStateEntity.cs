@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
-internal class UserLeafNavigationViewStateEntity : IDatabaseEntity<UserLeafNavigationViewStateEntity>, IUserNavigationViewStateEntity
+internal class UserLeafNavigationViewStateEntity : IDatabaseEntity<UserLeafNavigationViewStateEntity>, IUserNavigationViewStateEntity<UserLeafNavigationViewStateEntity>
 {
   [Key]
   public required Guid Id { get; init; }
@@ -12,22 +12,28 @@ internal class UserLeafNavigationViewStateEntity : IDatabaseEntity<UserLeafNavig
   [ForeignKey(nameof(Id))]
   public UserNavigationEntity? Navigation { get; init; }
 
-  public Guid? RestorePrevious { get; set; }
+  public required int? NoteSortKey { get; init; }
 
-  public Guid? RestoreNext { get; set; }
+  public required int? NoteSortDirection { get; init; }
 
-  public int? NoteSortKey { get; set; }
+  public required int? PreviewLayoutType { get; init; }
 
-  public int? NoteSortDirection { get; set; }
+  public required int? PreviewTileSize { get; init; }
 
-  public int? PreviewLayoutType { get; set; }
-
-  public int? PreviewTileSize { get; set; }
-
-  public int? PreviewTileRatio { get; set; }
+  public required int? PreviewTileRatio { get; init; }
 
   public bool Equals(UserLeafNavigationViewStateEntity? other) => other is not null && other.Id == Id;
 
   public override bool Equals(object? obj) => this.Equals(obj as UserLeafNavigationViewStateEntity);
   public override int GetHashCode() => Id.GetHashCode();
+
+  public static UserLeafNavigationViewStateEntity CreateDefault(Guid id) => new()
+  {
+    Id = id,
+    NoteSortKey = null,
+    NoteSortDirection = null,
+    PreviewLayoutType = null,
+    PreviewTileSize = null,
+    PreviewTileRatio = null
+  };
 }

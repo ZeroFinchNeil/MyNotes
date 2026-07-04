@@ -20,11 +20,10 @@ internal sealed partial class NavigationCreationService
     NavigationRepository = navigationRepository;
   }
 
-  public async Task<UserNavigationBundleAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto)
+  public async Task<UserNavigationBundleAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
   {
     NavigationId insertTargetId = createUserNavigationAppRequestDto.InsertTargetId;
     NavigationInsertPosition insertPosition = createUserNavigationAppRequestDto.NavigationInsertPosition;
-    NavigationId parentId = createUserNavigationAppRequestDto.ParentId;
 
     // Insert Target Navigation이 DB에 존재하는지 확인 후 Id와 Parent, IsComposite 속성 가져옴
     UserNavigationGetFields userNavigationGetFields = UserNavigationGetFields.Id | UserNavigationGetFields.Parent | UserNavigationGetFields.IsComposite;
@@ -33,32 +32,37 @@ internal sealed partial class NavigationCreationService
       UserNavigationGetFields = userNavigationGetFields,
       Id = insertTargetId
     };
-    GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbResponseDto = await NavigationRepository.GetUserNavigationFieldValuesAsync(getUserNavigationFieldsDbRequestDto);
+
+    GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbResponseDto = insertTargetId == NavigationId.UserRoot
+      ? new()
+      {
+        UserNavigationGetFields = userNavigationGetFields,
+        Id = insertTargetId,
+        Parent = NavigationId.UserRoot,
+        IsComposite = true
+      }
+      : await NavigationRepository.GetUserNavigationFieldValuesAsync(getUserNavigationFieldsDbRequestDto, cancellationToken);
 
     // Application과 Infra DB의 Target Navigation 정보 일치 확인 후 새 Navigation 추가
-    if (getUserNavigationFieldsDbResponseDto.UserNavigationGetFields.Equals(getUserNavigationFieldsDbRequestDto)
+    if (getUserNavigationFieldsDbResponseDto.UserNavigationGetFields.Equals(getUserNavigationFieldsDbRequestDto.UserNavigationGetFields)
       && getUserNavigationFieldsDbResponseDto.Id == insertTargetId
       && getUserNavigationFieldsDbResponseDto.Parent is NavigationId targetParentId
       && getUserNavigationFieldsDbResponseDto.IsComposite is bool isTargetComposite)
     {
-      switch (insertPosition)
+      if ((insertPosition is NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild) && !isTargetComposite)
       {
-        case NavigationInsertPosition.Before or NavigationInsertPosition.After:
-          if (parentId != targetParentId)
-          {
-            throw new InvalidStateException("추가하려는 Navigation과 Target Navigation의 Parent가 일치하지 않습니다.");
-          }
-          break;
-        case NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild:
-          if (!isTargetComposite || parentId != insertTargetId)
-          {
-            throw new InvalidStateException("Composite이 아닌 Navigation에 자식 요소로 추가할 수 없습니다.");
-          }
-          break;
+        throw new InvalidStateException("Composite이 아닌 Navigation에 자식 요소로 추가할 수 없습니다.");
       }
 
       // DB에 있는 Navigation들과 일치하지 않는 Unique Id 생성 -> 새로운 Navigation의 Id로 사용
-      NavigationId newNavigationId = await NavigationRepository.GenerateUniqueUserNavigationIdAsync();
+      NavigationId newNavigationId = await NavigationRepository.GenerateUniqueUserNavigationIdAsync(cancellationToken);
+
+      var parentId = insertPosition switch
+      {
+        NavigationInsertPosition.Before or NavigationInsertPosition.After => targetParentId,
+        NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild => insertTargetId,
+        _ => throw new InvalidOperationException()
+      };
 
       // UserNavigation Domain Entity로 변환하여 도메인 속성 유효성 검사
       UserNavigation userNavigation = new(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
@@ -66,12 +70,13 @@ internal sealed partial class NavigationCreationService
       UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
       {
         Id = newNavigationId,
+        ParentId = parentId,
         InsertTargetId = insertTargetId,
         NavigationInsertPosition = insertPosition,
         IsComposite = userNavigation.IsComposite,
         Icon = userNavigation.Icon,
         Title = userNavigation.Title,
-      });
+      }, cancellationToken);
 
       UserNavigationDbResponseDto dbResponseDto = bundleDbResponseDto.UserNavigationDto;
       UserNavigationViewStateDbResponseDto viewStateDbResponseDto = bundleDbResponseDto.ViewStateDto;
