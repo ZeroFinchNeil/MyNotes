@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -123,78 +123,76 @@ internal partial class NavigationRepository : INavigationRepository
   }
   #endregion
 
-  public async Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
+  public async Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-
-    UserNavigationEntity entity = UserNavigationMappers.ToEntity(createUserNavigationDbRequestDto);
-
-    var entities = context.UserNavigationEntities.AsNoTracking();
-    var insertTargetId = createUserNavigationDbRequestDto.InsertTargetId;
-    var insertPosition = createUserNavigationDbRequestDto.NavigationInsertPosition;
-    RepositionRangeKind kind;
-    IReadOnlyList<UserNavigationEntity> es = insertPosition switch
+    Guid sourceId = createUserNavigationDbRequestDto.Id.Value;
+    Guid targetId = createUserNavigationDbRequestDto.InsertTargetId.Value;
+    Guid parentId = createUserNavigationDbRequestDto.ParentId.Value;
+    NavigationInsertPosition insertPosition = createUserNavigationDbRequestDto.NavigationInsertPosition;
+    if (insertPosition is NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild
+        && targetId != createUserNavigationDbRequestDto.ParentId.Value)
     {
-      NavigationInsertPosition.Before =>
-        await entities.FirstOrDefaultAsync(e => e.Id == insertTargetId.Value, cancellationToken) is UserNavigationEntity entity1
-          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity, entity1], 0, out kind)
-          : throw new InvalidOperationException(),
-      NavigationInsertPosition.After =>
-        await entities.FirstOrDefaultAsync(e => e.Id == insertTargetId.Value, cancellationToken) is UserNavigationEntity entity2
-          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity2, entity], 1, out kind)
-          : throw new InvalidOperationException(),
-      NavigationInsertPosition.FirstChild =>
-        await entities.Where(e => e.Parent == insertTargetId.Value).OrderBy(e => e.Position).FirstOrDefaultAsync(cancellationToken) is UserNavigationEntity entity3
-          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity3, entity], 0, out kind)
-          : UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity], 0, out kind),
-      NavigationInsertPosition.LastChild =>
-        await entities.Where(e => e.Parent == insertTargetId.Value).OrderBy(e => e.Position).FirstOrDefaultAsync(cancellationToken) is UserNavigationEntity entity4
-          ? UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity, entity4], 0, out kind)
-          : UserNavigationEntityRepositioning.RepositionFromInsertedNavigation([entity], 0, out kind),
-      _ => throw new InvalidOperationException(),
-    };
-
-    entity.Position = kind is RepositionRangeKind.SourceOnly && es.Count == 1 && es[0].Id == entity.Id
-      ? es[0].Position
-      : throw new InvalidOperationException();
-
-    await context.UserNavigationEntities.AddAsync(entity, cancellationToken);
-    UserNavigationDbResponseDto userNavigationDbResponseDto = UserNavigationMappers.ToDto(entity);
-
-    UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto;
-    if (createUserNavigationDbRequestDto.IsComposite)
-    {
-      var compositeViewStateEntity = UserCompositeNavigationViewStateEntity.CreateDefault(entity.Id);
-      await context.UserCompositeNavigationViewStateEntity.AddAsync(compositeViewStateEntity, cancellationToken);
-      userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(compositeViewStateEntity);
-    }
-    else
-    {
-      var leafViewStateEntity = UserLeafNavigationViewStateEntity.CreateDefault(entity.Id);
-      await context.UserLeafNavigationViewStateEntity.AddAsync(UserLeafNavigationViewStateEntity.CreateDefault(entity.Id), cancellationToken);
-      userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(leafViewStateEntity);
+      throw new InvalidOperationException();
     }
 
-    return await context.SaveChangesAsync(cancellationToken) == 0
-      ? throw new InvalidOperationException()
-      : UserNavigationMappers.BundleDbDto(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto);
+    var context = appDbTransactionContext.DbContext as AppDbContext
+      ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
+
+    try
+    {
+      UserNavigationPositionItem sourceItem = new(sourceId, parentId, UserNavigationEntitySettings.TemporaryPosition);
+
+      List<UserNavigationPositionItem> siblingItems = await context.UserNavigationEntities
+        .AsNoTracking()
+        .Where(e => e.Parent == parentId)
+        .OrderBy(e => e.Position)
+        .Select(e => new UserNavigationPositionItem(e.Id, e.Parent, e.Position))
+        .ToListAsync(cancellationToken);
+
+      // sourceItem을 siblingItems에 삽입하고 position 재조정 후 재조정된 siblingItems 변경 사항 DB에 반영 
+      await RepositionInsertedUserNavigationAsync(context, siblingItems, sourceItem, targetId, insertPosition, cancellationToken);
+
+      UserNavigationEntity entity = new()
+      {
+        Id = sourceId,
+        Parent = parentId,
+        Icon = (short)createUserNavigationDbRequestDto.Icon,
+        Title = createUserNavigationDbRequestDto.Title,
+        Position = sourceItem.Position,
+        IsComposite = createUserNavigationDbRequestDto.IsComposite,
+        IsDeleted = false
+      };
+
+      await context.UserNavigationEntities.AddAsync(entity, cancellationToken);
+      UserNavigationDbResponseDto userNavigationDbResponseDto = UserNavigationMappers.ToDto(entity);
+
+      UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto;
+      if (createUserNavigationDbRequestDto.IsComposite)
+      {
+        var compositeViewStateEntity = UserCompositeNavigationViewStateEntity.CreateDefault(entity.Id);
+        await context.UserCompositeNavigationViewStateEntity.AddAsync(compositeViewStateEntity, cancellationToken);
+        userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(compositeViewStateEntity);
+      }
+      else
+      {
+        var leafViewStateEntity = UserLeafNavigationViewStateEntity.CreateDefault(entity.Id);
+        await context.UserLeafNavigationViewStateEntity.AddAsync(leafViewStateEntity, cancellationToken);
+        userNavigationViewStateDbResponseDto = UserNavigationMappers.ToDto(leafViewStateEntity);
+      }
+
+      return UserNavigationMappers.BundleDbDto(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto);
+    }
+    catch 
+    {
+      throw;
+    }
   }
 
-  public Task<UpdateUserNavigationDbResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationDbRequestDto updateUserNavigationDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
-  }
-
-  public Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
-  }
-
-  public async Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext? appDbTransactionContext = null, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
     // Source Navigation을 포함하여 Position에 영향받는 모든 Navigation들의 Id, Parent, Position을 담아서 반환(이 때 반환되는 모든 Navigation의 Parent 속성 값은 모두 일치해야 함).
     List<GetUserNavigationFieldValuesDbResponseDto> resultDtos = new();
-    UserNavigationGetFields userNavigationGetField = UserNavigationGetFields.Id | UserNavigationGetFields.Parent;
+    UserNavigationGetFields userNavigationGetFields = UserNavigationGetFields.Id | UserNavigationGetFields.Parent;
 
     Guid sourceId = moveUserNavigationDbRequestDto.SourceNavigation.Value;
     Guid targetId = moveUserNavigationDbRequestDto.TargetNavigation.Value;
@@ -205,197 +203,189 @@ internal partial class NavigationRepository : INavigationRepository
       throw new ArgumentException($"Source Navigation과 Target Navigation은 동일할 수 없습니다. SourceId={sourceId}, TargetId={targetId}", nameof(moveUserNavigationDbRequestDto));
     }
 
-    AppDbContext context = appDbTransactionContext?.DbContext switch
-    {
-      AppDbContext appDbContext => appDbContext,
-      null when appDbTransactionContext is null => await DbContextFactory.CreateDbContextAsync(cancellationToken),
-      null => throw new InvalidOperationException("DB 트랜잭션 컨텍스트가 초기화되지 않았습니다."),
-      DbContext dbContext => throw new InvalidOperationException(
-          $"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {dbContext.GetType().FullName}")
-    };
-
-    await using IDbContextTransaction? localTransaction = appDbTransactionContext is null
-      ? await context.Database.BeginTransactionAsync(cancellationToken)
-      : null;
-
-    bool ownsTransaction = localTransaction is not null;
+    var context = appDbTransactionContext.DbContext as AppDbContext
+      ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
 
     try
     {
-      var sourceEntity = await context.UserNavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == sourceId, cancellationToken)
+      var sourceItem = await context.UserNavigationEntities
+        .AsNoTracking()
+        .Where(e => e.Id == sourceId)
+        .Select(e => new UserNavigationPositionItem(e.Id, e.Parent, e.Position))
+        .FirstOrDefaultAsync(cancellationToken)
         ?? throw new InvalidOperationException($"Source Navigation을 찾을 수 없습니다. Id={sourceId}");
 
-      var targetEntity = await context.UserNavigationEntities.AsNoTracking().FirstOrDefaultAsync(entity => entity.Id == targetId, cancellationToken)
+      var targetItem = await context.UserNavigationEntities
+        .AsNoTracking()
+        .Where(e => e.Id == targetId)
+        .Select(e => new UserNavigationPositionItem(e.Id, e.Parent, e.Position))
+        .FirstOrDefaultAsync(cancellationToken)
         ?? throw new InvalidOperationException($"Target Navigation을 찾을 수 없습니다. Id={targetId}");
 
-      Guid oldSourceParent = sourceEntity.Parent;
+      Guid oldSourceParent = sourceItem.Parent;
       Guid newSourceParent = insertPosition switch
       {
-        NavigationInsertPosition.Before or NavigationInsertPosition.After => targetEntity.Parent,
-        NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild => targetEntity.Id,
+        NavigationInsertPosition.Before or NavigationInsertPosition.After => targetItem.Parent,
+        NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild => targetItem.Id,
         _ => throw new NotSupportedException($"지원하지 않는 Navigation 삽입 위치입니다. InsertPosition={insertPosition}")
       };
-      int oldSourcePosition = sourceEntity.Position;
+      int oldSourcePosition = sourceItem.Position;
 
-      // 1. siblingEntities는 sourceEntity 이동 완료 후 sourceEntity와 Parent가 같아질 형제 Entity 목록이며, Position 오름차순으로 조회
-      // 2. ToListAsync로 생성한 조회 결과 목록이므로 컬렉션 항목의 추가/제거/삽입은 DB 변경과 무관함
-      // 3. AsNoTracking으로 조회한 Entity들이므로 각 Entity의 속성 변경도 자동으로 DB에 반영되지 않음
-      // 4. DB 반영은 이후 명시적인 업데이트 로직에서 반영해야 함(ExecuteUpdateAsync 사용)
-      List<UserNavigationEntity> siblingEntities = await context.UserNavigationEntities
+      List<UserNavigationPositionItem> siblingItems = await context.UserNavigationEntities
         .AsNoTracking()
         .Where(e => e.Parent == newSourceParent)
         .OrderBy(e => e.Position)
+        .Select(e => new UserNavigationPositionItem(e.Id, e.Parent, e.Position))
         .ToListAsync(cancellationToken);
 
-      siblingEntities.RemoveAll(entity => entity.Id == sourceEntity.Id);
+      siblingItems.RemoveAll(e => e.Id == sourceId);
 
-      int insertedIndex = insertPosition switch
-      {
-        NavigationInsertPosition.Before => siblingEntities.IndexOf(targetEntity),
-        NavigationInsertPosition.After => siblingEntities.IndexOf(targetEntity) + 1,
-        NavigationInsertPosition.FirstChild => 0,
-        NavigationInsertPosition.LastChild => siblingEntities.Count,
-        _ => throw new NotSupportedException($"지원하지 않는 Navigation 삽입 위치입니다. InsertPosition={insertPosition}")
-      };
-
-      if (insertedIndex < 0)
-      {
-        throw new InvalidOperationException($"Target Navigation이 이동 후 형제 목록에 없습니다. TargetId={targetId}, NewSourceParent={newSourceParent}, InsertPosition={insertPosition}");
-      }
-
-      // sourceEntity의 Parent를 변경하고 임시 Position 설정 후 siblingsEntities에 삽입
+      // sourceEntity의 Parent를 변경하고 임시 Position 설정 후 DB에 반영
       if (!await EnsureTemporarySourceSlotIsAvailableAsync(context, newSourceParent))
       {
         throw new InvalidOperationException($"source Navigation 임시 Position이 이미 사용 중입니다. Parent={newSourceParent}, Position={UserNavigationEntitySettings.TemporaryPosition}");
       }
+      sourceItem.Parent = newSourceParent;
+      sourceItem.Position = UserNavigationEntitySettings.TemporaryPosition;
 
-      sourceEntity.Parent = newSourceParent;
-      sourceEntity.Position = UserNavigationEntitySettings.TemporaryPosition;
+      // 
       int sourceTemporaryMoveRows = await context.UserNavigationEntities
-        .Where(e => e.Id == sourceEntity.Id
-                    && e.Parent == oldSourceParent
-                    && e.Position == oldSourcePosition)
+        .Where(e => e.Id == sourceId && e.Parent == oldSourceParent && e.Position == oldSourcePosition)
         .ExecuteUpdateAsync(setters => setters
-          .SetProperty(e => e.Parent, sourceEntity.Parent)
-          .SetProperty(e => e.Position, sourceEntity.Position)
-        , cancellationToken);
+          .SetProperty(e => e.Parent, sourceItem.Parent)
+          .SetProperty(e => e.Position, sourceItem.Position), cancellationToken);
 
       if (sourceTemporaryMoveRows != 1)
       {
-        throw new InvalidOperationException($"source Navigation 임시 Position 반영에 실패했습니다. Id={sourceEntity.Id}, AffectedRows={sourceTemporaryMoveRows}");
+        throw new InvalidOperationException($"source Navigation 임시 Position 반영에 실패했습니다. Id={sourceItem.Id}, AffectedRows={sourceTemporaryMoveRows}");
       }
 
-      siblingEntities.Insert(insertedIndex, sourceEntity);
+      // sourceItem을 siblingItems에 삽입하고 position 재조정 후 재조정된 siblingItems 변경 사항 DB에 반영 
+      await RepositionInsertedUserNavigationAsync(context, siblingItems, sourceItem, targetId, insertPosition, cancellationToken);
 
-      // 위치 변경을 완료한 후에 영향받는 Navigation들만 Position을 수정할 수 있도록 repositionEntities 컬렉션 생성 후 위치 재조정
-      Dictionary<Guid, int> originalSiblingPositionById = siblingEntities.ToDictionary(e => e.Id, e => e.Position);
-      var affectedEntities = UserNavigationEntityRepositioning.RepositionFromInsertedNavigation(siblingEntities, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
-      if (affectedEntities.Count == 0)
-      {
-        throw new InvalidOperationException($"Navigation 재배치 결과 변경된 Position이 없습니다. SourceId={sourceId}, InsertedIndex={insertedIndex}, RepositionRangeKind={siblingsRepositionRangeKind}");
-      }
-      var affectedOrderedEntities = affectedEntities.OrderBy(e => e.Position).ToList();
-
-      switch (siblingsRepositionRangeKind)
-      {
-        case RepositionRangeKind.SourceOnly:
-          if (affectedOrderedEntities.Count != 1 || affectedOrderedEntities[0].Id != sourceId)
-          {
-            throw new InvalidOperationException("SourceOnly 재배치에서는 source Navigation만 Position이 변경되어야 합니다.");
-          }
-          break;
-        case RepositionRangeKind.ExpandedToLeft:
-          if (affectedOrderedEntities[^1].Id != sourceId)
-          {
-            throw new InvalidOperationException($"왼쪽 확장 재배치 결과에서 source가 마지막 Position이어야 합니다. SourceId={sourceId}, LastAffectedId={affectedOrderedEntities[^1].Id}");
-          }
-          for (int index = 0; index < affectedOrderedEntities.Count - 1; index++)
-          {
-            await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
-          }
-          break;
-        case RepositionRangeKind.ExpandedToRight:
-          if (affectedOrderedEntities[0].Id != sourceId)
-          {
-            throw new InvalidOperationException($"오른쪽 확장 재배치 결과에서 source가 첫 번째 Position이어야 합니다. SourceId={sourceId}, FirstAffectedId={affectedOrderedEntities[0].Id}");
-          }
-          for (int index = affectedOrderedEntities.Count - 1; index > 0; index--)
-          {
-            await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
-          }
-          break;
-        default:
-          throw new NotSupportedException(
-            $"지원하지 않는 RepositionRangeKind입니다. Kind={siblingsRepositionRangeKind}");
-      }
-
-      // sourceEntity의 정상 Position 반영
+      // sourceEntity의 정상 Position DB 반영
       var sourceFinalMoveRows = await context.UserNavigationEntities
-        .Where(e => e.Id == sourceEntity.Id
+        .Where(e => e.Id == sourceItem.Id
                     && e.Parent == newSourceParent
                     && e.Position == UserNavigationEntitySettings.TemporaryPosition)
-        .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, sourceEntity.Position), cancellationToken);
+        .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, sourceItem.Position), cancellationToken);
 
       if (sourceFinalMoveRows != 1)
       {
-        throw new InvalidOperationException($"source Navigation 최종 Position 반영에 실패했습니다. source가 임시 위치에 없거나 동시 변경되었을 수 있습니다. Id={sourceEntity.Id}, Parent={newSourceParent}, ExpectedPosition={UserNavigationEntitySettings.TemporaryPosition}, NewPosition={sourceEntity.Position}, AffectedRows={sourceFinalMoveRows}");
+        throw new InvalidOperationException($"source Navigation 최종 Position 반영에 실패했습니다. source가 임시 위치에 없거나 동시 변경되었을 수 있습니다. Id={sourceItem.Id}, Parent={newSourceParent}, ExpectedPosition={UserNavigationEntitySettings.TemporaryPosition}, NewPosition={sourceItem.Position}, AffectedRows={sourceFinalMoveRows}");
       }
 
-      foreach (var siblingEntity in siblingEntities)
+      foreach (var siblingEntity in siblingItems)
       {
         resultDtos.Add(new GetUserNavigationFieldValuesDbResponseDto()
         {
-          UserNavigationGetFields = userNavigationGetField,
+          UserNavigationGetFields = userNavigationGetFields,
           Id = NavigationId.Create(siblingEntity.Id),
           Parent = NavigationId.Create(siblingEntity.Parent)
         });
       }
 
-      if (ownsTransaction)
-      {
-        await localTransaction!.CommitAsync(cancellationToken);
-      }
-
-      async Task UpdateSiblingPositionAsync(UserNavigationEntity siblingEntity)
-      {
-        if (!originalSiblingPositionById.TryGetValue(siblingEntity.Id, out var affectedEntityOriginalPosition))
-        {
-          throw new InvalidOperationException($"Navigation의 원래 Position을 찾을 수 없습니다. Id={siblingEntity.Id}, Parent={newSourceParent}");
-        }
-        int affectedRows = await context.UserNavigationEntities
-          .Where(e => e.Id == siblingEntity.Id
-                      && e.Parent == newSourceParent
-                      && e.Position == affectedEntityOriginalPosition)
-          .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, siblingEntity.Position), cancellationToken);
-
-        if (affectedRows != 1)
-        {
-          throw new InvalidOperationException($"Navigation Position 업데이트에 실패했습니다. 형제 Navigation의 Position이 동시 변경되었을 수 있습니다. Id={siblingEntity.Id}, Parent={newSourceParent}, ExpectedPosition={affectedEntityOriginalPosition}, NewPosition={siblingEntity.Position}, AffectedRows={affectedRows}");
-        }
-      }
+      return resultDtos;
     }
     catch
     {
-      if (ownsTransaction)
-      {
-        await localTransaction!.RollbackAsync(cancellationToken);
-      }
       throw;
     }
-    finally
+  }
+
+  private static async Task RepositionInsertedUserNavigationAsync(AppDbContext context, List<UserNavigationPositionItem> siblingItems, UserNavigationPositionItem sourceItem, Guid targetId, NavigationInsertPosition insertPosition, CancellationToken cancellationToken)
+  {
+    Guid sourceId = sourceItem.Id;
+    Guid parentId = sourceItem.Parent;
+
+    int insertedIndex = insertPosition switch
     {
-      if (ownsTransaction)
-      {
-        await context.DisposeAsync();
-      }
+      NavigationInsertPosition.Before => siblingItems.FindIndex(item => item.Id == targetId),
+      NavigationInsertPosition.After => siblingItems.FindIndex(item => item.Id == targetId) + 1,
+      NavigationInsertPosition.FirstChild => 0,
+      NavigationInsertPosition.LastChild => siblingItems.Count,
+      _ => throw new NotSupportedException($"지원하지 않는 Navigation 삽입 위치입니다. InsertPosition={insertPosition}")
+    };
+
+    if (insertedIndex < 0)
+    {
+      throw new InvalidOperationException($"Target Navigation이 이동 후 형제 목록에 없습니다. TargetId={targetId}, ParentId={parentId}, InsertPosition={insertPosition}");
     }
 
-    return resultDtos;
+    siblingItems.Insert(insertedIndex, sourceItem);
+    
+    Dictionary<Guid, int> originalSiblingPositionById = siblingItems.ToDictionary(e => e.Id, e => e.Position);
+    var affectedEntities = UserNavigationRepositioning.RepositionFromInsertedNavigation(siblingItems, insertedIndex, out RepositionRangeKind siblingsRepositionRangeKind);
+    if (affectedEntities.Count == 0)
+    {
+      throw new InvalidOperationException($"Navigation 재배치 결과 변경된 Position이 없습니다. SourceId={sourceId}, InsertedIndex={insertedIndex}, RepositionRangeKind={siblingsRepositionRangeKind}");
+    }
+    var affectedOrderedEntities = affectedEntities.OrderBy(e => e.Position).ToList();
+
+    switch (siblingsRepositionRangeKind)
+    {
+      case RepositionRangeKind.SourceOnly:
+        if (affectedOrderedEntities.Count != 1 || affectedOrderedEntities[0].Id != sourceId)
+        {
+          throw new InvalidOperationException("SourceOnly 재배치에서는 source Navigation만 Position이 변경되어야 합니다.");
+        }
+        break;
+      case RepositionRangeKind.ExpandedToLeft:
+        if (affectedOrderedEntities[^1].Id != sourceId)
+        {
+          throw new InvalidOperationException($"왼쪽 확장 재배치 결과에서 source가 마지막 Position이어야 합니다. SourceId={sourceId}, LastAffectedId={affectedOrderedEntities[^1].Id}");
+        }
+        for (int index = 0; index < affectedOrderedEntities.Count - 1; index++)
+        {
+          await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
+        }
+        break;
+      case RepositionRangeKind.ExpandedToRight:
+        if (affectedOrderedEntities[0].Id != sourceId)
+        {
+          throw new InvalidOperationException($"오른쪽 확장 재배치 결과에서 source가 첫 번째 Position이어야 합니다. SourceId={sourceId}, FirstAffectedId={affectedOrderedEntities[0].Id}");
+        }
+        for (int index = affectedOrderedEntities.Count - 1; index > 0; index--)
+        {
+          await UpdateSiblingPositionAsync(affectedOrderedEntities[index]);
+        }
+        break;
+      default:
+        throw new NotSupportedException(
+          $"지원하지 않는 RepositionRangeKind입니다. Kind={siblingsRepositionRangeKind}");
+    }
+
+    async Task UpdateSiblingPositionAsync(UserNavigationPositionItem siblingItem)
+    {
+      if (!originalSiblingPositionById.TryGetValue(siblingItem.Id, out var affectedEntityOriginalPosition))
+      {
+        throw new InvalidOperationException($"Navigation의 원래 Position을 찾을 수 없습니다. Id={siblingItem.Id}, Parent={parentId}");
+      }
+      int affectedRows = await context.UserNavigationEntities
+        .Where(e => e.Id == siblingItem.Id
+                    && e.Parent == parentId
+                    && e.Position == affectedEntityOriginalPosition)
+        .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.Position, siblingItem.Position), cancellationToken);
+      
+      if (affectedRows != 1)
+      {
+        throw new InvalidOperationException($"Navigation Position 업데이트에 실패했습니다. 형제 Navigation의 Position이 동시 변경되었을 수 있습니다. Id={siblingItem.Id}, Parent={parentId}, ExpectedPosition={affectedEntityOriginalPosition}, NewPosition={siblingItem.Position}, AffectedRows={affectedRows}");
+      }
+    }
   }
 
   private static async Task<bool> EnsureTemporarySourceSlotIsAvailableAsync(AppDbContext context, Guid parentId) =>
     !await context.UserNavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == UserNavigationEntitySettings.TemporaryPosition);
 
+  public Task<UpdateUserNavigationDbResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationDbRequestDto updateUserNavigationDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
+
+  public Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
+  {
+    throw new NotImplementedException();
+  }
 }
 
 internal partial class NavigationRepository
@@ -405,23 +395,52 @@ internal partial class NavigationRepository
   /// </summary>
   private enum RepositionRangeKind { SourceOnly, ExpandedToLeft, ExpandedToRight }
 
-  private sealed class UserNavigationEntityRepositioning
+  private sealed class UserNavigationPositionItem : IEquatable<UserNavigationPositionItem>
   {
-    private readonly IList<UserNavigationEntity> _entities;
-    private readonly List<UserNavigationEntity> _positionChangedEntities = new();
+    public UserNavigationPositionItem() { }
 
-    private int Count => _entities.Count;
-
-    private UserNavigationEntityRepositioning(IList<UserNavigationEntity> entities)
+    [SetsRequiredMembers]
+    public UserNavigationPositionItem(Guid id, Guid parent, int position)
     {
-      ArgumentNullException.ThrowIfNull(entities);
-      _entities = entities;
+      Id = id;
+      Parent = parent;
+      Position = position;
     }
 
-    public static IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(IList<UserNavigationEntity> entities, int insertedIndex, out RepositionRangeKind repositionRangeKind) => new UserNavigationEntityRepositioning(entities)
+    public required Guid Id { get; init; }
+
+    public required Guid Parent { get; set; }
+
+    public required int Position { get; set; }
+
+    public bool Equals(UserNavigationPositionItem? other) => other is not null && other.Id == Id;
+
+    public override bool Equals(object? obj) => Equals(obj as UserNavigationPositionItem);
+
+    public override int GetHashCode() => Id.GetHashCode();
+
+    public static bool operator ==(UserNavigationPositionItem i1, UserNavigationPositionItem i2) => i1.Equals(i2);
+
+    public static bool operator !=(UserNavigationPositionItem i1, UserNavigationPositionItem i2) => !i1.Equals(i2);
+  }
+
+  private sealed class UserNavigationRepositioning
+  {
+    private readonly IList<UserNavigationPositionItem> _items;
+    private readonly List<UserNavigationPositionItem> _positionChangedItems = new();
+
+    private int Count => _items.Count;
+
+    private UserNavigationRepositioning(IList<UserNavigationPositionItem> items)
+    {
+      ArgumentNullException.ThrowIfNull(items);
+      _items = items;
+    }
+
+    public static IReadOnlyList<UserNavigationPositionItem> RepositionFromInsertedNavigation(IList<UserNavigationPositionItem> items, int insertedIndex, out RepositionRangeKind repositionRangeKind) => new UserNavigationRepositioning(items)
       .RepositionFromInsertedNavigation(insertedIndex, out repositionRangeKind);
 
-    private IReadOnlyList<UserNavigationEntity> RepositionFromInsertedNavigation(int insertedIndex, out RepositionRangeKind repositionRangeKind)
+    private IReadOnlyList<UserNavigationPositionItem> RepositionFromInsertedNavigation(int insertedIndex, out RepositionRangeKind repositionRangeKind)
     {
       ArgumentOutOfRangeException.ThrowIfLessThan(insertedIndex, 0, nameof(insertedIndex));
       ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(insertedIndex, Count, nameof(insertedIndex));
@@ -431,27 +450,27 @@ internal partial class NavigationRepository
       // 추가한 후 컬렉션 항목이 하나라면 추가한 항목의 Position은 0임
       if (Count == 1)
       {
-        AddAffectedIfPositionChanged(_entities[insertedIndex], 0);
-        return _positionChangedEntities;
+        AddAffectedIfPositionChanged(_items[insertedIndex], 0);
+        return _positionChangedItems;
       }
 
       // 항목이 맨 앞에 추가되었다면, 기존 첫 번째 항목의 Position보다 작은 Position을 계산하여 설정
       if (insertedIndex == 0)
       {
-        AddAffectedIfPositionChanged(_entities[0], checked(_entities[1].Position - CalculatePositionStep(1, null, _entities[1].Position)));
-        return _positionChangedEntities;
+        AddAffectedIfPositionChanged(_items[0], checked(_items[1].Position - CalculatePositionStep(1, null, _items[1].Position)));
+        return _positionChangedItems;
       }
 
       // 항목이 맨 뒤에 추가되었다면, 기존 맨 마지막 항목의 Position보다 큰 Position을 계산하여 설정
       if (insertedIndex == Count - 1)
       {
-        AddAffectedIfPositionChanged(_entities[^1], checked(_entities[^2].Position + CalculatePositionStep(1, _entities[^2].Position, null)));
-        return _positionChangedEntities;
+        AddAffectedIfPositionChanged(_items[^1], checked(_items[^2].Position + CalculatePositionStep(1, _items[^2].Position, null)));
+        return _positionChangedItems;
       }
 
       // 후보 Position이 앞뒤와 겹치지 않는다면 그대로 확정
-      int prevPos = _entities[insertedIndex - 1].Position;
-      int nextPos = _entities[insertedIndex + 1].Position;
+      int prevPos = _items[insertedIndex - 1].Position;
+      int nextPos = _items[insertedIndex + 1].Position;
       long posDiff = (long)nextPos - prevPos;
 
       if (posDiff < 0)
@@ -462,8 +481,8 @@ internal partial class NavigationRepository
       // Position 변경된 범위 인덱스 양끝 중에 insertedIndex가 있으면
       // 재조정 간격(step)을 계산하기 위해 insertedIndex의 왼쪽 혹은 오른쪽 항목의 Position을 알아야 함
       // insertedIndex <= 0 이나 insertedIndex >= Count - 1인 상황은 위에서 걸러짐
-      int? leftBoundaryPos = _entities[insertedIndex - 1].Position;
-      int? rightBoundaryPos = _entities[insertedIndex + 1].Position;
+      int? leftBoundaryPos = _items[insertedIndex - 1].Position;
+      int? rightBoundaryPos = _items[insertedIndex + 1].Position;
 
       // 바로 양옆 사이에 빈 Position이 없으면 주변부를 확장 탐색
       for (int indexGap = 1; ; indexGap++)
@@ -478,7 +497,7 @@ internal partial class NavigationRepository
         {
           RepositionRange(0, insertedIndex, null, rightBoundaryPos);
           repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
-          return _positionChangedEntities;
+          return _positionChangedItems;
         }
 
         // 오른쪽 끝에 도달했을 경우
@@ -488,52 +507,52 @@ internal partial class NavigationRepository
         {
           RepositionRange(insertedIndex, Count - 1, leftBoundaryPos, null);
           repositionRangeKind = RepositionRangeKind.ExpandedToRight;
-          return _positionChangedEntities;
+          return _positionChangedItems;
         }
 
         // 왼쪽에서 충분한 공간을 찾은 경우
         // (leftIndex, insertedIndex + 1) 열린 구간 안에 [leftIndex + 1, insertedIndex] 범위를 다시 배치
         // source는 재배치 범위의 마지막 항목이 됨
-        if ((long)nextPos - _entities[leftIndex].Position > indexGap)
+        if ((long)nextPos - _items[leftIndex].Position > indexGap)
         {
-          RepositionRange(leftIndex + 1, insertedIndex, _entities[leftIndex].Position, rightBoundaryPos);
+          RepositionRange(leftIndex + 1, insertedIndex, _items[leftIndex].Position, rightBoundaryPos);
           repositionRangeKind = RepositionRangeKind.ExpandedToLeft;
-          return _positionChangedEntities;
+          return _positionChangedItems;
         }
 
         // 오른쪽에서 충분한 공간을 찾은 경우
         // (insertedIndex - 1, rightIndex) 열린 구간 안에 [insertedIndex, rightIndex - 1] 범위를 다시 배치
         // source는 재배치 범위의 첫 번째 항목이 됨
-        if ((long)_entities[rightIndex].Position - prevPos > indexGap)
+        if ((long)_items[rightIndex].Position - prevPos > indexGap)
         {
-          RepositionRange(insertedIndex, rightIndex - 1, leftBoundaryPos, _entities[rightIndex].Position);
+          RepositionRange(insertedIndex, rightIndex - 1, leftBoundaryPos, _items[rightIndex].Position);
           repositionRangeKind = RepositionRangeKind.ExpandedToRight;
-          return _positionChangedEntities;
+          return _positionChangedItems;
         }
       }
     }
 
-    private void AddAffectedIfPositionChanged(UserNavigationEntity entity, int newPosition)
+    private void AddAffectedIfPositionChanged(UserNavigationPositionItem item, int newPosition)
     {
-      if (TryUpdatePosition(entity, newPosition))
+      if (TryUpdatePosition(item, newPosition))
       {
-        _positionChangedEntities.Add(entity);
+        _positionChangedItems.Add(item);
       }
     }
 
-    private static bool TryUpdatePosition(UserNavigationEntity entity, int newPosition)
+    private static bool TryUpdatePosition(UserNavigationPositionItem item, int newPosition)
     {
       if (newPosition == UserNavigationEntitySettings.TemporaryPosition)
       {
         throw new InvalidOperationException($"임시 Position 값({UserNavigationEntitySettings.TemporaryPosition})은 정상 Navigation Position으로 사용할 수 없습니다.");
       }
 
-      if (entity.Position == newPosition)
+      if (item.Position == newPosition)
       {
         return false;
       }
 
-      entity.Position = newPosition;
+      item.Position = newPosition;
       return true;
     }
 
@@ -567,7 +586,7 @@ internal partial class NavigationRepository
           null => (long)calculatedStep * offset
         };
 
-        AddAffectedIfPositionChanged(_entities[startIndex + offset], checked((int)newPosition));
+        AddAffectedIfPositionChanged(_items[startIndex + offset], checked((int)newPosition));
       }
     }
 
@@ -591,7 +610,7 @@ internal partial class NavigationRepository
           : checked((int)boundaryStep);
       }
 
-      long totalSpan = (long)_entities[^1].Position - _entities[0].Position;
+      long totalSpan = (long)_items[^1].Position - _items[0].Position;
       int preferredStep = Count < 2 || totalSpan <= 0
         ? UserNavigationEntitySettings.DefaultPositionStep
         : (int)Math.Clamp(totalSpan / (Count - 1L), UserNavigationEntitySettings.DefaultPositionStep, UserNavigationEntitySettings.MaxPositionStep);

@@ -3,7 +3,7 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.Mappers;
 
-internal static class NoteSearchMapper
+internal static class NoteSearchMappers
 {
   public static NoteSearchDocument NoteToSearchDocument(NoteModel note) => new()
   {

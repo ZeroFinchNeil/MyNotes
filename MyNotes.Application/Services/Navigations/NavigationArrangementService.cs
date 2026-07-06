@@ -17,12 +17,12 @@ internal sealed partial class NavigationArrangementService
     AppDbTransactionFactory = appDbTransactionFactory;
   }
 
-  public async Task<MoveUserNavigationAppResponseDto> MoveUserNavigationAsync(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto)
+  public async Task<MoveUserNavigationAppResponseDto> MoveUserNavigationAsync(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
   {
-    await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync();
+    await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
     try
     {
-      var dbResponseDtos = await NavigationRepository.MoveUserNavigationAsync(UserNavigationMappers.ToDbDto(moveUserNavigationAppRequestDto), appDbTransaction);
+      var dbResponseDtos = await NavigationRepository.MoveUserNavigationAsync(UserNavigationMappers.ToDbDto(moveUserNavigationAppRequestDto), appDbTransaction, cancellationToken);
 
       var updatedNavigations = dbResponseDtos
         .Where(dto => dto.Id is not null)
@@ -45,12 +45,12 @@ internal sealed partial class NavigationArrangementService
           resultKind = MoveUserNavigationResultKind.MovedWithOrderReconciliation;
           failureMessage = "Navigation 이동은 완료되었지만 최종 순서가 요청 순서와 달라져 화면 순서를 다시 동기화해야 합니다."; //todo: 순서 불일치 상황에 맞게 실패 메시지 지정, Infra DB 업데이트 기준으로 Presentation에서 변경 순서 반영
         }
-        await appDbTransaction.CompleteAsync();
+        await appDbTransaction.CompleteAsync(true, cancellationToken);
       }
       else
       {
         updatedNavigations = null;
-        await appDbTransaction.RollbackAsync();
+        await appDbTransaction.RollbackAsync(cancellationToken);
         failureMessage = "이동 대상 목록이 변경되어 Navigation 이동을 완료할 수 없습니다."; //todo: 상황에 맞게 실패 메시지 지정
       }
       return new MoveUserNavigationAppResponseDto()
@@ -64,7 +64,7 @@ internal sealed partial class NavigationArrangementService
     {
       if (!appDbTransaction.IsCompleted && !appDbTransaction.IsRolledBack)
       {
-        await appDbTransaction.RollbackAsync();
+        await appDbTransaction.RollbackAsync(cancellationToken);
       }
 
       throw;

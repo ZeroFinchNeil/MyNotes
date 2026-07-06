@@ -1,4 +1,5 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+﻿using MyNotes.Application.Contracts.Database.Core;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
@@ -15,9 +16,12 @@ namespace MyNotes.Application.Services.Navigations;
 internal sealed partial class NavigationCreationService
 {
   private readonly INavigationRepository NavigationRepository;
-  public NavigationCreationService(INavigationRepository navigationRepository)
+  private readonly IAppDbTransactionFactory AppDbTransactionFactory;
+
+  public NavigationCreationService(INavigationRepository navigationRepository, IAppDbTransactionFactory appDbTransactionFactory)
   {
     NavigationRepository = navigationRepository;
+    AppDbTransactionFactory = appDbTransactionFactory;
   }
 
   public async Task<UserNavigationBundleAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
@@ -67,21 +71,37 @@ internal sealed partial class NavigationCreationService
       // UserNavigation Domain Entity로 변환하여 도메인 속성 유효성 검사
       UserNavigation userNavigation = new(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
 
-      UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
+      await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
+
+      try
       {
-        Id = newNavigationId,
-        ParentId = parentId,
-        InsertTargetId = insertTargetId,
-        NavigationInsertPosition = insertPosition,
-        IsComposite = userNavigation.IsComposite,
-        Icon = userNavigation.Icon,
-        Title = userNavigation.Title,
-      }, cancellationToken);
+        UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
+        {
+          Id = newNavigationId,
+          ParentId = parentId,
+          InsertTargetId = insertTargetId,
+          NavigationInsertPosition = insertPosition,
+          IsComposite = userNavigation.IsComposite,
+          Icon = userNavigation.Icon,
+          Title = userNavigation.Title,
+        }, appDbTransaction, cancellationToken);
 
-      UserNavigationDbResponseDto dbResponseDto = bundleDbResponseDto.UserNavigationDto;
-      UserNavigationViewStateDbResponseDto viewStateDbResponseDto = bundleDbResponseDto.ViewStateDto;
+        await appDbTransaction.CompleteAsync(true, cancellationToken);
 
-      return UserNavigationMappers.BundleAppDto(UserNavigationMappers.ToAppDto(dbResponseDto), UserNavigationMappers.ToAppDto(viewStateDbResponseDto));
+        UserNavigationDbResponseDto dbResponseDto = bundleDbResponseDto.UserNavigationDto;
+        UserNavigationViewStateDbResponseDto viewStateDbResponseDto = bundleDbResponseDto.ViewStateDto;
+
+        return UserNavigationMappers.BundleAppDto(UserNavigationMappers.ToAppDto(dbResponseDto), UserNavigationMappers.ToAppDto(viewStateDbResponseDto));
+      }
+      catch
+      {
+        if (!appDbTransaction.IsCompleted && !appDbTransaction.IsRolledBack)
+        {
+          await appDbTransaction.RollbackAsync(cancellationToken);
+        }
+
+        throw;
+      }
     }
 
     return null;

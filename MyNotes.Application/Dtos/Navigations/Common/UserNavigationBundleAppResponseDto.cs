@@ -6,9 +6,9 @@ internal abstract record UserNavigationBundleAppResponseDto
 {
   public NavigationId Id => UserNavigationDto.Id;
 
-  public UserNavigationAppResponseDto UserNavigationDto { get; }
+  public abstract UserNavigationAppResponseDto UserNavigationDto { get; }
 
-  public UserNavigationViewStateAppResponseDto ViewStateDto { get; }
+  public abstract UserNavigationViewStateAppResponseDto ViewStateDto { get; }
 
   protected UserNavigationBundleAppResponseDto(UserNavigationAppResponseDto userNavigationDto, UserNavigationViewStateAppResponseDto viewStateDto)
   {
@@ -16,12 +16,5 @@ internal abstract record UserNavigationBundleAppResponseDto
     {
       throw new ArgumentException("두 Dto의 Id가 일치하지 않습니다.", nameof(userNavigationDto));
     }
-
-    UserNavigationDto = userNavigationDto;
-    ViewStateDto = viewStateDto;
   }
-
-  //public abstract UserNavigationBundleAppResponseDto With(UserNavigationAppResponseDto? userNavigationDto = null, UserNavigationViewStateAppResponseDto? viewStateDto = null);
-
-  //public abstract UserNavigationBundleAppResponseDto With(UserNavigationAppResponseDto? userNavigationDto = null, UserNavigationViewStateAppResponseDto? viewStateDto = null) => new(userNavigationDto ?? UserNavigationDto, viewStateDto ?? ViewStateDto);
 }

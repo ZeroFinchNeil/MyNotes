@@ -139,6 +139,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 internal sealed partial class MainViewModel : ViewModelBase
 {
   public AsyncCommand<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+
   public Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
 
   public Command? ToggleNavigationPaneCommand { get; private set; }

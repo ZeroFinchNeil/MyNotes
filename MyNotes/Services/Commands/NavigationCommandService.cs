@@ -11,6 +11,7 @@ using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Structures;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Mappers;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
@@ -287,7 +288,24 @@ internal sealed class NavigationCommandService : ICommandService
 
         if (await NavigationService.Creation.AddUserNavigationAsync(createUserNavigationAppRequestDto, cancellationToken) is UserNavigationBundleAppResponseDto responseDto)
         {
-          Console.WriteLine("{0}: {1}", "responseDto", responseDto);
+          NavigationUserCompositeNode parentNavigation = targetNavigation switch
+          {
+            NavigationUserCompositeNode => targetNavigation as NavigationUserCompositeNode ?? throw new InvalidOperationException(),
+            NavigationUserLeafNode => targetNavigation.Parent,
+            _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {targetNavigation.GetType().FullName}")
+          };
+
+          var newNavigation = NavigationMappers.ToModel(responseDto, parentNavigation);
+          
+          if(targetNavigation is NavigationUserCompositeNode compositeNode)
+          {
+            compositeNode.ChildNodes.Add(newNavigation);
+          }
+          else if (targetNavigation is NavigationUserLeafNode)
+          {
+
+            parentNavigation.ChildNodes.Insert(parentNavigation.ChildNodes.IndexOf(targetNavigation) + 1, newNavigation);
+          }
           //NavigationUserNode navigation = new()
           //NavigationController.NavigateTo(navigation);
         }
