@@ -634,15 +634,38 @@ internal partial class NavigationRepository
 
         long boundaryStep = boundarySpan / (repositionItemCount + 1L);
 
+        Console.WriteLine("{0}: {1}", "boundarySpan", boundarySpan);
+        Console.WriteLine("{0}: {1}", "boundaryStep", boundaryStep);
+
         return boundaryStep <= 0
           ? throw new InvalidOperationException($"Position 재배치 간격을 확보할 수 없습니다. Left={leftBoundaryPosition.Value}, Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
           : checked((int)boundaryStep);
       }
 
-      long totalSpan = (long)_items[^1].Position - _items[0].Position;
-      int preferredStep = Count < 2 || totalSpan <= 0
+      int includedItemCount = 0;
+      int minPosition = int.MaxValue;
+      int maxPosition = int.MinValue;
+
+      foreach (UserNavigationPositionItem item in _items)
+      {
+        if (item.Position == UserNavigationEntitySettings.TemporaryPosition)
+        {
+          continue;
+        }
+
+        includedItemCount++;
+        minPosition = Math.Min(minPosition, item.Position);
+        maxPosition = Math.Max(maxPosition, item.Position);
+      }
+
+      long totalSpan = (long)maxPosition - minPosition;
+
+      int preferredStep = includedItemCount < 2 || totalSpan <= 0
         ? UserNavigationEntitySettings.DefaultPositionStep
-        : (int)Math.Clamp(totalSpan / (Count - 1L), UserNavigationEntitySettings.DefaultPositionStep, UserNavigationEntitySettings.MaxPositionStep);
+       : (int)Math.Clamp(totalSpan / (includedItemCount - 1L), UserNavigationEntitySettings.DefaultPositionStep, UserNavigationEntitySettings.MaxPositionStep);
+
+      Console.WriteLine("{0}: {1}", "totalSpan", totalSpan);
+      Console.WriteLine("{0}: {1}", "preferredStep", preferredStep);
 
       if (leftBoundaryPosition is int)
       {
@@ -654,7 +677,7 @@ internal partial class NavigationRepository
 
       if (rightBoundaryPosition is int)
       {
-        long maxLeftwardStep = ((long)rightBoundaryPosition.Value - (UserNavigationEntitySettings.TemporaryPosition + 1)) / repositionItemCount;
+        long maxLeftwardStep = ((long)rightBoundaryPosition.Value - (int.MinValue + 1)) / repositionItemCount;
         return maxLeftwardStep <= 0
           ? throw new InvalidOperationException($"왼쪽 방향으로 Position 재배치 공간이 부족합니다. Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
           : checked((int)Math.Min(preferredStep, maxLeftwardStep));
