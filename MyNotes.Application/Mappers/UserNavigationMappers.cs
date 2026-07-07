@@ -105,10 +105,12 @@ internal static class UserNavigationMappers
     throw new NotImplementedException();
   }
 
-  public static MoveUserNavigationDbRequestDto ToDbDto(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto)
+  public static MoveUserNavigationDbRequestDto ToDbDto(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto) => new()
   {
-    throw new NotImplementedException();
-  }
+    SourceNavigation = moveUserNavigationAppRequestDto.SourceNavigation,
+    TargetNavigation = moveUserNavigationAppRequestDto.TargetNavigation,
+    NavigationInsertPosition = moveUserNavigationAppRequestDto.NavigationInsertPosition
+  };
 
   public static UserNavigationBundleDbResponseDto BundleDbDto(UserNavigationDbResponseDto userNavigationDbResponseDto, UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto)
   {

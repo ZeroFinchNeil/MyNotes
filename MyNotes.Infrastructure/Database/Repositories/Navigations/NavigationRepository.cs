@@ -121,6 +121,35 @@ internal partial class NavigationRepository : INavigationRepository
       .FirstOrDefaultAsync(cancellationToken)
       ?? new GetUserNavigationFieldValuesDbResponseDto() { UserNavigationGetFields = UserNavigationGetFields.None };
   }
+
+  public async Task<bool> IsDescendantOfAsync(NavigationId possibleDescendantId, NavigationId possibleAncestorId, CancellationToken cancellationToken = default)
+  {
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+    Guid? current = possibleDescendantId.Value;
+    Guid rootId = NavigationId.UserRoot.Value;
+
+    while (current is not null)
+    {
+      if (current == possibleAncestorId.Value)
+      {
+        return true;
+      }
+
+      if (current == rootId)
+      {
+        return false;
+      }
+
+      current = await context.UserNavigationEntities
+        .AsNoTracking()
+        .Where(e => e.Id == current)
+        .Select(e => (Guid?)e.Parent)
+        .SingleOrDefaultAsync(cancellationToken);
+    }
+
+    return false;
+  }
   #endregion
 
   public async Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)

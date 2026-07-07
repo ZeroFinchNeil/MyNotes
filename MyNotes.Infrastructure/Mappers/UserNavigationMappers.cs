@@ -53,3 +53,21 @@ internal static class UserNavigationMappers
 
   public static UserNavigationBundleDbResponseDto BundleDbDto(UserNavigationDbResponseDto userNavigationDbResponseDto, UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto) => new(userNavigationDbResponseDto, userNavigationViewStateDbResponseDto);
 }
+
+internal static class UserNavigationMappingExtensions
+{
+  extension(UserNavigationEntity entity)
+  {
+    public UserNavigationDbResponseDto ToDto() => UserNavigationMappers.ToDto(entity);
+  }
+
+  extension(UserCompositeNavigationViewStateEntity compositeViewStateEntity)
+  {
+    public UserCompositeNavigationViewStateDbResponseDto ToDto() => UserNavigationMappers.ToDto(compositeViewStateEntity);
+  }
+
+  extension(UserLeafNavigationViewStateEntity leafViewStateEntity)
+  {
+    public UserLeafNavigationViewStateDbResponseDto ToDto() => UserNavigationMappers.ToDto(leafViewStateEntity);
+  }
+}

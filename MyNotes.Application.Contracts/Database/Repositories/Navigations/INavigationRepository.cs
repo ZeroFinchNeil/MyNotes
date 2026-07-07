@@ -22,6 +22,8 @@ internal interface INavigationRepository
 
   public Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto, CancellationToken cancellationToken = default);
 
+  public Task<bool> IsDescendantOfAsync(NavigationId possibleDescendantId, NavigationId possibleAncestorId, CancellationToken cancellationToken = default);
+
   public Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
 
   public Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);

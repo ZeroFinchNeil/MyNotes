@@ -19,6 +19,18 @@ internal sealed partial class NavigationArrangementService
 
   public async Task<MoveUserNavigationAppResponseDto> MoveUserNavigationAsync(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
   {
+    var sourceId = moveUserNavigationAppRequestDto.SourceNavigation;
+    var targetId = moveUserNavigationAppRequestDto.TargetNavigation;
+
+    if (sourceId == targetId || await NavigationRepository.IsDescendantOfAsync(targetId, sourceId, cancellationToken))
+    {
+      return new()
+      {
+        ResultKind = MoveUserNavigationResultKind.Rejected,
+        UpdatedNavigations = null
+      };
+    }
+
     await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
     try
     {

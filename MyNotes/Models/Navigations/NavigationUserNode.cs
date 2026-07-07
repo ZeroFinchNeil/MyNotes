@@ -43,4 +43,21 @@ internal abstract partial class NavigationUserNode : ObservableObject, INavigati
   }
 
   public override string ToString() => $"{Id.Value} ({Title})";
+
+  public bool IsDescendantOf(NavigationUserNode possibleAncestor)
+  {
+    NavigationUserNode? currentNode = this;
+
+    while (currentNode is not (null or NavigationUserRootNode))
+    {
+      if (currentNode.Parent == possibleAncestor)
+      {
+        return true;
+      }
+
+      currentNode = currentNode.Parent;
+    }
+
+    return false;
+  }
 }

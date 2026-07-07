@@ -216,12 +216,12 @@ internal sealed partial class MainPage : Page
   }
 
   #region Navigation Drag & Drop
-  private NavigationViewModelBase? _sourceNavigationViewModel;
+  private NavigationViewModelBase? _dragSourceNavigationViewModel;
   private void MainPageUserNavigationViewItem_PresenterDragStarting(UIElement sender, DragStartingEventArgs args)
   {
-    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } sourceViewModel })
+    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation } dragSourceViewModel })
     {
-      _sourceNavigationViewModel = sourceViewModel;
+      _dragSourceNavigationViewModel = dragSourceViewModel;
       args.Data.SetData(_navigationFormatId, sourceNavigation.Id.Value.ToString());
     }
   }
@@ -255,18 +255,21 @@ internal sealed partial class MainPage : Page
 
     if (e.DataView.Contains(_navigationFormatId) && await e.DataView.GetDataAsync(_navigationFormatId) is string id)
     {
-      if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode navigation } })
+      if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode hoveredTargetNavigation } }
+          && _dragSourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode dragSourceNavigation })
       {
+        bool canAcceptDrop = !(hoveredTargetNavigation == dragSourceNavigation || hoveredTargetNavigation.IsDescendantOf(dragSourceNavigation));
+
         _dragUISession = new()
         {
           FormatId = _navigationFormatId,
           DataView = id,
-          DataPackageOperation = DataPackageOperation.Move,
-          DragUIOverrideCaption = navigation is NavigationUserLeafNode ? "Move to this position" : "Move as a child of this item"
+          DataPackageOperation = canAcceptDrop ? DataPackageOperation.Move : DataPackageOperation.None,
+          DragUIOverrideCaption = canAcceptDrop ? "Move to this position" : "Prohibited from moving to itself or sub-items."
         };
 
         _dispatcherTimer.Stop();
-        if (navigation is NavigationUserCompositeNode compositeNode)
+        if (hoveredTargetNavigation is NavigationUserCompositeNode compositeNode)
         {
           _expandableNavigation = compositeNode;
           _dispatcherTimer.Start();
@@ -295,10 +298,10 @@ internal sealed partial class MainPage : Page
     _dragUISession?.Dispose();
     _dragUISession = null;
 
-    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode targetNavigation } }
-        && _sourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode sourceNavigation })
+    if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode dropTargetNavigation } }
+        && _dragSourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode dragSourceNavigation })
     {
-      await ViewModel.MoveNavigationAsync(new() { Source = sourceNavigation, Target = targetNavigation });
+      await ViewModel.MoveNavigationAsync(new() { Source = dragSourceNavigation, Target = dropTargetNavigation });
     }
   }
   #endregion
