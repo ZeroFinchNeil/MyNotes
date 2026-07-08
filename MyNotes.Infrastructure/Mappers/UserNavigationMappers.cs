@@ -18,7 +18,7 @@ internal static class UserNavigationMappers
     Id = createUserNavigationDbRequestDto.Id.Value,
     Parent = createUserNavigationDbRequestDto.ParentId.Value,
     IsComposite = createUserNavigationDbRequestDto.IsComposite,
-    Icon = (short)createUserNavigationDbRequestDto.Icon,
+    Icon = createUserNavigationDbRequestDto.Icon,
     Title = createUserNavigationDbRequestDto.Title,
     Position = UserNavigationEntitySettings.TemporaryPosition,
     IsDeleted = false

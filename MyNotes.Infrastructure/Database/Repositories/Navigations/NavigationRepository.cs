@@ -253,7 +253,7 @@ internal partial class NavigationRepository : INavigationRepository
       {
         Id = sourceId,
         Parent = parentId,
-        Icon = (short)createUserNavigationDbRequestDto.Icon,
+        Icon = createUserNavigationDbRequestDto.Icon,
         Title = createUserNavigationDbRequestDto.Title,
         Position = sourceItem.Position,
         IsComposite = createUserNavigationDbRequestDto.IsComposite,
