@@ -17,11 +17,13 @@ internal sealed partial class NavigationCreationService
 {
   private readonly INavigationRepository NavigationRepository;
   private readonly IAppDbTransactionFactory AppDbTransactionFactory;
+  private readonly UserNavigationFactory UserNavigationFactory;
 
-  public NavigationCreationService(INavigationRepository navigationRepository, IAppDbTransactionFactory appDbTransactionFactory)
+  public NavigationCreationService(INavigationRepository navigationRepository, IAppDbTransactionFactory appDbTransactionFactory, UserNavigationFactory userNavigationFactory)
   {
     NavigationRepository = navigationRepository;
     AppDbTransactionFactory = appDbTransactionFactory;
+    UserNavigationFactory = userNavigationFactory;
   }
 
   public async Task<UserNavigationBundleAppResponseDto?> AddUserNavigationAsync(CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
@@ -69,22 +71,13 @@ internal sealed partial class NavigationCreationService
       };
 
       // UserNavigation Domain Entity로 변환하여 도메인 속성 유효성 검사
-      UserNavigation userNavigation = new(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
+      UserNavigation userNavigation = UserNavigationFactory.Create(newNavigationId, parentId, createUserNavigationAppRequestDto.IsComposite, (int)createUserNavigationAppRequestDto.Icon, createUserNavigationAppRequestDto.Title, false);
 
       await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
 
       try
       {
-        UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(new CreateUserNavigationDbRequestDto()
-        {
-          Id = newNavigationId,
-          ParentId = parentId,
-          InsertTargetId = insertTargetId,
-          NavigationInsertPosition = insertPosition,
-          IsComposite = userNavigation.IsComposite,
-          Icon = userNavigation.Icon,
-          Title = userNavigation.Title,
-        }, appDbTransaction, cancellationToken);
+        UserNavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddUserNavigationAsync(UserNavigationMappers.ToCreateDbDto(userNavigation, insertTargetId, insertPosition), appDbTransaction, cancellationToken);
 
         await appDbTransaction.CompleteAsync(true, cancellationToken);
 

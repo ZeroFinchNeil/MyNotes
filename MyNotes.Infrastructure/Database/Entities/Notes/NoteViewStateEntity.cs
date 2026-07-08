@@ -6,42 +6,56 @@ namespace MyNotes.Infrastructure.Database.Entities.Notes;
 
 internal sealed class NoteViewStateEntity : IDatabaseEntity<NoteViewStateEntity>
 {
-  [Key]
+  [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id))]
+  [ForeignKey(nameof(Id)), Required]
   public NoteEntity? Note { get; init; }
 
+  [Required]
   public required bool ShowBackgroundImage { get; init; }
 
   public required string? BackgroundImagePath { get; init; }
 
+  [Required]
   public required double BackgroundImageOpacity { get; init; }
 
+  [Required]
   public required double BackgroundImageBlur { get; init; }
 
+  [Required]
   public required int BackdropKind { get; init; }
 
+  [Required]
   public required double BackdropTintOpacity { get; init; }
 
+  [Required]
   public required double BackdropLuminosityOpacity { get; init; }
 
   public required string Images { get; init; }
 
+  [Required]
   public required bool ShowImagePanel { get; init; }
 
+  [Required]
   public required double ImagePanelHeight { get; init; }
 
+  [Required]
   public required int Width { get; init; }
 
+  [Required]
   public required int Height { get; init; }
 
+  [Required]
   public required int PositionX { get; init; }
 
+  [Required]
   public required int PositionY { get; init; }
 
+  [Required]
   public required bool IsWindowOpen { get; init; }
 
+  [Required]
   public required bool IsAlwaysOnTop { get; init; }
 
   public bool Equals(NoteViewStateEntity? other) => other is not null && other.Id == Id;

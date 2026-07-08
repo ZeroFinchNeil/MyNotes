@@ -73,6 +73,8 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NavigationRetrievalService>();
       services.AddSingleton<NavigationModificationService>();
 
+      services.AddSingleton<UserNavigationFactory>();
+
       services.AddSingleton<NavigationController>();
     }
 

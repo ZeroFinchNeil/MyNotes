@@ -11,9 +11,7 @@ internal sealed record UpdateUserNavigationDbResponseDto
 
   public NavigationId? Parent { get; set; }
 
-  public bool? IsComposite { get; init; }
-
-  public short? Icon { get; set; }
+  public int? Icon { get; set; }
 
   public string? Title { get; set; }
 

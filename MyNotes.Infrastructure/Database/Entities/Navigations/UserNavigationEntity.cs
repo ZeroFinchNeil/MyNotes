@@ -5,19 +5,25 @@ namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
 internal sealed class UserNavigationEntity : IDatabaseEntity<UserNavigationEntity>, IComparable<UserNavigationEntity>
 {
-  [Key]
+  [Key, Required]
   public required Guid Id { get; init; }
 
+  [Required]
   public required Guid Parent { get; set; }
 
+  [Required]
   public required bool IsComposite { get; init; }
 
-  public required short Icon { get; set; }
+  [Required]
+  public required int Icon { get; set; }
 
+  [Required]
   public required string Title { get; set; }
 
+  [Required]
   public required int Position { get; set; }
 
+  [Required]
   public required bool IsDeleted { get; set; }
 
   public override string ToString() => $"NavigationEntity {{ Id: {Id}, Title: {Title} }}";

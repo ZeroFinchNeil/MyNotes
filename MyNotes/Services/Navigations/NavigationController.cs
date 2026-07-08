@@ -96,6 +96,7 @@ internal sealed partial class NavigationController : IDisposable
 
   private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
   {
+    //await NavigationService.Modification.UpdateUserNavigationAsync();
 #if false
     if (s is NavigationUserNode node)
     {

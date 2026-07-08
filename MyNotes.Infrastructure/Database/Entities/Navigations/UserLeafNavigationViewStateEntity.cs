@@ -6,10 +6,10 @@ namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
 internal class UserLeafNavigationViewStateEntity : IDatabaseEntity<UserLeafNavigationViewStateEntity>, IUserNavigationViewStateEntity<UserLeafNavigationViewStateEntity>
 {
-  [Key]
+  [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id))]
+  [ForeignKey(nameof(Id)), Required]
   public UserNavigationEntity? Navigation { get; init; }
 
   public required int? NoteSortKey { get; init; }

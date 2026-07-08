@@ -12,8 +12,6 @@ internal sealed record UpdateUserNavigationAppRequestDto
 
   public NavigationId? Parent { get; set; }
 
-  public bool? IsComposite { get; init; }
-
   public Icon? Icon { get; set; }
 
   public string? Title { get; set; }

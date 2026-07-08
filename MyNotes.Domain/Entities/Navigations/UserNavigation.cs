@@ -9,29 +9,49 @@ internal sealed class UserNavigation
 {
   public NavigationId Id { get; init; }
 
-  public NavigationId Parent { get; set; }
+  private NavigationId _parent;
+  public NavigationId Parent
+  {
+    get => _parent;
+    set => SetProperty(ref _parent, value);
+  }
 
   public bool IsComposite { get; init; }
 
-  public int Icon { get; set; }
+  private int _icon;
+  public int Icon
+  {
+    get => _icon;
+    set => SetProperty(ref _icon, value);
+  }
 
-  public string Title { get; set; }
+  private string _title;
+  public string Title
+  {
+    get => _title;
+    set => SetProperty(ref _title, value);
+  }
 
-  public bool IsDeleted { get; init; }
+  private bool _isDeleted;
+  public bool IsDeleted
+  {
+    get => _isDeleted;
+    set => SetProperty(ref _isDeleted, value);
+  }
 
   public UserNavigation(NavigationId id, NavigationId parent, bool isComposite, int icon, string title, bool isDeleted)
   {
-    Validate(id, parent, icon);
-
     Id = id;
-    Parent = parent;
+    _parent = parent;
     IsComposite = isComposite;
-    Icon = icon;
-    Title = title;
-    IsDeleted = isDeleted;
+    _icon = icon;
+    _title = title;
+    _isDeleted = isDeleted;
+
+    ValidateProperties();
   }
 
-  private static void Validate(NavigationId id, NavigationId parent, int icon)
+  private static void Validate(NavigationId id, NavigationId parent, bool isComposite, int icon, string title, bool isDeleted)
   {
     if (!NavigationId.IsValidId(id))
     {
@@ -45,4 +65,18 @@ internal sealed class UserNavigation
 
     ArgumentOutOfRangeException.ThrowIfNegative(icon, nameof(icon));
   }
+
+  private bool SetProperty<T>(ref T f, T v)
+  {
+    if (f is null || !f.Equals(v))
+    {
+      f = v;
+      ValidateProperties();
+      return true;
+    }
+
+    return false;
+  }
+
+  private void ValidateProperties() => Validate(Id, Parent, IsComposite, Icon, Title, IsDeleted);
 }

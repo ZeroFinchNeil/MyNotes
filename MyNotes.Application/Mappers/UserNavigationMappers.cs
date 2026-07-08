@@ -1,8 +1,11 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Queries;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
+using MyNotes.Application.Contracts.Database.Enums.Navigations;
+using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Dtos.Navigations.Modification;
@@ -11,6 +14,7 @@ using MyNotes.Application.Dtos.Navigations.Retrieval;
 using MyNotes.Common.Querying;
 using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.Entities.Navigations;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Templates;
@@ -80,24 +84,92 @@ internal static class UserNavigationMappers
     throw new NotImplementedException();
   }
 
-  public static UserNavigation ToDomainEntity(UpdateUserNavigationAppRequestDto updateUserNavigationAppRequestDto)
+  public static UpdateUserNavigationAppResponseDto ToAppDto(UpdateUserNavigationDbResponseDto updateUserNavigationDbResponseDto) => new()
   {
-    throw new NotImplementedException();
-  }
-
-  public static UpdateUserNavigationAppResponseDto ToAppDto(UpdateUserNavigationDbResponseDto updateUserNavigationDbResponseDto)
-  {
-    throw new NotImplementedException();
-  }
+    ChangedNavigationFields = updateUserNavigationDbResponseDto.ChangedNavigationFields,
+    Id = updateUserNavigationDbResponseDto.Id,
+    Parent = updateUserNavigationDbResponseDto.Parent,
+    Icon = updateUserNavigationDbResponseDto.Icon is int icon ? (Icon)icon : null,
+    Title = updateUserNavigationDbResponseDto.Title is string title ? title : null,
+    IsDeleted = updateUserNavigationDbResponseDto.IsDeleted is bool isDeleted ? isDeleted : null
+  };
 
   public static FindUserNavigationsDbQuery ToDbQuery(FindUserNavigationsAppQuery findUserNavigationsAppQuery)
   {
     throw new NotImplementedException();
   }
 
-  public static UpdateUserNavigationDbRequestDto ToDbDto(UserNavigation userNavigation)
+  public static CreateUserNavigationDbRequestDto ToCreateDbDto(UserNavigation userNavigation, NavigationId insertTargetId, NavigationInsertPosition insertPosition) => new()
   {
-    throw new NotImplementedException();
+    Id = userNavigation.Id,
+    ParentId = userNavigation.Parent,
+    InsertTargetId = insertTargetId,
+    NavigationInsertPosition = insertPosition,
+    IsComposite = userNavigation.IsComposite,
+    Icon = userNavigation.Icon,
+    Title = userNavigation.Title
+  };
+
+  public static UserNavigationUpdateFields ToUpdateFields(UserNavigationChangedFields changedFields)
+  {
+    var updateFields = UserNavigationUpdateFields.None;
+    if (changedFields == UserNavigationChangedFields.None)
+    {
+      return updateFields;
+    }
+
+    if (changedFields.HasFlag(UserNavigationChangedFields.Parent))
+    {
+      updateFields |= UserNavigationUpdateFields.Parent;
+    }
+    if (changedFields.HasFlag(UserNavigationChangedFields.Icon))
+    {
+      updateFields |= UserNavigationUpdateFields.Icon;
+    }
+    if (changedFields.HasFlag(UserNavigationChangedFields.Title))
+    {
+      updateFields |= UserNavigationUpdateFields.Title;
+    }
+    if (changedFields.HasFlag(UserNavigationChangedFields.IsDeleted))
+    {
+      updateFields |= UserNavigationUpdateFields.IsDeleted;
+    }
+
+    return updateFields;
+  }
+
+  public static UpdateUserNavigationDbRequestDto ToUpdateDbDto(UserNavigation userNavigation, UserNavigationUpdateFields updateFields)
+  {
+    UpdateUserNavigationDbRequestDto dto = new()
+    {
+      NavigationUpdateFields = updateFields,
+      Id = userNavigation.Id,
+      IsComposite = userNavigation.IsComposite
+    };
+
+    if (updateFields is UserNavigationUpdateFields.None)
+    {
+      return dto;
+    }
+
+    if (updateFields.HasFlag(UserNavigationUpdateFields.Parent))
+    {
+      dto.Parent = userNavigation.Parent;
+    }
+    if (updateFields.HasFlag(UserNavigationUpdateFields.Icon))
+    {
+      dto.Icon = userNavigation.Icon;
+    }
+    if (updateFields.HasFlag(UserNavigationUpdateFields.Title))
+    {
+      dto.Title = userNavigation.Title;
+    }
+    if (updateFields.HasFlag(UserNavigationUpdateFields.IsDeleted))
+    {
+      dto.IsDeleted = userNavigation.IsDeleted;
+    }
+
+    return dto;
   }
 
   public static DeleteUserNavigationDbRequestDto ToDbDto(DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto)

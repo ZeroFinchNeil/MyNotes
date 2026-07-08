@@ -6,12 +6,13 @@ namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
 internal class UserCompositeNavigationViewStateEntity : IUserNavigationViewStateEntity<UserCompositeNavigationViewStateEntity>, IDatabaseEntity<UserCompositeNavigationViewStateEntity>
 {
-  [Key]
+  [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id))]
+  [ForeignKey(nameof(Id)), Required]
   public UserNavigationEntity? Navigation { get; init; }
 
+  [Required]
   public required bool IsExpanded { get; set; }
 
   public bool Equals(UserCompositeNavigationViewStateEntity? other) => other is not null && other.Id == Id;

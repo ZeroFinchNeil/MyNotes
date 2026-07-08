@@ -7,13 +7,13 @@ internal sealed record UpdateUserNavigationDbRequestDto
 {
   public required NavigationId Id { get; init; }
 
-  public required UserNavigationUpdateFields NavigationUpdateField { get; init; }
+  public required UserNavigationUpdateFields NavigationUpdateFields { get; init; }
 
   public NavigationId? Parent { get; set; }
 
-  public bool? IsComposite { get; init; }
+  public required bool IsComposite { get; init; }
 
-  public short? Icon { get; set; }
+  public int? Icon { get; set; }
 
   public string? Title { get; set; }
 
