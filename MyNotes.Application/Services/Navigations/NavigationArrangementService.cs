@@ -62,7 +62,7 @@ internal sealed partial class NavigationArrangementService
       else
       {
         updatedNavigations = null;
-        await appDbTransaction.RollbackAsync(cancellationToken);
+        await appDbTransaction.RollbackAsync(CancellationToken.None);
         failureMessage = "이동 대상 목록이 변경되어 Navigation 이동을 완료할 수 없습니다."; //todo: 상황에 맞게 실패 메시지 지정
       }
       return new MoveUserNavigationAppResponseDto()
@@ -76,7 +76,7 @@ internal sealed partial class NavigationArrangementService
     {
       if (!appDbTransaction.IsCompleted && !appDbTransaction.IsRolledBack)
       {
-        await appDbTransaction.RollbackAsync(cancellationToken);
+        await appDbTransaction.RollbackAsync(CancellationToken.None);
       }
 
       throw;

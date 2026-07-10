@@ -31,7 +31,7 @@ internal sealed class NavigationCommandService : ICommandService
   public Command<NavigationUserNode> AddGroupCommand { get; }
   public Command<NavigationUserNode> UpdateCommand { get; }
   public Command<NavigationUserNode> DeleteCommand { get; }
-  public Command<SourceTargetPair<NavigationUserNode, NavigationUserNode>> MoveRelativeToCommand { get; }
+  public Command<SourceTargetPair<NavigationUserNode, NavigationUserNode>> MoveToCommand { get; }
   public Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand { get; }
   public Command<NavigationUserNode> SetAsStartPageCommand { get; }
 
@@ -134,7 +134,7 @@ internal sealed class NavigationCommandService : ICommandService
       }
     };
 
-    MoveRelativeToCommand = new()
+    MoveToCommand = new()
     {
       ExecuteAction = async (navigationPair) =>
       {
@@ -336,7 +336,9 @@ internal sealed class NavigationCommandService : ICommandService
 
     if (currentSourceIndex != desiredSourceIndex)
     {
-      targetParent.ChildNodes.Move(currentSourceIndex, desiredSourceIndex);
+      //targetParent.ChildNodes.Move(currentSourceIndex, desiredSourceIndex);
+      targetParent.ChildNodes.RemoveAt(currentSourceIndex);
+      targetParent.ChildNodes.Insert(desiredSourceIndex, sourceNavigation);
     }
   }
 
@@ -413,7 +415,9 @@ internal sealed class NavigationCommandService : ICommandService
 
       if (currentIndex != targetIndex)
       {
-        currentNavigations.Move(currentIndex, targetIndex);
+        //currentNavigations.Move(currentIndex, targetIndex);
+        currentNavigations.RemoveAt(currentIndex);
+        currentNavigations.Insert(targetIndex, targetNavigation);
       }
     }
   }

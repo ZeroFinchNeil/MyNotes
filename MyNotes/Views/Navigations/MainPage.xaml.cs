@@ -61,6 +61,50 @@ internal sealed partial class MainPage : Page
 
     this.Loaded += MainPage_Loaded;
     this.Unloaded += MainPage_Unloaded;
+
+    MainPage_NavigationView.SelectionChanged += MainPage_NavigationView_SelectionChanged;
+  }
+
+  private void MainPage_NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+  {
+    if (args.SelectedItem is NavigationViewModelBase item)
+    {
+      string title = "NV";
+      int index = ViewModel.MenuItems.IndexOf(item);
+
+      if (index < 0)
+      {
+        Stack<UserGroupNavigationViewModel> stack = new();
+        UserGroupNavigationViewModel group = ViewModel.UserRootNavigationViewModel;
+        stack.Push(group);
+
+        while (stack.Count > 0)
+        {
+          group = stack.Pop();
+          foreach (var child in group.ChildNodeViewModels)
+          {
+            index = group.ChildNodeViewModels.IndexOf(item);
+            if (index >= 0)
+            {
+              title = group.Navigation.Title;
+              break;
+            }
+            if (child is UserGroupNavigationViewModel groupChild)
+            {
+              stack.Push(groupChild);
+            }
+          }
+
+          if (index >= 0)
+          {
+            break;
+          }
+        }
+      }
+
+      Console.WriteLine("{0}: {1}", "group", title);
+      Console.WriteLine("{0}: {1}", "index", index);
+    }
   }
 
   private async void MainPage_Loaded(object sender, RoutedEventArgs e)

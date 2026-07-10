@@ -62,7 +62,7 @@ internal sealed partial class AppDbTransaction : IAppDbTransaction, IAppDbTransa
   public async Task RollbackAsync(CancellationToken cancellationToken = default)
   {
     var transaction = EnsureActiveTransaction();
-    await transaction.RollbackAsync(cancellationToken);
+    await transaction.RollbackAsync(CancellationToken.None);
     IsRolledBack = true;
   }
 

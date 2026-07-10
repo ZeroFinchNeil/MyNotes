@@ -10,7 +10,7 @@ internal sealed partial class NavigationController : IDisposable
   public readonly NavigationService NavigationService;
 
   public ImmutableList<INavigation> PrimaryCoreNavigations { get; } = [NavigationHome.Instance, NavigationBookmarks.Instance, new NavigationSeparator()];
-  public NavigationUserRootNode UserRootNavigation { get; } = new();
+  public NavigationUserRootNode UserRootNavigation { get; } = NavigationUserRootNode.Instance;
   public ImmutableList<INavigation> SecondaryCoreNavigations { get; } = [new NavigationSeparator(), NavigationTrash.Instance, NavigationSettings.Instance];
   public IReadOnlyList<NavigationUserNode> UserCompositeNavigations => UserRootNavigation.FindDescendants(node => node is NavigationUserCompositeNode, true);
   public IReadOnlyList<NavigationUserNode> UserLeafNavigations => UserRootNavigation.FindDescendants(node => node is NavigationUserLeafNode, false);
@@ -28,10 +28,7 @@ internal sealed partial class NavigationController : IDisposable
   private async Task InitializeAsync()
   {
     var rootBundleAppResponseDto = await NavigationService.Tree.BuildNavigationTreeAsync();
-    foreach (var childDto in rootBundleAppResponseDto.Children)
-    {
-      UserRootNavigation.ChildNodes.Add(NavigationMappers.ToModel(childDto, UserRootNavigation));
-    }
+    NavigationMappers.ToModel(rootBundleAppResponseDto, UserRootNavigation);
     InitializationTCS.TrySetResult();
   }
 

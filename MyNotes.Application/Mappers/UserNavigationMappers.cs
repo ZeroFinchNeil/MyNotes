@@ -172,10 +172,11 @@ internal static class UserNavigationMappers
     return dto;
   }
 
-  public static DeleteUserNavigationDbRequestDto ToDbDto(DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto)
+  public static DeleteUserNavigationDbRequestDto ToDbDto(DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto) => new()
   {
-    throw new NotImplementedException();
-  }
+    Id = deleteUserNavigationAppRequestDto.Id,
+    DeleteMode = deleteUserNavigationAppRequestDto.DeleteMode
+  };
 
   public static MoveUserNavigationDbRequestDto ToDbDto(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto) => new()
   {

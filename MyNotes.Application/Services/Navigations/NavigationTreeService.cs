@@ -21,9 +21,9 @@ internal sealed partial class NavigationTreeService
     ? compositeBundleDto with { Children = [.. treeElement.Children.Select(ConvertTreeElement)] }
     : treeElement.BundleDto;
 
-  public async Task<UserCompositeNavigationBundleAppResponseDto> BuildNavigationTreeAsync()
+  public async Task<UserCompositeNavigationBundleAppResponseDto> BuildNavigationTreeAsync(CancellationToken cancellationToken = default)
   {
-    var dbBundleResponseDto = await NavigationRepository.GetAllUserNavigationsAsync();
+    var dbBundleResponseDto = await NavigationRepository.GetAllUserNavigationsAsync(cancellationToken);
 
     var treeElementsById = dbBundleResponseDto.ToDictionary(
       bundleDbDto => bundleDbDto.UserNavigationDto.Id,

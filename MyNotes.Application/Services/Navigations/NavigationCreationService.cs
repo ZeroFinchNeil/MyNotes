@@ -90,7 +90,7 @@ internal sealed partial class NavigationCreationService
       {
         if (!appDbTransaction.IsCompleted && !appDbTransaction.IsRolledBack)
         {
-          await appDbTransaction.RollbackAsync(cancellationToken);
+          await appDbTransaction.RollbackAsync(CancellationToken.None);
         }
 
         throw;

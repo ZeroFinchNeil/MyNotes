@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Arrangement;
@@ -15,6 +17,7 @@ using MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Navigations;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Constants.Navigations;
 using MyNotes.Infrastructure.Database.Core;
@@ -520,9 +523,31 @@ internal partial class NavigationRepository : INavigationRepository
     return responseDto;
   }
 
-  public Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
+  public async Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+    Guid id = deleteUserNavigationDbRequestDto.Id.Value;
+
+    try
+    {
+      int result = deleteUserNavigationDbRequestDto.DeleteMode switch
+      {
+        DeleteMode.MoveToTrash => await context.UserNavigationEntities.Where(e => e.Id == id)
+          .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.IsDeleted, true), cancellationToken),
+        DeleteMode.Permanent => await context.UserNavigationEntities.Where(e => e.Id == id)
+          .ExecuteDeleteAsync(cancellationToken),
+        _ => 0
+      };
+      await transaction.CommitAsync(cancellationToken);
+
+      return result > 0;
+    }
+    catch
+    {
+      await transaction.RollbackAsync(CancellationToken.None);
+      throw;
+    }
   }
 }
 

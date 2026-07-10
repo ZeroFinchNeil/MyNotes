@@ -11,7 +11,7 @@ using WinRT.Interop;
 
 namespace MyNotes.Services.Windows;
 
-internal class NoteWindowService
+internal class NoteWindowService : IWindowService<NoteId, NoteWindow>
 {
   private readonly INativeWindowing NativeWindowing;
   public Dictionary<NoteId, WeakReference<NoteWindow>> NoteWindowTable { get; } = new();

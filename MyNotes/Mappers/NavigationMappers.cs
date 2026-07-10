@@ -1,4 +1,5 @@
 ﻿using MyNotes.Application.Dtos.Navigations.Common;
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Mappers;
@@ -14,16 +15,23 @@ internal static class NavigationMappers
 
   private static NavigationUserCompositeNode ToCompositeNode(UserCompositeNavigationBundleAppResponseDto compositeDto, NavigationUserCompositeNode parentNode)
   {
-    NavigationUserCompositeNode compositeNode = new()
-    {
-      Id = compositeDto.Id,
-      Parent = parentNode,
-      Icon = compositeDto.UserNavigationDto.Icon,
-      Title = compositeDto.UserNavigationDto.Title,
-      IsExpanded = compositeDto.ViewStateDto.IsExpanded
-    };
+    
+    NavigationUserCompositeNode compositeNode = compositeDto.Id == NavigationId.UserRoot
+      ? NavigationUserRootNode.Instance
+      : new NavigationUserCompositeNode()
+      {
+        Id = compositeDto.Id,
+        Parent = parentNode,
+        Icon = compositeDto.UserNavigationDto.Icon,
+        Title = compositeDto.UserNavigationDto.Title,
+        IsExpanded = compositeDto.ViewStateDto.IsExpanded
+      };
     foreach (var childDto in compositeDto.Children)
     {
+      if (childDto.UserNavigationDto.IsDeleted)
+      {
+        continue;
+      }
       compositeNode.ChildNodes.Add(ToModel(childDto, compositeNode));
     }
     return compositeNode;

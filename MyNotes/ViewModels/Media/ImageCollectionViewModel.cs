@@ -97,7 +97,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteAction = async (imageViewModel) =>
       {
-        var imageViewerWindow = await ImageViewerWindowService.GetOrCreateImageViewerWindow(ImageCollectionKey);
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(ImageCollectionKey);
         imageViewerWindow.Activate();
         if (ImageViewModels.Contains(imageViewModel))
         {

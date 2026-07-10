@@ -20,7 +20,7 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
     NativeWindowing = nativeWindowing;
   }
 
-  public async Task<ImageViewerWindow> GetOrCreateImageViewerWindow(ImageCollectionKey key)
+  public async Task<ImageViewerWindow> GetOrCreate(ImageCollectionKey key)
   {
     if (_imageViewerWindowPair is not null)
     {
