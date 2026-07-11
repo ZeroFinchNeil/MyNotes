@@ -18,7 +18,7 @@ using MyNotes.Shared.Constants;
 
 namespace MyNotes;
 
-public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
+public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposable
 {
   internal static App Instance => (App)Current;
 
@@ -90,24 +90,25 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IDisposable
 
   public bool Disposed { get; private set; }
 
-  private void Dispose(bool disposing)
+  private async ValueTask DisposeAsync(bool disposing)
   {
     if (!Disposed)
     {
       if (disposing)
       {
-        Services.Dispose();
         this.UnhandledException -= App_UnhandledException;
         AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
         TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+        await Services.DisposeAsync();
       }
       Disposed = true;
     }
   }
 
-  public void Dispose()
+  public async ValueTask DisposeAsync()
   {
-    Dispose(disposing: true);
+    await DisposeAsync(disposing: true);
     GC.SuppressFinalize(this);
   }
   #endregion

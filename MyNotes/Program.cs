@@ -70,7 +70,9 @@ public class Program
       SynchronizationContext.SetSynchronizationContext(context);
       app = new App();
     });
-    app?.Dispose();
+
+    SynchronizationContext.SetSynchronizationContext(null);
+    app?.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
 #if DEBUG
     NativeMethods.FreeConsole();

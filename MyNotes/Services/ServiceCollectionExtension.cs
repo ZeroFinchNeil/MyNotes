@@ -73,7 +73,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NavigationRetrievalService>();
       services.AddSingleton<NavigationModificationService>();
 
-      services.AddSingleton<UserNavigationFactory>();
+      services.AddSingleton<NavigationFactory>();
 
       services.AddSingleton<NavigationController>();
     }
@@ -110,7 +110,6 @@ internal static class ServiceCollectionExtension
       services.AddDbContextFactory<AppDbContext>();
       services.AddScoped<AppDbContextInitializer>();
       services.AddSingleton<IAppDbTransactionFactory, AppDbTransactionFactory>();
-      services.AddTransient<IAppDbTransaction, AppDbTransaction>();
     }
 
     public void AddSearchCoreServices()
