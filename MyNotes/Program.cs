@@ -22,17 +22,15 @@ public class Program
 
   private static async Task LaunchArgumentsPipeClientStreamAsync(IEnumerable<string> args)
   {
-    using (NamedPipeClientStream pipeClientStream = new(".", AppStrings.NamedPipe_LaunchArguments, PipeDirection.Out, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly))
-    {
-      await pipeClientStream.ConnectAsync();
+    using NamedPipeClientStream pipeClientStream = new(".", AppStrings.NamedPipe_LaunchArguments, PipeDirection.Out, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
+    await pipeClientStream.ConnectAsync();
 
-      using (StreamWriter sw = new(pipeClientStream))
+    using (StreamWriter sw = new(pipeClientStream))
+    {
+      sw.AutoFlush = true;
+      foreach (string arg in args)
       {
-        sw.AutoFlush = true;
-        foreach (string arg in args)
-        {
-          sw.WriteLine(arg);
-        }
+        sw.WriteLine(arg);
       }
     }
   }
@@ -64,9 +62,10 @@ public class Program
     consoleHWND = NativeMethods.SetConsole(0, 850, 750, 540);
 #endif
     App? app = null;
-    Microsoft.UI.Xaml.Application.Start((p) =>
+    Microsoft.UI.Xaml.Application.Start(_ =>
     {
-      var context = new DispatcherQueueSynchronizationContext(DispatcherQueue.GetForCurrentThread());
+      var dispatcherQueue = DispatcherQueue.GetForCurrentThread();
+      var context = new DispatcherQueueSynchronizationContext(dispatcherQueue);
       SynchronizationContext.SetSynchronizationContext(context);
       app = new App();
     });
@@ -94,12 +93,10 @@ public class Program
 
       if (kind is ExtendedActivationKind.StartupTask)
       {
-        using (var emptyWidgetListEvent = WidgetProvider.EmptyWidgetListEvent)
-        {
-          emptyWidgetListEvent.WaitOne();
-          WidgetProvider = null;
-          _ = NativeMethods.CoRevokeClassObject(cookie);
-        }
+        using var emptyWidgetListEvent = WidgetProvider.EmptyWidgetListEvent;
+        emptyWidgetListEvent.WaitOne();
+        WidgetProvider = null;
+        _ = NativeMethods.CoRevokeClassObject(cookie);
       }
     }
   }
