@@ -1,6 +1,4 @@
-﻿using System;
-
-using MyNotes.Domain.ValueObjects;
+﻿using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
 

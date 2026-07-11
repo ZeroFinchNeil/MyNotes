@@ -10,23 +10,9 @@ internal sealed record CreateUserNavigationAppRequestDto
 
   public required NavigationInsertPosition NavigationInsertPosition { get; init; }
 
-  //public required NavigationId ParentId { get; init; }
-
   public required bool IsComposite { get; init; }
 
   public required Icon Icon { get; init; }
 
   public required string Title { get; init; }
 }
-
-/*
-CreateUserNavigationAppRequestDto dto = new()
-{
-  InsertTargetId = ,
-  NavigationInsertPosition = ,
-  ParentId = ,
-  IsComposite = ,
-  Icon = ,
-  Title = ,
-};
-*/

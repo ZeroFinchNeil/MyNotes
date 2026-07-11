@@ -1,4 +1,5 @@
-﻿using MyNotes.Application.Dtos.Navigations.Common;
+﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
+using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Mappers;
 using MyNotes.Models.Navigations;
@@ -29,6 +30,17 @@ internal sealed partial class NavigationController : IDisposable
   {
     var rootBundleAppResponseDto = await NavigationService.Tree.BuildNavigationTreeAsync();
     NavigationMappers.ToModel(rootBundleAppResponseDto, UserRootNavigation);
+
+    UserRootNavigation.ForEachDescendant(node =>
+    {
+      node.PropertyChanged += UserNode_PropertyChanged;
+      node.PropertyChanged += node switch
+      {
+        NavigationUserCompositeNode => UserCompositeNode_PropertyChanged,
+        NavigationUserLeafNode => UserLeafNode_PropertyChanged,
+        _ => throw new InvalidOperationException()
+      };
+    }, false);
     InitializationTCS.TrySetResult();
   }
 
@@ -41,7 +53,12 @@ internal sealed partial class NavigationController : IDisposable
       return;
     }
 
-    UserRootNavigation.ForEachDescendant(node => node.PropertyChanged -= UserNode_PropertyChanged);
+    UserRootNavigation.ForEachDescendant(node =>
+    {
+      node.PropertyChanged -= UserNode_PropertyChanged;
+      node.PropertyChanged -= UserCompositeNode_PropertyChanged;
+      node.PropertyChanged -= UserLeafNode_PropertyChanged;
+    }, false);
 
     Disposed = true;
   }
@@ -91,64 +108,88 @@ internal sealed partial class NavigationController : IDisposable
     CurrentNavigation = null;
   }
 
-  private async void UserNode_PropertyChanged(object? s, PropertyChangedEventArgs e)
+  private async void UserCompositeNode_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (sender is NavigationUserCompositeNode node)
+    {
+      switch (e.PropertyName)
+      {
+        case nameof(NavigationUserCompositeNode.IsExpanded):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserCompositeNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserCompositeNavigationViewStateUpdateFields.IsExpanded,
+            Id = node.Id,
+            IsExpanded = node.IsExpanded
+          });
+          break;
+      }
+    }
+  }
+
+  private async void UserLeafNode_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (sender is NavigationUserLeafNode node)
+    {
+      switch (e.PropertyName)
+      {
+        case nameof(NavigationUserLeafNode.NoteSortKey):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserLeafNavigationViewStateUpdateFields.NoteSortKey,
+            Id = node.Id,
+            NoteSortKey = node.NoteSortKey
+          });
+          break;
+        case nameof(NavigationUserLeafNode.NoteSortDirection):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserLeafNavigationViewStateUpdateFields.NoteSortDirection,
+            Id = node.Id,
+            NoteSortDirection = node.NoteSortDirection
+          }); 
+          break;
+        case nameof(NavigationUserLeafNode.PreviewLayoutType):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewLayoutType,
+            Id = node.Id,
+            PreviewLayoutType = node.PreviewLayoutType
+          });
+          break;
+        case nameof(NavigationUserLeafNode.PreviewTileSize):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewTileSize,
+            Id = node.Id,
+            PreviewTileSize = node.PreviewTileSize
+          });
+          break;
+        case nameof(NavigationUserLeafNode.PreviewTileRatio):
+          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          {
+            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewTileRatio,
+            Id = node.Id,
+            PreviewTileRatio = node.PreviewTileRatio
+          });
+          break;
+      }
+    }
+  }
+
+  private async void UserNode_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     //await NavigationService.Modification.UpdateUserNavigationAsync();
-#if false
-    if (s is NavigationUserNode node)
+    if (sender is NavigationUserNode node)
     {
       switch (e.PropertyName)
       {
         case nameof(NavigationUserNode.Parent):
-          await UpdateNavigationEntityAsync(node, entity => entity.Parent = node.Parent.Id.Value);
           break;
         case nameof(NavigationUserNode.Icon):
-          await UpdateNavigationEntityAsync(node, entity => entity.Icon = (int)node.Icon);
           break;
         case nameof(NavigationUserNode.Title):
-          await UpdateNavigationEntityAsync(node, entity => entity.Title = node.Title);
-          break;
-        case nameof(NavigationUserNode.Position):
-          await UpdateNavigationEntityAsync(node, entity => entity.Position = node.Position);
-          break;
-        case nameof(NavigationUserCompositeNode.IsExpanded):
-          if (node is NavigationUserCompositeNode compositeNodeIE)
-          {
-            await UpdateNavigationEntityAsync(compositeNodeIE, entity => entity.IsExpanded = compositeNodeIE.IsExpanded);
-          }
-          break;
-        case nameof(NavigationUserLeafNode.NoteSortKey):
-          if (node is NavigationUserLeafNode leafNodeNSK)
-          {
-            await UpdateNavigationEntityAsync(leafNodeNSK, entity => entity.NoteSortKey = leafNodeNSK.NoteSortKey.AsInt());
-          }
-          break;
-        case nameof(NavigationUserLeafNode.NoteSortDirection):
-          if (node is NavigationUserLeafNode leafNodeNSD)
-          {
-            await UpdateNavigationEntityAsync(leafNodeNSD, entity => entity.NoteSortDirection = leafNodeNSD.NoteSortDirection.AsInt());
-          }
-          break;
-        case nameof(NavigationUserLeafNode.PreviewLayoutType):
-          if (node is NavigationUserLeafNode leafNodePLT)
-          {
-            await UpdateNavigationEntityAsync(leafNodePLT, entity => entity.PreviewLayoutType = leafNodePLT.PreviewLayoutType.AsInt());
-          }
-          break;
-        case nameof(NavigationUserLeafNode.PreviewTileSize):
-          if (node is NavigationUserLeafNode leafNodePTS)
-          {
-            await UpdateNavigationEntityAsync(leafNodePTS, entity => entity.PreviewTileSize = leafNodePTS.PreviewTileSize.AsInt());
-          }
-          break;
-        case nameof(NavigationUserLeafNode.PreviewTileRatio):
-          if (node is NavigationUserLeafNode leafNodePTR)
-          {
-            await UpdateNavigationEntityAsync(leafNodePTR, entity => entity.PreviewTileRatio = leafNodePTR.PreviewTileRatio.AsInt());
-          }
           break;
       }
     }
-#endif
   }
 }

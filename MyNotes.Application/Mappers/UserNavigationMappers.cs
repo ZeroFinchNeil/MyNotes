@@ -24,28 +24,28 @@ namespace MyNotes.Application.Mappers;
 [AssemblyLocal]
 internal static class UserNavigationMappers
 {
-  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto userNavigationDbResponseDto) => userNavigationDbResponseDto.IsComposite
+  public static UserNavigationAppResponseDto ToAppDto(UserNavigationDbResponseDto dbResponseDto) => dbResponseDto.IsComposite
     ? new UserCompositeNavigationAppResponseDto()
     {
-      Id = userNavigationDbResponseDto.Id,
-      Parent = userNavigationDbResponseDto.Parent,
-      Icon = (Icon)userNavigationDbResponseDto.Icon,
-      Title = userNavigationDbResponseDto.Title,
-      IsDeleted = userNavigationDbResponseDto.IsDeleted,
+      Id = dbResponseDto.Id,
+      Parent = dbResponseDto.Parent,
+      Icon = (Icon)dbResponseDto.Icon,
+      Title = dbResponseDto.Title,
+      IsDeleted = dbResponseDto.IsDeleted,
     }
     : new UserLeafNavigationAppResponseDto()
     {
-      Id = userNavigationDbResponseDto.Id,
-      Parent = userNavigationDbResponseDto.Parent,
-      Icon = (Icon)userNavigationDbResponseDto.Icon,
-      Title = userNavigationDbResponseDto.Title,
-      IsDeleted = userNavigationDbResponseDto.IsDeleted,
+      Id = dbResponseDto.Id,
+      Parent = dbResponseDto.Parent,
+      Icon = (Icon)dbResponseDto.Icon,
+      Title = dbResponseDto.Title,
+      IsDeleted = dbResponseDto.IsDeleted,
     };
 
-  public static UserNavigationBundleAppResponseDto ToAppDto(UserNavigationBundleDbResponseDto userNavigationBundleDbResponseDto)
+  public static UserNavigationBundleAppResponseDto ToAppDto(UserNavigationBundleDbResponseDto bundleDbResponseDto)
   {
-    var userNavigationDbDto = userNavigationBundleDbResponseDto.UserNavigationDto;
-    var viewStateDbDto = userNavigationBundleDbResponseDto.ViewStateDto;
+    var userNavigationDbDto = bundleDbResponseDto.UserNavigationDto;
+    var viewStateDbDto = bundleDbResponseDto.ViewStateDto;
     return userNavigationDbDto.IsComposite
       ? new UserCompositeNavigationBundleAppResponseDto(
         userNavigationDto: (UserCompositeNavigationAppResponseDto)ToAppDto(userNavigationDbDto),
@@ -56,45 +56,45 @@ internal static class UserNavigationMappers
         viewStateDto: ToAppDto((UserLeafNavigationViewStateDbResponseDto)viewStateDbDto));
   }
 
-  public static UserNavigationViewStateAppResponseDto ToAppDto(UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto) => userNavigationViewStateDbResponseDto switch
+  public static UserNavigationViewStateAppResponseDto ToAppDto(UserNavigationViewStateDbResponseDto dbResponseDto) => dbResponseDto switch
   {
     UserCompositeNavigationViewStateDbResponseDto compositeDto => ToAppDto(compositeDto),
     UserLeafNavigationViewStateDbResponseDto leafDto => ToAppDto(leafDto),
     _ => throw new InvalidOperationException()
   };
 
-  public static UserCompositeNavigationViewStateAppResponseDto ToAppDto(UserCompositeNavigationViewStateDbResponseDto userCompositeNavigationViewStateDbResponseDto) => new()
+  public static UserCompositeNavigationViewStateAppResponseDto ToAppDto(UserCompositeNavigationViewStateDbResponseDto compositeDbResponseDto) => new()
   {
-    Id = userCompositeNavigationViewStateDbResponseDto.Id,
-    IsExpanded = userCompositeNavigationViewStateDbResponseDto.IsExpanded
+    Id = compositeDbResponseDto.Id,
+    IsExpanded = compositeDbResponseDto.IsExpanded
   };
 
-  public static UserLeafNavigationViewStateAppResponseDto ToAppDto(UserLeafNavigationViewStateDbResponseDto userCompositeNavigationViewStateDbResponseDto) => new()
+  public static UserLeafNavigationViewStateAppResponseDto ToAppDto(UserLeafNavigationViewStateDbResponseDto leafDbResponseDto) => new()
   {
-    Id = userCompositeNavigationViewStateDbResponseDto.Id,
-    NoteSortKey = (NoteSortKey?)userCompositeNavigationViewStateDbResponseDto.NoteSortKey,
-    NoteSortDirection = (SortDirection?)userCompositeNavigationViewStateDbResponseDto.NoteSortDirection,
-    PreviewLayoutType = (PreviewLayoutType?)userCompositeNavigationViewStateDbResponseDto.PreviewLayoutType,
-    PreviewTileSize = (PreviewTileSize?)userCompositeNavigationViewStateDbResponseDto.PreviewTileSize,
-    PreviewTileRatio = (PreviewTileRatio?)userCompositeNavigationViewStateDbResponseDto.PreviewTileRatio
+    Id = leafDbResponseDto.Id,
+    NoteSortKey = leafDbResponseDto.NoteSortKey,
+    NoteSortDirection = leafDbResponseDto.NoteSortDirection,
+    PreviewLayoutType = leafDbResponseDto.PreviewLayoutType,
+    PreviewTileSize = leafDbResponseDto.PreviewTileSize,
+    PreviewTileRatio = leafDbResponseDto.PreviewTileRatio
   };
 
-  public static GetUserNavigationFieldValuesAppResponseDto ToAppDto(GetUserNavigationFieldValuesDbResponseDto getUserNavigationFieldsDbDto)
+  public static GetUserNavigationFieldValuesAppResponseDto ToAppDto(GetUserNavigationFieldValuesDbResponseDto getFieldsDbDto)
   {
     throw new NotImplementedException();
   }
 
-  public static UpdateUserNavigationAppResponseDto ToAppDto(UpdateUserNavigationDbResponseDto updateUserNavigationDbResponseDto) => new()
+  public static UpdateUserNavigationAppResponseDto ToAppDto(UpdateUserNavigationDbResponseDto updateDbResponseDto) => new()
   {
-    ChangedNavigationFields = updateUserNavigationDbResponseDto.ChangedNavigationFields,
-    Id = updateUserNavigationDbResponseDto.Id,
-    Parent = updateUserNavigationDbResponseDto.Parent,
-    Icon = updateUserNavigationDbResponseDto.Icon is int icon ? (Icon)icon : null,
-    Title = updateUserNavigationDbResponseDto.Title is string title ? title : null,
-    IsDeleted = updateUserNavigationDbResponseDto.IsDeleted is bool isDeleted ? isDeleted : null
+    ChangedNavigationFields = updateDbResponseDto.ChangedNavigationFields,
+    Id = updateDbResponseDto.Id,
+    Parent = updateDbResponseDto.Parent,
+    Icon = updateDbResponseDto.Icon is int icon ? (Icon)icon : null,
+    Title = updateDbResponseDto.Title is string title ? title : null,
+    IsDeleted = updateDbResponseDto.IsDeleted is bool isDeleted ? isDeleted : null
   };
 
-  public static FindUserNavigationsDbQuery ToDbQuery(FindUserNavigationsAppQuery findUserNavigationsAppQuery)
+  public static FindUserNavigationsDbQuery ToDbQuery(FindUserNavigationsAppQuery findAppQuery)
   {
     throw new NotImplementedException();
   }
@@ -172,30 +172,51 @@ internal static class UserNavigationMappers
     return dto;
   }
 
-  public static DeleteUserNavigationDbRequestDto ToDbDto(DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto) => new()
+  public static DeleteUserNavigationDbRequestDto ToDbDto(DeleteUserNavigationAppRequestDto deleteAppRequestDto) => new()
   {
-    Id = deleteUserNavigationAppRequestDto.Id,
-    DeleteMode = deleteUserNavigationAppRequestDto.DeleteMode
+    Id = deleteAppRequestDto.Id,
+    DeleteMode = deleteAppRequestDto.DeleteMode
   };
 
-  public static MoveUserNavigationDbRequestDto ToDbDto(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto) => new()
+  public static MoveUserNavigationDbRequestDto ToDbDto(MoveUserNavigationAppRequestDto moveAppRequestDto) => new()
   {
-    SourceNavigation = moveUserNavigationAppRequestDto.SourceNavigation,
-    TargetNavigation = moveUserNavigationAppRequestDto.TargetNavigation,
-    NavigationInsertPosition = moveUserNavigationAppRequestDto.NavigationInsertPosition
+    SourceNavigation = moveAppRequestDto.SourceNavigation,
+    TargetNavigation = moveAppRequestDto.TargetNavigation,
+    NavigationInsertPosition = moveAppRequestDto.NavigationInsertPosition
   };
 
-  public static UserNavigationBundleDbResponseDto BundleDbDto(UserNavigationDbResponseDto userNavigationDbResponseDto, UserNavigationViewStateDbResponseDto userNavigationViewStateDbResponseDto)
+  public static UserNavigationBundleDbResponseDto BundleDbDto(UserNavigationDbResponseDto userNavigationDbResponseDto, UserNavigationViewStateDbResponseDto viewStateDbResponseDto)
   {
     // composite와 leaf 구성에 따라 달리 구현
     throw new NotImplementedException();
   }
 
-  public static UserNavigationBundleAppResponseDto BundleAppDto(UserNavigationAppResponseDto userNavigationAppResponseDto, UserNavigationViewStateAppResponseDto userNavigationViewStateAppResponseDto) => (userNavigationAppResponseDto, userNavigationViewStateAppResponseDto) switch
+  public static UserNavigationBundleAppResponseDto BundleAppDto(UserNavigationAppResponseDto userNavigationAppResponseDto, UserNavigationViewStateAppResponseDto viewStateAppResponseDto) => (userNavigationAppResponseDto, viewStateAppResponseDto) switch
   {
     (UserCompositeNavigationAppResponseDto compositeNavigation, UserCompositeNavigationViewStateAppResponseDto compositeViewState) => new UserCompositeNavigationBundleAppResponseDto(compositeNavigation, compositeViewState, []),
     (UserLeafNavigationAppResponseDto leafNavigation, UserLeafNavigationViewStateAppResponseDto leafViewState) => new UserLeafNavigationBundleAppResponseDto(leafNavigation, leafViewState),
     _ => throw new InvalidOperationException(),
+  };
+
+  public static UpdateUserNavigationViewStateDbRequestDto ToDbDto(UpdateUserNavigationViewStateAppRequestDto updateAppRequestDto) => updateAppRequestDto switch
+  {
+    UpdateUserCompositeNavigationViewStateAppRequestDto compositeDto => new UpdateUserCompositeNavigationViewStateDbRequestDto()
+    {
+      Id = compositeDto.Id,
+      UpdateFields = compositeDto.UpdateFields,
+      IsExpanded = compositeDto.IsExpanded
+    },
+    UpdateUserLeafNavigationViewStateAppRequestDto leafDto => new UpdateUserLeafNavigationViewStateDbRequestDto()
+    {
+      Id = leafDto.Id,
+      UpdateFields = leafDto.UpdateFields,
+      NoteSortKey = leafDto.NoteSortKey,
+      NoteSortDirection = leafDto.NoteSortDirection,
+      PreviewLayoutType = leafDto.PreviewLayoutType,
+      PreviewTileSize = leafDto.PreviewTileSize,
+      PreviewTileRatio = leafDto.PreviewTileRatio
+    },
+    _ => throw new InvalidOperationException()
   };
 }
 

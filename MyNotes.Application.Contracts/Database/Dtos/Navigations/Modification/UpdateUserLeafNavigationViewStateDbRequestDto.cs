@@ -1,11 +1,14 @@
-﻿using MyNotes.Common.Querying;
+﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
+using MyNotes.Common.Querying;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 
-namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
+namespace MyNotes.Application.Contracts.Database.Dtos.Navigations.Modification;
 
-internal sealed record UserLeafNavigationViewStateDbResponseDto : UserNavigationViewStateDbResponseDto
+internal sealed record UpdateUserLeafNavigationViewStateDbRequestDto : UpdateUserNavigationViewStateDbRequestDto
 {
+  public required UserLeafNavigationViewStateUpdateFields UpdateFields { get; init; }
+
   public required NoteSortKey? NoteSortKey { get; init; }
 
   public required SortDirection? NoteSortDirection { get; init; }
