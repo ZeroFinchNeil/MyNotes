@@ -17,7 +17,6 @@ namespace MyNotes.ViewModels;
 internal sealed partial class MainViewModel : ViewModelBase
 {
   private readonly NavigationController NavigationController;
-  private readonly NavigationService NavigationService;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
   private readonly NavigationCommandService NavigationCommandService;
 
@@ -26,7 +25,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   // User
   public UserRootGroupNavigationViewModel UserRootNavigationViewModel { get; }
-  public IReadOnlyList<NavigationViewModelBase> UserNavigationViewModels => UserRootNavigationViewModel.ChildNodeViewModels;
+  //public IReadOnlyList<NavigationViewModelBase> UserNavigationViewModels => UserRootNavigationViewModel.ChildNodeViewModels;
 
   // Footer
   public IReadOnlyList<NavigationViewModelBase> FooterMenuItems { get; }
@@ -38,11 +37,10 @@ internal sealed partial class MainViewModel : ViewModelBase
   public partial NavigationViewModelBase? CurrentNavigationViewModel { get; set; }
 
   #region Object Lifetime Management
-  public MainViewModel(NavigationController navigationController, NavigationService navigationService, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
+  public MainViewModel(NavigationController navigationController, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
   {
     // DI
     NavigationController = navigationController;
-    NavigationService = navigationService;
     NavigationViewModelProvider = navigationViewModelProvider;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
@@ -50,8 +48,9 @@ internal sealed partial class MainViewModel : ViewModelBase
     UserRootNavigationViewModel = (UserRootGroupNavigationViewModel)NavigationViewModelProvider.Resolve(NavigationController.UserRootNavigation);
     FooterMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationController.SecondaryCoreNavigations)];
     _menuItems = [.. HeaderMenuItems, UserRootNavigationViewModel];
+    //_menuItems = [.. HeaderMenuItems, .. UserNavigationViewModels];
     MenuItems = new(_menuItems);
-
+    
     NavigationController.CurrentNavigationChanged += NavigationController_CurrentNavigationChanged;
 
     SetCommands();
@@ -76,12 +75,12 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   private void NavigationController_CurrentNavigationChanged(object sender, INavigation? args)
   {
-    Console.WriteLine("{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
-    Console.WriteLine("{0}: {1}", "NavigationController.NavigationBackStack.Count", NavigationController.NavigationBackStack.Count);
-    Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+    //Console.WriteLine("{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
+    //Console.WriteLine("{0}: {1}", "NavigationController.NavigationBackStack.Count", NavigationController.NavigationBackStack.Count);
+    //Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
     SyncNavigation();
     CanNavigateBack = NavigationController.NavigationBackStack.Count > 0;
-    Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+    //Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
   }
 
   public void NavigateTo(INavigation navigation)
@@ -112,7 +111,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   public async Task MoveNavigationAsync(SourceTargetPair<NavigationUserNode, NavigationUserNode> navigationPair)
   {
-    NavigationCommandService.MoveRelativeToCommand.Execute(navigationPair);
+    NavigationCommandService.MoveToCommand.Execute(navigationPair);
     SyncNavigation();
   }
 

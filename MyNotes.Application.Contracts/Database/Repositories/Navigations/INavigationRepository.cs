@@ -14,21 +14,23 @@ namespace MyNotes.Application.Contracts.Database.Repositories.Navigations;
 
 internal interface INavigationRepository
 {
-  public Task<NavigationId> GenerateUniqueUserNavigationIdAsync(CancellationToken cancellationToken = default);
+  public Task<NavigationId> GenerateUniqueNavigationIdAsync(CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<UserNavigationBundleDbResponseDto>> GetAllUserNavigationsAsync(CancellationToken cancellationToken = default);
+  public Task<IReadOnlyList<NavigationBundleDbResponseDto>> GetAllNavigationsAsync(CancellationToken cancellationToken = default);
 
-  public Task<UserNavigationBundleDbResponseDto?> GetUserNavigationByIdAsync(NavigationId id, CancellationToken cancellationToken = default);
+  public Task<NavigationBundleDbResponseDto?> GetNavigationByIdAsync(NavigationId id, CancellationToken cancellationToken = default);
 
-  public Task<GetUserNavigationFieldValuesDbResponseDto> GetUserNavigationFieldValuesAsync(GetUserNavigationFieldValuesDbRequestDto getUserNavigationFieldsDbRequestDto, CancellationToken cancellationToken = default);
+  public Task<GetNavigationFieldValuesDbResponseDto> GetNavigationFieldValuesAsync(GetNavigationFieldValuesDbRequestDto getFieldsDbRequestDto, CancellationToken cancellationToken = default);
 
   public Task<bool> IsDescendantOfAsync(NavigationId possibleDescendantId, NavigationId possibleAncestorId, CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<GetUserNavigationFieldValuesDbResponseDto>> MoveUserNavigationAsync(MoveUserNavigationDbRequestDto moveUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
+  public Task<IReadOnlyList<GetNavigationFieldValuesDbResponseDto>> MoveNavigationAsync(MoveNavigationDbRequestDto moveDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
 
-  public Task<UserNavigationBundleDbResponseDto> AddUserNavigationAsync(CreateUserNavigationDbRequestDto createUserNavigationDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
+  public Task<NavigationBundleDbResponseDto> AddNavigationAsync(CreateNavigationDbRequestDto createDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
 
-  public Task<UpdateUserNavigationDbResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
+  public Task<UpdateNavigationDbResponseDto> UpdateNavigationAsync(UpdateNavigationDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
 
-  public Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationDbRequestDto deleteUserNavigationDbRequestDto, CancellationToken cancellationToken = default);
+  public Task UpdateNavigationViewStateAsync(UpdateNavigationViewStateDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
+
+  public Task<bool> DeleteNavigationAsync(DeleteNavigationDbRequestDto deleteDbRequestDto, CancellationToken cancellationToken = default);
 }

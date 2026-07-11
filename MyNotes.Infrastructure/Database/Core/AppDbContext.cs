@@ -16,11 +16,11 @@ namespace MyNotes.Infrastructure.Database.Core;
 internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispatcher) : DbContext
 {
   /// <summary>내비게이션 DB 엔티티</summary>
-  public DbSet<UserNavigationEntity> UserNavigationEntities => Set<UserNavigationEntity>();
+  public DbSet<NavigationEntity> NavigationEntities => Set<NavigationEntity>();
 
-  public DbSet<UserLeafNavigationViewStateEntity> UserLeafNavigationViewStateEntities => Set<UserLeafNavigationViewStateEntity>();
+  public DbSet<LeafNavigationViewStateEntity> LeafNavigationViewStateEntities => Set<LeafNavigationViewStateEntity>();
 
-  public DbSet<UserCompositeNavigationViewStateEntity> UserCompositeNavigationViewStateEntities => Set<UserCompositeNavigationViewStateEntity>();
+  public DbSet<CompositeNavigationViewStateEntity> CompositeNavigationViewStateEntities => Set<CompositeNavigationViewStateEntity>();
 
   /// <summary>노트 DB 엔티티</summary>
   public DbSet<NoteEntity> NoteEntities => Set<NoteEntity>();
@@ -48,7 +48,7 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
     base.OnModelCreating(modelBuilder);
 
     // Navigations
-    modelBuilder.Entity<UserNavigationEntity>(entity =>
+    modelBuilder.Entity<NavigationEntity>(entity =>
     {
       entity.HasIndex(e => new { e.Parent, e.Position }).IsUnique();
 
@@ -56,22 +56,22 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
       entity.Property(e => e.IsComposite).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
 
-    modelBuilder.Entity<UserCompositeNavigationViewStateEntity>(entity =>
+    modelBuilder.Entity<CompositeNavigationViewStateEntity>(entity =>
     {
       entity.HasOne(e => e.Navigation)
       .WithOne()
-      .HasForeignKey<UserCompositeNavigationViewStateEntity>(e => e.Id)
+      .HasForeignKey<CompositeNavigationViewStateEntity>(e => e.Id)
       .IsRequired()
       .OnDelete(DeleteBehavior.Cascade);
 
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
 
-    modelBuilder.Entity<UserLeafNavigationViewStateEntity>(entity =>
+    modelBuilder.Entity<LeafNavigationViewStateEntity>(entity =>
     {
       entity.HasOne(e => e.Navigation)
       .WithOne()
-      .HasForeignKey<UserLeafNavigationViewStateEntity>(e => e.Id)
+      .HasForeignKey<LeafNavigationViewStateEntity>(e => e.Id)
       .IsRequired()
       .OnDelete(DeleteBehavior.Cascade);
 

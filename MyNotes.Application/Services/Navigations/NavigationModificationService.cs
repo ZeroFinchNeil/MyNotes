@@ -12,66 +12,66 @@ namespace MyNotes.Application.Services.Navigations;
 internal sealed partial class NavigationModificationService
 {
   private readonly INavigationRepository NavigationRepository;
-  private readonly NavigationArrangementService NavigationArrangementService;
-  private readonly UserNavigationFactory UserNavigationFactory;
+  private readonly NavigationFactory NavigationFactory;
 
-  public NavigationModificationService(INavigationRepository navigationRepository, NavigationArrangementService navigationArrangementService, UserNavigationFactory userNavigationFactory)
+  public NavigationModificationService(INavigationRepository navigationRepository, NavigationFactory navigationFactory)
   {
     NavigationRepository = navigationRepository;
-    NavigationArrangementService = navigationArrangementService;
-    UserNavigationFactory = userNavigationFactory;
+    NavigationFactory = navigationFactory;
   }
 
-  public async Task<UpdateUserNavigationAppResponseDto> UpdateUserNavigationAsync(UpdateUserNavigationAppRequestDto updateUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
+  public async Task<UpdateNavigationAppResponseDto> UpdateNavigationAsync(UpdateNavigationAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default)
   {
-    if (updateUserNavigationAppRequestDto.NavigationUpdateField is UserNavigationUpdateFields.None)
+    if (updateAppRequestDto.UpdateFields is NavigationUpdateFields.None)
     {
-      return new UpdateUserNavigationAppResponseDto()
+      return new UpdateNavigationAppResponseDto()
       {
-        Id = updateUserNavigationAppRequestDto.Id,
-        ChangedNavigationFields = UserNavigationChangedFields.None
+        Id = updateAppRequestDto.Id,
+        ChangedFields = NavigationChangedFields.None
       };
     }
 
-    var bundleDto = await NavigationRepository.GetUserNavigationByIdAsync(updateUserNavigationAppRequestDto.Id, cancellationToken)
+    var bundleDto = await NavigationRepository.GetNavigationByIdAsync(updateAppRequestDto.Id, cancellationToken)
       ?? throw new InvalidOperationException();
 
-    UserNavigation userNavigation = UserNavigationFactory.Create(bundleDto.UserNavigationDto);
-    var changedFields = UpdateUserNavigation(userNavigation, updateUserNavigationAppRequestDto);
+    Navigation navigation = NavigationFactory.Create(bundleDto.NavigationDto);
+    var changedFields = UpdateNavigation(navigation, updateAppRequestDto);
 
-    UpdateUserNavigationDbResponseDto updateUserNavigationDbResponseDto = await NavigationRepository.UpdateUserNavigationAsync(UserNavigationMappers.ToUpdateDbDto(userNavigation, UserNavigationMappers.ToUpdateFields(changedFields)), true, cancellationToken);
+    UpdateNavigationDbResponseDto updateDbResponseDto = await NavigationRepository.UpdateNavigationAsync(NavigationMappers.ToUpdateDbDto(navigation, NavigationMappers.ToUpdateFields(changedFields)), true, cancellationToken);
 
-    return UserNavigationMappers.ToAppDto(updateUserNavigationDbResponseDto);
+    return NavigationMappers.ToAppDto(updateDbResponseDto);
   }
 
-  private static UserNavigationChangedFields UpdateUserNavigation(UserNavigation userNavigation, UpdateUserNavigationAppRequestDto dto)
+  private static NavigationChangedFields UpdateNavigation(Navigation navigation, UpdateNavigationAppRequestDto updateAppRequestDto)
   {
-    UserNavigationChangedFields changedFields = UserNavigationChangedFields.None;
-    var updateFields = dto.NavigationUpdateField;
-    if (updateFields.HasFlag(UserNavigationUpdateFields.Parent) && dto.Parent is NavigationId parent && userNavigation.Parent != parent)
+    NavigationChangedFields changedFields = NavigationChangedFields.None;
+    var updateFields = updateAppRequestDto.UpdateFields;
+    if (updateFields.HasFlag(NavigationUpdateFields.Parent) && updateAppRequestDto.Parent is NavigationId parent && navigation.Parent != parent)
     {
-      userNavigation.Parent = parent;
-      changedFields |= UserNavigationChangedFields.Parent;
+      navigation.Parent = parent;
+      changedFields |= NavigationChangedFields.Parent;
     }
-    if (updateFields.HasFlag(UserNavigationUpdateFields.Icon) && dto.Icon is Icon icon && userNavigation.Icon != (int)icon)
+    if (updateFields.HasFlag(NavigationUpdateFields.Icon) && updateAppRequestDto.Icon is Icon icon && navigation.Icon != (int)icon)
     {
-      userNavigation.Icon = (int)icon;
-      changedFields |= UserNavigationChangedFields.Icon;
+      navigation.Icon = (int)icon;
+      changedFields |= NavigationChangedFields.Icon;
     }
-    if (updateFields.HasFlag(UserNavigationUpdateFields.Title) && dto.Title is string title && userNavigation.Title != title)
+    if (updateFields.HasFlag(NavigationUpdateFields.Title) && updateAppRequestDto.Title is string title && navigation.Title != title)
     {
-      userNavigation.Title = title;
-      changedFields |= UserNavigationChangedFields.Title;
+      navigation.Title = title;
+      changedFields |= NavigationChangedFields.Title;
     }
-    if (updateFields.HasFlag(UserNavigationUpdateFields.IsDeleted) && dto.IsDeleted is bool isDeleted && userNavigation.IsDeleted != isDeleted)
+    if (updateFields.HasFlag(NavigationUpdateFields.IsDeleted) && updateAppRequestDto.IsDeleted is bool isDeleted && navigation.IsDeleted != isDeleted)
     {
-      userNavigation.IsDeleted = isDeleted;
-      changedFields |= UserNavigationChangedFields.IsDeleted;
+      navigation.IsDeleted = isDeleted;
+      changedFields |= NavigationChangedFields.IsDeleted;
     }
 
     return changedFields;
   }
 
-  public async Task<bool> DeleteUserNavigationAsync(DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto)
-    => await NavigationRepository.DeleteUserNavigationAsync(UserNavigationMappers.ToDbDto(deleteUserNavigationAppRequestDto));
+  public Task UpdateNavigationViewStateAsync(UpdateNavigationViewStateAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default) => NavigationRepository.UpdateNavigationViewStateAsync(NavigationMappers.ToDbDto(updateAppRequestDto), true, cancellationToken);
+
+  public async Task<bool> DeleteNavigationAsync(DeleteNavigationAppRequestDto deleteAppRequestDto)
+    => await NavigationRepository.DeleteNavigationAsync(NavigationMappers.ToDbDto(deleteAppRequestDto));
 }

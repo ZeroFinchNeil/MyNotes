@@ -17,24 +17,24 @@ internal sealed partial class NavigationTreeService
   }
   #endregion
 
-  private UserNavigationBundleAppResponseDto ConvertTreeElement(NavigationTreeElement treeElement) => treeElement.BundleDto is UserCompositeNavigationBundleAppResponseDto compositeBundleDto
+  private NavigationBundleAppResponseDto ConvertTreeElement(NavigationTreeElement treeElement) => treeElement.BundleDto is CompositeNavigationBundleAppResponseDto compositeBundleDto
     ? compositeBundleDto with { Children = [.. treeElement.Children.Select(ConvertTreeElement)] }
     : treeElement.BundleDto;
 
-  public async Task<UserCompositeNavigationBundleAppResponseDto> BuildNavigationTreeAsync()
+  public async Task<CompositeNavigationBundleAppResponseDto> BuildNavigationTreeAsync(CancellationToken cancellationToken = default)
   {
-    var dbBundleResponseDto = await NavigationRepository.GetAllUserNavigationsAsync();
+    var dbBundleResponseDto = await NavigationRepository.GetAllNavigationsAsync(cancellationToken);
 
     var treeElementsById = dbBundleResponseDto.ToDictionary(
-      bundleDbDto => bundleDbDto.UserNavigationDto.Id,
+      bundleDbDto => bundleDbDto.NavigationDto.Id,
       bundleDbDto => new NavigationTreeElement()
       {
-        BundleDto = UserNavigationMappers.ToAppDto(bundleDbDto),
-        Position = bundleDbDto.UserNavigationDto.Position
+        BundleDto = NavigationMappers.ToAppDto(bundleDbDto),
+        Position = bundleDbDto.NavigationDto.Position
       });
 
-    UserCompositeNavigationBundleAppResponseDto rootAppDto = new(
-      userNavigationDto: new UserCompositeNavigationAppResponseDto()
+    CompositeNavigationBundleAppResponseDto rootAppDto = new(
+      navigationDto: new CompositeNavigationAppResponseDto()
       {
         Id = NavigationId.UserRoot,
         Parent = NavigationId.Empty,
@@ -42,7 +42,7 @@ internal sealed partial class NavigationTreeService
         Icon = Templates.Icon.System_Library,
         IsDeleted = false,
       },
-      viewStateDto: new UserCompositeNavigationViewStateAppResponseDto()
+      viewStateDto: new CompositeNavigationViewStateAppResponseDto()
       {
         Id = NavigationId.UserRoot,
         IsExpanded = true
@@ -62,7 +62,7 @@ internal sealed partial class NavigationTreeService
         continue;
       }
 
-      if (treeElementsById.TryGetValue(treeElement.BundleDto.UserNavigationDto.Parent, out var parentTreeElement))
+      if (treeElementsById.TryGetValue(treeElement.BundleDto.NavigationDto.Parent, out var parentTreeElement))
       {
         parentTreeElement.Children.Add(treeElement);
       }
@@ -72,12 +72,12 @@ internal sealed partial class NavigationTreeService
       }
     }
 
-    return rootAppDto with { Children = [.. ((UserCompositeNavigationBundleAppResponseDto)ConvertTreeElement(rootTreeElement)).Children, .. omittedTreeElements.Select(ConvertTreeElement)] };
+    return rootAppDto with { Children = [.. ((CompositeNavigationBundleAppResponseDto)ConvertTreeElement(rootTreeElement)).Children, .. omittedTreeElements.Select(ConvertTreeElement)] };
   }
 
   private class NavigationTreeElement : IComparable<NavigationTreeElement>
   {
-    public required UserNavigationBundleAppResponseDto BundleDto { get; init; }
+    public required NavigationBundleAppResponseDto BundleDto { get; init; }
 
     public SortedSet<NavigationTreeElement> Children { get; } = new();
 

@@ -8,8 +8,10 @@ namespace MyNotes.Models.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NavigationUserRootNode : NavigationUserCompositeNode
 {
+  public static NavigationUserRootNode Instance { get; } = new();
+
   [SetsRequiredMembers]
-  public NavigationUserRootNode()
+  private NavigationUserRootNode()
   {
     Id = NavigationId.UserRoot;
     Icon = Templates.Icon.System_Library;
