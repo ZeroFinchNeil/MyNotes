@@ -17,16 +17,16 @@ internal sealed partial class NavigationArrangementService
     AppDbTransactionFactory = appDbTransactionFactory;
   }
 
-  public async Task<MoveUserNavigationAppResponseDto> MoveUserNavigationAsync(MoveUserNavigationAppRequestDto moveUserNavigationAppRequestDto, CancellationToken cancellationToken = default)
+  public async Task<MoveNavigationAppResponseDto> MoveNavigationAsync(MoveNavigationAppRequestDto moveAppRequestDto, CancellationToken cancellationToken = default)
   {
-    var sourceId = moveUserNavigationAppRequestDto.SourceNavigation;
-    var targetId = moveUserNavigationAppRequestDto.TargetNavigation;
+    var sourceId = moveAppRequestDto.SourceNavigation;
+    var targetId = moveAppRequestDto.TargetNavigation;
 
     if (sourceId == targetId || await NavigationRepository.IsDescendantOfAsync(targetId, sourceId, cancellationToken))
     {
       return new()
       {
-        ResultKind = MoveUserNavigationResultKind.Rejected,
+        ResultKind = MoveNavigationResultKind.Rejected,
         UpdatedNavigations = null
       };
     }
@@ -34,27 +34,27 @@ internal sealed partial class NavigationArrangementService
     await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
     try
     {
-      var dbResponseDtos = await NavigationRepository.MoveUserNavigationAsync(UserNavigationMappers.ToDbDto(moveUserNavigationAppRequestDto), appDbTransaction, cancellationToken);
+      var dbResponseDtos = await NavigationRepository.MoveNavigationAsync(NavigationMappers.ToDbDto(moveAppRequestDto), appDbTransaction, cancellationToken);
 
       var updatedNavigations = dbResponseDtos
         .Where(dto => dto.Id is not null)
         .Select(dto => dto.Id!.Value)
         .ToList();
       var updatedNavigationSet = updatedNavigations.ToHashSet();
-      var expectedNavigationSet = moveUserNavigationAppRequestDto.ExpectedTargetSiblings.ToHashSet();
+      var expectedNavigationSet = moveAppRequestDto.ExpectedTargetSiblings.ToHashSet();
 
-      MoveUserNavigationResultKind resultKind = MoveUserNavigationResultKind.Rejected;
+      MoveNavigationResultKind resultKind = MoveNavigationResultKind.Rejected;
       string? failureMessage = null;
 
       if (updatedNavigationSet.SetEquals(expectedNavigationSet))
       {
-        if (updatedNavigations.SequenceEqual(moveUserNavigationAppRequestDto.ExpectedTargetSiblings))
+        if (updatedNavigations.SequenceEqual(moveAppRequestDto.ExpectedTargetSiblings))
         {
-          resultKind = MoveUserNavigationResultKind.MovedAsRequested;
+          resultKind = MoveNavigationResultKind.MovedAsRequested;
         }
         else
         {
-          resultKind = MoveUserNavigationResultKind.MovedWithOrderReconciliation;
+          resultKind = MoveNavigationResultKind.MovedWithOrderReconciliation;
           failureMessage = "Navigation 이동은 완료되었지만 최종 순서가 요청 순서와 달라져 화면 순서를 다시 동기화해야 합니다."; //todo: 순서 불일치 상황에 맞게 실패 메시지 지정, Infra DB 업데이트 기준으로 Presentation에서 변경 순서 반영
         }
         await appDbTransaction.CompleteAsync(true, cancellationToken);
@@ -65,7 +65,7 @@ internal sealed partial class NavigationArrangementService
         await appDbTransaction.RollbackAsync(CancellationToken.None);
         failureMessage = "이동 대상 목록이 변경되어 Navigation 이동을 완료할 수 없습니다."; //todo: 상황에 맞게 실패 메시지 지정
       }
-      return new MoveUserNavigationAppResponseDto()
+      return new MoveNavigationAppResponseDto()
       {
         ResultKind = resultKind,
         UpdatedNavigations = updatedNavigations,

@@ -115,9 +115,9 @@ internal sealed partial class NavigationController : IDisposable
       switch (e.PropertyName)
       {
         case nameof(NavigationUserCompositeNode.IsExpanded):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserCompositeNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateCompositeNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserCompositeNavigationViewStateUpdateFields.IsExpanded,
+            UpdateFields = CompositeNavigationViewStateUpdateFields.IsExpanded,
             Id = node.Id,
             IsExpanded = node.IsExpanded
           });
@@ -133,41 +133,41 @@ internal sealed partial class NavigationController : IDisposable
       switch (e.PropertyName)
       {
         case nameof(NavigationUserLeafNode.NoteSortKey):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateLeafNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserLeafNavigationViewStateUpdateFields.NoteSortKey,
+            UpdateFields = LeafNavigationViewStateUpdateFields.NoteSortKey,
             Id = node.Id,
             NoteSortKey = node.NoteSortKey
           });
           break;
         case nameof(NavigationUserLeafNode.NoteSortDirection):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateLeafNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserLeafNavigationViewStateUpdateFields.NoteSortDirection,
+            UpdateFields = LeafNavigationViewStateUpdateFields.NoteSortDirection,
             Id = node.Id,
             NoteSortDirection = node.NoteSortDirection
           }); 
           break;
         case nameof(NavigationUserLeafNode.PreviewLayoutType):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateLeafNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewLayoutType,
+            UpdateFields = LeafNavigationViewStateUpdateFields.PreviewLayoutType,
             Id = node.Id,
             PreviewLayoutType = node.PreviewLayoutType
           });
           break;
         case nameof(NavigationUserLeafNode.PreviewTileSize):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateLeafNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewTileSize,
+            UpdateFields = LeafNavigationViewStateUpdateFields.PreviewTileSize,
             Id = node.Id,
             PreviewTileSize = node.PreviewTileSize
           });
           break;
         case nameof(NavigationUserLeafNode.PreviewTileRatio):
-          await NavigationService.Modification.UpdateUserNavigationViewStateAsync(new UpdateUserLeafNavigationViewStateAppRequestDto()
+          await NavigationService.Modification.UpdateNavigationViewStateAsync(new UpdateLeafNavigationViewStateAppRequestDto()
           {
-            UpdateFields = UserLeafNavigationViewStateUpdateFields.PreviewTileRatio,
+            UpdateFields = LeafNavigationViewStateUpdateFields.PreviewTileRatio,
             Id = node.Id,
             PreviewTileRatio = node.PreviewTileRatio
           });

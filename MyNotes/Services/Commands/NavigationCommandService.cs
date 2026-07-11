@@ -65,20 +65,20 @@ internal sealed class NavigationCommandService : ICommandService
           {
             // Application 계층에 업데이트 요청 및
             // 실제 변경된 필드와 값들을 요청에 대한 응답으로 받아서 뷰 Navigation에 반영
-            UpdateUserNavigationAppRequestDto updateUserNavigationAppRequestDto = new()
+            UpdateNavigationAppRequestDto updateUserNavigationAppRequestDto = new()
             {
               Id = navigation.Id,
-              NavigationUpdateField = UserNavigationUpdateFields.Icon | UserNavigationUpdateFields.Title,
+              UpdateFields = NavigationUpdateFields.Icon | NavigationUpdateFields.Title,
               Icon = userInput.Icon,
               Title = userInput.Title
             };
 
             // 요청 및 응답
-            UpdateUserNavigationAppResponseDto updateUserNavigationAppResponseDto = await NavigationService.Modification.UpdateUserNavigationAsync(updateUserNavigationAppRequestDto);
+            UpdateNavigationAppResponseDto updateUserNavigationAppResponseDto = await NavigationService.Modification.UpdateNavigationAsync(updateUserNavigationAppRequestDto);
 
             // 실제 변경된 필드에 대한 동작
-            var changedNavigationFields = updateUserNavigationAppResponseDto.ChangedNavigationFields;
-            if (changedNavigationFields.HasFlag(UserNavigationChangedFields.Icon) && updateUserNavigationAppResponseDto.Icon is Icon updatedIcon)
+            var changedNavigationFields = updateUserNavigationAppResponseDto.ChangedFields;
+            if (changedNavigationFields.HasFlag(NavigationChangedFields.Icon) && updateUserNavigationAppResponseDto.Icon is Icon updatedIcon)
             {
               if (userInput.Icon != updatedIcon)
               {
@@ -86,7 +86,7 @@ internal sealed class NavigationCommandService : ICommandService
               }
               navigation.Icon = updatedIcon;
             }
-            if (changedNavigationFields.HasFlag(UserNavigationChangedFields.Title) && updateUserNavigationAppResponseDto.Title is string updatedTitle)
+            if (changedNavigationFields.HasFlag(NavigationChangedFields.Title) && updateUserNavigationAppResponseDto.Title is string updatedTitle)
             {
               if (userInput.Title != updatedTitle)
               {
@@ -119,13 +119,13 @@ internal sealed class NavigationCommandService : ICommandService
           var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetCategory, navigation.Title, deleteMode);
           if (dialogResponse.Result is ContentDialogResult.Primary)
           {
-            DeleteUserNavigationAppRequestDto deleteUserNavigationAppRequestDto = new()
+            DeleteNavigationAppRequestDto deleteUserNavigationAppRequestDto = new()
             {
               Id = navigation.Id,
               DeleteMode = dialogResponse.Data
             };
 
-            if (await NavigationService.Modification.DeleteUserNavigationAsync(deleteUserNavigationAppRequestDto))
+            if (await NavigationService.Modification.DeleteNavigationAsync(deleteUserNavigationAppRequestDto))
             {
               navigation.Parent.ChildNodes.Remove(navigation);
             }
@@ -177,15 +177,15 @@ internal sealed class NavigationCommandService : ICommandService
 
         expectedTargetSiblings.Insert(targetIndex, sourceNavigation.Id);
 
-        MoveUserNavigationAppRequestDto appRequestDto = new()
+        MoveNavigationAppRequestDto appRequestDto = new()
         {
           SourceNavigation = sourceNavigation.Id,
           TargetNavigation = targetNavigation.Id,
-          NavigationInsertPosition = insertPosition,
+          InsertPosition = insertPosition,
           ExpectedTargetSiblings = expectedTargetSiblings
         };
 
-        MoveUserNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveUserNavigationAsync(appRequestDto);
+        MoveNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveNavigationAsync(appRequestDto);
 
         if (!appResponseDto.IsMoveApplied)
         {
@@ -202,16 +202,16 @@ internal sealed class NavigationCommandService : ICommandService
 
         switch (appResponseDto.ResultKind)
         {
-          case MoveUserNavigationResultKind.MovedAsRequested:
+          case MoveNavigationResultKind.MovedAsRequested:
             ApplySingleNavigationMove(sourceNavigation, sourceParent, targetParent, desiredSourceIndex);
             break;
 
-          case MoveUserNavigationResultKind.MovedWithOrderReconciliation:
+          case MoveNavigationResultKind.MovedWithOrderReconciliation:
             ApplySingleNavigationMove(sourceNavigation, sourceParent, targetParent, desiredSourceIndex);
             SynchronizeNavigationOrder(targetParent.ChildNodes, updatedNavigations);
             break;
 
-          case MoveUserNavigationResultKind.Rejected:
+          case MoveNavigationResultKind.Rejected:
             break;
         }
       }
@@ -231,15 +231,15 @@ internal sealed class NavigationCommandService : ICommandService
         }
 
         // 이동 요청 및 결과 확인
-        MoveUserNavigationAppRequestDto appRequestDto = new()
+        MoveNavigationAppRequestDto appRequestDto = new()
         {
           SourceNavigation = sourceNavigation.Id,
           TargetNavigation = targetGroupNavigation.Id,
-          NavigationInsertPosition = NavigationInsertPosition.LastChild,
+          InsertPosition = NavigationInsertPosition.LastChild,
           ExpectedTargetSiblings = [.. targetGroupNavigation.ChildNodes.Select(n => n.Id)]
         };
 
-        MoveUserNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveUserNavigationAsync(appRequestDto);
+        MoveNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveNavigationAsync(appRequestDto);
         if (appResponseDto.IsMoveApplied)
         {
           // UI 계층에서 이동 사항 반영
@@ -277,16 +277,16 @@ internal sealed class NavigationCommandService : ICommandService
           _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {targetNavigation.GetType().FullName}")
         };
 
-        CreateUserNavigationAppRequestDto createUserNavigationAppRequestDto = new()
+        CreateNavigationAppRequestDto createUserNavigationAppRequestDto = new()
         {
           InsertTargetId = targetNavigation.Id,
-          NavigationInsertPosition = navigationInsertPosition,
+          InsertPosition = navigationInsertPosition,
           IsComposite = isNavigationComposite,
           Icon = v.Icon,
           Title = v.Title,
         };
 
-        if (await NavigationService.Creation.AddUserNavigationAsync(createUserNavigationAppRequestDto, cancellationToken) is UserNavigationBundleAppResponseDto responseDto)
+        if (await NavigationService.Creation.AddNavigationAsync(createUserNavigationAppRequestDto, cancellationToken) is NavigationBundleAppResponseDto responseDto)
         {
           NavigationUserCompositeNode parentNavigation = targetNavigation switch
           {
