@@ -16,7 +16,42 @@ namespace MyNotes.Application.Mappers;
 [AssemblyLocal]
 internal static class NoteMappers
 {
-  public static NoteBundleAppResponseDto ToAppDto(NoteBundleDbResponseDto noteBundleDbResponseDto) => throw new NotImplementedException();
+  public static NoteBundleAppResponseDto ToAppDto(NoteBundleDbResponseDto dbResponseDto) => new(ToAppDto(dbResponseDto.NoteDto), ToAppDto(dbResponseDto.ViewStateDto));
+
+  public static NoteAppResponseDto ToAppDto(NoteDbResponseDto dbResponseDto) => new()
+  {
+    Id = dbResponseDto.Id,
+    NavigationId = dbResponseDto.NavigationId,
+    Created = dbResponseDto.Created,
+    Modified = dbResponseDto.Modified,
+    Title = dbResponseDto.Title,
+    Body = dbResponseDto.Body,
+    BodyPlainText = dbResponseDto.Body,
+    BackgroundColor = dbResponseDto.BackgroundColor,
+    IsBookmarked = dbResponseDto.IsBookmarked,
+    IsDeleted = dbResponseDto.IsDeleted,
+  };
+
+  public static NoteViewStateAppResponseDto ToAppDto(NoteViewStateDbResponseDto dbResponseDto) => new()
+  {
+    Id = dbResponseDto.Id,
+    ShowBackgroundImage = dbResponseDto.ShowBackgroundImage,
+    BackgroundImagePath = dbResponseDto.BackgroundImagePath,
+    BackgroundImageOpacity = dbResponseDto.BackgroundImageOpacity,
+    BackgroundImageBlur = dbResponseDto.BackgroundImageBlur,
+    BackdropKind = dbResponseDto.BackdropKind,
+    BackdropTintOpacity = dbResponseDto.BackdropTintOpacity,
+    BackdropLuminosityOpacity = dbResponseDto.BackdropLuminosityOpacity,
+    Images = dbResponseDto.Images,
+    ShowImagePanel = dbResponseDto.ShowImagePanel,
+    ImagePanelHeight = dbResponseDto.ImagePanelHeight,
+    Width = dbResponseDto.Width,
+    Height = dbResponseDto.Height,
+    PositionX = dbResponseDto.PositionX,
+    PositionY = dbResponseDto.PositionY,
+    IsWindowOpen = dbResponseDto.IsWindowOpen,
+    IsAlwaysOnTop = dbResponseDto.IsAlwaysOnTop
+  };
 
   public static CreateNoteDbRequestDto ToCreateDbDto(Note note) => new()
   {
@@ -77,68 +112,13 @@ internal static class NoteMappers
   };
 
   public static UpdateNoteViewStateDbRequestDto ToDbDto(UpdateNoteViewStateAppRequestDto updateNoteViewStateDto) => throw new NotImplementedException();
-
-#if false
-  public static UpdateNoteViewStateDbRequestDto ToDbDto(UpdateNoteViewStateAppRequestDto updateNoteViewStateDto)
-    => new()
-    {
-      Id = updateNoteViewStateDto.Id,
-      NoteViewStateUpdateField = updateNoteViewStateDto.NoteViewStateUpdateField,
-      ShowBackgroundImage = updateNoteViewStateDto.ShowBackgroundImage,
-      BackgroundImagePath = updateNoteViewStateDto.BackgroundImagePath,
-      BackgroundImageOpacity = updateNoteViewStateDto.BackgroundImageOpacity,
-      BackgroundImageBlur = updateNoteViewStateDto.BackgroundImageBlur,
-      BackdropKind = updateNoteViewStateDto.BackdropKind,
-      BackdropTintOpacity = updateNoteViewStateDto.BackdropTintOpacity,
-      BackdropLuminosityOpacity = updateNoteViewStateDto.BackdropLuminosityOpacity,
-      Images = updateNoteViewStateDto.Images,
-      ShowImagePanel = updateNoteViewStateDto.ShowImagePanel,
-      ImagePanelHeight = updateNoteViewStateDto.ImagePanelHeight,
-      Width = updateNoteViewStateDto.Width,
-      Height = updateNoteViewStateDto.Height,
-      PositionX = updateNoteViewStateDto.PositionX,
-      PositionY = updateNoteViewStateDto.PositionY,
-      IsWindowOpen = updateNoteViewStateDto.IsWindowOpen,
-      IsAlwaysOnTop = updateNoteViewStateDto.IsAlwaysOnTop
-    };
-
-  public static NoteBundleAppResponseDto ToAppDto(NoteDbResponseDto noteDbResponseDto, NoteViewStateDbResponseDto noteViewStateDbResponseDto)
-    => new()
-  {
-    Id = noteDbResponseDto.Id,
-    NavigationId = noteDbResponseDto.NavigationId,
-    Created = noteDbResponseDto.Created,
-    Modified = noteDbResponseDto.Modified,
-    Title = noteDbResponseDto.Title,
-    Body = noteDbResponseDto.Body,
-    BodyPlainText = RtfTextConverter.ToPlainText(noteDbResponseDto.Body),
-    IsBookmarked = noteDbResponseDto.IsBookmarked,
-    IsDeleted = noteDbResponseDto.IsDeleted,
-    ShowBackgroundImage = noteViewStateDbResponseDto.ShowBackgroundImage,
-    BackgroundImagePath = noteViewStateDbResponseDto.BackgroundImagePath,
-    BackgroundImageOpacity = noteViewStateDbResponseDto.BackgroundImageOpacity,
-    BackgroundImageBlur = noteViewStateDbResponseDto.BackgroundImageBlur,
-    BackdropKind = noteViewStateDbResponseDto.BackdropKind,
-    BackdropTintOpacity = noteViewStateDbResponseDto.BackdropTintOpacity,
-    BackdropLuminosityOpacity = noteViewStateDbResponseDto.BackdropLuminosityOpacity,
-    Images = noteViewStateDbResponseDto.Images,
-    ShowImagePanel = noteViewStateDbResponseDto.ShowImagePanel,
-    ImagePanelHeight = noteViewStateDbResponseDto.ImagePanelHeight,
-    Width = noteViewStateDbResponseDto.Width,
-    Height = noteViewStateDbResponseDto.Height,
-    PositionX = noteViewStateDbResponseDto.PositionX,
-    PositionY = noteViewStateDbResponseDto.PositionY,
-    IsWindowOpen = noteViewStateDbResponseDto.IsWindowOpen,
-    IsAlwaysOnTop = noteViewStateDbResponseDto.IsAlwaysOnTop
-  };
-#endif
 }
 
 internal static class NoteMappingExtensions
 {
   extension(Note note)
   {
-    public CreateNoteDbRequestDto ToCreateDbDto() => ToCreateDbDto(note);
+    public CreateNoteDbRequestDto ToCreateDbDto() => NoteMappers.ToCreateDbDto(note);
   }
 
   extension(NoteBundleDbResponseDto dto)

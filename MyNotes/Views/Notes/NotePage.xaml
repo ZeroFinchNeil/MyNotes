@@ -59,7 +59,7 @@
     </Style>
 
     <converters:EnumToIntConverter x:Key="BackdropKindToIntConverter"
-                                   xmlns:enums="using:MyNotes.Common.Enums.Notes"
+                                   xmlns:enums="using:MyNotes.Shared.Enums.Notes"
                                    EnumType="enums:BackdropKind" />
 
     <PathIconSource x:Key="ImageMultipleOffPathIconSource"

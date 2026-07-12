@@ -12,7 +12,7 @@ internal record NoteDbResponseDto
 
   public required DateTimeOffset Created { get; init; }
 
-  public DateTimeOffset Modified { get; init; }
+  public required DateTimeOffset Modified { get; init; }
 
   public required string Title { get; init; }
 

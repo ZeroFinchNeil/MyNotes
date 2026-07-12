@@ -5,7 +5,7 @@ namespace MyNotes.Shared.Constants;
 public static class AppStrings
 {
   public const string AppDisplayName = "MyNotes";
-  public static string PackageFamilyName { get; } = Windows.ApplicationModel.Package.Current.Id.FamilyName;
+  public static string PackageFamilyName => Windows.ApplicationModel.Package.Current.Id.FamilyName;
 
   public const string AppInstanceKey = "MyNotes";
 

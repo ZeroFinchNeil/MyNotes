@@ -16,5 +16,5 @@ internal static class AppNavigationGuids
   public static Guid TrashId => Guid.Parse("00000000-0000-0000-0000-000000000005");
   public static Guid SettingsId => Guid.Parse("00000000-0000-0000-0000-000000000006");
   public static Guid AllowedLowerBound => Guid.Parse("00000000-0000-0000-0000-000000000010");
-  public static Guid AllowedUpperBound => Guid.Parse("ffffffff-ffff-ffff-ffff-fffffffffeff");
+  public static Guid AllowedUpperBound => Guid.Parse("FFFFFFFF-FFFF-FFFF-FFFF-FFFFFFFFFEFF");
 }

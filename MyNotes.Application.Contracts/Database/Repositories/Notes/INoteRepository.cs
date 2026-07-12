@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
+using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
@@ -22,7 +23,7 @@ internal interface INoteRepository
 
   public Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default);
 
-  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, CancellationToken cancellationToken = default);
+  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
 
   public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default);
 

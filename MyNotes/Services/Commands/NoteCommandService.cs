@@ -3,11 +3,13 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
@@ -18,7 +20,9 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
+using MyNotes.Shared.Constants;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -38,12 +42,13 @@ internal sealed class NoteCommandService : ICommandService
   private readonly MainWindowService MainWindowService;
   private readonly DialogService DialogService;
   private readonly JumpListService JumpListService;
+  private readonly SettingsService SettingsService;
 
   public Command<NoteModel> OpenNoteWindowCommand { get; }
   public Command<NoteModel> MinimizeNoteWindowCommand { get; }
   public Command<NoteModel> CloseNoteWindowCommand { get; }
   public Command<SourceTargetPair<NoteModel, NavigationId>> MoveNoteToListCommand { get; }
-  public Command<NavigationId?> CreateNewNoteCommand { get; }
+  public AsyncCommand<NavigationId?> CreateNewNoteCommand { get; }
   public Command<NoteModel> ViewListCommand { get; }
   public Command<NoteModel> RemoveNoteCommand { get; }
   public Command<NoteModel> AddNoteToJumpListCommand { get; }
@@ -58,7 +63,8 @@ internal sealed class NoteCommandService : ICommandService
     NavigationViewModelProvider navigationViewModelProvider,
     MainWindowService mainWindowService,
     DialogService dialogService,
-    JumpListService jumpListService
+    JumpListService jumpListService,
+    SettingsService settingsService
     )
   {
     NoteService = noteService;
@@ -71,6 +77,7 @@ internal sealed class NoteCommandService : ICommandService
     MainWindowService = mainWindowService;
     DialogService = dialogService;
     JumpListService = jumpListService;
+    SettingsService = settingsService;
 
     OpenNoteWindowCommand = new()
     {
@@ -135,13 +142,21 @@ internal sealed class NoteCommandService : ICommandService
 
     CreateNewNoteCommand = new()
     {
-      ExecuteAction = async (navigationId) =>
+      ExecuteFunc = async (navigationId) =>
       {
         if (navigationId is NavigationId targetNavigationId
             && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
             && nvm is UserListNavigationViewModel navigationViewModel)
         {
-          if (await NoteService.Creation.AddNoteAsync(navigationViewModel.Navigation.Id) is NoteBundleAppResponseDto newNoteDto)
+          var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
+          var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
+          CreateNoteAppRequestDto appRequestDto = new()
+          {
+            NavigationId = navigationViewModel.Navigation.Id,
+            Size = default,
+            Position = default
+          };
+          if (await NoteService.Creation.AddNoteAsync(appRequestDto) is NoteBundleAppResponseDto newNoteDto)
           {
             NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);
             NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);

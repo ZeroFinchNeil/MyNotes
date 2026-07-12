@@ -10,6 +10,7 @@ using MyNotes.Application.Mappers;
 using MyNotes.Common.Exceptions;
 using MyNotes.Domain.Entities.Navigations;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Shared.Constants;
 
 namespace MyNotes.Application.Services.Navigations;
 
@@ -71,7 +72,7 @@ internal sealed partial class NavigationCreationService
       };
 
       // Navigation Domain Entity로 변환하여 도메인 속성 유효성 검사
-      Navigation navigation = NavigationFactory.Create(newNavigationId, parentId, createAppRequestDto.IsComposite, (int)createAppRequestDto.Icon, createAppRequestDto.Title, false);
+      Navigation navigation = NavigationFactory.Create(newNavigationId, parentId, createAppRequestDto.IsComposite, (int)createAppRequestDto.Icon, createAppRequestDto.Title, AppDefaultSettings.IsNavigationDeleted);
 
       await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
 

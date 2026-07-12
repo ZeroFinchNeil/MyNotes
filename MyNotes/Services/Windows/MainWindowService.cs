@@ -105,4 +105,8 @@ internal class MainWindowService : IWindowService<MainWindow>
     }
     return false;
   }
+
+  public PointInt32? GetNewWindowPosition(SizeInt32 newWindowSize) => TryGetCurrentWindow(out var mainWindow)
+    ? NativeWindowing.GetNewWindowPositionOnMonitor(WindowNative.GetWindowHandle(mainWindow), newWindowSize)
+    : null;
 }

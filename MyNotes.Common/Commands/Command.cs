@@ -1,15 +1,17 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Windows.Input;
 
 namespace MyNotes.Common.Commands;
 
 public sealed partial class Command : ICommand
 {
-  public Action? ExecuteAction { get; init; }
+  public required Action ExecuteAction { get; init; }
   public Func<bool>? CanExecuteFunc { get; init; }
 
   public Command() { }
 
+  [SetsRequiredMembers]
   public Command(Action executeAction, Func<bool>? canExecuteFunc = null)
   {
     ExecuteAction = executeAction;
@@ -29,17 +31,18 @@ public sealed partial class Command : ICommand
       return;
     }
 
-    ExecuteAction?.Invoke();
+    ExecuteAction.Invoke();
   }
 }
 
 public sealed partial class Command<T> : ICommand
 {
-  public Action<T>? ExecuteAction { get; init; }
+  public required Action<T> ExecuteAction { get; init; }
   public Func<T, bool>? CanExecuteFunc { get; init; }
 
   public Command() { }
 
+  [SetsRequiredMembers]
   public Command(Action<T> executeAction, Func<T, bool>? canExecuteFunc = null)
   {
     ExecuteAction = executeAction;
@@ -60,10 +63,7 @@ public sealed partial class Command<T> : ICommand
       return;
     }
 
-    if (ExecuteAction is not null)
-    {
-      T param = parameter is null ? default! : (T)parameter;
-      ExecuteAction(param);
-    }
+    T param = parameter is null ? default! : (T)parameter;
+    ExecuteAction(param);
   }
 }

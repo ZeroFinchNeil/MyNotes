@@ -14,17 +14,17 @@ internal class NativeWindowing : INativeWindowing
 
   }
 
-  public PointInt32 GetInitialPositionOnMonitor(IntPtr hWnd, SizeInt32 windowSize)
+  public PointInt32 GetNewWindowPositionOnMonitor(IntPtr baseWindowHandle, SizeInt32 newWindowSize)
   {
-    if (NativeMethods.GetMonitorInfoForWindow(hWnd) is NativeMethods.MONITORINFOEX monitorInfo)
+    if (NativeMethods.GetMonitorInfoForWindow(baseWindowHandle) is NativeMethods.MONITORINFOEX monitorInfo)
     {
       var rect = monitorInfo.rcWork;
       int monitorWidth = rect.Right - rect.Left;
       int monitorHeight = rect.Bottom - rect.Top;
       int padding = 10;
 
-      Range horizontal = new(rect.Left + padding, rect.Left + (monitorWidth - windowSize.Width) / 2);
-      Range vertical = new(rect.Top + padding, rect.Top + (monitorHeight - windowSize.Height) / 2);
+      Range horizontal = new(rect.Left + padding, rect.Left + (monitorWidth - newWindowSize.Width) / 2);
+      Range vertical = new(rect.Top + padding, rect.Top + (monitorHeight - newWindowSize.Height) / 2);
 
       Random random = new();
       int positionX = horizontal.Start.Value < horizontal.End.Value ? random.Next(horizontal.Start.Value, horizontal.End.Value) : horizontal.Start.Value;

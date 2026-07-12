@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 
+using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
@@ -44,14 +45,26 @@ internal class NoteRepository : INoteRepository
 
     return noteId;
   }
-  public Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createNoteBundleDbRequestDto, CancellationToken cancellationToken = default)
-  {
-    throw new NotImplementedException();
-    //NoteEntity entity = NoteMappers.ToEntity(noteDbDto);
 
-    //await using var context = await DbContextFactory.CreateDbContextAsync();
-    //context.NoteEntities.Add(entity);
-    //await context.SaveChangesAsync();
+  public async Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto bundleDbDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
+  {
+    var context = appDbTransactionContext.DbContext as AppDbContext
+      ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
+
+    try
+    {
+      NoteEntity noteEntity = NoteMappers.ToEntity(bundleDbDto.NoteDto);
+      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(bundleDbDto.ViewStateDto);
+
+      await context.NoteEntities.AddAsync(noteEntity, cancellationToken);
+      await context.NoteViewStateEntities.AddAsync(viewStateEntity, cancellationToken);
+
+      return NoteMappers.ToDto(noteEntity, viewStateEntity);
+    }
+    catch
+    {
+      throw;
+    }
   }
 
   public async Task<NoteBundleDbResponseDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)

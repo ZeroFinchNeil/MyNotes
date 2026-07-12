@@ -14,9 +14,19 @@ internal sealed class NoteModelStore : IModelStore<NoteId, NoteModel>
     throw new NotImplementedException();
   }
 
-  public NoteModel AddOrUpdate<TSource>(NoteId key, Func<NoteId, NoteModel> factory, Action<NoteModel, TSource> updater)
+  public NoteModel AddOrUpdate(NoteId key, Func<NoteId, NoteModel> factory, Action<NoteModel> updater)
   {
-    throw new NotImplementedException();
+    if (ResolveTable.TryGetValue(key, out var wr) && wr.TryGetTarget(out var model))
+    {
+      updater(model);
+      return model;
+    }
+
+    ResolveTable.TryRemove(key, out _);
+    NoteModel noteModel = factory(key);
+    ResolveTable.TryAdd(key, new(noteModel));
+
+    return noteModel;
   }
 
   public bool TryGetModel(NoteId key, [NotNullWhen(true)] out NoteModel? noteModel)

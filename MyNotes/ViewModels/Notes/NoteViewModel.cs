@@ -133,7 +133,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
       _changedNoteProperties.Add(e.PropertyName);
     }
 #endif
-    throw new NotImplementedException();
+    //throw new NotImplementedException();
 
   }
 
@@ -276,7 +276,7 @@ partial class NoteViewModel
   public Command<NoteModel> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;
   public Command<NoteModel> CloseWindowCommand => NoteCommandService.CloseNoteWindowCommand;
   public Command<SourceTargetPair<NoteModel, NavigationId>> MoveToListCommand => NoteCommandService.MoveNoteToListCommand;
-  public Command<NavigationId?> CreateNewNoteCommand => NoteCommandService.CreateNewNoteCommand;
+  public AsyncCommand<NavigationId?> CreateNewNoteCommand => NoteCommandService.CreateNewNoteCommand;
   public Command<NoteModel> ViewListCommand => NoteCommandService.ViewListCommand;
 
   public Command<NoteModel> RemoveNoteCommand => NoteCommandService.RemoveNoteCommand;
