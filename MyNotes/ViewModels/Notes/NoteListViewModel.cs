@@ -243,7 +243,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteMappers.ToModel);
+        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteModelFactory.Create);
         foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;

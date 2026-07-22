@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using MyNotes.Domain.ValueObjects;
 
@@ -18,7 +19,11 @@ internal record NoteDbResponseDto
 
   public required string Body { get; init; }
 
+  public required IReadOnlyList<string> BodyImagePaths { get; init; }
+
   public required string BackgroundColor { get; init; }
+
+  public required string? BackgroundImagePath { get; init; }
 
   public required bool IsBookmarked { get; init; }
 

@@ -6,13 +6,13 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteModel, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
   private readonly Dictionary<NoteModel, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
 
-  NoteEditorViewModel IViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
+  NoteEditorViewModel IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
 
   public NoteEditorViewModel Resolve(NoteModel note, RichEditTextDocument document)
   {
@@ -41,17 +41,18 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
     return false;
   }
 
-  public bool Release(NoteModel note)
+  public async Task<bool> ReleaseAsync(NoteModel note)
   {
     if (TryResolve(note, out var viewmodel))
     {
       if (!viewmodel.Disposed)
       {
-        viewmodel.Dispose();
+        await viewmodel.DisposeAsync();
       }
 
-      ResolvedViewModels.Remove(note);
+      return ResolvedViewModels.Remove(note);
     }
+
     return false;
   }
 }

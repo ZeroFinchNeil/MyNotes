@@ -1,6 +1,7 @@
 ﻿using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Models.Notes;
+using MyNotes.Shared.Enums.Media;
 using MyNotes.Shared.Enums.Notes;
 
 using ColorHelper = CommunityToolkit.WinUI.Helpers.ColorHelper;
@@ -21,18 +22,20 @@ internal static class NoteMappers
       Created = noteDto.Created,
       Title = noteDto.Title,
       Body = noteDto.Body,
-      BodyPlainText = noteDto.BodyPlainText,
       IsBookmarked = noteDto.IsBookmarked,
       IsDeleted = noteDto.IsDeleted,
       BackgroundColor = ColorHelper.ToColor(noteDto.BackgroundColor),
       ShowBackgroundImage = viewStateDto.ShowBackgroundImage,
-      BackgroundImagePath = viewStateDto.BackgroundImagePath,
+      BackgroundImageStretch = (Stretch)viewStateDto.BackgroundImageStretch,
+      BackgroundImageAlignment = (AlignmentPosition)viewStateDto.BackgroundImageAlignment,
+      BackgroundImagePath = noteDto.BackgroundImagePath,
       BackgroundImageOpacity = viewStateDto.BackgroundImageOpacity,
       BackgroundImageBlur = viewStateDto.BackgroundImageBlur,
       BackdropKind = (BackdropKind)viewStateDto.BackdropKind,
       BackdropTintOpacity = viewStateDto.BackdropTintOpacity,
       BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity,
-      Images = [],
+      //BodyImagePaths = [..noteDto.BodyImagePaths],
+      BodyImagePaths = [],
       ShowImagePanel = viewStateDto.ShowImagePanel,
       ImagePanelHeight = viewStateDto.ImagePanelHeight,
       Size = new(viewStateDto.Width, viewStateDto.Height),
@@ -42,7 +45,20 @@ internal static class NoteMappers
     };
   }
 
-  public static Note ToDomain(NoteModel noteModel) => throw new NotImplementedException();
+  public static Note ToDomain(NoteModel noteModel) => new()
+  {
+    Id = noteModel.Id,
+    NavigationId = noteModel.NavigationId,
+    Created = noteModel.Created,
+    Modified = noteModel.Modified,
+    Title = noteModel.Title,
+    Body = noteModel.Body,
+    BodyImagePaths = [.. noteModel.BodyImagePaths.Select(d => d.FilePath)],
+    BackgroundColor = noteModel.BackgroundColor.ToString(),
+    BackgroundImagePath = noteModel.BackgroundImagePath,
+    IsBookmarked = noteModel.IsBookmarked,
+    IsDeleted = noteModel.IsDeleted
+  };
 
   public static void Apply(NoteModel noteModel, NoteBundleAppResponseDto bundleDto)
   {
@@ -57,18 +73,19 @@ internal static class NoteMappers
     noteModel.NavigationId = noteDto.NavigationId;
     noteModel.Title = noteDto.Title;
     noteModel.Body = noteDto.Body;
-    noteModel.BodyPlainText = noteDto.BodyPlainText;
     noteModel.IsBookmarked = noteDto.IsBookmarked;
     noteModel.IsDeleted = noteDto.IsDeleted;
     noteModel.BackgroundColor = ColorHelper.ToColor(noteDto.BackgroundColor);
     noteModel.ShowBackgroundImage = viewStateDto.ShowBackgroundImage;
-    noteModel.BackgroundImagePath = viewStateDto.BackgroundImagePath;
+    noteModel.BackgroundImageStretch = (Stretch)viewStateDto.BackgroundImageStretch;
+    noteModel.BackgroundImageAlignment = (AlignmentPosition)viewStateDto.BackgroundImageAlignment;
+    noteModel.BackgroundImagePath = noteDto.BackgroundImagePath;
     noteModel.BackgroundImageOpacity = viewStateDto.BackgroundImageOpacity;
     noteModel.BackgroundImageBlur = viewStateDto.BackgroundImageBlur;
     noteModel.BackdropKind = (BackdropKind)viewStateDto.BackdropKind;
     noteModel.BackdropTintOpacity = viewStateDto.BackdropTintOpacity;
     noteModel.BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity;
-    noteModel.Images = [];
+    noteModel.BodyImagePaths = [];
     noteModel.ShowImagePanel = viewStateDto.ShowImagePanel;
     noteModel.ImagePanelHeight = viewStateDto.ImagePanelHeight;
     noteModel.Size = new(viewStateDto.Width, viewStateDto.Height);

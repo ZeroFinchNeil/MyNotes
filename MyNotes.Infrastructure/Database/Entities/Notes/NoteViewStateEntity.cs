@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyNotes.Infrastructure.Database.Entities.Notes;
 
@@ -9,54 +8,56 @@ internal sealed class NoteViewStateEntity : IDatabaseEntity<NoteViewStateEntity>
   [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id)), Required]
-  public NoteEntity? Note { get; init; }
+  [Required]
+  public required bool ShowBackgroundImage { get; set; }
 
   [Required]
-  public required bool ShowBackgroundImage { get; init; }
-
-  public required string? BackgroundImagePath { get; init; }
+  public required int BackgroundImageStretch { get; set; }
 
   [Required]
-  public required double BackgroundImageOpacity { get; init; }
+  public required int BackgroundImageAlignment { get; set; }
 
   [Required]
-  public required double BackgroundImageBlur { get; init; }
+  public required double BackgroundImageOpacity { get; set; }
 
   [Required]
-  public required int BackdropKind { get; init; }
+  public required double BackgroundImageBlur { get; set; }
 
   [Required]
-  public required double BackdropTintOpacity { get; init; }
+  public required int BackdropKind { get; set; }
 
   [Required]
-  public required double BackdropLuminosityOpacity { get; init; }
-
-  public required string Images { get; init; }
+  public required double BackdropTintOpacity { get; set; }
 
   [Required]
-  public required bool ShowImagePanel { get; init; }
+  public required double BackdropLuminosityOpacity { get; set; }
 
   [Required]
-  public required double ImagePanelHeight { get; init; }
+  public required bool ShowImagePanel { get; set; }
 
   [Required]
-  public required int Width { get; init; }
+  public required double ImagePanelHeight { get; set; }
 
   [Required]
-  public required int Height { get; init; }
+  public required int Width { get; set; }
 
   [Required]
-  public required int PositionX { get; init; }
+  public required int Height { get; set; }
 
   [Required]
-  public required int PositionY { get; init; }
+  public required int PositionX { get; set; }
 
   [Required]
-  public required bool IsWindowOpen { get; init; }
+  public required int PositionY { get; set; }
 
   [Required]
-  public required bool IsAlwaysOnTop { get; init; }
+  public required bool IsTextEditorReadOnly { get; set; }
+
+  [Required]
+  public required bool IsWindowOpen { get; set; }
+
+  [Required]
+  public required bool IsAlwaysOnTop { get; set; }
 
   public bool Equals(NoteViewStateEntity? other) => other is not null && other.Id == Id;
 

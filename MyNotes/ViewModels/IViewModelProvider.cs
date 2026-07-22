@@ -1,6 +1,6 @@
 ﻿namespace MyNotes.ViewModels;
 
-internal interface IViewModelProvider<TModel, TViewModel> where TModel : notnull where TViewModel : class
+internal interface IViewModelProvider<TModel, TViewModel> where TModel : notnull where TViewModel : ViewModelBase
 {
   /// <summary>
   /// <para>Gets or creates a ViewModel instance from the specified Model. If an instance of the Model already exists, this method returns the existing instance. If no instance exists, a new Model is created and returned.</para>
@@ -24,4 +24,6 @@ internal interface IViewModelProvider<TModel, TViewModel> where TModel : notnull
   /// This parameter is passed uninitialized.</param>
   /// <returns>true if the ViewModel was successfully resolved; otherwise, false.</returns>
   public bool TryResolve(TModel model, out TViewModel? viewmodel);
+
+  public bool Release(TModel model);
 }

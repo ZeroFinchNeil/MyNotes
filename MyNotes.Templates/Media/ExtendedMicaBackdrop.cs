@@ -33,7 +33,14 @@ public sealed partial class ExtendedMicaBackdrop : ExtendedSystemBackdrop
 
     // Set configuration.
     SystemBackdropConfiguration defaultConfig = GetDefaultSystemBackdropConfiguration(connectedTarget, xamlRoot);
-    _micaController.SetSystemBackdropConfiguration(defaultConfig);
+    SystemBackdropConfiguration customConfig = new()
+    {
+      Theme = defaultConfig.Theme,
+      IsHighContrast = defaultConfig.IsHighContrast,
+      HighContrastBackgroundColor = defaultConfig.HighContrastBackgroundColor,
+      IsInputActive = true
+    };
+    _micaController.SetSystemBackdropConfiguration(customConfig);
 
     // Add target.
     _micaController.AddSystemBackdropTarget(connectedTarget);

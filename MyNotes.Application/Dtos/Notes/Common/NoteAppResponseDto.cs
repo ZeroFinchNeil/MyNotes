@@ -18,9 +18,11 @@ internal sealed record NoteAppResponseDto
 
   public required string Body { get; init; }
 
-  public required string BodyPlainText { get; init; }
+  public required IReadOnlyList<string> BodyImagePaths { get; init; }
 
   public required string BackgroundColor { get; init; }
+
+  public required string? BackgroundImagePath { get; init; }
 
   public required bool IsBookmarked { get; init; }
 

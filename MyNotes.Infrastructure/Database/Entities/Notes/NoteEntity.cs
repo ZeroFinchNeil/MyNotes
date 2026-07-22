@@ -8,8 +8,7 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   [Key, Required]
   public required Guid Id { get; init; }
 
-  [Required]
-  public required Guid Parent { get; set; }
+  public required Guid? Navigation { get; set; }
 
   [Required]
   public required DateTimeOffset Created { get; init; }
@@ -24,7 +23,12 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   public required string Body { get; set; }
 
   [Required]
+  public required string BodyImagePaths { get; set; }
+
+  [Required]
   public required string BackgroundColor { get; set; }
+
+  public required string? BackgroundImagePath { get; set; }
 
   [Required]
   public required bool IsBookmarked { get; set; }

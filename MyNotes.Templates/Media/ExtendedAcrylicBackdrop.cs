@@ -33,7 +33,14 @@ public sealed partial class ExtendedAcrylicBackdrop : ExtendedSystemBackdrop
 
     // Set configuration.
     SystemBackdropConfiguration defaultConfig = GetDefaultSystemBackdropConfiguration(connectedTarget, xamlRoot);
-    _desktopAcrylicController.SetSystemBackdropConfiguration(defaultConfig);
+    SystemBackdropConfiguration customConfig = new()
+    {
+      Theme = defaultConfig.Theme,
+      IsHighContrast = defaultConfig.IsHighContrast,
+      HighContrastBackgroundColor = defaultConfig.HighContrastBackgroundColor,
+      IsInputActive = true
+    };
+    _desktopAcrylicController.SetSystemBackdropConfiguration(customConfig);
 
     // Add target.
     _desktopAcrylicController.AddSystemBackdropTarget(connectedTarget);

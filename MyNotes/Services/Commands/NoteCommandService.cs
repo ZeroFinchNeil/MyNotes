@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Application.Dtos.Notes.Modification;
@@ -50,7 +49,8 @@ internal sealed class NoteCommandService : ICommandService
   public Command<SourceTargetPair<NoteModel, NavigationId>> MoveNoteToListCommand { get; }
   public AsyncCommand<NavigationId?> CreateNewNoteCommand { get; }
   public Command<NoteModel> ViewListCommand { get; }
-  public Command<NoteModel> RemoveNoteCommand { get; }
+  public AsyncCommand<NoteModel> ToggleBookmarkNoteCommand { get; }
+  public AsyncCommand<NoteModel> RemoveNoteCommand { get; }
   public Command<NoteModel> AddNoteToJumpListCommand { get; }
 
   public NoteCommandService(
@@ -121,21 +121,32 @@ internal sealed class NoteCommandService : ICommandService
         }
 
         sourceNote.NavigationId = newNavigationId;
-        UpdateNoteAppRequestDto updateNoteDto = new()
+        UpdateNoteAppRequestDto updateAppRequestDto = new()
         {
           Id = sourceNote.Id,
-          NoteUpdateField = NoteUpdateFields.ParentId,
-          ParentId = newNavigationId
+          NavigationId = new(newNavigationId)
         };
 
-        await NoteService.Modification.UpdateNoteAsync(updateNoteDto);
+        var updateAppResponseDto = await NoteService.Modification.UpdateNoteAsync(updateAppRequestDto);
 
-        if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
-            && s is UserListNavigationViewModel sourceViewModel
-            && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel)
-            && noteListViewModel.NoteViewModels?.FirstOrDefault(vm => vm.Note == sourceNote) is NoteViewModel sourceNoteViewModel)
+        if (updateAppResponseDto.IsEmpty)
         {
-          noteListViewModel.NoteViewModels.Remove(sourceNoteViewModel);
+          return;
+        }
+
+        if (updateAppResponseDto.NavigationId.TryGet(out var navigationId) && navigationId == newNavigationId)
+        {
+          if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
+              && s is UserListNavigationViewModel sourceViewModel
+              && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel)
+              && noteListViewModel.NoteViewModels?.FirstOrDefault(vm => vm.Note == sourceNote) is NoteViewModel sourceNoteViewModel)
+          {
+            noteListViewModel.NoteViewModels.Remove(sourceNoteViewModel);
+          }
+        }
+        if (updateAppResponseDto.Modified.TryGet(out var modified))
+        {
+          sourceNote.Modified = modified;
         }
       }
     };
@@ -191,33 +202,54 @@ internal sealed class NoteCommandService : ICommandService
       }
     };
 
+    ToggleBookmarkNoteCommand = new()
+    {
+      ExecuteFunc = async (noteModel) =>
+      {
+        var oldState = noteModel.IsBookmarked;
+        UpdateNoteAppRequestDto requestDto = new()
+        {
+          Id = noteModel.Id,
+          IsBookmarked = new(!oldState)
+        };
+        var responseDto = await NoteService.Modification.UpdateNoteAsync(requestDto);
+        if (responseDto.IsBookmarked.TryGet(out var changedState) && changedState == !oldState)
+        {
+          noteModel.IsBookmarked = changedState;
+          WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(noteModel, nameof(NoteModel.IsBookmarked), oldState, changedState), AppMessageTokens.ChangeNoteIsBookmarkedStateToken);
+          if (responseDto.Modified.TryGet(out var modified))
+          {
+            noteModel.Modified = modified;
+          }
+        }
+      }
+    };
+
     RemoveNoteCommand = new()
     {
-      ExecuteAction = async (noteModel) =>
+      ExecuteFunc = async (noteModel) =>
       {
         if (MainWindowService.TryGetCurrentWindow(out var mainWindow)
             && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
         {
-          var deleteMode = DeleteMode.MoveToTrash;
-          var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, deleteMode);
+          var preferredDeleteMode = DeleteMode.MoveToTrash;
+          var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, preferredDeleteMode);
           if (dialogResponse.Result == ContentDialogResult.Primary)
           {
-            switch (dialogResponse.Data)
+            DeleteNoteAppRequestDto deleteAppRequestDto = new()
             {
-              case DeleteMode.MoveToTrash:
-                break;
-              case DeleteMode.Permanent:
-                throw new NotImplementedException("완전 삭제 기능 구현");
-                //await NoteService.DeleteNotePermanentlyAsync(noteModel.Id);
-                //break;
-            }
-
-            noteModel.IsDeleted = true;
-
-            if (NavigationController.CurrentNavigation is INavigationNoteList navigation
-                && NoteViewModelProvider.TryResolve(noteModel, out var noteViewModel))
+              Id = noteModel.Id,
+              DeleteMode = dialogResponse.Data
+            };
+            if (await NoteService.Modification.DeleteNoteAsync(deleteAppRequestDto))
             {
-              WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(noteViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+              noteModel.IsDeleted = true;
+
+              if (NavigationController.CurrentNavigation is INavigationNoteList navigation
+                  && NoteViewModelProvider.TryResolve(noteModel, out var noteViewModel))
+              {
+                WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(noteViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+              }
             }
           }
         }
@@ -228,5 +260,28 @@ internal sealed class NoteCommandService : ICommandService
     {
       ExecuteAction = async (noteModel) => await JumpListService.AddToJumpListAsync(NoteMappers.ToDomain(noteModel))
     };
+  }
+
+  public async Task RenameNoteTitle(NoteModel noteModel, string oldTitle)
+  {
+    string newTitle = noteModel.Title;
+    UpdateNoteAppRequestDto requestDto = new()
+    {
+      Id = noteModel.Id,
+      Title = new(newTitle)
+    };
+    var responseDto = await NoteService.Modification.UpdateNoteAsync(requestDto);
+
+    if (responseDto.Title.TryGet(out var changedTitle) && changedTitle == newTitle)
+    {
+      if (responseDto.Modified.TryGet(out var modified))
+      {
+        noteModel.Modified = modified;
+      }
+      await JumpListService.EditJumpListItemAsync(NoteMappers.ToDomain(noteModel));
+      return;
+    }
+
+    noteModel.Title = oldTitle;
   }
 }

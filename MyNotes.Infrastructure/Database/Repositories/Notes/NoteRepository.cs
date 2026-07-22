@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+
+using DotNext;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -12,14 +15,18 @@ using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
+using MyNotes.Application.Contracts.Database.Dtos.Notes.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Expressions;
 using MyNotes.Common.Querying;
+using MyNotes.Common.Structures;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Infrastructure.Mappers;
+using MyNotes.Shared.Constants;
 using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Notes;
@@ -46,15 +53,15 @@ internal class NoteRepository : INoteRepository
     return noteId;
   }
 
-  public async Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto bundleDbDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
+  public async Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createBundleDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
     var context = appDbTransactionContext.DbContext as AppDbContext
       ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
 
     try
     {
-      NoteEntity noteEntity = NoteMappers.ToEntity(bundleDbDto.NoteDto);
-      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(bundleDbDto.ViewStateDto);
+      NoteEntity noteEntity = NoteMappers.ToEntity(createBundleDbRequestDto.NoteDto);
+      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(createBundleDbRequestDto.ViewStateDto);
 
       await context.NoteEntities.AddAsync(noteEntity, cancellationToken);
       await context.NoteViewStateEntities.AddAsync(viewStateEntity, cancellationToken);
@@ -91,12 +98,43 @@ internal class NoteRepository : INoteRepository
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default)
+  public async Task<GetNoteFieldValuesDbResponseDto> GetNoteFieldValuesAsync(GetNoteFieldValuesDbRequestDto getFieldsDbRequestDto, CancellationToken cancellationToken = default)
+  {
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+    var id = getFieldsDbRequestDto.Id;
+    var getFields = getFieldsDbRequestDto.GetFields;
+    return await context.NoteEntities
+      .AsNoTracking()
+      .Where(e => e.Id == id.Value)
+      .Select(e => new GetNoteFieldValuesDbResponseDto()
+      {
+        Id = id,
+        NavigationId = getFields.HasFlag(NoteGetFields.NavigationId)
+          ? e.Navigation.HasValue
+            ? new(NavigationId.Create(e.Navigation.Value)) : new(null)
+          : Optional<NavigationId?>.None,
+        Created = getFields.HasFlag(NoteGetFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
+        Modified = getFields.HasFlag(NoteGetFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
+        Title = getFields.HasFlag(NoteGetFields.Title) ? new(e.Title) : Optional<string>.None,
+        Body = getFields.HasFlag(NoteGetFields.Body) ? new(e.Body) : Optional<string>.None,
+        BackgroundColor = getFields.HasFlag(NoteGetFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
+        IsBookmarked = getFields.HasFlag(NoteGetFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
+        IsDeleted = getFields.HasFlag(NoteGetFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,
+      })
+      .FirstOrDefaultAsync(cancellationToken)
+      ?? new GetNoteFieldValuesDbResponseDto()
+      {
+        Id = id
+      };
+  }
+
+  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     Expression<Func<NoteEntity, bool>> predicate = includeDeleted
-      ? e => e.Parent == parentId.Value
-      : e => e.Parent == parentId.Value && e.IsDeleted == false;
+      ? e => e.Navigation == navigationId.Value
+      : e => e.Navigation == navigationId.Value && e.IsDeleted == false;
     return await context.NoteEntities
       .AsNoTracking()
       .Where(predicate)
@@ -108,18 +146,18 @@ internal class NoteRepository : INoteRepository
       .ToListAsync(cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findNotesDbQuery, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findDbQuery, CancellationToken cancellationToken = default)
   {
     //todo: DB에서 쿼리 조건에 따른 노트 가져오기
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    var expressions = MakeExpressions(findNotesDbQuery);
+    var expressions = MakeExpressions(findDbQuery);
     if (expressions.Count == 0)
     {
 
     }
 
-    var expression = findNotesDbQuery.AggregationMode switch
+    var expression = findDbQuery.AggregationMode switch
     {
       AggregationMode.All => expressions.AndAll(),
       AggregationMode.Any => expressions.OrAll(),
@@ -242,18 +280,188 @@ internal class NoteRepository : INoteRepository
     return expressions;
   }
 
-  public Task<bool> UpdateNoteAsync(UpdateNoteDbRequestDto updateNoteDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  public async Task<UpdateNoteDbResponseDto> UpdateNoteAsync(UpdateNoteDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    var id = updateDbRequestDto.Id;
+
+    UpdateNoteDbResponseDto responseDto = new() { Id = id };
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+    if (!updateDbRequestDto.IsEmpty
+        && await context.NoteEntities.Where(e => e.Id == id.Value).SingleOrDefaultAsync(cancellationToken) is NoteEntity entity)
+    {
+      if (updateDbRequestDto.NavigationId.TryGetSpecifiedValue(out var navigationId) && entity.Navigation != navigationId.Value)
+      {
+        entity.Navigation = navigationId.Value;
+        responseDto = responseDto with { NavigationId = navigationId };
+      }
+      if (updateDbRequestDto.Title.TryGet(out var title) && entity.Title != title)
+      {
+        entity.Title = title;
+        responseDto = responseDto with { Title = title };
+      }
+      if (updateDbRequestDto.Body.TryGet(out var body) && entity.Body != body)
+      {
+        entity.Body = body;
+        responseDto = responseDto with { Body = body };
+      }
+      if (updateDbRequestDto.BodyImagePaths.TryGet(out var bodyImagePaths) && JsonSerializer.Serialize(bodyImagePaths, AppJson.JsonSerializerOptions) is { } bodyImagePathsJson)
+      {
+        entity.BodyImagePaths = bodyImagePathsJson;
+        responseDto = responseDto with { BodyImagePaths = new(bodyImagePaths) };
+      }
+      if (updateDbRequestDto.BackgroundColor.TryGet(out var backgroundColor) && entity.BackgroundColor != backgroundColor)
+      {
+        entity.BackgroundColor = backgroundColor;
+        responseDto = responseDto with { BackgroundColor = backgroundColor };
+      }
+      if (updateDbRequestDto.BackgroundImagePath.TryGet(out var backgroundImagePath) && entity.BackgroundImagePath != backgroundImagePath)
+      {
+        entity.BackgroundImagePath = backgroundImagePath;
+        responseDto = responseDto with { BackgroundImagePath = backgroundImagePath };
+      }
+      if (updateDbRequestDto.IsBookmarked.TryGet(out var isBookmarked) && entity.IsBookmarked != isBookmarked)
+      {
+        entity.IsBookmarked = isBookmarked;
+        responseDto = responseDto with { IsBookmarked = isBookmarked };
+      }
+      if (updateDbRequestDto.IsDeleted.TryGet(out var isDeleted) && entity.IsDeleted != isDeleted)
+      {
+        entity.IsDeleted = isDeleted;
+        responseDto = responseDto with { IsDeleted = isDeleted };
+      }
+
+      var modified = updateDbRequestDto.Modified;
+      if (!responseDto.IsEmpty && entity.Modified < modified)
+      {
+        entity.Modified = modified;
+        responseDto = responseDto with { Modified = modified };
+      }
+      var result = await context.SaveChangesAsync(cancellationToken);
+    }
+
+    return responseDto;
   }
 
-  public Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateNoteViewStateDbDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  public async Task<UpdateNoteViewStateDbResponseDto> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    var id = updateDbRequestDto.Id;
+    UpdateNoteViewStateDbResponseDto responseDto = new() { Id = id };
+
+    if (updateDbRequestDto.IsEmpty)
+    {
+      return responseDto;
+    }
+
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    var updateResult = await context.EnqueueOperationAsync(
+      operation: () => context.NoteViewStateEntities
+        .Where(e => e.Id == id.Value)
+        .ExecuteUpdate(setters =>
+        {
+          if (updateDbRequestDto.ShowBackgroundImage.TryGet(out var showBackgroundImage))
+          {
+            setters.SetProperty(e => e.ShowBackgroundImage, showBackgroundImage);
+          }
+          if (updateDbRequestDto.BackgroundImageStretch.TryGet(out var backgroundImageStretch))
+          {
+            setters.SetProperty(e => e.BackgroundImageStretch, backgroundImageStretch);
+          }
+          if (updateDbRequestDto.BackgroundImageAlignment.TryGet(out var backgroundImageAlignment))
+          {
+            setters.SetProperty(e => e.BackgroundImageAlignment, backgroundImageAlignment);
+          }
+          if (updateDbRequestDto.BackgroundImageOpacity.TryGet(out var backgroundImageOpacity))
+          {
+            setters.SetProperty(e => e.BackgroundImageOpacity, backgroundImageOpacity);
+          }
+          if (updateDbRequestDto.BackgroundImageBlur.TryGet(out var backgroundImageBlur))
+          {
+            setters.SetProperty(e => e.BackgroundImageBlur, backgroundImageBlur);
+          }
+          if (updateDbRequestDto.BackdropKind.TryGet(out var backdropKind))
+          {
+            setters.SetProperty(e => e.BackdropKind, backdropKind);
+          }
+          if (updateDbRequestDto.BackdropTintOpacity.TryGet(out var backdropTintOpacity))
+          {
+            setters.SetProperty(e => e.BackdropTintOpacity, backdropTintOpacity);
+          }
+          if (updateDbRequestDto.BackdropLuminosityOpacity.TryGet(out var backdropLuminosityOpacity))
+          {
+            setters.SetProperty(e => e.BackdropLuminosityOpacity, backdropLuminosityOpacity);
+          }
+          if (updateDbRequestDto.ShowImagePanel.TryGet(out var showImagePanel))
+          {
+            setters.SetProperty(e => e.ShowImagePanel, showImagePanel);
+          }
+          if (updateDbRequestDto.ImagePanelHeight.TryGet(out var imagePanelHeight))
+          {
+            setters.SetProperty(e => e.ImagePanelHeight, imagePanelHeight);
+          }
+          if (updateDbRequestDto.Width.TryGet(out var width))
+          {
+            setters.SetProperty(e => e.Width, width);
+          }
+          if (updateDbRequestDto.Height.TryGet(out var height))
+          {
+            setters.SetProperty(e => e.Height, height);
+          }
+          if (updateDbRequestDto.PositionX.TryGet(out var positionX))
+          {
+            setters.SetProperty(e => e.PositionX, positionX);
+          }
+          if (updateDbRequestDto.PositionY.TryGet(out var positionY))
+          {
+            setters.SetProperty(e => e.PositionY, positionY);
+          }
+          if (updateDbRequestDto.IsTextEditorReadOnly.TryGet(out var isTextEditorReadOnly))
+          {
+            setters.SetProperty(e => e.IsTextEditorReadOnly, isTextEditorReadOnly);
+          }
+          if (updateDbRequestDto.IsWindowOpen.TryGet(out var isWindowOpen))
+          {
+            setters.SetProperty(e => e.IsWindowOpen, isWindowOpen);
+          }
+          if (updateDbRequestDto.IsAlwaysOnTop.TryGet(out var isAlwaysOnTop))
+          {
+            setters.SetProperty(e => e.IsAlwaysOnTop, isAlwaysOnTop);
+          }
+        }),
+      defaultValue: 0,
+      fallbackValue: 0,
+      cancellationToken: cancellationToken);
+
+    return responseDto;
   }
 
-  public Task<bool> DeleteNoteAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<bool> DeleteNoteAsync(DeleteNoteDbRequestDto deleteDbRequestDto, CancellationToken cancellationToken = default)
   {
-    throw new NotImplementedException();
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    var id = deleteDbRequestDto.Id;
+
+    switch (deleteDbRequestDto.DeleteMode)
+    {
+      case DeleteMode.MoveToTrash:
+        var updateResult = await context.EnqueueOperationAsync(
+          operation: () => context.NoteEntities
+          .Where(e => e.Id == id.Value && !e.IsDeleted)
+          .ExecuteUpdate(setters => setters.SetProperty(e => e.IsDeleted, true)),
+          defaultValue: 0,
+          fallbackValue: 0,
+          cancellationToken: cancellationToken);
+        return updateResult > 0;
+      case DeleteMode.Permanent:
+        var deleteResult = await context.EnqueueOperationAsync(
+          operation: () => context.NoteEntities
+          .Where(e => e.Id == id.Value)
+          .ExecuteDelete(),
+          defaultValue: 0,
+          fallbackValue: 0,
+          cancellationToken: cancellationToken);
+        return deleteResult > 0;
+    }
+
+    return false;
   }
 }

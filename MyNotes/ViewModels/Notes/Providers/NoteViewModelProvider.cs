@@ -42,13 +42,6 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
     return false;
   }
 
-  public bool Release(NoteModel noteModel)
-  {
-    if (ResolveTable.TryGetValue(noteModel, out var rc) && rc.Decrement())
-    {
-      ResolveTable.TryRemove(noteModel, out _);
-      return true;
-    }
-    return false;
-  }
+  public bool Release(NoteModel noteModel) =>
+    ResolveTable.TryGetValue(noteModel, out var rc) && rc.Decrement() && ResolveTable.TryRemove(noteModel, out _);
 }

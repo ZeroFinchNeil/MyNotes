@@ -23,13 +23,14 @@ internal sealed partial class NoteFactory
   public Note CreateDefaultNote(NoteId noteId, NavigationId navigationId) => new()
   {
     Id = noteId,
-    ParentId = navigationId,
+    NavigationId = navigationId,
     Created = DateTimeOffset.UtcNow,
     Modified = DateTimeOffset.UtcNow,
     Title = AppDefaultSettings.NoteTitle,
     Body = AppDefaultSettings.NoteBodyRtfText,
-    BodyPlainText = AppDefaultSettings.NoteBodyPlainText,
+    BodyImagePaths = AppDefaultSettings.NoteBodyImagePaths,
     BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground),
+    BackgroundImagePath = AppDefaultSettings.NoteBackgroundImagePath,
     IsBookmarked = AppDefaultSettings.IsNoteBookmarked,
     IsDeleted = AppDefaultSettings.IsNoteDeleted
   };
@@ -40,25 +41,26 @@ internal sealed partial class NoteFactory
     {
       Id = id,
       ShowBackgroundImage = AppDefaultSettings.ShowNoteBackgroundImage,
-      BackgroundImagePath = AppDefaultSettings.NoteBackgroundImagePath,
+      BackgroundImageStretch = (int)AppDefaultSettings.NoteBackgroundImageStretch,
+      BackgroundImageAlignment = (int)AppDefaultSettings.NoteBackgroundImageAlignment,
       BackgroundImageOpacity = AppDefaultSettings.NoteBackgroundImageOpacity,
       BackgroundImageBlur = AppDefaultSettings.NoteBackgroundImageBlur,
       BackdropKind = SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
       BackdropTintOpacity = AppDefaultSettings.NoteBackdropTintOpacity,
       BackdropLuminosityOpacity = AppDefaultSettings.NoteBackdropLuminosityOpacity,
-      Images = [],
       ShowImagePanel = AppDefaultSettings.ShowNoteImagePanel,
       ImagePanelHeight = AppDefaultSettings.NoteImagePanelHeight,
       Width = size.Width,
       Height = size.Height,
       PositionX = position.X,
       PositionY = position.Y,
+      IsTextEditorReadOnly = AppDefaultSettings.IsNoteTextEditorReadOnly,
       IsWindowOpen = AppDefaultSettings.IsNoteWindowOpen,
       IsAlwaysOnTop = AppDefaultSettings.IsNoteWindowAlwaysOnTop,
     };
   }
 
-  public NoteSearchDocumentDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
+  public WriteNoteSearchDocumentRequestDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
   {
     Id = noteId.Value,
     Title = AppDefaultSettings.NoteTitle,

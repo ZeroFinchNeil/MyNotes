@@ -10,7 +10,7 @@ public sealed partial class AlternateMenuFlyoutItem : MenuFlyoutItem
   public AlternateMenuFlyoutItem()
   {
     DefaultStyleKey = typeof(AlternateMenuFlyoutItem);
-    ClickWeakEventListner = new(this)
+    ClickWeakEventListener = new(this)
     {
       OnEventAction = (instance, source, args) => instance.IsChecked = !instance.IsChecked,
       OnDetachAction = (weakEventListener) => this.Click -= weakEventListener.OnEvent
@@ -32,9 +32,13 @@ public sealed partial class AlternateMenuFlyoutItem : MenuFlyoutItem
     if (d is AlternateMenuFlyoutItem control && control.IsLoaded)
     {
       if (e.NewValue is true)
+      {
         VisualStateManager.GoToState(control, "Checked", false);
+      }
       else
+      {
         VisualStateManager.GoToState(control, "Unchecked", false);
+      }
     }
   }
 
@@ -52,20 +56,30 @@ public sealed partial class AlternateMenuFlyoutItem : MenuFlyoutItem
     set => SetValue(CheckedTextProperty, value);
   }
 
-  private readonly WeakEventListener<AlternateMenuFlyoutItem, object, RoutedEventArgs> ClickWeakEventListner;
+  private readonly WeakEventListener<AlternateMenuFlyoutItem, object, RoutedEventArgs> ClickWeakEventListener;
 
   protected override void OnApplyTemplate()
   {
-    if (IsChecked)
-      VisualStateManager.GoToState(this, "Checked", false);
-    else
-      VisualStateManager.GoToState(this, "Unchecked", false);
+    InitializeVisualState();
   }
 
   private void AlternateMenuFlyoutItem_Loaded(object sender, RoutedEventArgs e)
   {
+    InitializeVisualState();
     DetachWeakEventHandler();
     AttachWeakEventHandler();
+  }
+
+  private void InitializeVisualState()
+  {
+    if (IsChecked)
+    {
+      VisualStateManager.GoToState(this, "Checked", false);
+    }
+    else
+    {
+      VisualStateManager.GoToState(this, "Unchecked", false);
+    }
   }
 
   private void AlternateMenuFlyoutItem_Unloaded(object sender, RoutedEventArgs e)
@@ -75,11 +89,11 @@ public sealed partial class AlternateMenuFlyoutItem : MenuFlyoutItem
 
   private void AttachWeakEventHandler()
   {
-    this.Click += ClickWeakEventListner.OnEvent;
+    this.Click += ClickWeakEventListener.OnEvent;
   }
 
   private void DetachWeakEventHandler()
   {
-    this.Click -= ClickWeakEventListner.OnEvent;
+    this.Click -= ClickWeakEventListener.OnEvent;
   }
 }

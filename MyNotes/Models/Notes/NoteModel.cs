@@ -7,6 +7,7 @@ using MyNotes.Common.Helpers;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Media;
 using MyNotes.Shared.Constants;
+using MyNotes.Shared.Enums.Media;
 using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Models.Notes;
@@ -28,7 +29,7 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   public required DateTimeOffset Created { get; init; }
 
   [ObservableProperty]
-  public partial DateTimeOffset Modified { get; private set; }
+  public partial DateTimeOffset Modified { get; set; }
 
   [ObservableProperty]
   public partial string Title { get; set; } = string.Empty;
@@ -37,7 +38,13 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   public partial string Body { get; set; } = string.Empty;
 
   [ObservableProperty]
-  public partial string BodyPlainText { get; set; } = string.Empty;
+  public partial ImmutableList<ImageDescriptor> BodyImagePaths { get; set; } = [];
+
+  [ObservableProperty]
+  public partial Color BackgroundColor { get; set; } = AppDefaultSettings.NoteBackground.ToColor();
+
+  [ObservableProperty]
+  public partial string? BackgroundImagePath { get; set; }
 
   [ObservableProperty]
   public partial bool IsBookmarked { get; set; }
@@ -45,17 +52,33 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   [ObservableProperty]
   public partial bool IsDeleted { get; set; }
 
-  [ObservableProperty]
-  public partial Color BackgroundColor { get; set; } = AppSettingsDescriptors.NoteBackground.DefaultValue.ToColor();
-
   // Presentation Properties
-  public List<TextRange> HighlighterRanges { get; } = new();
-
   [ObservableProperty]
   public partial bool ShowBackgroundImage { get; set; }
 
-  [ObservableProperty]
-  public partial string? BackgroundImagePath { get; set; }
+  public Stretch BackgroundImageStretch
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
+
+  public AlignmentPosition BackgroundImageAlignment
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
   [ObservableProperty]
   public partial double BackgroundImageOpacity { get; set; }
@@ -63,8 +86,17 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   [ObservableProperty]
   public partial double BackgroundImageBlur { get; set; }
 
-  [ObservableProperty]
-  public partial BackdropKind BackdropKind { get; set; } = (BackdropKind)AppSettingsDescriptors.NoteBackdropKind.DefaultValue;
+  public BackdropKind BackdropKind
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  } = AppDefaultSettings.NoteBackdropKind;
 
   [ObservableProperty]
   public partial double BackdropTintOpacity { get; set; }
@@ -73,25 +105,31 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   public partial double BackdropLuminosityOpacity { get; set; }
 
   [ObservableProperty]
-  public partial ImmutableList<ImageDescriptor> Images { get; set; } = [];
-
-  [ObservableProperty]
   public partial bool ShowImagePanel { get; set; }
 
   [ObservableProperty]
   public partial double ImagePanelHeight { get; set; }
 
   [ObservableProperty]
-  public partial SizeInt32 Size { get; set; } = AppSettingsDescriptors.NoteSize.DefaultValue.SizeInt32;
+  public partial SizeInt32 Size { get; set; } = AppDefaultSettings.NoteSize.SizeInt32;
 
   [ObservableProperty]
-  public partial PointInt32 Position { get; set; } = AppSettingsDescriptors.NotePosition.DefaultValue.PointInt32;
+  public partial PointInt32 Position { get; set; } = AppDefaultSettings.NotePosition.PointInt32;
+
+  [ObservableProperty]
+  public partial bool IsTextEditorReadOnly { get; set; }
 
   [ObservableProperty]
   public partial bool IsWindowOpen { get; set; }
 
   [ObservableProperty]
   public partial bool IsAlwaysOnTop { get; set; }
+
+  // View-only Properties
+  public List<TextRange> HighlighterRanges { get; } = new();
+
+  [ObservableProperty]
+  public partial string Preview { get; set; } = string.Empty;
 
   public int CompareTo(NoteModel? other) => other is null ? 1 : Created.CompareTo(other.Created);
 }

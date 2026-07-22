@@ -1,9 +1,11 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
+﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Retrieval;
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Application.Contracts.Database.Repositories.Notes;
 using MyNotes.Application.Contracts.Search.Repositories.Notes;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Mappers;
+using MyNotes.Common.Enums.Modes;
+using MyNotes.Shell.Contracts.Converters;
 
 namespace MyNotes.Application.Services.Notes;
 
@@ -11,36 +13,66 @@ internal sealed partial class NoteModificationService
 {
   private readonly INoteRepository NoteRepository;
   private readonly INoteSearcher NoteSearcher;
+  private readonly IRtfTextConverter RtfTextConverter;
 
-  public NoteModificationService(INoteRepository noteRepositoryService, INoteSearcher noteSearcher)
+  public NoteModificationService(INoteRepository noteRepositoryService, INoteSearcher noteSearcher, IRtfTextConverter rtfTextConverter)
   {
     NoteRepository = noteRepositoryService;
     NoteSearcher = noteSearcher;
+    RtfTextConverter = rtfTextConverter;
   }
 
-  public async Task<bool> UpdateNoteAsync(UpdateNoteAppRequestDto updateNoteDto)
+  public async Task<UpdateNoteAppResponseDto> UpdateNoteAsync(UpdateNoteAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default)
   {
-    NoteUpdateFields noteUpdateField = updateNoteDto.NoteUpdateField;
-    if (noteUpdateField is NoteUpdateFields.None)
+    var id = updateAppRequestDto.Id;
+    if (updateAppRequestDto.IsEmpty)
     {
-      return false;
+      return new() { Id = id };
     }
 
-    bool dbSuccess = await NoteRepository.UpdateNoteAsync(NoteMappers.ToDbDto(updateNoteDto));
+    var updateDbResponseDto = await NoteRepository.UpdateNoteAsync(NoteMappers.ToDbDto(updateAppRequestDto, DateTimeOffset.UtcNow), true, cancellationToken);
 
-    bool searchSuccess = true;
-
-    if (noteUpdateField.HasFlag(NoteUpdateFields.Title) || noteUpdateField.HasFlag(NoteUpdateFields.Body))
+    if (updateDbResponseDto.Title.HasValue || updateAppRequestDto.Body.HasValue)
     {
-      searchSuccess = await NoteRepository.GetNoteByIdAsync(updateNoteDto.Id) is NoteBundleDbResponseDto dbResponseDto && await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(dbResponseDto.NoteDto));
+      GetNoteFieldValuesDbRequestDto getDbRequestDto = new()
+      {
+        GetFields = NoteGetFields.Title | NoteGetFields.Body,
+        Id = id
+      };
+      var getDbResponseDto = await NoteRepository.GetNoteFieldValuesAsync(getDbRequestDto, cancellationToken);
+      if (getDbResponseDto.Title.TryGet(out var title) && getDbResponseDto.Body.TryGet(out var body))
+      {
+        await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(id, title, RtfTextConverter.ToPlainText(body)), cancellationToken);
+      }
     }
 
-    return dbSuccess && searchSuccess;
+    return NoteMappers.ToAppDto(updateDbResponseDto);
   }
 
-  public async Task<bool> UpdateNoteViewStateAsync(UpdateNoteViewStateAppRequestDto updateNoteViewStateDto)
+  public async Task<UpdateNoteViewStateAppResponseDto> UpdateNoteViewStateAsync(UpdateNoteViewStateAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default)
   {
-    NoteViewStateUpdateFields updateNoteViewStateField = updateNoteViewStateDto.NoteViewStateUpdateField;
-    return updateNoteViewStateField is not NoteViewStateUpdateFields.None && await NoteRepository.UpdateNoteViewStateAsync(NoteMappers.ToDbDto(updateNoteViewStateDto));
+    var id = updateAppRequestDto.Id;
+    if (updateAppRequestDto.IsEmpty)
+    {
+      return new() { Id = id };
+    }
+    var updateDbResponseDto = await NoteRepository.UpdateNoteViewStateAsync(NoteMappers.ToDbDto(updateAppRequestDto), true, cancellationToken);
+    return NoteMappers.ToAppDto(updateDbResponseDto);
   }
+
+  public async Task<bool> DeleteNoteAsync(DeleteNoteAppRequestDto deleteAppRequestDto, CancellationToken cancellationToken = default)
+  {
+    if (await NoteRepository.DeleteNoteAsync(NoteMappers.ToDbDto(deleteAppRequestDto), cancellationToken))
+    {
+      if (deleteAppRequestDto.DeleteMode is DeleteMode.Permanent)
+      {
+        await NoteSearcher.DeleteNoteIndexAsync(deleteAppRequestDto.Id, cancellationToken);
+      }
+      return true;
+    }
+
+    return false;
+  }
+
+  public Task CommitSearchIndexAsync(CancellationToken cancellationToken = default) => NoteSearcher.CommitAsync(cancellationToken);
 }

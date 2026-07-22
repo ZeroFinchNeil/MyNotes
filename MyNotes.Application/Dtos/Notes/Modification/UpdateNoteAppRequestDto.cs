@@ -1,4 +1,5 @@
-﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
+﻿using DotNext;
+
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Dtos.Notes.Modification;
@@ -7,29 +8,31 @@ internal sealed record UpdateNoteAppRequestDto
 {
   public required NoteId Id { get; init; }
 
-  public required NoteUpdateFields NoteUpdateField { get; init; }
+  public Optional<NavigationId?> NavigationId { get; init; }
 
-  public NavigationId? ParentId { get; init; }
+  public Optional<string> Title { get; init; }
 
-  public DateTimeOffset? Created { get; init; }
+  public Optional<string> Body { get; init; }
 
-  public DateTimeOffset? Modified { get; init; }
+  public Optional<IReadOnlyList<string>> BodyImagePaths { get; init; }
 
-  public string? Title { get; init; }
+  public Optional<string> BackgroundColor { get; init; }
 
-  public string? Body { get; init; }
+  public Optional<string?> BackgroundImagePath { get; init; }
 
-  public string? BodyPlainText { get; init; }
+  public Optional<bool> IsBookmarked { get; init; }
 
-  public bool? IsBookmarked { get; init; }
+  public Optional<bool> IsDeleted { get; init; }
 
-  public bool? IsDeleted { get; init; }
+  public bool IsEmpty => this is
+  {
+    NavigationId.IsUndefined: true,
+    Title.IsUndefined: true,
+    Body.IsUndefined: true,
+    BodyImagePaths.IsUndefined: true,
+    BackgroundColor.IsUndefined: true,
+    BackgroundImagePath.IsUndefined: true,
+    IsBookmarked.IsUndefined: true,
+    IsDeleted.IsUndefined: true
+  };
 }
-
-/*
-UpdateNoteAppRequestDto dto = new()
-{
-  Id = ,
-  NoteUpdateField = ,
-};
-*/

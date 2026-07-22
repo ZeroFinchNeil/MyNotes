@@ -1,9 +1,12 @@
 ﻿
 using System;
+using System.Collections.Generic;
 
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Media;
 
 using MyNotes.Common.Querying;
+using MyNotes.Shared.Enums.Media;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Shared.Enums.Settings;
@@ -66,14 +69,17 @@ internal sealed class AppDefaultSettings
   public static readonly bool IsNoteDeleted = false;
 
   public static readonly bool ShowNoteBackgroundImage = false;
-  public static readonly string NoteBackgroundImagePath = string.Empty;
+  public static readonly Stretch NoteBackgroundImageStretch = Stretch.Uniform;
+  public static readonly AlignmentPosition NoteBackgroundImageAlignment = AlignmentPosition.Center;
+  public static readonly string? NoteBackgroundImagePath = null;
   public static readonly double NoteBackgroundImageOpacity = 1.0;
-  public static readonly int NoteBackgroundImageBlur = 100;
-  public static readonly double NoteBackdropTintOpacity = 1.0;
-  public static readonly double NoteBackdropLuminosityOpacity = 1.0;
-  public static readonly string NoteImages = string.Empty;
+  public static readonly int NoteBackgroundImageBlur = 0;
+  public static readonly double NoteBackdropTintOpacity = 0.5;
+  public static readonly double NoteBackdropLuminosityOpacity = 0.5;
+  public static readonly IReadOnlyList<string> NoteBodyImagePaths = [];
   public static readonly bool ShowNoteImagePanel = false;
   public static readonly double NoteImagePanelHeight = 120.0;
+  public static readonly bool IsNoteTextEditorReadOnly = false;
   public static readonly bool IsNoteWindowOpen = true;
   public static readonly bool IsNoteWindowAlwaysOnTop = false;
 

@@ -2,12 +2,15 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Logging;
 using MyNotes.Infrastructure.Search.Core;
+using MyNotes.Models;
+using MyNotes.Models.Notes;
 using MyNotes.Services;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Dialogs;
@@ -58,18 +61,26 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
     _ = LaunchArgumentsPipeServerStreamAsync();
     var mainWindowService = Services.GetRequiredService<MainWindowService>();
-    var noteService = Services.GetRequiredService<NoteService>();
     var settingsService = Services.GetRequiredService<SettingsService>();
 
     AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
     switch (appActivationArguments.Kind)
     {
       case ExtendedActivationKind.Launch or ExtendedActivationKind.StartupTask:
-        var noteWindowsCount = await noteService.OpenNoteWindowsForOpenEntities();
-        if (noteWindowsCount == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
+        var noteWindowService = Services.GetRequiredService<NoteWindowService>();
+        var noteService = Services.GetRequiredService<NoteService>();
+        var noteModelFactory = Services.GetRequiredService<IModelFactory<NoteBundleAppResponseDto, NoteModel>>();
+        var notes = (await noteService.Retrieval.GetOpenNotesAsync()).Select(noteModelFactory.Create).ToList();
+
+        if (notes.Count == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
         {
           var mainWindow = await mainWindowService.GetOrCreate();
           mainWindow.Activate();
+        }
+
+        foreach (var note in notes)
+        {
+          await noteWindowService.OpenNoteWindow(note);
         }
         break;
       case ExtendedActivationKind.File:
@@ -92,18 +103,20 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private async ValueTask DisposeAsync(bool disposing)
   {
-    if (!Disposed)
+    if (Disposed)
     {
-      if (disposing)
-      {
-        this.UnhandledException -= App_UnhandledException;
-        AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-        TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-
-        await Services.DisposeAsync();
-      }
-      Disposed = true;
+      return;
     }
+
+    if (disposing)
+    {
+      this.UnhandledException -= App_UnhandledException;
+      AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+      TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+
+      await Services.DisposeAsync();
+    }
+    Disposed = true;
   }
 
   public async ValueTask DisposeAsync()

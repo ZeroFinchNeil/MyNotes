@@ -48,8 +48,7 @@
     <!-- Body -->
     <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
                                    Grid.Column="2"
-                                   MaxLength="{x:Bind ViewModel.PreviewTextMaxLength, Mode=OneWay}"
-                                   RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}" />
+                                   RtfText="{x:Bind ViewModel.Note.Preview, Mode=OneWay}" />
     
     <Border x:Name="NoteItem_PreviewCoverBorder"
             Grid.Column="2"

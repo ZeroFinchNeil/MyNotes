@@ -2,7 +2,7 @@
 
 namespace MyNotes.Application.Contracts.Search.Dtos.Notes;
 
-internal class NoteSearchDocumentDto
+internal sealed record WriteNoteSearchDocumentResponseDto
 {
   public required Guid Id { get; init; }
 

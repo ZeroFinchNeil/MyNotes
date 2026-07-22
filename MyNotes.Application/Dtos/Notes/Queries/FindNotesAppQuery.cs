@@ -7,7 +7,7 @@ namespace MyNotes.Application.Dtos.Notes.Queries;
 
 internal sealed record FindNotesAppQuery
 {
-  public required NoteFindFields NoteFindFields { get; init; }
+  public required NoteFindFields FindFields { get; init; }
 
   public AggregationMode AggregationMode { get; init; } = AggregationMode.All;
 
@@ -29,35 +29,35 @@ internal sealed record FindNotesAppQuery
 
   public void ThrowIfInvalid()
   {
-    if (NoteFindFields.HasFlag(NoteFindFields.NoteIdCondition) && NoteIdCondition is null)
+    if (FindFields.HasFlag(NoteFindFields.NoteIdCondition) && NoteIdCondition is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.ParentIdCondition) && ParentIdCondition is null)
+    if (FindFields.HasFlag(NoteFindFields.ParentIdCondition) && ParentIdCondition is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.TitleConditions) && TitleConditions is null)
+    if (FindFields.HasFlag(NoteFindFields.TitleConditions) && TitleConditions is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.CreatedConditions) && CreatedConditions is null)
+    if (FindFields.HasFlag(NoteFindFields.CreatedConditions) && CreatedConditions is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.ModifiedConditions) && ModifiedConditions is null)
+    if (FindFields.HasFlag(NoteFindFields.ModifiedConditions) && ModifiedConditions is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.BackgroundColorConditions) && BackgroundColorConditions is null)
+    if (FindFields.HasFlag(NoteFindFields.BackgroundColorConditions) && BackgroundColorConditions is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.BookmarkedCondition) && BookmarkedCondition is null)
+    if (FindFields.HasFlag(NoteFindFields.BookmarkedCondition) && BookmarkedCondition is null)
     {
       throw new ArgumentException("");
     }
-    if (NoteFindFields.HasFlag(NoteFindFields.DeletedCondition) && DeletedCondition is null)
+    if (FindFields.HasFlag(NoteFindFields.DeletedCondition) && DeletedCondition is null)
     {
       throw new ArgumentException("");
     }

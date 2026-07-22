@@ -8,135 +8,155 @@
              xmlns:ui="using:CommunityToolkit.WinUI"
              xmlns:interactivity="using:Microsoft.Xaml.Interactivity">
 
-  <Grid x:Name="NoteItem_RootGrid"
-        Background="{x:Bind helpers:ColorHelper.ToBrush(ViewModel.Note.BackgroundColor), Mode=OneWay}"
-        CornerRadius="{ThemeResource OverlayCornerRadius}"
+  <Grid CornerRadius="{ThemeResource OverlayCornerRadius}"
         BorderThickness="1"
         BorderBrush="{ThemeResource ControlStrokeColorDefault}"
         BackgroundSizing="InnerBorderEdge"
-        Translation="0,0,12"
-        PointerEntered="NoteItem_RootGrid_PointerEntered"
-        PointerExited="NoteItem_RootGrid_PointerExited"
-        ContextRequested="NoteItem_RootGrid_ContextRequested"
-        RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.BackgroundColor), Mode=OneWay}">
+        Translation="0,0,12">
     <Grid.Shadow>
       <ThemeShadow />
     </Grid.Shadow>
+    <Rectangle RadiusX="12"
+               RadiusY="12">
+      <Rectangle.Fill>
+        <RadialGradientBrush MappingMode="RelativeToBoundingBox"
+                             Center="0.5,0.2"
+                             RadiusX="0.5"
+                             RadiusY="0.5"
+                             GradientOrigin="0.5,0.3"
+                             SpreadMethod="Reflect">
+          <GradientStop Color="White"
+                        Offset="0.0" />
+          <GradientStop Color="#E0E0E0"
+                        Offset="1" />
+        </RadialGradientBrush>
 
-    <Grid.RowDefinitions>
-      <RowDefinition Height="32" />
-      <RowDefinition />
-    </Grid.RowDefinitions>
+      </Rectangle.Fill>
+    </Rectangle>
+    <Grid x:Name="NoteItem_RootGrid"
+          CornerRadius="6"
+          Background="{x:Bind helpers:ColorHelper.ToAcrylicBrush(ViewModel.Note.BackgroundColor, ViewModel.Note.BackdropTintOpacity, ViewModel.Note.BackdropLuminosityOpacity), Mode=OneWay}"
+          PointerEntered="NoteItem_RootGrid_PointerEntered"
+          PointerExited="NoteItem_RootGrid_PointerExited"
+          ContextRequested="NoteItem_RootGrid_ContextRequested"
+          RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(ViewModel.Note.BackgroundColor), Mode=OneWay}">
 
-    <Grid Grid.Row="0">
-      <Grid.ColumnDefinitions>
-        <ColumnDefinition Width="Auto" />
-        <ColumnDefinition />
-        <ColumnDefinition Width="Auto" />
-      </Grid.ColumnDefinitions>
+      <Grid.RowDefinitions>
+        <RowDefinition Height="32" />
+        <RowDefinition />
+      </Grid.RowDefinitions>
 
-      <!-- Bookmark Button -->
-      <templates:AlternateSubtleIconToggleButton x:Name="NoteItem_BookmarkButton"
-                                           Grid.Column="0"
-                                           Icon="{ui:SymbolIcon Symbol=OutlineStar}"
-                                           CheckedIcon="{ui:SymbolIcon Symbol=SolidStar}"
-                                           IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=TwoWay}"
-                                           Visibility="Collapsed"
-                                           Style="{StaticResource AlternateIconToggleButtonStyle_32x16}" />
+      <Grid Grid.Row="0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
 
-      <!-- Title -->
-      <TextBlock Grid.Column="1"
-                 Padding="6,0"
-                 VerticalAlignment="Center"
-                 HorizontalTextAlignment="Center"
-                 Text="{x:Bind ViewModel.Note.Title, Mode=OneWay}"
-                 TextTrimming="CharacterEllipsis"
-                 TextWrapping="NoWrap"
-                 Style="{StaticResource BodyStrongTextBlockStyle}">
+        <!-- Bookmark Button -->
+        <templates:AlternateSubtleIconToggleButton x:Name="NoteItem_BookmarkButton"
+                                                   Grid.Column="0"
+                                                   Icon="{ui:SymbolIcon Symbol=OutlineStar}"
+                                                   CheckedIcon="{ui:SymbolIcon Symbol=SolidStar}"
+                                                   IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=OneWay}"
+                                                   Visibility="Collapsed"
+                                                   Style="{StaticResource AlternateIconToggleButtonStyle_32x16}"
+                                                   Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}"
+                                                   CommandParameter="{x:Bind ViewModel.Note}" />
+
+        <!-- Title -->
+        <TextBlock Grid.Column="1"
+                   Padding="6,0"
+                   VerticalAlignment="Center"
+                   HorizontalTextAlignment="Center"
+                   Text="{x:Bind ViewModel.Note.Title, Mode=OneWay}"
+                   TextTrimming="CharacterEllipsis"
+                   TextWrapping="NoWrap"
+                   Style="{StaticResource BodyStrongTextBlockStyle}">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                                               CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
+                                               CommandParameter="{x:Bind ViewModel.Note}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
-      </TextBlock>
+        </TextBlock>
 
-      <!-- More Button -->
-      <templates:SubtleIconButton x:Name="NoteItem_MoreButton"
-                                  Grid.Column="2"
-                                  Content="{ui:FontIcon Glyph=&#xE712;}"
-                                  Visibility="Collapsed"
-                                  Style="{StaticResource SubtleIconButtonStyle_32x16}">
-        <templates:SubtleIconButton.Flyout>
-          <MenuFlyout x:Name="NoteItem_MoreButtonMenuFlyout"
-                      Placement="Bottom"
-                      Opening="NoteItem_MoreButtonMenuFlyout_Opening"
-                      Closing="NoteItem_MoreButtonMenuFlyout_Closing">
-            <templates:MenuFlyoutElementContainer>
-              <StackPanel Orientation="Horizontal"
-                          Spacing="2">
-                <StackPanel.Resources>
-                  <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
-                  <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,8,0,4</Thickness>
-                  <Thickness x:Key="AppBarButtonTextLabelMargin">2,0,2,4</Thickness>
-                </StackPanel.Resources>
-                <AppBarButton Label="View"
-                              Icon="{ui:FontIcon Glyph=&#xE8AD;}"
-                              Width="60"
-                              Height="48"
-                              Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                              CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
-                <AppBarButton Label="Share"
-                              Icon="Share"
-                              Width="60"
-                              Height="48"/>
-                <AppBarButton Label="Remove"
-                              Icon="Delete"
-                              Width="60"
-                              Height="48"
-                              Command="{x:Bind ViewModel.RemoveNoteCommand, Mode=OneWay}"
-                              CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
-              </StackPanel>
-            </templates:MenuFlyoutElementContainer>
+        <!-- More Button -->
+        <templates:SubtleIconButton x:Name="NoteItem_MoreButton"
+                                    Grid.Column="2"
+                                    Content="{ui:FontIcon Glyph=&#xE712;}"
+                                    Visibility="Collapsed"
+                                    Style="{StaticResource SubtleIconButtonStyle_32x16}">
+          <templates:SubtleIconButton.Flyout>
+            <MenuFlyout x:Name="NoteItem_MoreButtonMenuFlyout"
+                        Placement="Bottom"
+                        Opening="NoteItem_MoreButtonMenuFlyout_Opening"
+                        Closing="NoteItem_MoreButtonMenuFlyout_Closing">
+              <templates:MenuFlyoutElementContainer>
+                <StackPanel Orientation="Horizontal"
+                            Spacing="2">
+                  <StackPanel.Resources>
+                    <Thickness x:Key="AppBarButtonInnerBorderMargin">0</Thickness>
+                    <Thickness x:Key="AppBarButtonContentViewboxCollapsedMargin">0,8,0,4</Thickness>
+                    <Thickness x:Key="AppBarButtonTextLabelMargin">2,0,2,4</Thickness>
+                  </StackPanel.Resources>
+                  <AppBarButton Label="View"
+                                Icon="{ui:FontIcon Glyph=&#xE8AD;}"
+                                Width="60"
+                                Height="48"
+                                Command="{x:Bind ViewModel.OpenWindowCommand}"
+                                CommandParameter="{x:Bind ViewModel.Note}" />
+                  <AppBarButton Label="Share"
+                                Icon="Share"
+                                Width="60"
+                                Height="48" />
+                  <AppBarButton Label="Remove"
+                                Icon="Delete"
+                                Width="60"
+                                Height="48"
+                                Command="{x:Bind ViewModel.RemoveNoteCommand}"
+                                CommandParameter="{x:Bind ViewModel.Note}" />
+                </StackPanel>
+              </templates:MenuFlyoutElementContainer>
 
-            <MenuFlyoutSeparator />
+              <MenuFlyoutSeparator />
 
-            <MenuFlyoutSubItem x:Name="NoteItem_MoveToListMenuFlyoutSubItem"
-                               Text="Move to list"
-                               Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
-            <MenuFlyoutItem Text="Rename title"
-                            Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
-            <MenuFlyoutItem Text="Edit tags"
-                            Icon="{ui:FontIcon Glyph=&#xE932;}" />
-            <MenuFlyoutItem Text="Add to jump list"
-                            Icon="Add"
-                            Command="{x:Bind ViewModel.AddNoteToJumpListCommand, Mode=OneWay}"
-                            CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
-            <MenuFlyoutSeparator />
-            <MenuFlyoutItem Text="About"
-                            Icon="{ui:FontIcon Glyph=&#xE946;}" />
-          </MenuFlyout>
-        </templates:SubtleIconButton.Flyout>
-      </templates:SubtleIconButton>
+              <MenuFlyoutSubItem x:Name="NoteItem_MoveToListMenuFlyoutSubItem"
+                                 Text="Move to list"
+                                 Icon="{ui:FontIcon Glyph=&#xE8DE;}" />
+              <MenuFlyoutItem Text="Rename title"
+                              Icon="{ui:FontIcon Glyph=&#xE8AC;}" />
+              <MenuFlyoutItem Text="Edit tags"
+                              Icon="{ui:FontIcon Glyph=&#xE932;}" />
+              <MenuFlyoutItem Text="Add to jump list"
+                              Icon="Add"
+                              Command="{x:Bind ViewModel.AddNoteToJumpListCommand}"
+                              CommandParameter="{x:Bind ViewModel.Note}" />
+              <MenuFlyoutSeparator />
+              <MenuFlyoutItem Text="About"
+                              Icon="{ui:FontIcon Glyph=&#xE946;}" />
+            </MenuFlyout>
+          </templates:SubtleIconButton.Flyout>
+        </templates:SubtleIconButton>
+      </Grid>
+
+      <!-- Body -->
+      <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
+                                     Grid.Row="1"
+                                     RtfText="{x:Bind ViewModel.Note.Preview, Mode=OneWay}"
+                                     RequestedTheme="Light" />
+      <Border x:Name="NoteItem_PreviewCoverBorder"
+              Grid.Row="1"
+              Background="Transparent">
+        <interactivity:Interaction.Behaviors>
+          <interactivity:EventTriggerBehavior EventName="DoubleTapped">
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
+                                               CommandParameter="{x:Bind ViewModel.Note}" />
+          </interactivity:EventTriggerBehavior>
+        </interactivity:Interaction.Behaviors>
+      </Border>
+
     </Grid>
-
-    <!-- Body -->
-    <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
-                                   Grid.Row="1"
-                                   MaxLength="{x:Bind ViewModel.PreviewTextMaxLength, Mode=OneWay}"
-                                   RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}"
-                                   RequestedTheme="Light" />
-    <Border x:Name="NoteItem_PreviewCoverBorder"
-            Grid.Row="1"
-            Background="Transparent">
-      <interactivity:Interaction.Behaviors>
-        <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand, Mode=OneWay}"
-                                             CommandParameter="{x:Bind ViewModel.Note, Mode=OneWay}" />
-        </interactivity:EventTriggerBehavior>
-      </interactivity:Interaction.Behaviors>
-    </Border>
-
     <VisualStateManager.VisualStateGroups>
       <VisualStateGroup x:Name="CommandOverlayStates">
         <VisualState x:Name="CommandOverlayCollapsed" />

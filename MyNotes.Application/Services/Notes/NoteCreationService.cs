@@ -42,10 +42,10 @@ internal sealed partial class NoteCreationService
       var dbResponseDto = await NoteRepository.AddNoteAsync(dbRequestDto, appDbTransaction, cancellationToken);
 
       // Add to Search Index
-      NoteSearchDocumentDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
+      WriteNoteSearchDocumentRequestDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
       _ = await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto, cancellationToken);
 
-      await appDbTransaction.CompleteAsync();
+      await appDbTransaction.CompleteAsync(true, cancellationToken);
       return dbResponseDto.ToAppDto();
     }
     catch
