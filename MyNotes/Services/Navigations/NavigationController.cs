@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Database.Enums.Navigations;
+﻿using MyNotes.Application.Contracts.Navigations.Enums;
 using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Mappers;

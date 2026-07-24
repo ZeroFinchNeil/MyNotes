@@ -1,7 +1,6 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Retrieval;
-using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Application.Contracts.Search.Repositories.Notes;
+﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
+using MyNotes.Application.Contracts.Notes.Models.Retrieval;
+using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Mappers;
 using MyNotes.Common.Enums.Modes;

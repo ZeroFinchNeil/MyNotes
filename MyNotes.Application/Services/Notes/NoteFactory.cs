@@ -1,5 +1,5 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
-using MyNotes.Application.Contracts.Search.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Notes.Models.Creation;
+using MyNotes.Application.Contracts.Notes.Models.Search;
 using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Common.Helpers;
 using MyNotes.Domain.Entities.Notes;

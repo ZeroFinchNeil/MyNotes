@@ -1,8 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
-using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Application.Contracts.Search.Dtos.Notes;
-using MyNotes.Application.Contracts.Search.Repositories.Notes;
+using MyNotes.Application.Contracts.Notes.Models.Creation;
+using MyNotes.Application.Contracts.Notes.Models.Search;
+using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Application.Mappers;

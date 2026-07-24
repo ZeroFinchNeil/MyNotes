@@ -1,9 +1,9 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Common;
-using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
-using MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
-using MyNotes.Application.Contracts.Database.Dtos.Notes.Queries;
-using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Contracts.Search.Dtos.Notes;
+﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
+using MyNotes.Application.Contracts.Notes.Models.Common;
+using MyNotes.Application.Contracts.Notes.Models.Creation;
+using MyNotes.Application.Contracts.Notes.Models.Modification;
+using MyNotes.Application.Contracts.Notes.Models.Queries;
+using MyNotes.Application.Contracts.Notes.Models.Search;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Dtos.Notes.Queries;

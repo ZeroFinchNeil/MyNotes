@@ -1,5 +1,5 @@
-﻿using MyNotes.Application.Contracts.Database.Dtos.Navigations.Common;
-using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
+﻿using MyNotes.Application.Contracts.Navigations.Models.Common;
+using MyNotes.Application.Contracts.Navigations.Models.Creation;
 using MyNotes.Common.Querying;
 using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.ValueObjects;

@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+﻿using MyNotes.Application.Contracts.Navigations.Persistence;
 
 namespace MyNotes.Application.Services.Navigations;
 

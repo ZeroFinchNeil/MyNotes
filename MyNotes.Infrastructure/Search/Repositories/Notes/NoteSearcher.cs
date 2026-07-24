@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using MyNotes.Application.Contracts.Search.Dtos.Notes;
-using MyNotes.Application.Contracts.Search.Repositories.Notes;
+using MyNotes.Application.Contracts.Notes.Models.Search;
+using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Mappers;
