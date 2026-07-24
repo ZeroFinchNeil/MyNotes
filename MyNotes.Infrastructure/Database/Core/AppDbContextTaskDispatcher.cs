@@ -16,9 +16,9 @@ internal sealed partial class AppDbContextTaskDispatcher : IDisposable
     _ = RunWorker();
   }
 
-  public async Task<int> EnqueueSaveChangesAsync(Func<int> saveChanges, CancellationToken cancellationToken = default)
+  public async Task<T> EnqueueOperationAsync<T>(Func<T> operation, T fallbackValue, CancellationToken cancellationToken = default)
   {
-    DbContextSaveChangesOperationRequest request = new(saveChanges);
+    DbContextOperationRequest<T> request = new(operation, fallbackValue);
     await DbContextChannel.Writer.WriteAsync(request, cancellationToken);
     return await request.TaskCompletionSource.Task;
   }

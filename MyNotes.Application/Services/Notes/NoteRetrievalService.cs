@@ -40,12 +40,12 @@ internal sealed partial class NoteRetrievalService
     FindNotesAppQuery findNotesAppQuery = includeDeleted
       ? new()
       {
-        NoteFindFields = NoteFindFields.BookmarkedCondition,
+        FindFields = NoteFindFields.BookmarkedCondition,
         BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
       }
       : new()
       {
-        NoteFindFields = NoteFindFields.BookmarkedCondition | NoteFindFields.DeletedCondition,
+        FindFields = NoteFindFields.BookmarkedCondition | NoteFindFields.DeletedCondition,
         BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
         DeletedCondition = EqualityQueryCondition<bool>.Create(false, EqualityMatchType.Equals)
       };
@@ -56,7 +56,7 @@ internal sealed partial class NoteRetrievalService
   {
     FindNotesAppQuery findNotesAppQuery = new()
     {
-      NoteFindFields = NoteFindFields.DeletedCondition,
+      FindFields = NoteFindFields.DeletedCondition,
       DeletedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals)
     };
     return await FindNotesAsync(findNotesAppQuery);
@@ -78,5 +78,10 @@ internal sealed partial class NoteRetrievalService
     List<NoteBundleAppResponseDto> noteDtos = new();
     //NoteSearcher.
     return noteDtos.AsReadOnly();
+  }
+
+  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)
+  {
+    return [];
   }
 }

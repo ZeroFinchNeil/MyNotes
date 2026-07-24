@@ -201,14 +201,8 @@
   <data name="ViewListMenuFlyoutItem.Text" xml:space="preserve">
     <value>목록 보기</value>
   </data>
-  <data name="ViewModeEditMenuFlyoutItem.Text" xml:space="preserve">
-    <value>편집</value>
-  </data>
-  <data name="ViewModeMenuFlyoutSubItem.Text" xml:space="preserve">
-    <value>뷰 모드</value>
-  </data>
-  <data name="ViewModeReadOnlyMenuFlyoutItem.Text" xml:space="preserve">
-    <value>읽기 전용</value>
+  <data name="ViewModeFlyoutSubItem.CheckedText" xml:space="preserve">
+    <value>편집 모드로 보기</value>
   </data>
   <data name="BackgroundButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>배경 색 및 효과</value>
@@ -248,5 +242,11 @@
   </data>
   <data name="ShowImagesMenuFlyoutItem.Text" xml:space="preserve">
     <value>이미지 표시</value>
+  </data>
+  <data name="ViewModeFlyoutSubItem.Text" xml:space="preserve">
+    <value>읽기 전용 모드로 보기</value>
+  </data>
+  <data name="EnterEditModeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>편집 모드로 변경</value>
   </data>
 </root>

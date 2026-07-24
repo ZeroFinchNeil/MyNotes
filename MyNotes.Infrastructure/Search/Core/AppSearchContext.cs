@@ -146,11 +146,11 @@ internal sealed class AppSearchContext : IDisposable
     //  };
 
     var doc = new Document()
-      {
-        new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
-        new TextField(nameof(NoteSearchDocument.Title), entity.Title, Field.Store.NO),
-        new TextField(nameof(NoteSearchDocument.Body), entity.Body, Field.Store.NO)
-      };
+    {
+      new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
+      new TextField(nameof(NoteSearchDocument.Title), entity.Title, Field.Store.NO),
+      new TextField(nameof(NoteSearchDocument.Body), entity.Body, Field.Store.NO)
+    };
 
     Term term = new(nameof(NoteSearchDocument.Id), entity.Id.ToString());
     if (cancellationToken.IsCancellationRequested)

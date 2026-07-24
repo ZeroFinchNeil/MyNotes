@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Windows.Storage.Pickers;
 
@@ -42,11 +44,12 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  public Command<NoteId>? InsertImageCommand { get; private set; }
+  public Command<NoteId> InsertImageCommand { get; private set; }
 
-  public Command<ImageViewModel>? ShowImageCommand { get; private set; }
-  public Command<ImageViewModel>? DeleteImageCommand { get; private set; }
+  public Command<ImageViewModel> ShowImageCommand { get; private set; }
+  public Command<ImageViewModel> DeleteImageCommand { get; private set; }
 
+  [MemberNotNull(nameof(InsertImageCommand), nameof(ShowImageCommand), nameof(DeleteImageCommand))]
   private void SetCommands()
   {
     InsertImageCommand = new()

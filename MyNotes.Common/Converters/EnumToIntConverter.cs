@@ -15,7 +15,7 @@ public sealed partial class EnumToIntConverter : DependencyObject, IValueConvert
   }
 
   public object Convert(object value, Type targetType, object parameter, string language) => value.GetType().Equals(EnumType) && value is Enum enumValue
-      ? (object)(int)(ValueType)enumValue
+      ? (int)(ValueType)enumValue
       : throw new ArgumentException($"Value is not a type of {EnumType}");
 
   public object ConvertBack(object value, Type targetType, object parameter, string language) => value is int intValue

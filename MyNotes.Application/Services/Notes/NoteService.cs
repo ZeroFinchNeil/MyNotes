@@ -6,9 +6,6 @@ namespace MyNotes.Application.Services.Notes;
 
 internal sealed partial class NoteService : IDisposable
 {
-  private readonly INoteRepository NoteRepository;
-  private readonly SettingsService SettingsService;
-
   public NoteCreationService Creation { get; }
   public NoteRetrievalService Retrieval { get; }
   public NoteModificationService Modification { get; }
@@ -17,12 +14,8 @@ internal sealed partial class NoteService : IDisposable
   public Task InitializationTask => InitializationTCS.Task;
 
   #region Object Lifetime Management
-  public NoteService(INoteRepository noteRepository, SettingsService settingsService, NoteCreationService noteCreationService, NoteRetrievalService noteRetrievalService, NoteModificationService noteModificationService)
+  public NoteService(NoteCreationService noteCreationService, NoteRetrievalService noteRetrievalService, NoteModificationService noteModificationService)
   {
-    // DI
-    NoteRepository = noteRepository;
-    SettingsService = settingsService;
-
     Creation = noteCreationService;
     Retrieval = noteRetrievalService;
     Modification = noteModificationService;
@@ -57,22 +50,4 @@ internal sealed partial class NoteService : IDisposable
     Disposed = true;
   }
   #endregion
-
-  public Task<NoteId> GetUniqueNoteIdAsync() => NoteRepository.GenerateUniqueNoteIdAsync();
-
-  public async Task<int> OpenNoteWindowsForOpenEntities()
-  {
-#if false
-    int result = 0;
-    foreach (var note in await GetNotesAsync(e => e.IsWindowOpen))
-    {
-      await OpenNoteWindow(note);
-      result++;
-    }
-    return result;
-#endif
-    return 0;
-  }
-
-  public Task CommitSearchIndexAsync() => throw new NotImplementedException();
 }

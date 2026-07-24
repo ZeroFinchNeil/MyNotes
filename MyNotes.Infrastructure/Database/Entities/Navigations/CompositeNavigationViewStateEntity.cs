@@ -9,9 +9,6 @@ internal class CompositeNavigationViewStateEntity : INavigationViewStateEntity<C
   [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id)), Required]
-  public NavigationEntity? Navigation { get; init; }
-
   [Required]
   public required bool IsExpanded { get; set; }
 

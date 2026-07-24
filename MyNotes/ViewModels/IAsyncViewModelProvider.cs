@@ -1,8 +1,8 @@
 ﻿namespace MyNotes.ViewModels;
 
-internal interface IAsyncViewModelProvider<TModel, TViewModel> where TViewModel : class
+internal interface IAsyncViewModelProvider<TModel, TViewModel> where TModel : notnull where TViewModel : ViewModelBase, IAsyncDisposable
 {
-  public Task<TViewModel> Resolve(TModel model);
+  public TViewModel? Resolve(TModel model);
 
   /// <summary>
   /// Attempts to resolve a ViewModel instance from the specified model.
@@ -13,5 +13,5 @@ internal interface IAsyncViewModelProvider<TModel, TViewModel> where TViewModel 
   /// <returns>true if the ViewModel was successfully resolved; otherwise, false.</returns>
   public bool TryResolve(TModel model, out TViewModel? viewmodel);
 
-  public bool Release(TModel model);
+  public Task<bool> ReleaseAsync(TModel model);
 }

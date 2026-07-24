@@ -1,45 +1,68 @@
 ﻿using System.Collections.Generic;
 
+using DotNext;
+
 using MyNotes.Application.Contracts.Database.Enums.Notes;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Contracts.Database.Dtos.Notes.Modification;
 
-internal class UpdateNoteViewStateDbRequestDto
+internal sealed record UpdateNoteViewStateDbRequestDto
 {
   public required NoteId Id { get; init; }
 
-  public required NoteViewStateUpdateFields NoteViewStateUpdateField { get; init; }
+  public Optional<bool> ShowBackgroundImage { get; init; }
 
-  public bool? ShowBackgroundImage { get; init; }
+  public Optional<int> BackgroundImageStretch { get; init; }
 
-  public string? BackgroundImagePath { get; init; }
+  public Optional<int> BackgroundImageAlignment { get; init; }
 
-  public double? BackgroundImageOpacity { get; init; }
+  public Optional<double> BackgroundImageOpacity { get; init; }
 
-  public double? BackgroundImageBlur { get; init; }
+  public Optional<double> BackgroundImageBlur { get; init; }
 
-  public int? BackdropKind { get; init; }
+  public Optional<int> BackdropKind { get; init; }
 
-  public double? BackdropTintOpacity { get; init; }
+  public Optional<double> BackdropTintOpacity { get; init; }
 
-  public double? BackdropLuminosityOpacity { get; init; }
+  public Optional<double> BackdropLuminosityOpacity { get; init; }
 
-  public IReadOnlyList<string>? Images { get; init; }
+  public Optional<bool> ShowImagePanel { get; init; }
 
-  public bool? ShowImagePanel { get; init; }
+  public Optional<double> ImagePanelHeight { get; init; }
 
-  public double? ImagePanelHeight { get; init; }
+  public Optional<int> Width { get; init; }
 
-  public int? Width { get; init; }
+  public Optional<int> Height { get; init; }
 
-  public int? Height { get; init; }
+  public Optional<int> PositionX { get; init; }
 
-  public int? PositionX { get; init; }
+  public Optional<int> PositionY { get; init; }
 
-  public int? PositionY { get; init; }
+  public Optional<bool> IsTextEditorReadOnly { get; init; }
 
-  public bool? IsWindowOpen { get; init; }
+  public Optional<bool> IsWindowOpen { get; init; }
 
-  public bool? IsAlwaysOnTop { get; init; }
+  public Optional<bool> IsAlwaysOnTop { get; init; }
+
+  public bool IsEmpty => this is
+  {
+    ShowBackgroundImage.IsUndefined: true,
+    BackgroundImageStretch.IsUndefined: true,
+    BackgroundImageAlignment.IsUndefined: true,
+    BackgroundImageOpacity.IsUndefined: true,
+    BackgroundImageBlur.IsUndefined: true,
+    BackdropKind.IsUndefined: true,
+    BackdropTintOpacity.IsUndefined: true,
+    BackdropLuminosityOpacity.IsUndefined: true,
+    ShowImagePanel.IsUndefined: true,
+    ImagePanelHeight.IsUndefined: true,
+    Width.IsUndefined: true,
+    Height.IsUndefined: true,
+    PositionX.IsUndefined: true,
+    PositionY.IsUndefined: true,
+    IsTextEditorReadOnly.IsUndefined: true,
+    IsWindowOpen.IsUndefined: true,
+    IsAlwaysOnTop.IsUndefined: true
+  };
 }

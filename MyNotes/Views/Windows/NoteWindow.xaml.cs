@@ -10,6 +10,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
+using MyNotes.Templates.Media;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
 

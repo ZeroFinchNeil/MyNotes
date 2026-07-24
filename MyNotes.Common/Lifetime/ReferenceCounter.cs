@@ -17,16 +17,19 @@ internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
   public void Increment()
   {
     Interlocked.Increment(ref _referenceCount);
-    Console.WriteLine("{0}: {1}", "Reference Count", ReferenceCount);
+    Console.WriteLine("{0}: {1}", "Reference Count (Increased)", ReferenceCount);
   }
 
-  public bool Decrement()
+  public bool Decrement(bool dispose = true)
   {
     var newCount = Interlocked.Decrement(ref _referenceCount);
-    Console.WriteLine("{0}: {1}", "Reference Count", ReferenceCount);
+    Console.WriteLine("{0}: {1}", "Reference Count (Decreased)", ReferenceCount);
     if (newCount == 0)
     {
-      Instance.Dispose();
+      if (dispose)
+      {
+        Instance.Dispose();
+      }
       return true;
     }
     return false;

@@ -8,6 +8,7 @@ using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
+using MyNotes.Infrastructure.Converters;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
@@ -19,6 +20,7 @@ using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Windows;
+using MyNotes.Shell.Contracts.Converters;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
@@ -114,6 +116,7 @@ internal static class ServiceCollectionExtension
 
     public void AddSearchCoreServices()
     {
+      services.AddSingleton<IRtfTextConverter, RtfTextConverter>();
       services.AddSingleton<AppSearchContext>();
     }
   }

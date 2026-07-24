@@ -15,6 +15,6 @@ internal class NoteModelFactory : IModelFactory<NoteBundleAppResponseDto, NoteMo
 
   public NoteModel Create(NoteBundleAppResponseDto noteBundleAppResponseDto)
   {
-    return Store.AddOrUpdate<NoteBundleAppResponseDto>(noteBundleAppResponseDto.Id, _ => noteBundleAppResponseDto.ToModel(), (model, dto) => model.Apply(dto));
+    return Store.AddOrUpdate(noteBundleAppResponseDto.Id, _ => noteBundleAppResponseDto.ToModel(), (model) => model.Apply(noteBundleAppResponseDto));
   }
 }

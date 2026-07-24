@@ -3,10 +3,12 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Application.Dtos.Notes.Queries;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Querying;
 using MyNotes.Constants;
@@ -31,16 +33,18 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly SettingsService SettingsService;
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
+  private readonly MainWindowService MainWindowService;
   private readonly IModelFactory<NoteBundleAppResponseDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
     NoteWindowService = noteWindowService;
+    MainWindowService = mainWindowService;
     NoteModelFactory = noteModelFactory;
     NoteViewModelProvider = noteViewModelProvider;
 
@@ -239,7 +243,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     switch (Navigation)
     {
       case NavigationUserLeafNode leaf:
-        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteMappers.ToModel);
+        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteModelFactory.Create);
         foreach (var note in leafNotes)
         {
           note.PropertyChanged += Note_PropertyChanged_WhileActive;
@@ -445,25 +449,30 @@ internal sealed partial class NoteListViewModel : ViewModelBase
 #region Commands and Messengers
 partial class NoteListViewModel
 {
-  public Command? AddNoteCommand { get; private set; }
+  public AsyncCommand? AddNoteCommand { get; private set; }
 
   private void SetCommands()
   {
     AddNoteCommand = new(
-      executeAction: async () =>
+      executeFunc: async () =>
       {
-#if false
-        if (Navigation is NavigationUserLeafNode leaf
-            && await NoteService.Creation.AddNoteAsync(leaf) is NoteModel note)
+        if (Navigation is NavigationUserLeafNode leaf)
         {
-          NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(note);
+          var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
+          var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
+          CreateNoteAppRequestDto appRequestDto = new()
+          {
+            NavigationId = leaf.Id,
+            Size = size,
+            Position = position
+          };
+          var bundleDto = await NoteService.Creation.AddNoteAsync(appRequestDto);
+          NoteModel noteModel = NoteModelFactory.Create(bundleDto);
+          NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(noteModel);
           NoteViewModels?.Add(noteViewModel);
 
-          await NoteService.Retrieval.OpenNoteWindow(note);
+          await NoteWindowService.OpenNoteWindow(noteModel);
         }
-#endif
-        throw new NotImplementedException();
-
       });
   }
 

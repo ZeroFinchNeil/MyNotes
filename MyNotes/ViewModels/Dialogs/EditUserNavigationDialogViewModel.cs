@@ -3,6 +3,7 @@
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Models.Navigations;
+using MyNotes.Shared.Constants;
 using MyNotes.Templates;
 
 namespace MyNotes.ViewModels.Dialogs;
@@ -25,7 +26,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
     switch (EditMode)
     {
       case EditMode.Create:
-        Icon = isCompositeNode ? Icon.System_Notebook : Icon.System_Board;
+        Icon = isCompositeNode ? (Icon)AppDefaultSettings.GroupNavigationIcon : (Icon)AppDefaultSettings.ListNavigationIcon;
         break;
       case EditMode.Update:
         Icon = targetNavigation.Icon;
@@ -38,7 +39,7 @@ internal sealed partial class EditUserNavigationDialogViewModel : DialogViewMode
   #endregion
 
   [ObservableProperty]
-  public partial Icon Icon { get; set; } = Icon.System_Board;
+  public partial Icon Icon { get; set; } = (Icon)AppDefaultSettings.ListNavigationIcon;
 
   [ObservableProperty]
   public partial string Title { get; set; } = string.Empty;

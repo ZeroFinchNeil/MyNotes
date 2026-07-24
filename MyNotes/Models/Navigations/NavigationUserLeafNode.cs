@@ -1,6 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-
-using MyNotes.Common.Querying;
+﻿using MyNotes.Common.Querying;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Views.Navigations;
@@ -11,18 +9,63 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
 {
   public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 
-  [ObservableProperty]
-  public partial NoteSortKey? NoteSortKey { get; set; }
+  public NoteSortKey? NoteSortKey
+  {
+    get;
+    set
+    {
+      if (value is null || Enum.IsDefined(value.Value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial SortDirection? NoteSortDirection { get; set; }
+  public SortDirection? NoteSortDirection
+  {
+    get;
+    set
+    {
+      if (value is null || Enum.IsDefined(value.Value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
+  public PreviewLayoutType? PreviewLayoutType
+  {
+    get;
+    set
+    {
+      if (value is null || Enum.IsDefined(value.Value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewTileSize? PreviewTileSize { get; set; }
+  public PreviewTileSize? PreviewTileSize
+  {
+    get;
+    set
+    {
+      if (value is null || Enum.IsDefined(value.Value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
+  public PreviewTileRatio? PreviewTileRatio
+  {
+    get;
+    set
+    {
+      if (value is null || Enum.IsDefined(value.Value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 }

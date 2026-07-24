@@ -1,9 +1,13 @@
 ﻿using MyNotes.Application.Contracts.Database.Dtos.Notes.Creation;
 using MyNotes.Application.Contracts.Search.Dtos.Notes;
+using MyNotes.Application.Dtos.Notes.Creation;
+using MyNotes.Common.Helpers;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Settings;
 using MyNotes.Shared.Constants;
+
+using Windows.Graphics;
 
 namespace MyNotes.Application.Services.Notes;
 
@@ -19,51 +23,47 @@ internal sealed partial class NoteFactory
   public Note CreateDefaultNote(NoteId noteId, NavigationId navigationId) => new()
   {
     Id = noteId,
-    ParentId = navigationId,
+    NavigationId = navigationId,
     Created = DateTimeOffset.UtcNow,
     Modified = DateTimeOffset.UtcNow,
-    Title = string.Empty,
-    Body = string.Empty,
-    BodyPlainText = string.Empty,
+    Title = AppDefaultSettings.NoteTitle,
+    Body = AppDefaultSettings.NoteBodyRtfText,
+    BodyImagePaths = AppDefaultSettings.NoteBodyImagePaths,
     BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground),
-    IsBookmarked = false,
-    IsDeleted = false
+    BackgroundImagePath = AppDefaultSettings.NoteBackgroundImagePath,
+    IsBookmarked = AppDefaultSettings.IsNoteBookmarked,
+    IsDeleted = AppDefaultSettings.IsNoteDeleted
   };
 
-  public CreateNoteViewStateDbRequestDto CreateDefaultNoteViewStateDto(NoteId noteId)
+  public CreateNoteViewStateDbRequestDto CreateDefaultNoteViewStateDto(NoteId id, SizeInt32 size, PointInt32 position)
   {
-    throw new NotImplementedException();
-#if false
-    var defaultSize = SettingsService.Load(AppSettingsDescriptors.NoteSize);
-    var defaultPosition = WindowService.GetPosition(defaultSize.SizeInt32);
-
     return new()
     {
-      Id = noteId,
-      ShowBackgroundImage = false,
-      BackgroundImagePath = string.Empty,
-      BackgroundImageOpacity = 1.0,
-      BackgroundImageBlur = 100,
+      Id = id,
+      ShowBackgroundImage = AppDefaultSettings.ShowNoteBackgroundImage,
+      BackgroundImageStretch = (int)AppDefaultSettings.NoteBackgroundImageStretch,
+      BackgroundImageAlignment = (int)AppDefaultSettings.NoteBackgroundImageAlignment,
+      BackgroundImageOpacity = AppDefaultSettings.NoteBackgroundImageOpacity,
+      BackgroundImageBlur = AppDefaultSettings.NoteBackgroundImageBlur,
       BackdropKind = SettingsService.Load(AppSettingsDescriptors.NoteBackdropKind),
-      BackdropTintOpacity = 1.0,
-      BackdropLuminosityOpacity = 1.0,
-      Images = [],
-      ShowImagePanel = false,
-      ImagePanelHeight = 120.0,
-      Width = defaultSize.SizeInt32.Width,
-      Height = defaultSize.SizeInt32.Height,
-      PositionX = defaultPosition.X,
-      PositionY = defaultPosition.Y,
-      IsWindowOpen = true,
-      IsAlwaysOnTop = false,
+      BackdropTintOpacity = AppDefaultSettings.NoteBackdropTintOpacity,
+      BackdropLuminosityOpacity = AppDefaultSettings.NoteBackdropLuminosityOpacity,
+      ShowImagePanel = AppDefaultSettings.ShowNoteImagePanel,
+      ImagePanelHeight = AppDefaultSettings.NoteImagePanelHeight,
+      Width = size.Width,
+      Height = size.Height,
+      PositionX = position.X,
+      PositionY = position.Y,
+      IsTextEditorReadOnly = AppDefaultSettings.IsNoteTextEditorReadOnly,
+      IsWindowOpen = AppDefaultSettings.IsNoteWindowOpen,
+      IsAlwaysOnTop = AppDefaultSettings.IsNoteWindowAlwaysOnTop,
     };
-#endif
   }
 
-  public NoteSearchDocumentDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
+  public WriteNoteSearchDocumentRequestDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
   {
     Id = noteId.Value,
-    Title = string.Empty,
-    Body = string.Empty
+    Title = AppDefaultSettings.NoteTitle,
+    Body = AppDefaultSettings.NoteBodyPlainText
   };
 }

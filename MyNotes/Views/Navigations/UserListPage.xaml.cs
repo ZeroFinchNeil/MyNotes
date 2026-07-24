@@ -38,6 +38,7 @@ internal sealed partial class UserListPage : Page
       NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       ViewModel = navigationViewModelProvider.Resolve(navigation) as UserListNavigationViewModel;
       NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
+      NoteListViewModel.ChangePreviewLayout(UserListPage_NotesListGridView);
     }
   }
 

@@ -58,6 +58,11 @@ internal readonly record struct NavigationId
 
   public static NavigationId Create(string id) => Create(Guid.Parse(id));
 
+  public static NavigationId? CreateOrDefault(Guid? id) => id is Guid value
+    ? IsValidId(value) 
+      ? new(value) : null
+    : null;
+
   public static NavigationId GetOrCreate(Guid id)
   {
     if (IsValidId(id))

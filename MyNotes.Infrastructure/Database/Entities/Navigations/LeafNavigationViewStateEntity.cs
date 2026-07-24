@@ -9,9 +9,6 @@ internal class LeafNavigationViewStateEntity : IDatabaseEntity<LeafNavigationVie
   [Key, Required]
   public required Guid Id { get; init; }
 
-  [ForeignKey(nameof(Id)), Required]
-  public NavigationEntity? Navigation { get; init; }
-
   public required int? NoteSortKey { get; init; }
 
   public required int? NoteSortDirection { get; init; }

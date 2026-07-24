@@ -41,7 +41,6 @@ internal sealed partial class NotePage : Page
   private readonly NoteViewModel ViewModel;
   private readonly NoteEditorViewModel EditorViewModel;
   private readonly ImageCollectionViewModel ImageCollectionViewModel;
-  private readonly SettingsService SettingsService;
   private readonly NoteWindowService NoteWindowService;
 
   #region Object Lifetime Management
@@ -65,13 +64,13 @@ internal sealed partial class NotePage : Page
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
 
-    SettingsService = App.Services.GetRequiredService<SettingsService>();
     NoteWindowService = App.Services.GetRequiredService<NoteWindowService>();
     noteWindow.SetTitleBar(NotePage_TitleBarGrid);
 
     SetEditorText();
 
-    ChangeFlyoutTheme((ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme));
+    var settingsService = App.Services.GetRequiredService<SettingsService>();
+    ChangeFlyoutTheme((ElementTheme)settingsService.Load(AppSettingsDescriptors.AppTheme));
 
     RegisterMessengers();
 
@@ -139,27 +138,19 @@ internal sealed partial class NotePage : Page
       }
     }
 
-    ViewModel.ChangeNoteBackdrop();
+    EditorViewModel.ChangeSystemBackdrop();
+    EditorViewModel.ChangeSystemBackdropExtended();
   }
 
   private async void NotePage_Unloaded(object sender, RoutedEventArgs e)
   {
     // 에디터 내용을 저장 후 정리
-    EditorViewModel.UpdateEditorBodyText();
-    NoteEditorViewModelProvider.Release(ViewModel.Note);
+    await NoteEditorViewModelProvider.ReleaseAsync(ViewModel.Note);
 
     ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
 
-    // 노트 완전 삭제 로직
-    bool deleteNote = SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(ViewModel.Note.Title) && string.IsNullOrWhiteSpace(ViewModel.Note.BodyPlainText);
-    if (deleteNote)
-    {
-#if false
-      await ViewModel.DeleteNoteEntity();
-#endif
-      throw new NotImplementedException();
-
-    }
+    // 빈 노트 완전 삭제 로직
+    await ViewModel.DeleteNotePermanentlyWhenEmpty();
 
     NoteViewModelProvider.Release(ViewModel.Note);
 
@@ -278,22 +269,6 @@ partial class NotePage
     }
   }
 
-  private void NotePage_ViewModeRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is RadioMenuFlyoutItem item)
-    {
-      switch (item.Tag)
-      {
-        case string tag when tag is "Edit":
-          VisualStateManager.GoToState(this, nameof(ViewModeEdit), false);
-          break;
-        case string tag when tag is "ReadOnly":
-          VisualStateManager.GoToState(this, nameof(ViewModeReadOnly), false);
-          break;
-      }
-    }
-  }
-
   private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is MenuFlyoutItem item
@@ -348,15 +323,6 @@ partial class NotePage
           {
             Content = "Show in folder"
           };
-
-          async void SaveAsInfoBarActionButton_Click(object sender, RoutedEventArgs e)
-          {
-            actionButton.Click -= SaveAsInfoBarActionButton_Click;
-            NotePage_InfoBar.ActionButton = null;
-            var folder = await StorageFolder.GetFolderFromPathAsync(System.IO.Path.GetDirectoryName(savePath));
-            await Launcher.LaunchFolderAsync(folder);
-            NotePage_InfoBar.IsOpen = false;
-          }
           actionButton.Click += SaveAsInfoBarActionButton_Click;
           NotePage_InfoBar.Title = $"Saved as a {fileType.Value.Kind} file.";
           NotePage_InfoBar.ActionButton = actionButton;
@@ -367,20 +333,16 @@ partial class NotePage
               actionButton.Click -= SaveAsInfoBarActionButton_Click;
               NotePage_InfoBar.ActionButton = null;
             });
-        }
-      }
-    }
-  }
 
-  private async void NotePage_BrowseButton_Click(object sender, RoutedEventArgs e)
-  {
-    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
-    {
-      FileOpenPicker picker = new(appWindow.Id);
-      var result = await picker.PickSingleFileAsync();
-      if (result is not null)
-      {
-        ViewModel.Note.BackgroundImagePath = result.Path;
+          async void SaveAsInfoBarActionButton_Click(object sender, RoutedEventArgs e)
+          {
+            actionButton.Click -= SaveAsInfoBarActionButton_Click;
+            NotePage_InfoBar.ActionButton = null;
+            var folder = await StorageFolder.GetFolderFromPathAsync(System.IO.Path.GetDirectoryName(savePath));
+            await Launcher.LaunchFolderAsync(folder);
+            NotePage_InfoBar.IsOpen = false;
+          }
+        }
       }
     }
   }
@@ -408,7 +370,7 @@ partial class NotePage
       return;
     }
 
-    ViewModel.Note.Images = [.. ImageCollectionViewModel.ImageViewModels.Select(vm => vm.ImageDescriptor)];
+    ViewModel.Note.BodyImagePaths = [.. ImageCollectionViewModel.ImageViewModels.Select(vm => vm.ImageDescriptor)];
     ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels.Count > 0;
   }
   private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
@@ -452,10 +414,12 @@ partial class NotePage
 
   private void NotePage_RenameTitleMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    VisualStateManager.GoToState(this, "TitleBarTitleRename", false);
-    NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
-    NotePage_TitleRenameTextBox.SelectAll();
-    NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
+    if (VisualStateManager.GoToState(this, "TitleBarTitleRename", false))
+    {
+      NotePage_TitleRenameTextBox.Focus(FocusState.Keyboard);
+      NotePage_TitleRenameTextBox.SelectAll();
+      NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
+    }
   }
 
   private void NotePage_TitleRenameTextBox_LayoutUpdated(object? sender, object e)
@@ -466,8 +430,12 @@ partial class NotePage
 
   private void NotePage_TitleRenameTextBox_LostFocus(object sender, RoutedEventArgs e)
   {
-    VisualStateManager.GoToState(this, "TitleBarTitleNormal", false);
-    NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
+    ViewModel.OldTitle = ViewModel.Note.Title;
+
+    if (VisualStateManager.GoToState(this, "TitleBarTitleNormal", false))
+    {
+      NotePage_TitleRenameTextBox.LayoutUpdated += NotePage_TitleRenameTextBox_LayoutUpdated;
+    }
   }
   #endregion
 
@@ -540,9 +508,9 @@ partial class NotePage
   private async void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     args.Handled = true;
-    EditorViewModel.UpdateEditorBodyText();
+    EditorViewModel.ReflectEditorBodyChanges();
 
-    await ViewModel.UpdateNoteEntity();
+    await EditorViewModel.UpdateNoteBodyAsync();
     NotePage_InfoBar.Title = "Saved";
     NotePage_InfoBar.ActionButton = null;
     NotePage_InfoBar.Severity = InfoBarSeverity.Success;

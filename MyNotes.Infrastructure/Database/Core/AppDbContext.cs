@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -58,22 +59,22 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
 
     modelBuilder.Entity<CompositeNavigationViewStateEntity>(entity =>
     {
-      entity.HasOne(e => e.Navigation)
-      .WithOne()
-      .HasForeignKey<CompositeNavigationViewStateEntity>(e => e.Id)
-      .IsRequired()
-      .OnDelete(DeleteBehavior.Cascade);
+      entity.HasOne<NavigationEntity>()
+        .WithOne()
+        .HasForeignKey<CompositeNavigationViewStateEntity>(e => e.Id)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
 
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
 
     modelBuilder.Entity<LeafNavigationViewStateEntity>(entity =>
     {
-      entity.HasOne(e => e.Navigation)
-      .WithOne()
-      .HasForeignKey<LeafNavigationViewStateEntity>(e => e.Id)
-      .IsRequired()
-      .OnDelete(DeleteBehavior.Cascade);
+      entity.HasOne<NavigationEntity>()
+        .WithOne()
+        .HasForeignKey<LeafNavigationViewStateEntity>(e => e.Id)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
 
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
@@ -81,27 +82,41 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
     // Notes
     modelBuilder.Entity<NoteEntity>(entity =>
     {
+      entity.HasOne<NavigationEntity>()
+        .WithMany()
+        .HasForeignKey(e => e.Navigation)
+        .IsRequired(false)
+        .OnDelete(DeleteBehavior.SetNull);
+
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
       entity.Property(e => e.Created).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
 
     modelBuilder.Entity<NoteViewStateEntity>(entity =>
     {
-      entity.HasOne(e => e.Note)
-      .WithOne()
-      .HasForeignKey<NoteViewStateEntity>(e => e.Id)
-      .IsRequired()
-      .OnDelete(DeleteBehavior.Cascade);
+      entity.HasOne<NoteEntity>()
+        .WithOne()
+        .HasForeignKey<NoteViewStateEntity>(e => e.Id)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
 
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
   }
 
-  public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) => taskDispatcher.EnqueueSaveChangesAsync(
-    saveChanges: () => !cancellationToken.IsCancellationRequested ? base.SaveChanges(acceptAllChangesOnSuccess) : 0,
+  public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default) => taskDispatcher.EnqueueOperationAsync(
+    operation: () => !cancellationToken.IsCancellationRequested ? base.SaveChanges(acceptAllChangesOnSuccess) : 0,
+    fallbackValue: 0,
     cancellationToken: cancellationToken);
 
-  public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => taskDispatcher.EnqueueSaveChangesAsync(
-    saveChanges: () => !cancellationToken.IsCancellationRequested ? base.SaveChanges() : 0,
+  public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => taskDispatcher.EnqueueOperationAsync(
+    operation: () => !cancellationToken.IsCancellationRequested ? base.SaveChanges() : 0,
+    fallbackValue: 0,
     cancellationToken: cancellationToken);
+
+  public Task<T?> EnqueueOperationAsync<T>(Func<T?> operation, T? defaultValue = default, T? fallbackValue = default, CancellationToken cancellationToken = default) where T : notnull =>
+    taskDispatcher.EnqueueOperationAsync(
+      operation: !cancellationToken.IsCancellationRequested ? operation : () => defaultValue,
+      fallbackValue: fallbackValue,
+      cancellationToken: cancellationToken);
 }

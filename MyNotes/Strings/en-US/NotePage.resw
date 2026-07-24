@@ -201,14 +201,8 @@
   <data name="ViewListMenuFlyoutItem.Text" xml:space="preserve">
     <value>View list</value>
   </data>
-  <data name="ViewModeEditMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Edit</value>
-  </data>
-  <data name="ViewModeMenuFlyoutSubItem.Text" xml:space="preserve">
-    <value>View mode</value>
-  </data>
-  <data name="ViewModeReadOnlyMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Read only</value>
+  <data name="ViewModeFlyoutSubItem.CheckedText" xml:space="preserve">
+    <value>View in edit mode</value>
   </data>
   <data name="BackgroundButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Background color and effect</value>
@@ -248,5 +242,11 @@
   </data>
   <data name="ShowImagesMenuFlyoutItem.Text" xml:space="preserve">
     <value>Show images</value>
+  </data>
+  <data name="ViewModeFlyoutSubItem.Text" xml:space="preserve">
+    <value>View in read-only mode</value>
+  </data>
+  <data name="EnterEditModeButton.ToolTipService.ToolTip" xml:space="preserve">
+    <value>Switch to edit mode</value>
   </data>
 </root>

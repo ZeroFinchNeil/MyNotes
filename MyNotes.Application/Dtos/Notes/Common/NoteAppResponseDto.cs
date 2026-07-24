@@ -1,12 +1,14 @@
 ﻿using MyNotes.Domain.ValueObjects;
 
+using Windows.UI;
+
 namespace MyNotes.Application.Dtos.Notes.Common;
 
 internal sealed record NoteAppResponseDto
 {
   public required NoteId Id { get; init; }
 
-  public required NavigationId ParentId { get; init; }
+  public required NavigationId NavigationId { get; init; }
 
   public required DateTimeOffset Created { get; init; }
 
@@ -16,7 +18,11 @@ internal sealed record NoteAppResponseDto
 
   public required string Body { get; init; }
 
-  public required string BodyPlainText { get; init; }
+  public required IReadOnlyList<string> BodyImagePaths { get; init; }
+
+  public required string BackgroundColor { get; init; }
+
+  public required string? BackgroundImagePath { get; init; }
 
   public required bool IsBookmarked { get; init; }
 

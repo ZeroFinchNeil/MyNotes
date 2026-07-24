@@ -8,7 +8,9 @@ internal sealed record NoteViewStateAppResponseDto
 
   public required bool ShowBackgroundImage { get; init; }
 
-  public required string? BackgroundImagePath { get; init; }
+  public required int BackgroundImageStretch { get; init; }
+
+  public required int BackgroundImageAlignment { get; init; }
 
   public required double BackgroundImageOpacity { get; init; }
 
@@ -19,8 +21,6 @@ internal sealed record NoteViewStateAppResponseDto
   public required double BackdropTintOpacity { get; init; }
 
   public required double BackdropLuminosityOpacity { get; init; }
-
-  public required IReadOnlyList<string> Images { get; init; } = [];
 
   public required bool ShowImagePanel { get; init; }
 
@@ -33,6 +33,8 @@ internal sealed record NoteViewStateAppResponseDto
   public required int PositionX { get; init; }
 
   public required int PositionY { get; init; }
+
+  public required bool IsTextEditorReadOnly { get; init; }
 
   public required bool IsWindowOpen { get; init; }
 
