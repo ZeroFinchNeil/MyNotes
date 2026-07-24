@@ -3,7 +3,7 @@ using System.Text;
 
 using Windows.UI;
 
-namespace MyNotes.Widget;
+namespace MyNotes.Common.Helpers;
 
 public static class Base64ImageEncoder
 {

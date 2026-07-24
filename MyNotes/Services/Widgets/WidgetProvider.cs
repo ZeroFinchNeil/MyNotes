@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Text.Json;
-using System.Threading;
+﻿using System.Text.Json;
 
-using Microsoft.UI;
 using Microsoft.Windows.Widgets.Providers;
 
-using Windows.UI;
+using MyNotes.Common.Helpers;
 
-namespace MyNotes.Widget;
+using ColorHelper = Microsoft.UI.ColorHelper;
+
+namespace MyNotes.Services.Widget;
 
 public partial class WidgetProvider : IWidgetProvider
 {
@@ -130,7 +129,8 @@ public partial class WidgetProvider : IWidgetProvider
       }
       else
       {
-        int a = localWidgetInfo.CustomState; int b = noteWidgets.Notes.Count;
+        int a = localWidgetInfo.CustomState;
+        int b = noteWidgets.Notes.Count;
         int index = ((a % b) + b) % b;
         bodytext = noteWidgets.Notes[index];
         localWidgetInfo.CustomState = index;

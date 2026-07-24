@@ -1,8 +1,11 @@
 ﻿using System.IO.Pipes;
 
+using Microsoft.Windows.Widgets.Providers;
+
 using MyNotes.Common.Interop;
+using MyNotes.Services.Widget;
+using MyNotes.Services.Widgets;
 using MyNotes.Shared.Constants;
-using MyNotes.Widget;
 
 namespace MyNotes;
 
