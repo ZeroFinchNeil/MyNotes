@@ -1,8 +1,4 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Notes;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Services.Settings;
-
-namespace MyNotes.Application.Services.Notes;
+﻿namespace MyNotes.Application.Services.Notes;
 
 internal sealed partial class NoteService : IDisposable
 {

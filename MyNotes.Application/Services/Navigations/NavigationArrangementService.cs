@@ -1,5 +1,5 @@
 ﻿using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Navigations.Persistence;
+using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Dtos.Navigations.Arrangement;
 using MyNotes.Application.Enums.Navigations;
 using MyNotes.Application.Mappers;

@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using MyNotes.Application.Commands.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Application.Dtos.Notes.Modification;
@@ -161,12 +162,14 @@ internal sealed class NoteCommandService : ICommandService
         {
           var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
           var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
-          CreateNoteAppRequestDto appRequestDto = new()
+
+          CreateNoteAppCommand createNoteAppCommand = new()
           {
             NavigationId = navigationViewModel.Navigation.Id,
-            Size = default,
-            Position = default
+            Size = size,
+            Position = position
           };
+
           if (await NoteService.Creation.AddNoteAsync(appRequestDto) is NoteBundleAppResponseDto newNoteDto)
           {
             NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);

@@ -1,5 +1,6 @@
-﻿using MyNotes.Application.Contracts.Notes.Models.Creation;
-using MyNotes.Application.Contracts.Notes.Models.Search;
+﻿using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Models.Notes.Creation;
+using MyNotes.Application.Contracts.Models.Notes.Search;
 using MyNotes.Application.Dtos.Notes.Creation;
 using MyNotes.Common.Helpers;
 using MyNotes.Domain.Entities.Notes;
@@ -35,7 +36,7 @@ internal sealed partial class NoteFactory
     IsDeleted = AppDefaultSettings.IsNoteDeleted
   };
 
-  public CreateNoteViewStateDbRequestDto CreateDefaultNoteViewStateDto(NoteId id, SizeInt32 size, PointInt32 position)
+  public NoteViewStateDto CreateDefaultNoteViewStateDto(NoteId id, SizeInt32 size, PointInt32 position)
   {
     return new()
     {
@@ -60,7 +61,7 @@ internal sealed partial class NoteFactory
     };
   }
 
-  public WriteNoteSearchDocumentRequestDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
+  public NoteSearchDocumentDto CreateDefaultNoteSearchDocumentDto(NoteId noteId) => new()
   {
     Id = noteId.Value,
     Title = AppDefaultSettings.NoteTitle,

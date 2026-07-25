@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 
-using MyNotes.Application.Contracts.Notes.Models.Common;
-using MyNotes.Application.Contracts.Notes.Models.Creation;
-using MyNotes.Application.Contracts.Notes.Models.Search;
+using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Entities.Notes;
@@ -16,44 +14,44 @@ namespace MyNotes.Infrastructure.Mappers;
 [AssemblyLocal]
 internal static class NoteMappers
 {
-  public static NoteEntity ToEntity(CreateNoteDbRequestDto createDbDto) => new()
+  public static NoteEntity ToEntity(NoteDto noteDto) => new()
   {
-    Id = createDbDto.Id.Value,
-    Navigation = createDbDto.NavigationId.Value,
-    Created = createDbDto.Created,
-    Modified = createDbDto.Modified,
-    Title = createDbDto.Title,
-    Body = createDbDto.Body,
-    BodyImagePaths = JsonSerializer.Serialize(createDbDto.BodyImagePaths, AppJson.JsonSerializerOptions),
-    BackgroundColor = createDbDto.BackgroundColor,
-    BackgroundImagePath = createDbDto.BackgroundImagePath,
-    IsBookmarked = createDbDto.IsBookmarked,
-    IsDeleted = createDbDto.IsDeleted
+    Id = noteDto.Id.Value,
+    Navigation = noteDto.NavigationId.Value,
+    Created = noteDto.Created,
+    Modified = noteDto.Modified,
+    Title = noteDto.Title,
+    Body = noteDto.Body,
+    BodyImagePaths = JsonSerializer.Serialize(noteDto.BodyImagePaths, AppJson.JsonSerializerOptions),
+    BackgroundColor = noteDto.BackgroundColor,
+    BackgroundImagePath = noteDto.BackgroundImagePath,
+    IsBookmarked = noteDto.IsBookmarked,
+    IsDeleted = noteDto.IsDeleted
   };
 
-  public static NoteViewStateEntity ToEntity(CreateNoteViewStateDbRequestDto viewStateDbDto) => new()
+  public static NoteViewStateEntity ToEntity(NoteViewStateDto noteViewStateDbDto) => new()
   {
-    Id = viewStateDbDto.Id.Value,
-    ShowBackgroundImage = viewStateDbDto.ShowBackgroundImage,
-    BackgroundImageStretch = viewStateDbDto.BackgroundImageStretch,
-    BackgroundImageAlignment = viewStateDbDto.BackgroundImageAlignment,
-    BackgroundImageOpacity = viewStateDbDto.BackgroundImageOpacity,
-    BackgroundImageBlur = viewStateDbDto.BackgroundImageBlur,
-    BackdropKind = viewStateDbDto.BackdropKind,
-    BackdropTintOpacity = viewStateDbDto.BackdropTintOpacity,
-    BackdropLuminosityOpacity = viewStateDbDto.BackdropLuminosityOpacity,
-    ShowImagePanel = viewStateDbDto.ShowImagePanel,
-    ImagePanelHeight = viewStateDbDto.ImagePanelHeight,
-    Width = viewStateDbDto.Width,
-    Height = viewStateDbDto.Height,
-    PositionX = viewStateDbDto.PositionX,
-    PositionY = viewStateDbDto.PositionY,
-    IsTextEditorReadOnly = viewStateDbDto.IsTextEditorReadOnly,
-    IsWindowOpen = viewStateDbDto.IsWindowOpen,
-    IsAlwaysOnTop = viewStateDbDto.IsAlwaysOnTop
+    Id = noteViewStateDbDto.Id.Value,
+    ShowBackgroundImage = noteViewStateDbDto.ShowBackgroundImage,
+    BackgroundImageStretch = noteViewStateDbDto.BackgroundImageStretch,
+    BackgroundImageAlignment = noteViewStateDbDto.BackgroundImageAlignment,
+    BackgroundImageOpacity = noteViewStateDbDto.BackgroundImageOpacity,
+    BackgroundImageBlur = noteViewStateDbDto.BackgroundImageBlur,
+    BackdropKind = noteViewStateDbDto.BackdropKind,
+    BackdropTintOpacity = noteViewStateDbDto.BackdropTintOpacity,
+    BackdropLuminosityOpacity = noteViewStateDbDto.BackdropLuminosityOpacity,
+    ShowImagePanel = noteViewStateDbDto.ShowImagePanel,
+    ImagePanelHeight = noteViewStateDbDto.ImagePanelHeight,
+    Width = noteViewStateDbDto.Width,
+    Height = noteViewStateDbDto.Height,
+    PositionX = noteViewStateDbDto.PositionX,
+    PositionY = noteViewStateDbDto.PositionY,
+    IsTextEditorReadOnly = noteViewStateDbDto.IsTextEditorReadOnly,
+    IsWindowOpen = noteViewStateDbDto.IsWindowOpen,
+    IsAlwaysOnTop = noteViewStateDbDto.IsAlwaysOnTop
   };
 
-  public static NoteDbResponseDto ToDto(NoteEntity noteEntity) => new()
+  public static NoteDto ToDto(NoteEntity noteEntity) => new()
   {
     Id = NoteId.Create(noteEntity.Id),
     NavigationId = NavigationId.Create(noteEntity.Navigation ?? throw new InvalidOperationException()),
@@ -68,7 +66,7 @@ internal static class NoteMappers
     IsDeleted = noteEntity.IsDeleted
   };
 
-  public static NoteViewStateDbResponseDto ToDto(NoteViewStateEntity noteViewStateEntity) => new()
+  public static NoteViewStateDto ToDto(NoteViewStateEntity noteViewStateEntity) => new()
   {
     Id = NoteId.Create(noteViewStateEntity.Id),
     ShowBackgroundImage = noteViewStateEntity.ShowBackgroundImage,
@@ -90,20 +88,12 @@ internal static class NoteMappers
     IsAlwaysOnTop = noteViewStateEntity.IsAlwaysOnTop
   };
 
-  public static NoteBundleDbResponseDto ToDto(NoteEntity noteEntity, NoteViewStateEntity noteViewStateEntity) => new(ToDto(noteEntity), ToDto(noteViewStateEntity));
+  public static NoteBundleDto ToDto(NoteEntity noteEntity, NoteViewStateEntity noteViewStateEntity) => new(ToDto(noteEntity), ToDto(noteViewStateEntity));
 
-  public static NoteSearchDocument ToEntity(WriteNoteSearchDocumentRequestDto noteSearchDocumentDto) => new()
+  public static NoteSearchDocument ToEntity(NoteSearchDocumentDto noteSearchDocumentDto) => new()
   {
     Id = noteSearchDocumentDto.Id,
     Title = noteSearchDocumentDto.Title,
     Body = noteSearchDocumentDto.Body
   };
-}
-
-internal static class NoteMappingExtensions
-{
-  extension(WriteNoteSearchDocumentRequestDto dto)
-  {
-    public NoteSearchDocument ToEntity() => NoteMappers.ToEntity(dto);
-  }
 }

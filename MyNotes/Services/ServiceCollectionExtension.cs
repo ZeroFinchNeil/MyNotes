@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Navigations.Persistence;
-using MyNotes.Application.Contracts.Notes.Persistence;
+using MyNotes.Application.Contracts.Persistence.Navigations;
+using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;

@@ -36,5 +36,8 @@
     <ProjectReference Include="..\MyNotes.Shell.Contracts\MyNotes.Shell.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Queries\" />
+  </ItemGroup>
   
 </Project>

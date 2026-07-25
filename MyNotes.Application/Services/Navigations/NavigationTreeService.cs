@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Navigations.Persistence;
+﻿using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.ValueObjects;

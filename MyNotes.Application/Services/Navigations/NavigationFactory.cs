@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Navigations.Models.Common;
+﻿using MyNotes.Application.Contracts.Models.Navigations.Common;
 using MyNotes.Domain.Entities.Navigations;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Settings;

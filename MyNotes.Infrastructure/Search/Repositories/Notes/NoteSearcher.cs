@@ -2,8 +2,8 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-using MyNotes.Application.Contracts.Notes.Models.Search;
-using MyNotes.Application.Contracts.Notes.Persistence;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Mappers;
@@ -21,9 +21,9 @@ internal class NoteSearcher : INoteSearcher
     AppSearchContext = appSearchContext;
   }
 
-  public async Task<bool> WriteNoteIndexAsync(WriteNoteSearchDocumentRequestDto noteSearchDocumentDto, CancellationToken cancellationToken = default)
+  public async Task<bool> WriteNoteIndexAsync(NoteSearchDocumentDto noteSearchDocumentDto, CancellationToken cancellationToken = default)
   {
-    NoteSearchDocument document = noteSearchDocumentDto.ToEntity();
+    NoteSearchDocument document = NoteMappers.ToEntity(noteSearchDocumentDto);
     return await AppSearchContext.WriteNoteIndexAsync(document, cancellationToken);
   }
 
@@ -32,7 +32,7 @@ internal class NoteSearcher : INoteSearcher
     throw new System.NotImplementedException();
   }
 
-  public Task DeleteNoteIndexAsync(NoteId noteId, CancellationToken cancellationToken = default) =>  AppSearchContext.DeleteNoteIndexAsync(noteId.Value, cancellationToken);
+  public Task DeleteNoteIndexAsync(NoteId noteId, CancellationToken cancellationToken = default) => AppSearchContext.DeleteNoteIndexAsync(noteId.Value, cancellationToken);
 
   public Task CommitAsync(CancellationToken cancellationToken = default) => AppSearchContext.CommitAsync(cancellationToken);
 }

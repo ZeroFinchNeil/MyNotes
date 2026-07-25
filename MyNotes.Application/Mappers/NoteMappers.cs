@@ -1,9 +1,10 @@
-﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Contracts.Notes.Models.Common;
-using MyNotes.Application.Contracts.Notes.Models.Creation;
-using MyNotes.Application.Contracts.Notes.Models.Modification;
-using MyNotes.Application.Contracts.Notes.Models.Queries;
-using MyNotes.Application.Contracts.Notes.Models.Search;
+﻿using MyNotes.Application.Contracts.Enums.Notes;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Models.Notes.Common;
+using MyNotes.Application.Contracts.Models.Notes.Creation;
+using MyNotes.Application.Contracts.Models.Notes.Modification;
+using MyNotes.Application.Contracts.Models.Notes.Queries;
+using MyNotes.Application.Contracts.Models.Notes.Search;
 using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Dtos.Notes.Modification;
 using MyNotes.Application.Dtos.Notes.Queries;
@@ -17,6 +18,21 @@ namespace MyNotes.Application.Mappers;
 [AssemblyLocal]
 internal static class NoteMappers
 {
+  public static NoteDto ToDto(Note note) => new()
+  {
+    Id = note.Id,
+    NavigationId = note.NavigationId,
+    Created = note.Created,
+    Modified = note.Modified,
+    Title = note.Title,
+    Body = note.Body,
+    BodyImagePaths = note.BodyImagePaths,
+    BackgroundColor = note.BackgroundColor,
+    BackgroundImagePath = note.BackgroundImagePath,
+    IsBookmarked = note.IsBookmarked,
+    IsDeleted = note.IsDeleted
+  };
+
   public static NoteBundleAppResponseDto ToAppDto(NoteBundleDbResponseDto dbResponseDto) => new(ToAppDto(dbResponseDto.NoteDto), ToAppDto(dbResponseDto.ViewStateDto));
 
   public static NoteAppResponseDto ToAppDto(NoteDbResponseDto dbResponseDto) => new()
@@ -90,7 +106,7 @@ internal static class NoteMappers
     IsDeleted = note.IsDeleted
   };
 
-  public static FindNotesDbQuery ToDbQuery(FindNotesAppQuery query)
+  public static NoteFilterDto ToDbQuery(FindNotesAppQuery query)
   {
     var noteFindFields = query.FindFields;
 
@@ -162,17 +178,4 @@ internal static class NoteMappers
     IsWindowOpen = updateAppRequestDto.IsWindowOpen,
     IsAlwaysOnTop = updateAppRequestDto.IsAlwaysOnTop
   };
-}
-
-internal static class NoteMappingExtensions
-{
-  extension(Note note)
-  {
-    public CreateNoteDbRequestDto ToCreateDbDto() => NoteMappers.ToCreateDbDto(note);
-  }
-
-  extension(NoteBundleDbResponseDto dto)
-  {
-    public NoteBundleAppResponseDto ToAppDto() => NoteMappers.ToAppDto(dto);
-  }
 }

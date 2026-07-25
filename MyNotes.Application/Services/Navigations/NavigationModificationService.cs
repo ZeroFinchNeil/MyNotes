@@ -1,6 +1,6 @@
-﻿using MyNotes.Application.Contracts.Navigations.Enums;
-using MyNotes.Application.Contracts.Navigations.Models.Modification;
-using MyNotes.Application.Contracts.Navigations.Persistence;
+﻿using MyNotes.Application.Contracts.Enums.Navigations;
+using MyNotes.Application.Contracts.Models.Navigations.Modification;
+using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Dtos.Navigations.Modification;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.Entities.Navigations;

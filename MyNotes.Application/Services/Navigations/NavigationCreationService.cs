@@ -1,10 +1,10 @@
 ﻿using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Contracts.Navigations.Enums;
-using MyNotes.Application.Contracts.Navigations.Models.Common;
-using MyNotes.Application.Contracts.Navigations.Models.Retrieval;
-using MyNotes.Application.Contracts.Navigations.Persistence;
+using MyNotes.Application.Contracts.Enums.Navigations;
+using MyNotes.Application.Contracts.Models.Navigations.Common;
+using MyNotes.Application.Contracts.Models.Navigations.Retrieval;
+using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Dtos.Navigations.Common;
 using MyNotes.Application.Dtos.Navigations.Creation;
 using MyNotes.Application.Mappers;

@@ -1,8 +1,7 @@
-﻿using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Contracts.Notes.Models.Common;
-using MyNotes.Application.Contracts.Notes.Persistence;
-using MyNotes.Application.Dtos.Notes.Common;
-using MyNotes.Application.Dtos.Notes.Queries;
+﻿using MyNotes.Application.Contracts.Enums.Notes;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Models.Notes.Queries;
+using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Application.Mappers;
 using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
@@ -21,65 +20,57 @@ internal sealed partial class NoteRetrievalService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteBundleAppResponseDto?> GetNoteByIdAsync(NoteId noteId)
+  public async Task<NoteBundleDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
-    return await NoteRepository.GetNoteByIdAsync(noteId) is NoteBundleDbResponseDto dbDto
-      ? dbDto.ToAppDto()
-      : null;
+    return await NoteRepository.GetNoteByIdAsync(noteId, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false)
+  public async Task<IReadOnlyList<NoteBundleDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
-    var dbDtos = await NoteRepository.GetNotesByParentAsync(parentId, includeDeleted);
-    return [.. dbDtos.Select(NoteMappers.ToAppDto)];
+    return await NoteRepository.GetNotesByParentAsync(parentId, includeDeleted, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetBookmarkedNotesAsync(bool includeDeleted = false)
+  public async Task<IReadOnlyList<NoteBundleDto>> GetBookmarkedNotesAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
-    FindNotesAppQuery findNotesAppQuery = includeDeleted
+    NoteFilterDto noteFilterDto = includeDeleted
       ? new()
       {
-        FindFields = NoteFindFields.BookmarkedCondition,
+        NoteFindFields = NoteFindFields.BookmarkedCondition,
         BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
       }
       : new()
       {
-        FindFields = NoteFindFields.BookmarkedCondition | NoteFindFields.DeletedCondition,
+        NoteFindFields = NoteFindFields.BookmarkedCondition | NoteFindFields.DeletedCondition,
         BookmarkedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals),
         DeletedCondition = EqualityQueryCondition<bool>.Create(false, EqualityMatchType.Equals)
       };
-    return await FindNotesAsync(findNotesAppQuery);
+    return await FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetTrashedNotesAsync()
+  public async Task<IReadOnlyList<NoteBundleDto>> GetTrashedNotesAsync(CancellationToken cancellationToken = default)
   {
-    FindNotesAppQuery findNotesAppQuery = new()
+    NoteFilterDto noteFilterDto = new()
     {
-      FindFields = NoteFindFields.DeletedCondition,
+      NoteFindFields = NoteFindFields.DeletedCondition,
       DeletedCondition = EqualityQueryCondition<bool>.Create(true, EqualityMatchType.Equals)
     };
-    return await FindNotesAsync(findNotesAppQuery);
+    return await FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> FindNotesAsync(FindNotesAppQuery findNotesQuery)
+  public async Task<IReadOnlyList<NoteBundleDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
   {
-    List<NoteBundleAppResponseDto> noteDtos = new();
-    var dbResponseDtos = await NoteRepository.FindNotesAsync(NoteMappers.ToDbQuery(findNotesQuery));
-    foreach (var dbResponseDto in dbResponseDtos)
-    {
-      noteDtos.Add(dbResponseDto.ToAppDto());
-    }
-    return noteDtos.AsReadOnly();
+    return await NoteRepository.FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> SearchNotesAsync(SearchNotesAppQuery searchNotesAppQuery)
+  public async Task<IReadOnlyList<NoteBundleDto>> SearchNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
   {
-    List<NoteBundleAppResponseDto> noteDtos = new();
+    //List<NoteBundleAppResponseDto> noteDtos = new();
     //NoteSearcher.
-    return noteDtos.AsReadOnly();
+    //return noteDtos.AsReadOnly();
+    return [];
   }
 
-  public async Task<IReadOnlyList<NoteBundleAppResponseDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteBundleDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)
   {
     return [];
   }

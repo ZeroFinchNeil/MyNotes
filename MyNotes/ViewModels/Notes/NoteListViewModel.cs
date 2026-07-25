@@ -2,9 +2,10 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.Application.Dtos.Notes.Common;
-using MyNotes.Application.Dtos.Notes.Creation;
-using MyNotes.Application.Dtos.Notes.Queries;
+using MyNotes.Application.Commands.Notes;
+using MyNotes.Application.Contracts.Enums.Notes;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Models.Notes.Queries;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
@@ -13,7 +14,6 @@ using MyNotes.Common.Messages;
 using MyNotes.Common.Querying;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Mappers;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
@@ -34,12 +34,12 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
   private readonly MainWindowService MainWindowService;
-  private readonly IModelFactory<NoteBundleAppResponseDto, NoteModel> NoteModelFactory;
+  private readonly IModelFactory<NoteBundleDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(INativeWindowing nativeWindowing, SettingsService settingsService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteBundleDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     SettingsService = settingsService;
     NoteService = noteService;
@@ -252,12 +252,13 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         break;
       case NavigationSearch search:
         //todo: 검색 조건에 따른 쿼리 구성
-        SearchNotesAppQuery searchNotesAppQuery = new()
+        NoteFilterDto noteFilterDto = new()
         {
+          NoteFindFields = NoteFindFields.TitleConditions,
           TitleConditions = QueryConditionSet<StringQueryCondition>.Create(
             conditions: [StringQueryCondition.Create(target: search.SearchText, condition: TextMatchType.Contains)])
         };
-        var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(searchNotesAppQuery);
+        var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(noteFilterDto);
         if (searchResultDtos.Count == 0)
         {
           return;
@@ -460,13 +461,17 @@ partial class NoteListViewModel
         {
           var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
           var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
-          CreateNoteAppRequestDto appRequestDto = new()
+          CreateNoteAppCommand createNoteAppCommand = new()
           {
             NavigationId = leaf.Id,
             Size = size,
             Position = position
           };
-          var bundleDto = await NoteService.Creation.AddNoteAsync(appRequestDto);
+          var bundleDto = await NoteService.Creation.AddNoteAsync(createNoteAppCommand);
+          if (bundleDto is null)
+          {
+            return;
+          }
           NoteModel noteModel = NoteModelFactory.Create(bundleDto);
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(noteModel);
           NoteViewModels?.Add(noteViewModel);

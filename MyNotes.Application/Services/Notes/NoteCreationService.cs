@@ -1,9 +1,7 @@
-﻿using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Notes.Models.Creation;
-using MyNotes.Application.Contracts.Notes.Models.Search;
-using MyNotes.Application.Contracts.Notes.Persistence;
-using MyNotes.Application.Dtos.Notes.Common;
-using MyNotes.Application.Dtos.Notes.Creation;
+﻿using MyNotes.Application.Commands.Notes;
+using MyNotes.Application.Contracts.Database.Core;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Application.Mappers;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -25,7 +23,7 @@ internal sealed partial class NoteCreationService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteBundleAppResponseDto> AddNoteAsync(CreateNoteAppRequestDto appRequestDto, CancellationToken cancellationToken = default)
+  public async Task<NoteBundleDto?> AddNoteAsync(CreateNoteAppCommand createNoteAppCommand, CancellationToken cancellationToken = default)
   {
     // Generate new note id
     NoteId noteId = await NoteRepository.GenerateUniqueNoteIdAsync(cancellationToken);
@@ -35,17 +33,27 @@ internal sealed partial class NoteCreationService
 
     try
     {
-      Note note = NoteFactory.CreateDefaultNote(noteId, appRequestDto.NavigationId);
-      CreateNoteBundleDbRequestDto dbRequestDto = new(noteDto: note.ToCreateDbDto(), viewStateDto: NoteFactory.CreateDefaultNoteViewStateDto(noteId, appRequestDto.Size, appRequestDto.Position));
+      Note note = NoteFactory.CreateDefaultNote(noteId, createNoteAppCommand.NavigationId);
+      NoteDto noteDto = NoteMappers.ToDto(note);
+      NoteViewStateDto noteViewStateDto = NoteFactory.CreateDefaultNoteViewStateDto(noteId, createNoteAppCommand.Size, createNoteAppCommand.Position);
+      NoteBundleDto noteBundleDto = new(noteDto, noteViewStateDto);
 
-      var dbResponseDto = await NoteRepository.AddNoteAsync(dbRequestDto, appDbTransaction, cancellationToken);
+      await NoteRepository.AddNoteAsync(noteBundleDto, appDbTransaction, cancellationToken);
 
       // Add to Search Index
-      WriteNoteSearchDocumentRequestDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
-      _ = await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto, cancellationToken);
+      NoteSearchDocumentDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
+      var searchIndexResult = await NoteSearcher.WriteNoteIndexAsync(noteSearchDocumentDto, cancellationToken);
 
-      await appDbTransaction.CompleteAsync(true, cancellationToken);
-      return dbResponseDto.ToAppDto();
+      if (searchIndexResult)
+      {
+        await appDbTransaction.CompleteAsync(true, cancellationToken);
+        return noteBundleDto;
+      }
+      else
+      {
+        await appDbTransaction.RollbackAsync(CancellationToken.None);
+        return null;
+      }
     }
     catch
     {

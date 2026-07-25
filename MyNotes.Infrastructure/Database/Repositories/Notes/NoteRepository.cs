@@ -11,13 +11,11 @@ using DotNext;
 using Microsoft.EntityFrameworkCore;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Enums.Notes;
-using MyNotes.Application.Contracts.Notes.Models.Common;
-using MyNotes.Application.Contracts.Notes.Models.Creation;
-using MyNotes.Application.Contracts.Notes.Models.Modification;
-using MyNotes.Application.Contracts.Notes.Models.Queries;
-using MyNotes.Application.Contracts.Notes.Models.Retrieval;
-using MyNotes.Application.Contracts.Notes.Persistence;
+using MyNotes.Application.Contracts.Enums.Notes;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Models.Notes.Queries;
+using MyNotes.Application.Contracts.Persistence;
+using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Expressions;
 using MyNotes.Common.Querying;
@@ -53,28 +51,7 @@ internal class NoteRepository : INoteRepository
     return noteId;
   }
 
-  public async Task<NoteBundleDbResponseDto> AddNoteAsync(CreateNoteBundleDbRequestDto createBundleDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
-  {
-    var context = appDbTransactionContext.DbContext as AppDbContext
-      ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
-
-    try
-    {
-      NoteEntity noteEntity = NoteMappers.ToEntity(createBundleDbRequestDto.NoteDto);
-      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(createBundleDbRequestDto.ViewStateDto);
-
-      await context.NoteEntities.AddAsync(noteEntity, cancellationToken);
-      await context.NoteViewStateEntities.AddAsync(viewStateEntity, cancellationToken);
-
-      return NoteMappers.ToDto(noteEntity, viewStateEntity);
-    }
-    catch
-    {
-      throw;
-    }
-  }
-
-  public async Task<NoteBundleDbResponseDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<NoteBundleDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     return await context.NoteEntities
@@ -88,7 +65,7 @@ internal class NoteRepository : INoteRepository
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public async Task<NoteViewStateDbResponseDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<NoteViewStateDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     return await context.NoteViewStateEntities
@@ -98,38 +75,7 @@ internal class NoteRepository : INoteRepository
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public async Task<GetNoteFieldValuesDbResponseDto> GetNoteFieldValuesAsync(GetNoteFieldValuesDbRequestDto getFieldsDbRequestDto, CancellationToken cancellationToken = default)
-  {
-    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-
-    var id = getFieldsDbRequestDto.Id;
-    var getFields = getFieldsDbRequestDto.GetFields;
-    return await context.NoteEntities
-      .AsNoTracking()
-      .Where(e => e.Id == id.Value)
-      .Select(e => new GetNoteFieldValuesDbResponseDto()
-      {
-        Id = id,
-        NavigationId = getFields.HasFlag(NoteGetFields.NavigationId)
-          ? e.Navigation.HasValue
-            ? new(NavigationId.Create(e.Navigation.Value)) : new(null)
-          : Optional<NavigationId?>.None,
-        Created = getFields.HasFlag(NoteGetFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
-        Modified = getFields.HasFlag(NoteGetFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
-        Title = getFields.HasFlag(NoteGetFields.Title) ? new(e.Title) : Optional<string>.None,
-        Body = getFields.HasFlag(NoteGetFields.Body) ? new(e.Body) : Optional<string>.None,
-        BackgroundColor = getFields.HasFlag(NoteGetFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
-        IsBookmarked = getFields.HasFlag(NoteGetFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
-        IsDeleted = getFields.HasFlag(NoteGetFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,
-      })
-      .FirstOrDefaultAsync(cancellationToken)
-      ?? new GetNoteFieldValuesDbResponseDto()
-      {
-        Id = id
-      };
-  }
-
-  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted = false, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteBundleDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted, CancellationToken cancellationToken)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     Expression<Func<NoteEntity, bool>> predicate = includeDeleted
@@ -146,18 +92,47 @@ internal class NoteRepository : INoteRepository
       .ToListAsync(cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDbResponseDto>> FindNotesAsync(FindNotesDbQuery findDbQuery, CancellationToken cancellationToken = default)
+  public async Task<NoteProjectionDto> GetNoteFieldValuesAsync(NoteId noteId, NoteGetFields noteGetFields, CancellationToken cancellationToken = default)
+  {
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+
+    return await context.NoteEntities
+      .AsNoTracking()
+      .Where(e => e.Id == noteId.Value)
+      .Select(e => new NoteProjectionDto()
+      {
+        Id = noteId,
+        NavigationId = noteGetFields.HasFlag(NoteGetFields.NavigationId)
+          ? e.Navigation.HasValue
+            ? new(NavigationId.Create(e.Navigation.Value)) : new(null)
+          : Optional<NavigationId?>.None,
+        Created = noteGetFields.HasFlag(NoteGetFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
+        Modified = noteGetFields.HasFlag(NoteGetFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
+        Title = noteGetFields.HasFlag(NoteGetFields.Title) ? new(e.Title) : Optional<string>.None,
+        Body = noteGetFields.HasFlag(NoteGetFields.Body) ? new(e.Body) : Optional<string>.None,
+        BackgroundColor = noteGetFields.HasFlag(NoteGetFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
+        IsBookmarked = noteGetFields.HasFlag(NoteGetFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
+        IsDeleted = noteGetFields.HasFlag(NoteGetFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,
+      })
+      .FirstOrDefaultAsync(cancellationToken)
+      ?? new NoteProjectionDto()
+      {
+        Id = noteId
+      };
+  }
+
+  public async Task<IReadOnlyList<NoteBundleDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken)
   {
     //todo: DB에서 쿼리 조건에 따른 노트 가져오기
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    var expressions = MakeExpressions(findDbQuery);
+    var expressions = MakeExpressions(noteFilterDto);
     if (expressions.Count == 0)
     {
 
     }
 
-    var expression = findDbQuery.AggregationMode switch
+    var expression = noteFilterDto.AggregationMode switch
     {
       AggregationMode.All => expressions.AndAll(),
       AggregationMode.Any => expressions.OrAll(),
@@ -229,24 +204,24 @@ internal class NoteRepository : INoteRepository
     };
   }
 
-  public static IReadOnlyList<Expression<Func<NoteEntity, bool>>> MakeExpressions(FindNotesDbQuery query)
+  public static IReadOnlyList<Expression<Func<NoteEntity, bool>>> MakeExpressions(NoteFilterDto filter)
   {
-    var noteFindFields = query.NoteFindFields;
+    var noteFindFields = filter.NoteFindFields;
 
     if (noteFindFields == NoteFindFields.None)
     {
-      throw new ArgumentException("", nameof(query));
+      throw new ArgumentException("", nameof(filter));
     }
 
     List<Expression<Func<NoteEntity, bool>>> expressions = new();
     if (noteFindFields.HasFlag(NoteFindFields.NoteIdCondition))
     {
-      var noteIdCondition = query.NoteIdCondition ?? throw new ArgumentException("", nameof(query));
+      var noteIdCondition = filter.NoteIdCondition ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CreateExpression(noteIdCondition, e => e.Id));
     }
     if (noteFindFields.HasFlag(NoteFindFields.ParentIdCondition))
     {
-      var parentIdCondition = query.ParentIdCondition ?? throw new ArgumentException("", nameof(query));
+      var parentIdCondition = filter.ParentIdCondition ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CreateExpression(parentIdCondition, e => e.Id));
     }
     if (noteFindFields.HasFlag(NoteFindFields.TitleConditions))
@@ -255,12 +230,12 @@ internal class NoteRepository : INoteRepository
     }
     if (noteFindFields.HasFlag(NoteFindFields.CreatedConditions))
     {
-      var createdConditions = query.CreatedConditions ?? throw new ArgumentException("", nameof(query));
+      var createdConditions = filter.CreatedConditions ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CombineExpressions(createdConditions, e => e.Created));
     }
     if (noteFindFields.HasFlag(NoteFindFields.ModifiedConditions))
     {
-      var modifiedConditions = query.ModifiedConditions ?? throw new ArgumentException("", nameof(query));
+      var modifiedConditions = filter.ModifiedConditions ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CombineExpressions(modifiedConditions, e => e.Modified));
     }
     if (noteFindFields.HasFlag(NoteFindFields.BackgroundColorConditions))
@@ -268,200 +243,251 @@ internal class NoteRepository : INoteRepository
     }
     if (noteFindFields.HasFlag(NoteFindFields.BookmarkedCondition))
     {
-      var bookmarkedCondition = query.BookmarkedCondition ?? throw new ArgumentException("", nameof(query));
+      var bookmarkedCondition = filter.BookmarkedCondition ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CreateExpression(bookmarkedCondition, e => e.IsBookmarked));
     }
     if (noteFindFields.HasFlag(NoteFindFields.DeletedCondition))
     {
-      var deletedCondition = query.DeletedCondition ?? throw new ArgumentException("", nameof(query));
+      var deletedCondition = filter.DeletedCondition ?? throw new ArgumentException("", nameof(filter));
       expressions.Add(CreateExpression(deletedCondition, e => e.IsDeleted));
     }
 
     return expressions;
   }
 
-  public async Task<UpdateNoteDbResponseDto> UpdateNoteAsync(UpdateNoteDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  public async Task AddNoteAsync(NoteBundleDto noteBundleDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
-    var id = updateDbRequestDto.Id;
+    var context = appDbTransactionContext.DbContext as AppDbContext
+      ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
 
-    UpdateNoteDbResponseDto responseDto = new() { Id = id };
-    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-
-    if (!updateDbRequestDto.IsEmpty
-        && await context.NoteEntities.Where(e => e.Id == id.Value).SingleOrDefaultAsync(cancellationToken) is NoteEntity entity)
+    try
     {
-      if (updateDbRequestDto.NavigationId.TryGetSpecifiedValue(out var navigationId) && entity.Navigation != navigationId.Value)
-      {
-        entity.Navigation = navigationId.Value;
-        responseDto = responseDto with { NavigationId = navigationId };
-      }
-      if (updateDbRequestDto.Title.TryGet(out var title) && entity.Title != title)
-      {
-        entity.Title = title;
-        responseDto = responseDto with { Title = title };
-      }
-      if (updateDbRequestDto.Body.TryGet(out var body) && entity.Body != body)
-      {
-        entity.Body = body;
-        responseDto = responseDto with { Body = body };
-      }
-      if (updateDbRequestDto.BodyImagePaths.TryGet(out var bodyImagePaths) && JsonSerializer.Serialize(bodyImagePaths, AppJson.JsonSerializerOptions) is { } bodyImagePathsJson)
-      {
-        entity.BodyImagePaths = bodyImagePathsJson;
-        responseDto = responseDto with { BodyImagePaths = new(bodyImagePaths) };
-      }
-      if (updateDbRequestDto.BackgroundColor.TryGet(out var backgroundColor) && entity.BackgroundColor != backgroundColor)
-      {
-        entity.BackgroundColor = backgroundColor;
-        responseDto = responseDto with { BackgroundColor = backgroundColor };
-      }
-      if (updateDbRequestDto.BackgroundImagePath.TryGet(out var backgroundImagePath) && entity.BackgroundImagePath != backgroundImagePath)
-      {
-        entity.BackgroundImagePath = backgroundImagePath;
-        responseDto = responseDto with { BackgroundImagePath = backgroundImagePath };
-      }
-      if (updateDbRequestDto.IsBookmarked.TryGet(out var isBookmarked) && entity.IsBookmarked != isBookmarked)
-      {
-        entity.IsBookmarked = isBookmarked;
-        responseDto = responseDto with { IsBookmarked = isBookmarked };
-      }
-      if (updateDbRequestDto.IsDeleted.TryGet(out var isDeleted) && entity.IsDeleted != isDeleted)
-      {
-        entity.IsDeleted = isDeleted;
-        responseDto = responseDto with { IsDeleted = isDeleted };
-      }
+      NoteEntity noteEntity = NoteMappers.ToEntity(noteBundleDto.NoteDto);
+      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(noteBundleDto.NoteViewStateDto);
 
-      var modified = updateDbRequestDto.Modified;
-      if (!responseDto.IsEmpty && entity.Modified < modified)
-      {
-        entity.Modified = modified;
-        responseDto = responseDto with { Modified = modified };
-      }
-      var result = await context.SaveChangesAsync(cancellationToken);
+      await context.NoteEntities.AddAsync(noteEntity, cancellationToken);
+      await context.NoteViewStateEntities.AddAsync(viewStateEntity, cancellationToken);
     }
-
-    return responseDto;
+    catch
+    {
+      throw;
+    }
   }
 
-  public async Task<UpdateNoteViewStateDbResponseDto> UpdateNoteViewStateAsync(UpdateNoteViewStateDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  public async Task<PersistenceMutationStatus> UpdateNoteAsync(NotePatchDto notePatchDto, DateTimeOffset modified, CancellationToken cancellationToken = default)
   {
-    var id = updateDbRequestDto.Id;
-    UpdateNoteViewStateDbResponseDto responseDto = new() { Id = id };
-
-    if (updateDbRequestDto.IsEmpty)
+    if (notePatchDto.IsEmpty)
     {
-      return responseDto;
+      return PersistenceMutationStatus.Unchanged;
     }
 
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-    var updateResult = await context.EnqueueOperationAsync(
-      operation: () => context.NoteViewStateEntities
-        .Where(e => e.Id == id.Value)
-        .ExecuteUpdate(setters =>
+    await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+    try
+    {
+      if (await context.NoteEntities.Where(e => e.Id == notePatchDto.Id.Value).SingleOrDefaultAsync(cancellationToken) is NoteEntity entity)
+      {
+        if (entity.Modified < modified)
         {
-          if (updateDbRequestDto.ShowBackgroundImage.TryGet(out var showBackgroundImage))
-          {
-            setters.SetProperty(e => e.ShowBackgroundImage, showBackgroundImage);
-          }
-          if (updateDbRequestDto.BackgroundImageStretch.TryGet(out var backgroundImageStretch))
-          {
-            setters.SetProperty(e => e.BackgroundImageStretch, backgroundImageStretch);
-          }
-          if (updateDbRequestDto.BackgroundImageAlignment.TryGet(out var backgroundImageAlignment))
-          {
-            setters.SetProperty(e => e.BackgroundImageAlignment, backgroundImageAlignment);
-          }
-          if (updateDbRequestDto.BackgroundImageOpacity.TryGet(out var backgroundImageOpacity))
-          {
-            setters.SetProperty(e => e.BackgroundImageOpacity, backgroundImageOpacity);
-          }
-          if (updateDbRequestDto.BackgroundImageBlur.TryGet(out var backgroundImageBlur))
-          {
-            setters.SetProperty(e => e.BackgroundImageBlur, backgroundImageBlur);
-          }
-          if (updateDbRequestDto.BackdropKind.TryGet(out var backdropKind))
-          {
-            setters.SetProperty(e => e.BackdropKind, backdropKind);
-          }
-          if (updateDbRequestDto.BackdropTintOpacity.TryGet(out var backdropTintOpacity))
-          {
-            setters.SetProperty(e => e.BackdropTintOpacity, backdropTintOpacity);
-          }
-          if (updateDbRequestDto.BackdropLuminosityOpacity.TryGet(out var backdropLuminosityOpacity))
-          {
-            setters.SetProperty(e => e.BackdropLuminosityOpacity, backdropLuminosityOpacity);
-          }
-          if (updateDbRequestDto.ShowImagePanel.TryGet(out var showImagePanel))
-          {
-            setters.SetProperty(e => e.ShowImagePanel, showImagePanel);
-          }
-          if (updateDbRequestDto.ImagePanelHeight.TryGet(out var imagePanelHeight))
-          {
-            setters.SetProperty(e => e.ImagePanelHeight, imagePanelHeight);
-          }
-          if (updateDbRequestDto.Width.TryGet(out var width))
-          {
-            setters.SetProperty(e => e.Width, width);
-          }
-          if (updateDbRequestDto.Height.TryGet(out var height))
-          {
-            setters.SetProperty(e => e.Height, height);
-          }
-          if (updateDbRequestDto.PositionX.TryGet(out var positionX))
-          {
-            setters.SetProperty(e => e.PositionX, positionX);
-          }
-          if (updateDbRequestDto.PositionY.TryGet(out var positionY))
-          {
-            setters.SetProperty(e => e.PositionY, positionY);
-          }
-          if (updateDbRequestDto.IsTextEditorReadOnly.TryGet(out var isTextEditorReadOnly))
-          {
-            setters.SetProperty(e => e.IsTextEditorReadOnly, isTextEditorReadOnly);
-          }
-          if (updateDbRequestDto.IsWindowOpen.TryGet(out var isWindowOpen))
-          {
-            setters.SetProperty(e => e.IsWindowOpen, isWindowOpen);
-          }
-          if (updateDbRequestDto.IsAlwaysOnTop.TryGet(out var isAlwaysOnTop))
-          {
-            setters.SetProperty(e => e.IsAlwaysOnTop, isAlwaysOnTop);
-          }
-        }),
-      defaultValue: 0,
-      fallbackValue: 0,
-      cancellationToken: cancellationToken);
+          return PersistenceMutationStatus.Expired;
+        }
 
-    return responseDto;
+        if (notePatchDto.NavigationId.TryGetSpecifiedValue(out var navigationId) && entity.Navigation != navigationId.Value)
+        {
+          entity.Navigation = navigationId.Value;
+        }
+        if (notePatchDto.Title.TryGet(out var title) && entity.Title != title)
+        {
+          entity.Title = title;
+        }
+        if (notePatchDto.Body.TryGet(out var body) && entity.Body != body)
+        {
+          entity.Body = body;
+        }
+        if (notePatchDto.BodyImagePaths.TryGet(out var bodyImagePaths) && JsonSerializer.Serialize(bodyImagePaths, AppJson.JsonSerializerOptions) is { } bodyImagePathsJson)
+        {
+          entity.BodyImagePaths = bodyImagePathsJson;
+        }
+        if (notePatchDto.BackgroundColor.TryGet(out var backgroundColor) && entity.BackgroundColor != backgroundColor)
+        {
+          entity.BackgroundColor = backgroundColor;
+        }
+        if (notePatchDto.BackgroundImagePath.TryGet(out var backgroundImagePath) && entity.BackgroundImagePath != backgroundImagePath)
+        {
+          entity.BackgroundImagePath = backgroundImagePath;
+        }
+        if (notePatchDto.IsBookmarked.TryGet(out var isBookmarked) && entity.IsBookmarked != isBookmarked)
+        {
+          entity.IsBookmarked = isBookmarked;
+        }
+        if (notePatchDto.IsDeleted.TryGet(out var isDeleted) && entity.IsDeleted != isDeleted)
+        {
+          entity.IsDeleted = isDeleted;
+        }
+
+        var updateResult = await context.SaveChangesAsync(cancellationToken);
+
+        if (updateResult > 0)
+        {
+          entity.Modified = modified;
+          var result = await context.SaveChangesAsync(cancellationToken);
+          if (result > 0)
+          {
+            await transaction.CommitAsync(cancellationToken);
+            return PersistenceMutationStatus.Applied;
+          }
+        }
+        await transaction.RollbackAsync(cancellationToken);
+        return PersistenceMutationStatus.Unchanged;
+      }
+      else
+      {
+        return PersistenceMutationStatus.NotFound;
+      }
+    }
+    catch
+    {
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.Unchanged;
+    }
   }
 
-  public async Task<bool> DeleteNoteAsync(DeleteNoteDbRequestDto deleteDbRequestDto, CancellationToken cancellationToken = default)
+  public async Task<PersistenceMutationStatus> UpdateNoteViewStateAsync(NoteViewStatePatchDto noteViewStatePatchDto, CancellationToken cancellationToken = default)
   {
-    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-    var id = deleteDbRequestDto.Id;
 
-    switch (deleteDbRequestDto.DeleteMode)
+    if (noteViewStatePatchDto.IsEmpty)
     {
-      case DeleteMode.MoveToTrash:
-        var updateResult = await context.EnqueueOperationAsync(
-          operation: () => context.NoteEntities
-          .Where(e => e.Id == id.Value && !e.IsDeleted)
-          .ExecuteUpdate(setters => setters.SetProperty(e => e.IsDeleted, true)),
-          defaultValue: 0,
-          fallbackValue: 0,
-          cancellationToken: cancellationToken);
-        return updateResult > 0;
-      case DeleteMode.Permanent:
-        var deleteResult = await context.EnqueueOperationAsync(
-          operation: () => context.NoteEntities
-          .Where(e => e.Id == id.Value)
-          .ExecuteDelete(),
-          defaultValue: 0,
-          fallbackValue: 0,
-          cancellationToken: cancellationToken);
-        return deleteResult > 0;
+      return PersistenceMutationStatus.Unchanged;
     }
 
-    return false;
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+    try
+    {
+      var updateResult = await context.EnqueueOperationAsync(
+        operation: () => context.NoteViewStateEntities
+          .Where(e => e.Id == noteViewStatePatchDto.Id.Value)
+          .ExecuteUpdate(setters =>
+          {
+            if (noteViewStatePatchDto.ShowBackgroundImage.TryGet(out var showBackgroundImage))
+            {
+              setters.SetProperty(e => e.ShowBackgroundImage, showBackgroundImage);
+            }
+            if (noteViewStatePatchDto.BackgroundImageStretch.TryGet(out var backgroundImageStretch))
+            {
+              setters.SetProperty(e => e.BackgroundImageStretch, backgroundImageStretch);
+            }
+            if (noteViewStatePatchDto.BackgroundImageAlignment.TryGet(out var backgroundImageAlignment))
+            {
+              setters.SetProperty(e => e.BackgroundImageAlignment, backgroundImageAlignment);
+            }
+            if (noteViewStatePatchDto.BackgroundImageOpacity.TryGet(out var backgroundImageOpacity))
+            {
+              setters.SetProperty(e => e.BackgroundImageOpacity, backgroundImageOpacity);
+            }
+            if (noteViewStatePatchDto.BackgroundImageBlur.TryGet(out var backgroundImageBlur))
+            {
+              setters.SetProperty(e => e.BackgroundImageBlur, backgroundImageBlur);
+            }
+            if (noteViewStatePatchDto.BackdropKind.TryGet(out var backdropKind))
+            {
+              setters.SetProperty(e => e.BackdropKind, backdropKind);
+            }
+            if (noteViewStatePatchDto.BackdropTintOpacity.TryGet(out var backdropTintOpacity))
+            {
+              setters.SetProperty(e => e.BackdropTintOpacity, backdropTintOpacity);
+            }
+            if (noteViewStatePatchDto.BackdropLuminosityOpacity.TryGet(out var backdropLuminosityOpacity))
+            {
+              setters.SetProperty(e => e.BackdropLuminosityOpacity, backdropLuminosityOpacity);
+            }
+            if (noteViewStatePatchDto.ShowImagePanel.TryGet(out var showImagePanel))
+            {
+              setters.SetProperty(e => e.ShowImagePanel, showImagePanel);
+            }
+            if (noteViewStatePatchDto.ImagePanelHeight.TryGet(out var imagePanelHeight))
+            {
+              setters.SetProperty(e => e.ImagePanelHeight, imagePanelHeight);
+            }
+            if (noteViewStatePatchDto.Width.TryGet(out var width))
+            {
+              setters.SetProperty(e => e.Width, width);
+            }
+            if (noteViewStatePatchDto.Height.TryGet(out var height))
+            {
+              setters.SetProperty(e => e.Height, height);
+            }
+            if (noteViewStatePatchDto.PositionX.TryGet(out var positionX))
+            {
+              setters.SetProperty(e => e.PositionX, positionX);
+            }
+            if (noteViewStatePatchDto.PositionY.TryGet(out var positionY))
+            {
+              setters.SetProperty(e => e.PositionY, positionY);
+            }
+            if (noteViewStatePatchDto.IsTextEditorReadOnly.TryGet(out var isTextEditorReadOnly))
+            {
+              setters.SetProperty(e => e.IsTextEditorReadOnly, isTextEditorReadOnly);
+            }
+            if (noteViewStatePatchDto.IsWindowOpen.TryGet(out var isWindowOpen))
+            {
+              setters.SetProperty(e => e.IsWindowOpen, isWindowOpen);
+            }
+            if (noteViewStatePatchDto.IsAlwaysOnTop.TryGet(out var isAlwaysOnTop))
+            {
+              setters.SetProperty(e => e.IsAlwaysOnTop, isAlwaysOnTop);
+            }
+          }),
+        defaultValue: 0,
+        fallbackValue: 0,
+        cancellationToken: cancellationToken);
+
+      return updateResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+    }
+    catch
+    {
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.Unchanged;
+    }
+  }
+
+  public async Task<PersistenceMutationStatus> DeleteNoteAsync(NoteId noteId, DeleteMode deleteMode, CancellationToken cancellationToken = default)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+    try
+    {
+      switch (deleteMode)
+      {
+        case DeleteMode.MoveToTrash:
+          var updateResult = await context.EnqueueOperationAsync(
+            operation: () => context.NoteEntities
+              .Where(e => e.Id == noteId.Value && !e.IsDeleted)
+              .ExecuteUpdate(setters => setters.SetProperty(e => e.IsDeleted, true)),
+            defaultValue: 0,
+            fallbackValue: 0,
+            cancellationToken: cancellationToken);
+          return updateResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+        case DeleteMode.Permanent:
+          var deleteResult = await context.EnqueueOperationAsync(
+            operation: () => context.NoteEntities
+              .Where(e => e.Id == noteId.Value)
+              .ExecuteDelete(),
+            defaultValue: 0,
+            fallbackValue: 0,
+            cancellationToken: cancellationToken);
+          return deleteResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+        default:
+          return PersistenceMutationStatus.Unchanged;
+      }
+    }
+    catch
+    {
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.Unchanged;
+    }
   }
 }
