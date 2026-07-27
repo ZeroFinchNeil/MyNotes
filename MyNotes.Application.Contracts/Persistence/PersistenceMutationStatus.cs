@@ -5,5 +5,6 @@ internal enum PersistenceMutationStatus
   Applied,
   Unchanged,
   NotFound,
-  Expired
+  Expired,
+  Failed
 }

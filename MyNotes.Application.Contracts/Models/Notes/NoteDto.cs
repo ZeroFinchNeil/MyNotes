@@ -28,4 +28,6 @@ internal sealed record NoteDto
   public required bool IsBookmarked { get; init; }
 
   public required bool IsDeleted { get; init; }
+
+  public required NoteViewStateDto ViewStateDto { get; init; }
 }

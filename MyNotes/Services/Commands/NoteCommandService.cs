@@ -2,9 +2,8 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Commands.Notes;
-using MyNotes.Application.Dtos.Notes.Common;
-using MyNotes.Application.Dtos.Notes.Creation;
-using MyNotes.Application.Dtos.Notes.Modification;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Results;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
@@ -34,7 +33,7 @@ internal sealed class NoteCommandService : ICommandService
 {
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
-  private readonly IModelFactory<NoteBundleAppResponseDto, NoteModel> NoteModelFactory;
+  private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly NoteListViewModelProvider NoteListViewModelProvider;
   private readonly NavigationController NavigationController;
@@ -57,7 +56,7 @@ internal sealed class NoteCommandService : ICommandService
   public NoteCommandService(
     NoteService noteService,
     NoteWindowService noteWindowService,
-    IModelFactory<NoteBundleAppResponseDto, NoteModel> noteModelFactory,
+    IModelFactory<NoteDto, NoteModel> noteModelFactory,
     NoteViewModelProvider noteViewModelProvider,
     NoteListViewModelProvider noteListViewModelProvider,
     NavigationController navigationController,
@@ -122,20 +121,19 @@ internal sealed class NoteCommandService : ICommandService
         }
 
         sourceNote.NavigationId = newNavigationId;
-        UpdateNoteAppRequestDto updateAppRequestDto = new()
+
+        UpdateNoteAppCommand updateAppCommand = new()
         {
-          Id = sourceNote.Id,
-          NavigationId = new(newNavigationId)
+          PatchDto = new NotePatchDto()
+          {
+            Id = sourceNote.Id,
+            NavigationId = newNavigationId,
+          }
         };
 
-        var updateAppResponseDto = await NoteService.Modification.UpdateNoteAsync(updateAppRequestDto);
+        var updateResult = await NoteService.Modification.UpdateNoteAsync(updateAppCommand);
 
-        if (updateAppResponseDto.IsEmpty)
-        {
-          return;
-        }
-
-        if (updateAppResponseDto.NavigationId.TryGet(out var navigationId) && navigationId == newNavigationId)
+        if (updateResult.Status is AppUpdateStatus.Succeeded)
         {
           if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
               && s is UserListNavigationViewModel sourceViewModel
@@ -144,10 +142,7 @@ internal sealed class NoteCommandService : ICommandService
           {
             noteListViewModel.NoteViewModels.Remove(sourceNoteViewModel);
           }
-        }
-        if (updateAppResponseDto.Modified.TryGet(out var modified))
-        {
-          sourceNote.Modified = modified;
+          sourceNote.Modified = updateResult.Modified ?? throw new InvalidOperationException();
         }
       }
     };
@@ -163,14 +158,14 @@ internal sealed class NoteCommandService : ICommandService
           var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
           var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
 
-          CreateNoteAppCommand createNoteAppCommand = new()
+          CreateNoteAppCommand appCommand = new()
           {
             NavigationId = navigationViewModel.Navigation.Id,
             Size = size,
             Position = position
           };
 
-          if (await NoteService.Creation.AddNoteAsync(appRequestDto) is NoteBundleAppResponseDto newNoteDto)
+          if (await NoteService.Creation.AddNoteAsync(appCommand) is NoteDto newNoteDto)
           {
             NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);
             NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
@@ -210,20 +205,21 @@ internal sealed class NoteCommandService : ICommandService
       ExecuteFunc = async (noteModel) =>
       {
         var oldState = noteModel.IsBookmarked;
-        UpdateNoteAppRequestDto requestDto = new()
+        var newState = !oldState;
+        UpdateNoteAppCommand appCommand = new()
         {
-          Id = noteModel.Id,
-          IsBookmarked = new(!oldState)
-        };
-        var responseDto = await NoteService.Modification.UpdateNoteAsync(requestDto);
-        if (responseDto.IsBookmarked.TryGet(out var changedState) && changedState == !oldState)
-        {
-          noteModel.IsBookmarked = changedState;
-          WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(noteModel, nameof(NoteModel.IsBookmarked), oldState, changedState), AppMessageTokens.ChangeNoteIsBookmarkedStateToken);
-          if (responseDto.Modified.TryGet(out var modified))
+          PatchDto = new NotePatchDto()
           {
-            noteModel.Modified = modified;
+            Id = noteModel.Id,
+            IsBookmarked = new(newState)
           }
+        };
+        var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
+        if (updateResult.Status is AppUpdateStatus.Succeeded)
+        {
+          noteModel.IsBookmarked = newState;
+          WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(noteModel, nameof(NoteModel.IsBookmarked), oldState, newState), AppMessageTokens.ChangeNoteIsBookmarkedStateToken);
+          noteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
         }
       }
     };
@@ -239,12 +235,14 @@ internal sealed class NoteCommandService : ICommandService
           var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, preferredDeleteMode);
           if (dialogResponse.Result == ContentDialogResult.Primary)
           {
-            DeleteNoteAppRequestDto deleteAppRequestDto = new()
+            DeleteNoteAppCommand deleteCommand = new()
             {
               Id = noteModel.Id,
               DeleteMode = dialogResponse.Data
             };
-            if (await NoteService.Modification.DeleteNoteAsync(deleteAppRequestDto))
+
+            var deleteResult = await NoteService.Modification.DeleteNoteAsync(deleteCommand);
+            if (deleteResult is AppUpdateStatus.Succeeded)
             {
               noteModel.IsDeleted = true;
 
@@ -268,19 +266,20 @@ internal sealed class NoteCommandService : ICommandService
   public async Task RenameNoteTitle(NoteModel noteModel, string oldTitle)
   {
     string newTitle = noteModel.Title;
-    UpdateNoteAppRequestDto requestDto = new()
+    UpdateNoteAppCommand appCommand = new()
     {
-      Id = noteModel.Id,
-      Title = new(newTitle)
-    };
-    var responseDto = await NoteService.Modification.UpdateNoteAsync(requestDto);
-
-    if (responseDto.Title.TryGet(out var changedTitle) && changedTitle == newTitle)
-    {
-      if (responseDto.Modified.TryGet(out var modified))
+      PatchDto = new NotePatchDto()
       {
-        noteModel.Modified = modified;
+        Id = noteModel.Id,
+        Title = new(newTitle)
       }
+    };
+
+    var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
+
+    if (updateResult.Status is AppUpdateStatus.Succeeded)
+    {
+      noteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
       await JumpListService.EditJumpListItemAsync(NoteMappers.ToDomain(noteModel));
       return;
     }

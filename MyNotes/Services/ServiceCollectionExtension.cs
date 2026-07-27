@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Database.Core;
+using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Contracts.Persistence.Notes;
-using MyNotes.Application.Dtos.Notes.Common;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -44,8 +44,8 @@ internal static class ServiceCollectionExtension
     public void AddNoteServices()
     {
       // Presentation
-      services.AddSingleton<IModelFactory<NoteBundleAppResponseDto, NoteModel>, NoteModelFactory>();
-      services.AddSingleton<IModelUpdater<NoteBundleAppResponseDto, NoteModel>, NoteModelUpdater>();
+      services.AddSingleton<IModelFactory<NoteDto, NoteModel>, NoteModelFactory>();
+      services.AddSingleton<IModelUpdater<NoteDto, NoteModel>, NoteModelUpdater>();
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
 
       // Application
@@ -69,7 +69,6 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NavigationService>();
 
       services.AddSingleton<NavigationArrangementService>();
-      services.AddSingleton<NavigationTreeService>();
       services.AddSingleton<NavigationCreationService>();
       services.AddSingleton<NavigationRetrievalService>();
       services.AddSingleton<NavigationModificationService>();

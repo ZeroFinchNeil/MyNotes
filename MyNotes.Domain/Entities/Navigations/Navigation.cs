@@ -9,11 +9,11 @@ internal sealed class Navigation
 {
   public NavigationId Id { get; init; }
 
-  private NavigationId _parent;
-  public NavigationId Parent
+  private NavigationId _parentId;
+  public NavigationId ParentId
   {
-    get => _parent;
-    set => SetProperty(ref _parent, value);
+    get => _parentId;
+    set => SetProperty(ref _parentId, value);
   }
 
   public bool IsComposite { get; init; }
@@ -39,10 +39,10 @@ internal sealed class Navigation
     set => SetProperty(ref _isDeleted, value);
   }
 
-  public Navigation(NavigationId id, NavigationId parent, bool isComposite, int icon, string title, bool isDeleted)
+  public Navigation(NavigationId id, NavigationId parentId, bool isComposite, int icon, string title, bool isDeleted)
   {
     Id = id;
-    _parent = parent;
+    _parentId = parentId;
     IsComposite = isComposite;
     _icon = icon;
     _title = title;
@@ -51,16 +51,16 @@ internal sealed class Navigation
     ValidateProperties();
   }
 
-  private static void Validate(NavigationId id, NavigationId parent, bool isComposite, int icon, string title, bool isDeleted)
+  private static void Validate(NavigationId id, NavigationId parentId, bool isComposite, int icon, string title, bool isDeleted)
   {
     if (!NavigationId.IsValidId(id))
     {
       throw new InvalidArgumentValueException("유효하지 않은 Id입니다.", nameof(id));
     }
 
-    if (!NavigationId.IsValidParentId(parent))
+    if (!NavigationId.IsValidParentId(parentId))
     {
-      throw new InvalidArgumentValueException("유효하지 않은 Parent Id입니다.", nameof(parent));
+      throw new InvalidArgumentValueException("유효하지 않은 Parent Id입니다.", nameof(parentId));
     }
 
     ArgumentOutOfRangeException.ThrowIfNegative(icon, nameof(icon));
@@ -78,5 +78,5 @@ internal sealed class Navigation
     return false;
   }
 
-  private void ValidateProperties() => Validate(Id, Parent, IsComposite, Icon, Title, IsDeleted);
+  private void ValidateProperties() => Validate(Id, ParentId, IsComposite, Icon, Title, IsDeleted);
 }

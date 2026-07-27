@@ -1,34 +1,34 @@
-﻿using MyNotes.Application.Dtos.Navigations.Common;
+﻿using MyNotes.Application.Contracts.Models.Navigations;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Navigations;
+using MyNotes.Templates;
 
 namespace MyNotes.Mappers;
 
 internal static class NavigationMappers
 {
-  public static NavigationUserNode ToModel(NavigationBundleAppResponseDto dto, NavigationUserCompositeNode parentNode) => dto switch
+  public static NavigationUserNode ToModel(NavigationTreeNodeDto dto, NavigationUserCompositeNode parentNode) => dto switch
   {
-    CompositeNavigationBundleAppResponseDto compositeDto => ToCompositeNode(compositeDto, parentNode),
-    LeafNavigationBundleAppResponseDto leafDto => ToLeafNode(leafDto, parentNode),
+    CompositeNavigationTreeNodeDto compositeDto => ToCompositeNode(compositeDto, parentNode),
+    LeafNavigationTreeNodeDto leafDto => ToLeafNode(leafDto, parentNode),
     _ => throw new InvalidOperationException($"지원하지 않는 navigation DTO 타입입니다: {dto.GetType().Name}")
   };
 
-  private static NavigationUserCompositeNode ToCompositeNode(CompositeNavigationBundleAppResponseDto compositeDto, NavigationUserCompositeNode parentNode)
+  private static NavigationUserCompositeNode ToCompositeNode(CompositeNavigationTreeNodeDto compositeDto, NavigationUserCompositeNode parentNode)
   {
-    
     NavigationUserCompositeNode compositeNode = compositeDto.Id == NavigationId.UserRoot
       ? NavigationUserRootNode.Instance
       : new NavigationUserCompositeNode()
       {
         Id = compositeDto.Id,
         Parent = parentNode,
-        Icon = compositeDto.NavigationDto.Icon,
-        Title = compositeDto.NavigationDto.Title,
-        IsExpanded = compositeDto.ViewStateDto.IsExpanded
+        Icon = (Icon)compositeDto.Icon,
+        Title = compositeDto.Title,
+        IsExpanded = ((CompositeNavigationViewStateDto)compositeDto.ViewStateDto).IsExpanded
       };
     foreach (var childDto in compositeDto.Children)
     {
-      if (childDto.NavigationDto.IsDeleted)
+      if (childDto.IsDeleted)
       {
         continue;
       }
@@ -37,18 +37,56 @@ internal static class NavigationMappers
     return compositeNode;
   }
 
-  private static NavigationUserLeafNode ToLeafNode(LeafNavigationBundleAppResponseDto leafDto, NavigationUserCompositeNode parentNode) => new()
+  private static NavigationUserLeafNode ToLeafNode(LeafNavigationTreeNodeDto leafDto, NavigationUserCompositeNode parentNode)
   {
-    Id = leafDto.NavigationDto.Id,
-    Parent = parentNode,
-    Icon = leafDto.NavigationDto.Icon,
-    Title = leafDto.NavigationDto.Title,
-    NoteSortKey = leafDto.ViewStateDto.NoteSortKey,
-    NoteSortDirection = leafDto.ViewStateDto.NoteSortDirection,
-    PreviewLayoutType = leafDto.ViewStateDto.PreviewLayoutType,
-    PreviewTileSize = leafDto.ViewStateDto.PreviewTileSize,
-    PreviewTileRatio = leafDto.ViewStateDto.PreviewTileRatio
-  };
+    var viewStateDto = (LeafNavigationViewStateDto)leafDto.ViewStateDto;
+    return new()
+    {
+      Id = leafDto.Id,
+      Parent = parentNode,
+      Icon = (Icon)leafDto.Icon,
+      Title = leafDto.Title,
+      NoteSortKey = viewStateDto.NoteSortKey,
+      NoteSortDirection = viewStateDto.NoteSortDirection,
+      PreviewLayoutType = viewStateDto.PreviewLayoutType,
+      PreviewTileSize = viewStateDto.PreviewTileSize,
+      PreviewTileRatio = viewStateDto.PreviewTileRatio
+    };
+  }
+
+  public static NavigationUserNode ToModel(NavigationDto dto, NavigationUserCompositeNode parentNode)
+  {
+    NavigationViewStateDto viewStateDto = dto.ViewStateDto;
+    if (dto.IsComposite && viewStateDto is CompositeNavigationViewStateDto compositeViewStateDto)
+    {
+      return new NavigationUserCompositeNode()
+      {
+        Id = dto.Id,
+        Parent = parentNode,
+        Icon = (Icon)dto.Icon,
+        Title = dto.Title,
+        IsExpanded = compositeViewStateDto.IsExpanded,
+      };
+    }
+
+    if (!dto.IsComposite && viewStateDto is LeafNavigationViewStateDto leafViewStateDto)
+    {
+      return new NavigationUserLeafNode()
+      {
+        Id = dto.Id,
+        Parent = parentNode,
+        Icon = (Icon)dto.Icon,
+        Title = dto.Title,
+        NoteSortKey = leafViewStateDto.NoteSortKey,
+        NoteSortDirection = leafViewStateDto.NoteSortDirection,
+        PreviewLayoutType = leafViewStateDto.PreviewLayoutType,
+        PreviewTileSize = leafViewStateDto.PreviewTileSize,
+        PreviewTileRatio = leafViewStateDto.PreviewTileRatio,
+      };
+    }
+
+    throw new InvalidOperationException();
+  }
 }
 
 internal static class NavigationMappingExtensions

@@ -1,12 +1,9 @@
-﻿using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Dtos.Navigations.Creation;
+﻿using MyNotes.Application.Commands.Navigations;
+using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations.Common;
-using MyNotes.Application.Contracts.Models.Navigations.Retrieval;
+using MyNotes.Application.Contracts.Models.Navigations;
 using MyNotes.Application.Contracts.Persistence.Navigations;
-using MyNotes.Application.Dtos.Navigations.Common;
-using MyNotes.Application.Dtos.Navigations.Creation;
 using MyNotes.Application.Mappers;
 using MyNotes.Common.Exceptions;
 using MyNotes.Domain.Entities.Navigations;
@@ -28,34 +25,28 @@ internal sealed partial class NavigationCreationService
     NavigationFactory = navigationFactory;
   }
 
-  public async Task<NavigationBundleAppResponseDto?> AddNavigationAsync(CreateNavigationAppRequestDto createAppRequestDto, CancellationToken cancellationToken = default)
+  public async Task<NavigationDto?> AddNavigationAsync(CreateNavigationAppCommand appCommand, CancellationToken cancellationToken = default)
   {
-    NavigationId insertTargetId = createAppRequestDto.InsertTargetId;
-    NavigationInsertPosition insertPosition = createAppRequestDto.InsertPosition;
+    NavigationId insertTargetId = appCommand.InsertTargetId;
+    NavigationInsertPosition insertPosition = appCommand.InsertPosition;
 
     // Insert Target Navigation이 DB에 존재하는지 확인 후 Id와 Parent, IsComposite 속성 가져옴
-    NavigationGetFields getFields = NavigationGetFields.Id | NavigationGetFields.Parent | NavigationGetFields.IsComposite;
-    GetNavigationFieldValuesDbRequestDto getFieldValuesDbRequestDto = new()
-    {
-      GetFields = getFields,
-      Id = insertTargetId
-    };
-
-    GetNavigationFieldValuesDbResponseDto getFieldValuesDbResponseDto = insertTargetId == NavigationId.UserRoot
+    NavigationGetFields getFields = NavigationGetFields.ParentId | NavigationGetFields.IsComposite;
+    NavigationProjectionDto insertTargetDto = insertTargetId == NavigationId.UserRoot
       ? new()
       {
-        GetFields = getFields,
-        Id = insertTargetId,
-        Parent = NavigationId.UserRoot,
+        Id = NavigationId.UserRoot,
+        ParentId = NavigationId.Empty,
         IsComposite = true
       }
-      : await NavigationRepository.GetNavigationFieldValuesAsync(getFieldValuesDbRequestDto, cancellationToken);
+      : await NavigationRepository.GetNavigationFieldValuesAsync(insertTargetId, getFields, cancellationToken);
+    if (insertTargetDto.IsEmpty)
+    {
+      return null;
+    }
 
     // Application과 Infra DB의 Target Navigation 정보 일치 확인 후 새 Navigation 추가
-    if (getFieldValuesDbResponseDto.GetFields.Equals(getFieldValuesDbRequestDto.GetFields)
-      && getFieldValuesDbResponseDto.Id == insertTargetId
-      && getFieldValuesDbResponseDto.Parent is NavigationId targetParentId
-      && getFieldValuesDbResponseDto.IsComposite is bool isTargetComposite)
+    if (insertTargetDto.ParentId.TryGet(out var targetParentId) && insertTargetDto.IsComposite.TryGet(out var isTargetComposite))
     {
       if ((insertPosition is NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild) && !isTargetComposite)
       {
@@ -73,20 +64,34 @@ internal sealed partial class NavigationCreationService
       };
 
       // Navigation Domain Entity로 변환하여 도메인 속성 유효성 검사
-      Navigation navigation = NavigationFactory.Create(newNavigationId, parentId, createAppRequestDto.IsComposite, (int)createAppRequestDto.Icon, createAppRequestDto.Title, AppDefaultSettings.IsNavigationDeleted);
+      Navigation navigation = NavigationFactory.Create(newNavigationId, parentId, appCommand.IsComposite, appCommand.Icon, appCommand.Title, AppDefaultSettings.IsNavigationDeleted);
 
       await using var appDbTransaction = await AppDbTransactionFactory.CreateAsync(cancellationToken);
 
       try
       {
-        NavigationBundleDbResponseDto bundleDbResponseDto = await NavigationRepository.AddNavigationAsync(NavigationMappers.ToCreateDbDto(navigation, insertTargetId, insertPosition), appDbTransaction, cancellationToken);
+        NavigationViewStateDto viewStateDto = appCommand.IsComposite
+          ? new CompositeNavigationViewStateDto()
+          {
+            IsExpanded = true,
+            Id = newNavigationId
+          }
+          : new LeafNavigationViewStateDto()
+          {
+            NoteSortKey = null,
+            NoteSortDirection = null,
+            PreviewLayoutType = null,
+            PreviewTileSize = null,
+            PreviewTileRatio = null,
+            Id = newNavigationId
+          };
 
+        NavigationDto navigationDto = NavigationMappers.ToDto(navigation, viewStateDto);
+
+        await NavigationRepository.AddNavigationAsync(navigationDto, insertTargetId, insertPosition, appDbTransaction, cancellationToken);
         await appDbTransaction.CompleteAsync(true, cancellationToken);
 
-        NavigationDbResponseDto dbResponseDto = bundleDbResponseDto.NavigationDto;
-        NavigationViewStateDbResponseDto viewStateDbResponseDto = bundleDbResponseDto.ViewStateDto;
-
-        return NavigationMappers.BundleAppDto(NavigationMappers.ToAppDto(dbResponseDto), NavigationMappers.ToAppDto(viewStateDbResponseDto));
+        return navigationDto;
       }
       catch
       {

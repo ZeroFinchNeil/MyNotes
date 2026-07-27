@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Enums.Navigations;
+﻿namespace MyNotes.Application.Results.Navigations;
 
 internal enum MoveNavigationResultKind
 {

@@ -1,8 +1,4 @@
 ﻿using MyNotes.Application.Contracts.Models.Notes;
-using MyNotes.Application.Contracts.Models.Notes.Creation;
-using MyNotes.Application.Contracts.Models.Notes.Search;
-using MyNotes.Application.Dtos.Notes.Creation;
-using MyNotes.Common.Helpers;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Settings;

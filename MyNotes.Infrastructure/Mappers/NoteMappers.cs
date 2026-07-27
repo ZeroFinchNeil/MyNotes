@@ -51,21 +51,6 @@ internal static class NoteMappers
     IsAlwaysOnTop = noteViewStateDbDto.IsAlwaysOnTop
   };
 
-  public static NoteDto ToDto(NoteEntity noteEntity) => new()
-  {
-    Id = NoteId.Create(noteEntity.Id),
-    NavigationId = NavigationId.Create(noteEntity.Navigation ?? throw new InvalidOperationException()),
-    Created = noteEntity.Created,
-    Modified = noteEntity.Modified,
-    Title = noteEntity.Title,
-    Body = noteEntity.Body,
-    BodyImagePaths = JsonSerializer.Deserialize<IReadOnlyList<string>>(noteEntity.BodyImagePaths, AppJson.JsonSerializerOptions) ?? [],
-    BackgroundColor = noteEntity.BackgroundColor,
-    BackgroundImagePath = noteEntity.BackgroundImagePath,
-    IsBookmarked = noteEntity.IsBookmarked,
-    IsDeleted = noteEntity.IsDeleted
-  };
-
   public static NoteViewStateDto ToDto(NoteViewStateEntity noteViewStateEntity) => new()
   {
     Id = NoteId.Create(noteViewStateEntity.Id),
@@ -88,7 +73,21 @@ internal static class NoteMappers
     IsAlwaysOnTop = noteViewStateEntity.IsAlwaysOnTop
   };
 
-  public static NoteBundleDto ToDto(NoteEntity noteEntity, NoteViewStateEntity noteViewStateEntity) => new(ToDto(noteEntity), ToDto(noteViewStateEntity));
+  public static NoteDto ToDto(NoteEntity noteEntity, NoteViewStateEntity noteViewStateEntity) => new()
+  {
+    Id = NoteId.Create(noteEntity.Id),
+    NavigationId = NavigationId.Create(noteEntity.Navigation ?? throw new InvalidOperationException()),
+    Created = noteEntity.Created,
+    Modified = noteEntity.Modified,
+    Title = noteEntity.Title,
+    Body = noteEntity.Body,
+    BodyImagePaths = JsonSerializer.Deserialize<IReadOnlyList<string>>(noteEntity.BodyImagePaths, AppJson.JsonSerializerOptions) ?? [],
+    BackgroundColor = noteEntity.BackgroundColor,
+    BackgroundImagePath = noteEntity.BackgroundImagePath,
+    IsBookmarked = noteEntity.IsBookmarked,
+    IsDeleted = noteEntity.IsDeleted,
+    ViewStateDto = ToDto(noteViewStateEntity)
+  };
 
   public static NoteSearchDocument ToEntity(NoteSearchDocumentDto noteSearchDocumentDto) => new()
   {

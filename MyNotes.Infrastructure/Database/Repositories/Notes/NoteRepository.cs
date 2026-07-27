@@ -51,7 +51,7 @@ internal class NoteRepository : INoteRepository
     return noteId;
   }
 
-  public async Task<NoteBundleDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<NoteDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     return await context.NoteEntities
@@ -75,7 +75,7 @@ internal class NoteRepository : INoteRepository
       .FirstOrDefaultAsync(cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted, CancellationToken cancellationToken)
+  public async Task<IReadOnlyList<NoteDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted, CancellationToken cancellationToken)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     Expression<Func<NoteEntity, bool>> predicate = includeDeleted
@@ -121,7 +121,7 @@ internal class NoteRepository : INoteRepository
       };
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken)
+  public async Task<IReadOnlyList<NoteDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken)
   {
     //todo: DB에서 쿼리 조건에 따른 노트 가져오기
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
@@ -255,15 +255,15 @@ internal class NoteRepository : INoteRepository
     return expressions;
   }
 
-  public async Task AddNoteAsync(NoteBundleDto noteBundleDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
+  public async Task AddNoteAsync(NoteDto noteDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
     var context = appDbTransactionContext.DbContext as AppDbContext
       ?? throw new InvalidOperationException($"지원하지 않는 DbContext 타입입니다. Expected: {typeof(AppDbContext).FullName}, Actual: {appDbTransactionContext.DbContext.GetType().FullName}");
 
     try
     {
-      NoteEntity noteEntity = NoteMappers.ToEntity(noteBundleDto.NoteDto);
-      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(noteBundleDto.NoteViewStateDto);
+      NoteEntity noteEntity = NoteMappers.ToEntity(noteDto);
+      NoteViewStateEntity viewStateEntity = NoteMappers.ToEntity(noteDto.ViewStateDto);
 
       await context.NoteEntities.AddAsync(noteEntity, cancellationToken);
       await context.NoteViewStateEntities.AddAsync(viewStateEntity, cancellationToken);
@@ -349,7 +349,7 @@ internal class NoteRepository : INoteRepository
     catch
     {
       await transaction.RollbackAsync(cancellationToken);
-      return PersistenceMutationStatus.Unchanged;
+      return PersistenceMutationStatus.Failed;
     }
   }
 
@@ -449,7 +449,7 @@ internal class NoteRepository : INoteRepository
     catch
     {
       await transaction.RollbackAsync(cancellationToken);
-      return PersistenceMutationStatus.Unchanged;
+      return PersistenceMutationStatus.Failed;
     }
   }
 

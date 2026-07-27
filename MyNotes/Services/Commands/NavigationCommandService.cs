@@ -1,10 +1,10 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Navigations;
-using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Dtos.Navigations.Arrangement;
-using MyNotes.Application.Dtos.Navigations.Common;
-using MyNotes.Application.Dtos.Navigations.Creation;
-using MyNotes.Application.Dtos.Navigations.Modification;
-using MyNotes.Application.Enums.Navigations;
+﻿using DotNext;
+
+using MyNotes.Application.Commands.Navigations;
+using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Application.Contracts.Models.Navigations;
+using MyNotes.Application.Results;
+using MyNotes.Application.Results.Navigations;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
@@ -63,36 +63,27 @@ internal sealed class NavigationCommandService : ICommandService
 
           if (dialogResponse.Result is ContentDialogResult.Primary && dialogResponse.Data is (Icon, string) userInput)
           {
-            // Application 계층에 업데이트 요청 및
-            // 실제 변경된 필드와 값들을 요청에 대한 응답으로 받아서 뷰 Navigation에 반영
-            UpdateNavigationAppRequestDto updateUserNavigationAppRequestDto = new()
+            // 요청 및 응답
+            NavigationPatchDto patchDto = new()
             {
               Id = navigation.Id,
-              UpdateFields = NavigationUpdateFields.Icon | NavigationUpdateFields.Title,
-              Icon = userInput.Icon,
-              Title = userInput.Title
+              Icon = navigation.Icon != userInput.Icon ? (int)userInput.Icon : Optional<int>.None,
+              Title = navigation.Title != userInput.Title ? userInput.Title : Optional<string>.None,
             };
+            UpdateNavigationAppCommand appCommand = new() { PatchDto = patchDto };
+            var updateResult = await NavigationService.Modification.UpdateNavigationAsync(appCommand);
 
-            // 요청 및 응답
-            UpdateNavigationAppResponseDto updateUserNavigationAppResponseDto = await NavigationService.Modification.UpdateNavigationAsync(updateUserNavigationAppRequestDto);
+            if (updateResult is AppUpdateStatus.Succeeded)
+            {
+              if (patchDto.Icon.TryGet(out var updatedIcon) && Enum.IsDefined(typeof(Icon), updatedIcon))
+              {
+                navigation.Icon = (Icon)updatedIcon;
+              }
 
-            // 실제 변경된 필드에 대한 동작
-            var changedNavigationFields = updateUserNavigationAppResponseDto.ChangedFields;
-            if (changedNavigationFields.HasFlag(NavigationChangedFields.Icon) && updateUserNavigationAppResponseDto.Icon is Icon updatedIcon)
-            {
-              if (userInput.Icon != updatedIcon)
+              if (patchDto.Title.TryGet(out var updatedTitle))
               {
-                //todo: Icon 입력값과 반환값이 다를 때 동작 구현
+                navigation.Title = updatedTitle;
               }
-              navigation.Icon = updatedIcon;
-            }
-            if (changedNavigationFields.HasFlag(NavigationChangedFields.Title) && updateUserNavigationAppResponseDto.Title is string updatedTitle)
-            {
-              if (userInput.Title != updatedTitle)
-              {
-                //todo: Title 입력값과 반환값이 다를 때 동작 구현
-              }
-              navigation.Title = updatedTitle;
             }
           }
         }
@@ -119,13 +110,13 @@ internal sealed class NavigationCommandService : ICommandService
           var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, targetCategory, navigation.Title, deleteMode);
           if (dialogResponse.Result is ContentDialogResult.Primary)
           {
-            DeleteNavigationAppRequestDto deleteUserNavigationAppRequestDto = new()
+            DeleteNavigationAppCommand appCommand = new()
             {
               Id = navigation.Id,
               DeleteMode = dialogResponse.Data
             };
 
-            if (await NavigationService.Modification.DeleteNavigationAsync(deleteUserNavigationAppRequestDto))
+            if (await NavigationService.Modification.DeleteNavigationAsync(appCommand) is AppUpdateStatus.Succeeded)
             {
               navigation.Parent.ChildNodes.Remove(navigation);
             }
@@ -176,23 +167,23 @@ internal sealed class NavigationCommandService : ICommandService
         }
 
         expectedTargetSiblings.Insert(targetIndex, sourceNavigation.Id);
-
-        MoveNavigationAppRequestDto appRequestDto = new()
+        
+        MoveNavigationAppCommand appCommand = new()
         {
-          SourceNavigation = sourceNavigation.Id,
-          TargetNavigation = targetNavigation.Id,
+          SourceNavigationId = sourceNavigation.Id,
+          TargetNavigationId = targetNavigation.Id,
           InsertPosition = insertPosition,
           ExpectedTargetSiblings = expectedTargetSiblings
         };
 
-        MoveNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveNavigationAsync(appRequestDto);
+        var moveResult = await NavigationService.Arrangement.MoveNavigationAsync(appCommand);
 
-        if (!appResponseDto.IsMoveApplied)
+        if (moveResult.Kind is MoveNavigationResultKind.Rejected)
         {
           return;
         }
 
-        var updatedNavigations = appResponseDto.UpdatedNavigations!.ToList();
+        var updatedNavigations = moveResult.UpdatedNavigations!.ToList();
         int desiredSourceIndex = updatedNavigations.IndexOf(sourceNavigation.Id);
 
         if (desiredSourceIndex < 0)
@@ -200,18 +191,14 @@ internal sealed class NavigationCommandService : ICommandService
           throw new InvalidOperationException();
         }
 
-        switch (appResponseDto.ResultKind)
+        switch (moveResult.Kind)
         {
           case MoveNavigationResultKind.MovedAsRequested:
             ApplySingleNavigationMove(sourceNavigation, sourceParent, targetParent, desiredSourceIndex);
             break;
-
           case MoveNavigationResultKind.MovedWithOrderReconciliation:
             ApplySingleNavigationMove(sourceNavigation, sourceParent, targetParent, desiredSourceIndex);
             SynchronizeNavigationOrder(targetParent.ChildNodes, updatedNavigations);
-            break;
-
-          case MoveNavigationResultKind.Rejected:
             break;
         }
       }
@@ -231,24 +218,27 @@ internal sealed class NavigationCommandService : ICommandService
         }
 
         // 이동 요청 및 결과 확인
-        MoveNavigationAppRequestDto appRequestDto = new()
+        MoveNavigationAppCommand appCommand = new()
         {
-          SourceNavigation = sourceNavigation.Id,
-          TargetNavigation = targetGroupNavigation.Id,
+          SourceNavigationId = sourceNavigation.Id,
+          TargetNavigationId = targetGroupNavigation.Id,
           InsertPosition = NavigationInsertPosition.LastChild,
           ExpectedTargetSiblings = [.. targetGroupNavigation.ChildNodes.Select(n => n.Id)]
         };
 
-        MoveNavigationAppResponseDto appResponseDto = await NavigationService.Arrangement.MoveNavigationAsync(appRequestDto);
-        if (appResponseDto.IsMoveApplied)
+        var moveResult = await NavigationService.Arrangement.MoveNavigationAsync(appCommand);
+
+        switch (moveResult.Kind)
         {
-          // UI 계층에서 이동 사항 반영
-          sourceNavigation.Parent.ChildNodes.Remove(sourceNavigation);
-          targetGroupNavigation.ChildNodes.Add(sourceNavigation);
-        }
-        else
-        {
-          //todo: 이동 실패 시 동작 구현
+          case MoveNavigationResultKind.MovedAsRequested:
+            sourceNavigation.Parent.ChildNodes.Remove(sourceNavigation);
+            targetGroupNavigation.ChildNodes.Add(sourceNavigation);
+            break;
+          //todo: 이동 실패 및 재정렬 요구 시 동작 구현
+          case MoveNavigationResultKind.MovedWithOrderReconciliation:
+            break;
+          case MoveNavigationResultKind.Rejected:
+            break;
         }
       }
     };
@@ -277,16 +267,16 @@ internal sealed class NavigationCommandService : ICommandService
           _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {targetNavigation.GetType().FullName}")
         };
 
-        CreateNavigationAppRequestDto createUserNavigationAppRequestDto = new()
+        CreateNavigationAppCommand appCommand = new()
         {
-          InsertTargetId = targetNavigation.Id,
-          InsertPosition = navigationInsertPosition,
           IsComposite = isNavigationComposite,
-          Icon = v.Icon,
+          Icon = (int)v.Icon,
           Title = v.Title,
+          InsertTargetId = targetNavigation.Id,
+          InsertPosition = navigationInsertPosition
         };
 
-        if (await NavigationService.Creation.AddNavigationAsync(createUserNavigationAppRequestDto, cancellationToken) is NavigationBundleAppResponseDto responseDto)
+        if (await NavigationService.Creation.AddNavigationAsync(appCommand, cancellationToken) is NavigationDto navigationDto)
         {
           NavigationUserCompositeNode parentNavigation = targetNavigation switch
           {
@@ -295,9 +285,9 @@ internal sealed class NavigationCommandService : ICommandService
             _ => throw new NotSupportedException($"지원하지 않는 NavigationUserNode 파생 타입: {targetNavigation.GetType().FullName}")
           };
 
-          var newNavigation = NavigationMappers.ToModel(responseDto, parentNavigation);
-          
-          if(targetNavigation is NavigationUserCompositeNode compositeNode)
+          var newNavigation = NavigationMappers.ToModel(navigationDto, parentNavigation);
+
+          if (targetNavigation is NavigationUserCompositeNode compositeNode)
           {
             compositeNode.ChildNodes.Add(newNavigation);
           }

@@ -5,6 +5,7 @@ using MyNotes.Application.Contracts.Persistence;
 using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Application.Mappers;
 using MyNotes.Application.Results;
+using MyNotes.Application.Results.Notes;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Shell.Contracts.Converters;
@@ -24,25 +25,31 @@ internal sealed partial class NoteModificationService
     RtfTextConverter = rtfTextConverter;
   }
 
-  public async Task<AppUpdateStatus> UpdateNoteAsync(UpdateNoteAppCommand appCommand, CancellationToken cancellationToken = default)
+  public async Task<UpdateNoteResult> UpdateNoteAsync(UpdateNoteAppCommand appCommand, CancellationToken cancellationToken = default)
   {
-    NotePatchDto notePatchDto = appCommand.NotePatchDto;
+    NotePatchDto notePatchDto = appCommand.PatchDto;
     var id = notePatchDto.Id;
     if (notePatchDto.IsEmpty)
     {
-      return AppUpdateStatus.Unchanged;
+      return new() { Status = AppUpdateStatus.Unchanged };
     }
 
-    var updateResult = await NoteRepository.UpdateNoteAsync(notePatchDto, appCommand.Modified, cancellationToken);
+    DateTimeOffset modified = DateTimeOffset.UtcNow;
+    var updateResult = await NoteRepository.UpdateNoteAsync(notePatchDto, modified, cancellationToken);
+
+    if (updateResult is PersistenceMutationStatus.Failed)
+    {
+      return new() { Status = AppUpdateStatus.Failed };
+    }
 
     if (updateResult is PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged)
     {
-      return AppUpdateStatus.Unchanged;
+      return new() { Status = AppUpdateStatus.Unchanged };
     }
 
     if (updateResult is PersistenceMutationStatus.NotFound)
     {
-      return AppUpdateStatus.TargetNotFound;
+      return new() { Status = AppUpdateStatus.TargetNotFound };
     }
 
     if (notePatchDto.Title.HasValue || notePatchDto.Body.HasValue)
@@ -54,12 +61,16 @@ internal sealed partial class NoteModificationService
       }
     }
 
-    return AppUpdateStatus.Succeeded;
+    return new()
+    {
+      Status = AppUpdateStatus.Succeeded,
+      Modified = modified
+    };
   }
 
   public async Task<AppUpdateStatus> UpdateNoteViewStateAsync(UpdateNoteViewStateAppCommand appCommand, CancellationToken cancellationToken = default)
   {
-    NoteViewStatePatchDto noteViewStatePatchDto = appCommand.NoteViewStatePatchDto;
+    NoteViewStatePatchDto noteViewStatePatchDto = appCommand.PatchDto;
     if (noteViewStatePatchDto.IsEmpty)
     {
       return AppUpdateStatus.Unchanged;
@@ -70,15 +81,21 @@ internal sealed partial class NoteModificationService
       PersistenceMutationStatus.Applied => AppUpdateStatus.Succeeded,
       PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged => AppUpdateStatus.Unchanged,
       PersistenceMutationStatus.NotFound => AppUpdateStatus.TargetNotFound,
+      PersistenceMutationStatus.Failed => AppUpdateStatus.Failed,
       _ => throw new InvalidOperationException()
     };
   }
 
   public async Task<AppUpdateStatus> DeleteNoteAsync(DeleteNoteAppCommand deleteNoteAppCommand, CancellationToken cancellationToken = default)
   {
-    NoteId noteId = deleteNoteAppCommand.NoteId;
+    NoteId noteId = deleteNoteAppCommand.Id;
     DeleteMode deleteMode = deleteNoteAppCommand.DeleteMode;
     PersistenceMutationStatus deleteResult = await NoteRepository.DeleteNoteAsync(noteId, deleteMode, cancellationToken);
+
+    if (deleteResult is PersistenceMutationStatus.Failed)
+    {
+      return AppUpdateStatus.Failed;
+    }
 
     if (deleteResult is PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged)
     {

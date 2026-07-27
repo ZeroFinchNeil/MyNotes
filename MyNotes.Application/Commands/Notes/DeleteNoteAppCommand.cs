@@ -5,7 +5,7 @@ namespace MyNotes.Application.Commands.Notes;
 
 internal sealed record DeleteNoteAppCommand
 {
-  public required NoteId NoteId { get; init; }
+  public required NoteId Id { get; init; }
 
   public required DeleteMode DeleteMode { get; init; }
 }

@@ -1,10 +1,10 @@
-﻿using MyNotes.Application.Dtos.Notes.Common;
+﻿using MyNotes.Application.Contracts.Models.Notes;
 
 namespace MyNotes.Models.Notes;
 
-internal sealed class NoteModelUpdater : IModelUpdater<NoteBundleAppResponseDto, NoteModel>
+internal sealed class NoteModelUpdater : IModelUpdater<NoteDto, NoteModel>
 {
-  public void Update(NoteModel target, NoteBundleAppResponseDto source)
+  public void Update(NoteModel target, NoteDto source)
   {
 
   }

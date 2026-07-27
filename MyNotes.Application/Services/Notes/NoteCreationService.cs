@@ -23,7 +23,7 @@ internal sealed partial class NoteCreationService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteBundleDto?> AddNoteAsync(CreateNoteAppCommand createNoteAppCommand, CancellationToken cancellationToken = default)
+  public async Task<NoteDto?> AddNoteAsync(CreateNoteAppCommand createNoteAppCommand, CancellationToken cancellationToken = default)
   {
     // Generate new note id
     NoteId noteId = await NoteRepository.GenerateUniqueNoteIdAsync(cancellationToken);
@@ -34,11 +34,10 @@ internal sealed partial class NoteCreationService
     try
     {
       Note note = NoteFactory.CreateDefaultNote(noteId, createNoteAppCommand.NavigationId);
-      NoteDto noteDto = NoteMappers.ToDto(note);
       NoteViewStateDto noteViewStateDto = NoteFactory.CreateDefaultNoteViewStateDto(noteId, createNoteAppCommand.Size, createNoteAppCommand.Position);
-      NoteBundleDto noteBundleDto = new(noteDto, noteViewStateDto);
+      NoteDto noteDto = NoteMappers.ToDto(note, noteViewStateDto);
 
-      await NoteRepository.AddNoteAsync(noteBundleDto, appDbTransaction, cancellationToken);
+      await NoteRepository.AddNoteAsync(noteDto, appDbTransaction, cancellationToken);
 
       // Add to Search Index
       NoteSearchDocumentDto noteSearchDocumentDto = NoteFactory.CreateDefaultNoteSearchDocumentDto(noteId);
@@ -47,7 +46,7 @@ internal sealed partial class NoteCreationService
       if (searchIndexResult)
       {
         await appDbTransaction.CompleteAsync(true, cancellationToken);
-        return noteBundleDto;
+        return noteDto;
       }
       else
       {

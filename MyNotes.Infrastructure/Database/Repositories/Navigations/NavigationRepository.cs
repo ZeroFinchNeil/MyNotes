@@ -5,27 +5,23 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using DotNext;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations.Arrangement;
-using MyNotes.Application.Contracts.Models.Navigations.Common;
-using MyNotes.Application.Contracts.Models.Navigations.Creation;
-using MyNotes.Application.Contracts.Models.Navigations.Modification;
-using MyNotes.Application.Contracts.Models.Navigations.Retrieval;
+using MyNotes.Application.Contracts.Models.Navigations;
+using MyNotes.Application.Contracts.Persistence;
 using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Constants.Navigations;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 using MyNotes.Infrastructure.Mappers;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Navigations;
 
@@ -52,45 +48,45 @@ internal partial class NavigationRepository : INavigationRepository
     return navigationId;
   }
 
-  public async Task<IReadOnlyList<NavigationBundleDbResponseDto>> GetAllNavigationsAsync(CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NavigationDto>> GetAllNavigationsInSiblingOrderAsync(CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    var compositePairs = await context.NavigationEntities
+    var orderedNavigations = await context.NavigationEntities
       .AsNoTracking()
-      .Where(e => e.IsComposite)
-      .Join(
-        context.CompositeNavigationViewStateEntities.AsNoTracking(),
-        navigation => navigation.Id,
-        viewState => viewState.Id,
-        (navigation, viewState) => new
-        {
-          Navigation = navigation,
-          ViewState = viewState
-        })
+      .OrderBy(e => e.Parent)
+      .ThenBy(e => e.Position)
       .ToListAsync(cancellationToken);
 
-    var leafPairs = await context.NavigationEntities
+    Dictionary<Guid, CompositeNavigationViewStateEntity> compositeStates = await context.CompositeNavigationViewStateEntities
       .AsNoTracking()
-      .Where(e => !e.IsComposite)
-      .Join(
-        context.LeafNavigationViewStateEntities.AsNoTracking(),
-        navigation => navigation.Id,
-        viewState => viewState.Id,
-        (navigation, viewState) => new
+      .ToDictionaryAsync(entity => entity.Id, cancellationToken);
+
+    Dictionary<Guid, LeafNavigationViewStateEntity> leafStates = await context.LeafNavigationViewStateEntities
+      .AsNoTracking()
+      .ToDictionaryAsync(entity => entity.Id, cancellationToken);
+
+    return [..orderedNavigations.Select(e =>
+    {
+      if (e.IsComposite)
+      {
+        if (compositeStates.TryGetValue(e.Id, out var compositeState))
         {
-          Navigation = navigation,
-          ViewState = viewState
-        })
-      .ToListAsync(cancellationToken);
-
-    var compositeBundles = compositePairs.Select(pair => NavigationMappers.BundleDbDto(pair.Navigation.ToDto(), pair.ViewState.ToDto()));
-    var leafBundles = leafPairs.Select(pair => NavigationMappers.BundleDbDto(pair.Navigation.ToDto(), pair.ViewState.ToDto()));
-
-    return [.. compositeBundles, .. leafBundles];
+          return NavigationMappers.ToDto(e, compositeState);
+        }
+      }
+      else
+      {
+        if (leafStates.TryGetValue(e.Id, out var leafState))
+        {
+          return NavigationMappers.ToDto(e, leafState);
+        }
+      }
+      throw new InvalidOperationException();
+    })];
   }
 
-  public async Task<NavigationBundleDbResponseDto?> GetNavigationByIdAsync(NavigationId id, CancellationToken cancellationToken = default)
+  public async Task<NavigationDto?> GetNavigationByIdAsync(NavigationId id, CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -108,7 +104,7 @@ internal partial class NavigationRepository : INavigationRepository
           context.CompositeNavigationViewStateEntities.AsNoTracking(),
           navigation => navigation.Id,
           viewState => viewState.Id,
-          (navigation, viewState) => NavigationMappers.BundleDbDto(navigation.ToDto(), viewState.ToDto()))
+          (navigation, viewState) => NavigationMappers.ToDto(navigation, viewState))
         .FirstOrDefaultAsync(cancellationToken)
         : await context.NavigationEntities
         .AsNoTracking()
@@ -117,7 +113,7 @@ internal partial class NavigationRepository : INavigationRepository
           context.LeafNavigationViewStateEntities.AsNoTracking(),
           navigation => navigation.Id,
           viewState => viewState.Id,
-          (navigation, viewState) => NavigationMappers.BundleDbDto(navigation.ToDto(), viewState.ToDto()))
+          (navigation, viewState) => NavigationMappers.ToDto(navigation, viewState))
         .FirstOrDefaultAsync(cancellationToken);
     }
     catch
@@ -128,27 +124,27 @@ internal partial class NavigationRepository : INavigationRepository
     return null;
   }
 
-  public async Task<GetNavigationFieldValuesDbResponseDto> GetNavigationFieldValuesAsync(GetNavigationFieldValuesDbRequestDto getFieldsDbRequestDto, CancellationToken cancellationToken = default)
+  public async Task<NavigationProjectionDto> GetNavigationFieldValuesAsync(NavigationId navigationId, NavigationGetFields navigationGetFields, CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
-    var id = getFieldsDbRequestDto.Id;
-    var getFields = getFieldsDbRequestDto.GetFields;
     return await context.NavigationEntities
       .AsNoTracking()
-      .Where(e => e.Id == id.Value)
-      .Select(e => new GetNavigationFieldValuesDbResponseDto()
+      .Where(e => e.Id == navigationId.Value)
+      .Select(e => new NavigationProjectionDto()
       {
-        GetFields = getFields,
-        Id = getFields.HasFlag(NavigationGetFields.Id) ? NavigationId.Create(e.Id) : null,
-        Parent = getFields.HasFlag(NavigationGetFields.Parent) ? NavigationId.Create(e.Parent) : null,
-        IsComposite = getFields.HasFlag(NavigationGetFields.IsComposite) ? e.IsComposite : null,
-        Icon = getFields.HasFlag(NavigationGetFields.Icon) ? e.Icon : null,
-        Title = getFields.HasFlag(NavigationGetFields.Title) ? e.Title : null,
-        IsDeleted = getFields.HasFlag(NavigationGetFields.IsDeleted) ? e.IsDeleted : null,
+        Id = navigationId,
+        ParentId = navigationGetFields.HasFlag(NavigationGetFields.ParentId) ? NavigationId.Create(e.Parent) : Optional<NavigationId>.None,
+        IsComposite = navigationGetFields.HasFlag(NavigationGetFields.IsComposite) ? e.IsComposite : Optional<bool>.None,
+        Icon = navigationGetFields.HasFlag(NavigationGetFields.Icon) ? e.Icon : Optional<int>.None,
+        Title = navigationGetFields.HasFlag(NavigationGetFields.Title) ? e.Title : Optional<string>.None,
+        IsDeleted = navigationGetFields.HasFlag(NavigationGetFields.IsDeleted) ? e.IsDeleted : Optional<bool>.None,
       })
       .FirstOrDefaultAsync(cancellationToken)
-      ?? new GetNavigationFieldValuesDbResponseDto() { GetFields = NavigationGetFields.None };
+      ?? new()
+      {
+        Id = navigationId
+      };
   }
 
   public async Task<bool> IsDescendantOfAsync(NavigationId possibleDescendantId, NavigationId possibleAncestorId, CancellationToken cancellationToken = default)
@@ -181,14 +177,14 @@ internal partial class NavigationRepository : INavigationRepository
   }
   #endregion
 
-  public async Task<NavigationBundleDbResponseDto> AddNavigationAsync(CreateNavigationDbRequestDto createDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
+  public async Task AddNavigationAsync(NavigationDto navigationDto, NavigationId targetNavigationId, NavigationInsertPosition insertPosition, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
-    Guid sourceId = createDbRequestDto.Id.Value;
-    Guid targetId = createDbRequestDto.InsertTargetId.Value;
-    Guid parentId = createDbRequestDto.ParentId.Value;
-    NavigationInsertPosition insertPosition = createDbRequestDto.InsertPosition;
-    if (insertPosition is NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild
-        && targetId != createDbRequestDto.ParentId.Value)
+    Guid sourceId = navigationDto.Id.Value;
+    Guid targetId = targetNavigationId.Value;
+    Guid parentId = navigationDto.ParentId.Value;
+
+    if ((insertPosition is NavigationInsertPosition.FirstChild or NavigationInsertPosition.LastChild)
+        && targetId != parentId)
     {
       throw new InvalidOperationException();
     }
@@ -210,35 +206,20 @@ internal partial class NavigationRepository : INavigationRepository
       // sourceItem을 siblingItems에 삽입하고 position 재조정 후 재조정된 siblingItems 변경 사항 DB에 반영 
       await RepositionInsertedNavigationAsync(context, siblingItems, sourceItem, targetId, insertPosition, cancellationToken);
 
-      NavigationEntity entity = new()
-      {
-        Id = sourceId,
-        Parent = parentId,
-        Icon = createDbRequestDto.Icon,
-        Title = createDbRequestDto.Title,
-        Position = sourceItem.Position,
-        IsComposite = createDbRequestDto.IsComposite,
-        IsDeleted = false
-      };
+      NavigationEntity entity = NavigationMappers.ToEntity(navigationDto, sourceItem.Position);
 
       await context.NavigationEntities.AddAsync(entity, cancellationToken);
-      NavigationDbResponseDto navigationDbResponseDto = NavigationMappers.ToDto(entity);
 
-      NavigationViewStateDbResponseDto viewStateDbResponseDto;
-      if (createDbRequestDto.IsComposite)
+      if (navigationDto.IsComposite)
       {
-        var compositeViewStateEntity = CompositeNavigationViewStateEntity.CreateDefault(entity.Id);
+        var compositeViewStateEntity = NavigationMappers.ToEntity((CompositeNavigationViewStateDto)navigationDto.ViewStateDto);
         await context.CompositeNavigationViewStateEntities.AddAsync(compositeViewStateEntity, cancellationToken);
-        viewStateDbResponseDto = NavigationMappers.ToDto(compositeViewStateEntity);
       }
       else
       {
-        var leafViewStateEntity = LeafNavigationViewStateEntity.CreateDefault(entity.Id);
+        var leafViewStateEntity = NavigationMappers.ToEntity((LeafNavigationViewStateDto)navigationDto.ViewStateDto);
         await context.LeafNavigationViewStateEntities.AddAsync(leafViewStateEntity, cancellationToken);
-        viewStateDbResponseDto = NavigationMappers.ToDto(leafViewStateEntity);
       }
-
-      return NavigationMappers.BundleDbDto(navigationDbResponseDto, viewStateDbResponseDto);
     }
     catch
     {
@@ -246,19 +227,17 @@ internal partial class NavigationRepository : INavigationRepository
     }
   }
 
-  public async Task<IReadOnlyList<GetNavigationFieldValuesDbResponseDto>> MoveNavigationAsync(MoveNavigationDbRequestDto moveDbRequestDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NavigationProjectionDto>> MoveNavigationAsync(NavigationId sourceNavigationId, NavigationId targetNavigationId, NavigationInsertPosition insertPosition, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default)
   {
     // Source Navigation을 포함하여 Position에 영향받는 모든 Navigation들의 Id, Parent, Position을 담아서 반환(이 때 반환되는 모든 Navigation의 Parent 속성 값은 모두 일치해야 함).
-    List<GetNavigationFieldValuesDbResponseDto> resultDtos = new();
-    NavigationGetFields getFields = NavigationGetFields.Id | NavigationGetFields.Parent;
+    List<NavigationProjectionDto> resultDtos = new();
 
-    Guid sourceId = moveDbRequestDto.SourceNavigation.Value;
-    Guid targetId = moveDbRequestDto.TargetNavigation.Value;
-    NavigationInsertPosition insertPosition = moveDbRequestDto.InsertPosition;
+    Guid sourceId = sourceNavigationId.Value;
+    Guid targetId = targetNavigationId.Value;
 
     if (sourceId == targetId)
     {
-      throw new ArgumentException($"Source Navigation과 Target Navigation은 동일할 수 없습니다. SourceId={sourceId}, TargetId={targetId}", nameof(moveDbRequestDto));
+      throw new ArgumentException($"Source Navigation과 Target Navigation은 동일할 수 없습니다. SourceId={sourceId}, TargetId={targetId}", nameof(sourceNavigationId));
     }
 
     var context = appDbTransactionContext.DbContext as AppDbContext
@@ -335,11 +314,10 @@ internal partial class NavigationRepository : INavigationRepository
 
       foreach (var siblingEntity in siblingItems)
       {
-        resultDtos.Add(new GetNavigationFieldValuesDbResponseDto()
+        resultDtos.Add(new NavigationProjectionDto()
         {
-          GetFields = getFields,
           Id = NavigationId.Create(siblingEntity.Id),
-          Parent = NavigationId.Create(siblingEntity.Parent)
+          ParentId = NavigationId.Create(siblingEntity.Parent)
         });
       }
 
@@ -435,131 +413,139 @@ internal partial class NavigationRepository : INavigationRepository
   private static async Task<bool> EnsureTemporarySourceSlotIsAvailableAsync(AppDbContext context, Guid parentId) =>
     !await context.NavigationEntities.AsNoTracking().AnyAsync(e => e.Parent == parentId && e.Position == NavigationEntitySettings.TemporaryPosition);
 
-  public async Task<UpdateNavigationDbResponseDto> UpdateNavigationAsync(UpdateNavigationDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
+  public async Task<PersistenceMutationStatus> UpdateNavigationAsync(NavigationPatchDto patchDto, CancellationToken cancellationToken = default)
   {
-    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-    var id = updateDbRequestDto.Id;
-    var updateFields = updateDbRequestDto.UpdateFields;
-    NavigationChangedFields changedFields = NavigationChangedFields.None;
-    UpdateNavigationDbResponseDto responseDto = new()
+    if (patchDto.IsEmpty)
     {
-      ChangedFields = changedFields,
-      Id = id
-    };
-
-    if (updateFields is not NavigationUpdateFields.None
-        && await context.NavigationEntities.Where(e => e.Id == id.Value).SingleOrDefaultAsync(cancellationToken) is NavigationEntity entity)
-    {
-      if (updateFields.HasFlag(NavigationUpdateFields.Parent) && updateDbRequestDto.Parent is NavigationId parent && entity.Parent != parent.Value)
-      {
-        entity.Parent = parent.Value;
-        responseDto.Parent = parent;
-        changedFields |= NavigationChangedFields.Parent;
-      }
-      if (updateFields.HasFlag(NavigationUpdateFields.Icon) && updateDbRequestDto.Icon is int icon && entity.Icon != icon)
-      {
-        entity.Icon = icon;
-        responseDto.Icon = icon;
-        changedFields |= NavigationChangedFields.Icon;
-      }
-      if (updateFields.HasFlag(NavigationUpdateFields.Title) && updateDbRequestDto.Title is string title && entity.Title != title)
-      {
-        entity.Title = title;
-        responseDto.Title = title;
-        changedFields |= NavigationChangedFields.Title;
-      }
-      if (updateFields.HasFlag(NavigationUpdateFields.IsDeleted) && updateDbRequestDto.IsDeleted is bool isDeleted && entity.IsDeleted != isDeleted)
-      {
-        entity.IsDeleted = isDeleted;
-        responseDto.IsDeleted = isDeleted;
-        changedFields |= NavigationChangedFields.IsDeleted;
-      }
-      await context.SaveChangesAsync(cancellationToken);
-      return responseDto with { ChangedFields = changedFields };
+      return PersistenceMutationStatus.Unchanged;
     }
 
-    return responseDto;
-  }
-
-  public async Task UpdateNavigationViewStateAsync(UpdateNavigationViewStateDbRequestDto updateDbRequestDto, bool updateIfChanged = true, CancellationToken cancellationToken = default)
-  {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
-    await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-
+    await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
     try
     {
-      switch (updateDbRequestDto)
+      if (await context.NavigationEntities.Where(e => e.Id == patchDto.Id.Value).SingleOrDefaultAsync(cancellationToken) is NavigationEntity entity)
       {
-        case UpdateCompositeNavigationViewStateDbRequestDto compositeDto:
-          var compositeUpdateFields = compositeDto.UpdateFields;
-          if (compositeUpdateFields == CompositeNavigationViewStateUpdateFields.None)
-          {
-            return;
-          }
+        if (patchDto.ParentId.TryGet(out var parentId) && entity.Parent != parentId.Value)
+        {
+          entity.Parent = parentId.Value;
+        }
+        if (patchDto.Icon.TryGet(out var icon) && entity.Icon != icon)
+        {
+          entity.Icon = icon;
+        }
+        if (patchDto.Title.TryGet(out var title) && entity.Title != title)
+        {
+          entity.Title = title;
+        }
+        if (patchDto.IsDeleted.TryGet(out var isDeleted) && entity.IsDeleted != isDeleted)
+        {
+          entity.IsDeleted = isDeleted;
+        }
 
-          await context.CompositeNavigationViewStateEntities
-            .Where(e => e.Id == compositeDto.Id.Value)
-            .ExecuteUpdateAsync(setters =>
-            {
-              if (compositeUpdateFields.HasFlag(CompositeNavigationViewStateUpdateFields.IsExpanded) && compositeDto.IsExpanded is bool isExpanded)
-              {
-                setters.SetProperty(e => e.IsExpanded, isExpanded);
-              }
-            }, cancellationToken);
-          break;
-        case UpdateLeafNavigationViewStateDbRequestDto leafDto:
-          var leafUpdateFields = leafDto.UpdateFields;
-          if (leafUpdateFields == LeafNavigationViewStateUpdateFields.None)
-          {
-            return;
-          }
+        if (await context.SaveChangesAsync(cancellationToken) > 0)
+        {
+          await transaction.CommitAsync(cancellationToken);
+          return PersistenceMutationStatus.Applied;
+        }
 
-          await context.LeafNavigationViewStateEntities
-            .Where(e => e.Id == leafDto.Id.Value)
-            .ExecuteUpdateAsync(setters =>
-            {
-              if (leafUpdateFields.HasFlag(LeafNavigationViewStateUpdateFields.NoteSortKey) && leafDto.NoteSortKey is NoteSortKey noteSortKey)
-              {
-                setters.SetProperty(e => e.NoteSortKey, (int)noteSortKey);
-              }
-              if (leafUpdateFields.HasFlag(LeafNavigationViewStateUpdateFields.NoteSortDirection) && leafDto.NoteSortDirection is SortDirection noteSortDirection)
-              {
-                setters.SetProperty(e => e.NoteSortDirection, (int)noteSortDirection);
-              }
-              if (leafUpdateFields.HasFlag(LeafNavigationViewStateUpdateFields.PreviewLayoutType) && leafDto.PreviewLayoutType is PreviewLayoutType previewLayoutType)
-              {
-                setters.SetProperty(e => e.PreviewLayoutType, (int)previewLayoutType);
-              }
-              if (leafUpdateFields.HasFlag(LeafNavigationViewStateUpdateFields.PreviewTileSize) && leafDto.PreviewTileSize is PreviewTileSize previewTileSize)
-              {
-                setters.SetProperty(e => e.PreviewTileSize, (int)previewTileSize);
-              }
-              if (leafUpdateFields.HasFlag(LeafNavigationViewStateUpdateFields.PreviewTileRatio) && leafDto.PreviewTileRatio is PreviewTileRatio previewTileRatio)
-              {
-                setters.SetProperty(e => e.PreviewTileRatio, (int)previewTileRatio);
-              }
-            }, cancellationToken);
-          break;
+        return PersistenceMutationStatus.Unchanged;
       }
 
-      await transaction.CommitAsync(cancellationToken);
+      return PersistenceMutationStatus.NotFound;
     }
     catch
     {
       await transaction.RollbackAsync(cancellationToken);
-      throw;
+      return PersistenceMutationStatus.Failed;
     }
   }
 
-  public async Task<bool> DeleteNavigationAsync(DeleteNavigationDbRequestDto deleteDbRequestDto, CancellationToken cancellationToken = default)
+  public async Task<PersistenceMutationStatus> UpdateNavigationViewStateAsync(NavigationViewStatePatchDto patchDto, CancellationToken cancellationToken = default)
   {
+    if (patchDto.IsEmpty)
+    {
+      return PersistenceMutationStatus.Unchanged;
+    }
+
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
-    Guid id = deleteDbRequestDto.Id.Value;
 
     try
     {
-      int result = deleteDbRequestDto.DeleteMode switch
+      int updateResult = 0;
+      switch (patchDto)
+      {
+        case CompositeNavigationViewStatePatchDto compositeDto:
+          updateResult = await context.EnqueueOperationAsync(
+            operation: () => context.CompositeNavigationViewStateEntities
+              .Where(e => e.Id == compositeDto.Id.Value)
+              .ExecuteUpdate(setters =>
+              {
+                if (compositeDto.IsExpanded.TryGet(out var isExpanded))
+                {
+                  setters.SetProperty(e => e.IsExpanded, isExpanded);
+                }
+              }),
+            defaultValue: 0,
+            fallbackValue: 0,
+            cancellationToken: cancellationToken);
+          break;
+        case LeafNavigationViewStatePatchDto leafDto:
+          updateResult = await context.EnqueueOperationAsync(
+            operation: () => context.LeafNavigationViewStateEntities
+              .Where(e => e.Id == leafDto.Id.Value)
+              .ExecuteUpdate(setters =>
+              {
+                if (leafDto.NoteSortKey.TryGet(out var noteSortKey))
+                {
+                  setters.SetProperty(e => e.NoteSortKey, (int)noteSortKey);
+                }
+                if (leafDto.NoteSortDirection.TryGet(out var noteSortDirection))
+                {
+                  setters.SetProperty(e => e.NoteSortDirection, (int)noteSortDirection);
+                }
+                if (leafDto.PreviewLayoutType.TryGet(out var previewLayoutType))
+                {
+                  setters.SetProperty(e => e.PreviewLayoutType, (int)previewLayoutType);
+                }
+                if (leafDto.PreviewTileSize.TryGet(out var previewTileSize))
+                {
+                  setters.SetProperty(e => e.PreviewTileSize, (int)previewTileSize);
+                }
+                if (leafDto.PreviewTileRatio.TryGet(out var previewTileRatio))
+                {
+                  setters.SetProperty(e => e.PreviewTileRatio, (int)previewTileRatio);
+                }
+              }),
+            defaultValue: 0,
+            fallbackValue: 0,
+            cancellationToken: cancellationToken);
+          break;
+      }
+      if (updateResult > 0)
+      {
+        await transaction.CommitAsync(cancellationToken);
+        return PersistenceMutationStatus.Applied;
+      }
+      return PersistenceMutationStatus.NotFound;
+    }
+    catch
+    {
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.Failed;
+    }
+  }
+
+  public async Task<PersistenceMutationStatus> DeleteNavigationAsync(NavigationId navigationId, DeleteMode deleteMode, CancellationToken cancellationToken = default)
+  {
+    await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    await using IDbContextTransaction transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+    try
+    {
+      var id = navigationId.Value;
+      int result = deleteMode switch
       {
         DeleteMode.MoveToTrash => await context.NavigationEntities.Where(e => e.Id == id)
           .ExecuteUpdateAsync(setters => setters.SetProperty(e => e.IsDeleted, true), cancellationToken),
@@ -567,14 +553,18 @@ internal partial class NavigationRepository : INavigationRepository
           .ExecuteDeleteAsync(cancellationToken),
         _ => 0
       };
-      await transaction.CommitAsync(cancellationToken);
 
-      return result > 0;
+      if (result > 0)
+      {
+        await transaction.CommitAsync(cancellationToken);
+        return PersistenceMutationStatus.Applied;
+      }
+      return PersistenceMutationStatus.NotFound;
     }
     catch
     {
-      await transaction.RollbackAsync(CancellationToken.None);
-      throw;
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.Failed;
     }
   }
 }

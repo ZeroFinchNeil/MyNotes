@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Dtos.Notes.Common;
+using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
@@ -69,7 +69,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
       case ExtendedActivationKind.Launch or ExtendedActivationKind.StartupTask:
         var noteWindowService = Services.GetRequiredService<NoteWindowService>();
         var noteService = Services.GetRequiredService<NoteService>();
-        var noteModelFactory = Services.GetRequiredService<IModelFactory<NoteBundleAppResponseDto, NoteModel>>();
+        var noteModelFactory = Services.GetRequiredService<IModelFactory<NoteDto, NoteModel>>();
         var notes = (await noteService.Retrieval.GetOpenNotesAsync()).Select(noteModelFactory.Create).ToList();
 
         if (notes.Count == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))

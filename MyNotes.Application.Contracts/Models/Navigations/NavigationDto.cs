@@ -1,12 +1,12 @@
 ﻿using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Models.Navigations.Common;
+namespace MyNotes.Application.Contracts.Models.Navigations;
 
-internal sealed record NavigationDbResponseDto
+internal sealed record NavigationDto
 {
   public required NavigationId Id { get; init; }
 
-  public required NavigationId Parent { get; init; }
+  public required NavigationId ParentId { get; init; }
 
   public required bool IsComposite { get; init; }
 
@@ -14,7 +14,7 @@ internal sealed record NavigationDbResponseDto
 
   public required string Title { get; init; }
 
-  public required int Position { get; init; }
-
   public required bool IsDeleted { get; init; }
+
+  public required NavigationViewStateDto ViewStateDto { get; init; }
 }

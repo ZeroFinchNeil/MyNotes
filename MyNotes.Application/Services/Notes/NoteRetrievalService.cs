@@ -2,7 +2,6 @@
 using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Contracts.Models.Notes.Queries;
 using MyNotes.Application.Contracts.Persistence.Notes;
-using MyNotes.Application.Mappers;
 using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Shared.Queries.Conditions;
@@ -20,17 +19,17 @@ internal sealed partial class NoteRetrievalService
     NoteSearcher = noteSearcher;
   }
 
-  public async Task<NoteBundleDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<NoteDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
     return await NoteRepository.GetNoteByIdAsync(noteId, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> GetNotesByParentAsync(NavigationId parentId, bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
     return await NoteRepository.GetNotesByParentAsync(parentId, includeDeleted, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> GetBookmarkedNotesAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> GetBookmarkedNotesAsync(bool includeDeleted = false, CancellationToken cancellationToken = default)
   {
     NoteFilterDto noteFilterDto = includeDeleted
       ? new()
@@ -47,7 +46,7 @@ internal sealed partial class NoteRetrievalService
     return await FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> GetTrashedNotesAsync(CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> GetTrashedNotesAsync(CancellationToken cancellationToken = default)
   {
     NoteFilterDto noteFilterDto = new()
     {
@@ -57,12 +56,12 @@ internal sealed partial class NoteRetrievalService
     return await FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
   {
     return await NoteRepository.FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> SearchNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> SearchNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
   {
     //List<NoteBundleAppResponseDto> noteDtos = new();
     //NoteSearcher.
@@ -70,7 +69,7 @@ internal sealed partial class NoteRetrievalService
     return [];
   }
 
-  public async Task<IReadOnlyList<NoteBundleDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<NoteDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)
   {
     return [];
   }

@@ -4,5 +4,5 @@ namespace MyNotes.Application.Commands.Notes;
 
 internal sealed record UpdateNoteViewStateAppCommand
 {
-  public required NoteViewStatePatchDto NoteViewStatePatchDto { get; init; }
+  public required NoteViewStatePatchDto PatchDto { get; init; }
 }

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace MyNotes.Infrastructure.Database.Entities.Navigations;
 
-internal class LeafNavigationViewStateEntity : IDatabaseEntity<LeafNavigationViewStateEntity>, INavigationViewStateEntity<LeafNavigationViewStateEntity>
+internal class LeafNavigationViewStateEntity : IDatabaseEntity<LeafNavigationViewStateEntity>, INavigationViewStateEntity
 {
   [Key, Required]
   public required Guid Id { get; init; }
@@ -23,14 +23,4 @@ internal class LeafNavigationViewStateEntity : IDatabaseEntity<LeafNavigationVie
 
   public override bool Equals(object? obj) => this.Equals(obj as LeafNavigationViewStateEntity);
   public override int GetHashCode() => Id.GetHashCode();
-
-  public static LeafNavigationViewStateEntity CreateDefault(Guid id) => new()
-  {
-    Id = id,
-    NoteSortKey = null,
-    NoteSortDirection = null,
-    PreviewLayoutType = null,
-    PreviewTileSize = null,
-    PreviewTileRatio = null
-  };
 }

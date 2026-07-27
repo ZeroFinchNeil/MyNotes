@@ -1,9 +1,9 @@
 ﻿using MyNotes.Common.Enums.Modes;
 using MyNotes.Domain.ValueObjects;
 
-namespace MyNotes.Application.Contracts.Models.Navigations.Modification;
+namespace MyNotes.Application.Commands.Navigations;
 
-internal sealed record DeleteNavigationDbRequestDto
+internal sealed record DeleteNavigationAppCommand
 {
   public required NavigationId Id { get; init; }
 

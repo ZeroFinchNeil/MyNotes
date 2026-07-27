@@ -2,9 +2,9 @@
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 
-namespace MyNotes.Application.Contracts.Models.Navigations.Common;
+namespace MyNotes.Application.Contracts.Models.Navigations;
 
-internal sealed record LeafNavigationViewStateDbResponseDto : NavigationViewStateDbResponseDto
+internal sealed record LeafNavigationViewStateDto : NavigationViewStateDto
 {
   public required NoteSortKey? NoteSortKey { get; init; }
 

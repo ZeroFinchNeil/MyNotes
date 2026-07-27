@@ -4,5 +4,6 @@ internal enum AppUpdateStatus
 {
   Succeeded,
   Unchanged,
-  TargetNotFound
+  TargetNotFound,
+  Failed
 }

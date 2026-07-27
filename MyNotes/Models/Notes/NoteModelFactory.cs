@@ -1,10 +1,10 @@
-﻿using MyNotes.Application.Dtos.Notes.Common;
+﻿using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Mappers;
 
 namespace MyNotes.Models.Notes;
 
-internal class NoteModelFactory : IModelFactory<NoteBundleAppResponseDto, NoteModel>
+internal class NoteModelFactory : IModelFactory<NoteDto, NoteModel>
 {
   private readonly IModelStore<NoteId, NoteModel> Store;
 
@@ -13,8 +13,8 @@ internal class NoteModelFactory : IModelFactory<NoteBundleAppResponseDto, NoteMo
     Store = store;
   }
 
-  public NoteModel Create(NoteBundleAppResponseDto noteBundleAppResponseDto)
+  public NoteModel Create(NoteDto noteDto)
   {
-    return Store.AddOrUpdate(noteBundleAppResponseDto.Id, _ => noteBundleAppResponseDto.ToModel(), (model) => model.Apply(noteBundleAppResponseDto));
+    return Store.AddOrUpdate(noteDto.Id, _ => NoteMappers.ToModel(noteDto), (model) => NoteMappers.Apply(model, noteDto));
   }
 }

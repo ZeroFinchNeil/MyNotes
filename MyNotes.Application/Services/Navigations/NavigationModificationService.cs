@@ -1,77 +1,46 @@
-﻿using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations.Modification;
+﻿using MyNotes.Application.Commands.Navigations;
+using MyNotes.Application.Contracts.Persistence;
 using MyNotes.Application.Contracts.Persistence.Navigations;
-using MyNotes.Application.Dtos.Navigations.Modification;
-using MyNotes.Application.Mappers;
-using MyNotes.Domain.Entities.Navigations;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Templates;
+using MyNotes.Application.Results;
 
 namespace MyNotes.Application.Services.Navigations;
 
 internal sealed partial class NavigationModificationService
 {
   private readonly INavigationRepository NavigationRepository;
-  private readonly NavigationFactory NavigationFactory;
 
-  public NavigationModificationService(INavigationRepository navigationRepository, NavigationFactory navigationFactory)
+  public NavigationModificationService(INavigationRepository navigationRepository)
   {
     NavigationRepository = navigationRepository;
-    NavigationFactory = navigationFactory;
   }
 
-  public async Task<UpdateNavigationAppResponseDto> UpdateNavigationAsync(UpdateNavigationAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default)
-  {
-    if (updateAppRequestDto.UpdateFields is NavigationUpdateFields.None)
+  public async Task<AppUpdateStatus> UpdateNavigationAsync(UpdateNavigationAppCommand appCommand, CancellationToken cancellationToken = default) =>
+    await NavigationRepository.UpdateNavigationAsync(appCommand.PatchDto, cancellationToken) switch
     {
-      return new UpdateNavigationAppResponseDto()
-      {
-        Id = updateAppRequestDto.Id,
-        ChangedFields = NavigationChangedFields.None
-      };
-    }
+      PersistenceMutationStatus.Applied => AppUpdateStatus.Succeeded,
+      PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged => AppUpdateStatus.Unchanged,
+      PersistenceMutationStatus.NotFound => AppUpdateStatus.TargetNotFound,
+      PersistenceMutationStatus.Failed => AppUpdateStatus.Failed,
+      _ => throw new InvalidOperationException()
+    };
 
-    var bundleDto = await NavigationRepository.GetNavigationByIdAsync(updateAppRequestDto.Id, cancellationToken)
-      ?? throw new InvalidOperationException();
-
-    Navigation navigation = NavigationFactory.Create(bundleDto.NavigationDto);
-    var changedFields = UpdateNavigation(navigation, updateAppRequestDto);
-
-    UpdateNavigationDbResponseDto updateDbResponseDto = await NavigationRepository.UpdateNavigationAsync(NavigationMappers.ToUpdateDbDto(navigation, NavigationMappers.ToUpdateFields(changedFields)), true, cancellationToken);
-
-    return NavigationMappers.ToAppDto(updateDbResponseDto);
-  }
-
-  private static NavigationChangedFields UpdateNavigation(Navigation navigation, UpdateNavigationAppRequestDto updateAppRequestDto)
-  {
-    NavigationChangedFields changedFields = NavigationChangedFields.None;
-    var updateFields = updateAppRequestDto.UpdateFields;
-    if (updateFields.HasFlag(NavigationUpdateFields.Parent) && updateAppRequestDto.Parent is NavigationId parent && navigation.Parent != parent)
+  public async Task<AppUpdateStatus> UpdateNavigationViewStateAsync(UpdateNavigationViewStateAppCommand appCommand, CancellationToken cancellationToken = default) =>
+    await NavigationRepository.UpdateNavigationViewStateAsync(appCommand.PatchDto, cancellationToken) switch
     {
-      navigation.Parent = parent;
-      changedFields |= NavigationChangedFields.Parent;
-    }
-    if (updateFields.HasFlag(NavigationUpdateFields.Icon) && updateAppRequestDto.Icon is Icon icon && navigation.Icon != (int)icon)
-    {
-      navigation.Icon = (int)icon;
-      changedFields |= NavigationChangedFields.Icon;
-    }
-    if (updateFields.HasFlag(NavigationUpdateFields.Title) && updateAppRequestDto.Title is string title && navigation.Title != title)
-    {
-      navigation.Title = title;
-      changedFields |= NavigationChangedFields.Title;
-    }
-    if (updateFields.HasFlag(NavigationUpdateFields.IsDeleted) && updateAppRequestDto.IsDeleted is bool isDeleted && navigation.IsDeleted != isDeleted)
-    {
-      navigation.IsDeleted = isDeleted;
-      changedFields |= NavigationChangedFields.IsDeleted;
-    }
+      PersistenceMutationStatus.Applied => AppUpdateStatus.Succeeded,
+      PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged => AppUpdateStatus.Unchanged,
+      PersistenceMutationStatus.NotFound => AppUpdateStatus.TargetNotFound,
+      PersistenceMutationStatus.Failed => AppUpdateStatus.Failed,
+      _ => throw new InvalidOperationException()
+    };
 
-    return changedFields;
-  }
-
-  public Task UpdateNavigationViewStateAsync(UpdateNavigationViewStateAppRequestDto updateAppRequestDto, CancellationToken cancellationToken = default) => NavigationRepository.UpdateNavigationViewStateAsync(NavigationMappers.ToDbDto(updateAppRequestDto), true, cancellationToken);
-
-  public async Task<bool> DeleteNavigationAsync(DeleteNavigationAppRequestDto deleteAppRequestDto)
-    => await NavigationRepository.DeleteNavigationAsync(NavigationMappers.ToDbDto(deleteAppRequestDto));
+  public async Task<AppUpdateStatus> DeleteNavigationAsync(DeleteNavigationAppCommand appCommand, CancellationToken cancellationToken = default)
+    => await NavigationRepository.DeleteNavigationAsync(appCommand.Id, appCommand.DeleteMode, cancellationToken) switch
+    {
+      PersistenceMutationStatus.Applied => AppUpdateStatus.Succeeded,
+      PersistenceMutationStatus.Expired or PersistenceMutationStatus.Unchanged => AppUpdateStatus.Unchanged,
+      PersistenceMutationStatus.NotFound => AppUpdateStatus.TargetNotFound,
+      PersistenceMutationStatus.Failed => AppUpdateStatus.Failed,
+      _ => throw new InvalidOperationException()
+    };
 }

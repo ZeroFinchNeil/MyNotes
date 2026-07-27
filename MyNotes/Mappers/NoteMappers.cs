@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Dtos.Notes.Common;
+﻿using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Shared.Enums.Media;
@@ -10,10 +10,9 @@ namespace MyNotes.Mappers;
 
 internal static class NoteMappers
 {
-  public static NoteModel ToModel(NoteBundleAppResponseDto bundleDto)
+  public static NoteModel ToModel(NoteDto noteDto)
   {
-    var noteDto = bundleDto.NoteDto;
-    var viewStateDto = bundleDto.ViewStateDto;
+    var viewStateDto = noteDto.ViewStateDto;
 
     return new()
     {
@@ -60,10 +59,9 @@ internal static class NoteMappers
     IsDeleted = noteModel.IsDeleted
   };
 
-  public static void Apply(NoteModel noteModel, NoteBundleAppResponseDto bundleDto)
+  public static void Apply(NoteModel noteModel, NoteDto noteDto)
   {
-    var noteDto = bundleDto.NoteDto;
-    var viewStateDto = bundleDto.ViewStateDto;
+    var viewStateDto = noteDto.ViewStateDto;
 
     if (noteModel.Id != noteDto.Id)
     {
@@ -92,18 +90,5 @@ internal static class NoteMappers
     noteModel.Position = new(viewStateDto.PositionX, viewStateDto.PositionY);
     noteModel.IsWindowOpen = viewStateDto.IsWindowOpen;
     noteModel.IsAlwaysOnTop = viewStateDto.IsAlwaysOnTop;
-  }
-}
-
-internal static class NoteMappingExtensions
-{
-  extension(NoteModel model)
-  {
-    public void Apply(NoteBundleAppResponseDto noteDto) => NoteMappers.Apply(model, noteDto);
-  }
-
-  extension(NoteBundleAppResponseDto dto)
-  {
-    public NoteModel ToModel() => NoteMappers.ToModel(dto);
   }
 }

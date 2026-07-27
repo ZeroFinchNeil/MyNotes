@@ -5,7 +5,9 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Application.Dtos.Notes.Modification;
+using MyNotes.Application.Commands.Notes;
+using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Results;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
@@ -79,7 +81,14 @@ internal sealed partial class NoteViewModel : ViewModelBase
         {
           BackgroundImage = null;
         }
-        await NoteService.Modification.UpdateNoteViewStateAsync(new() { Id = Note.Id, ShowBackgroundImage = new(Note.ShowBackgroundImage) });
+        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
+        {
+          PatchDto = new NoteViewStatePatchDto()
+          {
+            Id = Note.Id,
+            ShowBackgroundImage = new(Note.ShowBackgroundImage)
+          }
+        });
         break;
       case nameof(Note.BackgroundImagePath):
         SetBackgroundImage();
@@ -89,24 +98,27 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public async Task UpdateNoteTitle(string oldTitle)
   {
-    UpdateNoteAppRequestDto requestDto = new()
+    UpdateNoteAppCommand appCommand = new()
     {
-      Id = Note.Id,
-      Title = new(Note.Title)
+      PatchDto = new NotePatchDto()
+      {
+        Id = Note.Id,
+        Title = new(Note.Title)
+      }
     };
-    var responseDto = await NoteService.Modification.UpdateNoteAsync(requestDto);
+    var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
   }
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()
   {
     if (SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
     {
-      DeleteNoteAppRequestDto dto = new()
+      DeleteNoteAppCommand appCommand = new()
       {
         Id = Note.Id,
         DeleteMode = DeleteMode.Permanent
       };
-      return await NoteService.Modification.DeleteNoteAsync(dto);
+      return await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded;
     }
 
     return false;

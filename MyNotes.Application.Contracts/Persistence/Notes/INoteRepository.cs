@@ -16,17 +16,17 @@ internal interface INoteRepository
 {
   public Task<NoteId> GenerateUniqueNoteIdAsync(CancellationToken cancellationToken = default);
 
-  public Task<NoteBundleDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
+  public Task<NoteDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
   public Task<NoteViewStateDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<NoteBundleDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted = false, CancellationToken cancellationToken = default);
+  public Task<IReadOnlyList<NoteDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted = false, CancellationToken cancellationToken = default);
 
   public Task<NoteProjectionDto> GetNoteFieldValuesAsync(NoteId noteId, NoteGetFields noteGetFields, CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<NoteBundleDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default);
+  public Task<IReadOnlyList<NoteDto>> FindNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default);
 
-  public Task AddNoteAsync(NoteBundleDto noteBundleDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
+  public Task AddNoteAsync(NoteDto noteDto, IAppDbTransactionContext appDbTransactionContext, CancellationToken cancellationToken = default);
 
   public Task<PersistenceMutationStatus> UpdateNoteAsync(NotePatchDto notePatchDto, DateTimeOffset modified, CancellationToken cancellationToken = default);
 
