@@ -1146,8 +1146,7 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}"
-                                CommandParameter="{x:Bind ViewModel.Note.Id}" />
+                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

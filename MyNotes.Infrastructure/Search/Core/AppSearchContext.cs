@@ -18,6 +18,7 @@ using Lucene.Net.Util;
 using MyNotes.Common.Operations;
 using MyNotes.Infrastructure.Search.Analyzers;
 using MyNotes.Infrastructure.Search.Documents.Notes;
+using MyNotes.Shared.Constants;
 
 using Windows.Storage;
 
@@ -48,8 +49,8 @@ internal sealed class AppSearchContext : IDisposable
 
   public AppSearchContext()
   {
-    var searchDirInfo = IO.Directory.CreateDirectory(IO.Path.Combine(_localFolder.Path, "Index"));
-    NoteSearchIndexFSDir = FSDirectory.Open(IO.Path.Combine(searchDirInfo.FullName, "Note"));
+    var searchDirInfo = IO.Directory.CreateDirectory(IO.Path.Combine(_localFolder.Path, AppRepositorySettings.SearchIndexDirectoryName));
+    NoteSearchIndexFSDir = FSDirectory.Open(IO.Path.Combine(searchDirInfo.FullName, AppRepositorySettings.NoteSearchIndexDirectoryName));
     NoteSearchAnalyzer = new SpecialNGramAnalyzer(LuceneVersion, NoteSearchMinGram, NoteSearchMaxGram);
     var indexConfig = new IndexWriterConfig(LuceneVersion, NoteSearchAnalyzer) { OpenMode = OpenMode.CREATE_OR_APPEND };
     NoteSearchWriter = new IndexWriter(NoteSearchIndexFSDir, indexConfig);

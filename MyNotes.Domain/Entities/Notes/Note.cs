@@ -19,8 +19,6 @@ internal sealed class Note
 
   public required string Body { get; set; }
 
-  public required IReadOnlyList<string> BodyImagePaths { get; set; } 
-
   public required string BackgroundColor { get; set; }
 
   public required string? BackgroundImagePath { get; set; }

@@ -23,9 +23,6 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   public required string Body { get; set; }
 
   [Required]
-  public required string BodyImagePaths { get; set; }
-
-  [Required]
   public required string BackgroundColor { get; set; }
 
   public required string? BackgroundImagePath { get; set; }

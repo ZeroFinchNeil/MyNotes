@@ -2,17 +2,21 @@
 
 using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Persistence.Media;
 using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Application.Contracts.Persistence.Notes;
+using MyNotes.Application.Services.Media;
 using MyNotes.Application.Services.Navigations;
 using MyNotes.Application.Services.Notes;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Converters;
 using MyNotes.Infrastructure.Database.Core;
+using MyNotes.Infrastructure.Database.Repositories.Media;
 using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
+using MyNotes.Infrastructure.Storage.Media;
 using MyNotes.Infrastructure.Windowing;
 using MyNotes.Models;
 using MyNotes.Models.Notes;
@@ -76,6 +80,13 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NavigationFactory>();
 
       services.AddSingleton<NavigationController>();
+    }
+
+    public void AddMediaServices()
+    {
+      services.AddSingleton<IImageRepository, ImageRepository>();
+      services.AddSingleton<IImageFileStorage, ImageFileStorage>();
+      services.AddSingleton<ImageService>();
     }
 
     public void AddCommandServices()

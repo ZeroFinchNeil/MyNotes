@@ -19,18 +19,18 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private readonly NoteWindowService NoteWindowService;
   private readonly ImageViewerWindowService ImageViewerWindowService;
 
-  private ImageCollectionKey ImageCollectionKey { get; }
+  private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey imageCollectionKey)
+  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
   {
     ImageViewModelProvider = imageViewModelProvider;
     NoteWindowService = noteWindowService;
     ImageViewerWindowService = imageViewerWindowService;
 
-    ImageCollectionKey = imageCollectionKey;
+    NoteId = noteId;
 
-    ImageViewModels = ImageCollectionKey.CollectionReference.TryGetTarget(out var collection) ? collection : new();
+    ImageViewModels = NoteId.CollectionReference.TryGetTarget(out var collection) ? collection : new();
     SetCommands();
   }
   #endregion
@@ -44,7 +44,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  public Command<NoteId> InsertImageCommand { get; private set; }
+  public Command InsertImageCommand { get; private set; }
 
   public Command<ImageViewModel> ShowImageCommand { get; private set; }
   public Command<ImageViewModel> DeleteImageCommand { get; private set; }
@@ -54,9 +54,9 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     InsertImageCommand = new()
     {
-      ExecuteAction = async (noteId) =>
+      ExecuteAction = async () =>
       {
-        if (NoteWindowService.TryGetWindowInfo(noteId, out _, out var appWindow))
+        if (NoteWindowService.TryGetWindowInfo(NoteId, out _, out var appWindow))
         {
           FileOpenPicker picker = new(appWindow.OwnerWindowId)
           {
@@ -68,12 +68,12 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
             picker.FileTypeFilter.Add(fileType);
           }
 
-          foreach (var result in await picker.PickMultipleFilesAsync())
+          foreach (var pickFileResult in await picker.PickMultipleFilesAsync())
           {
             try
             {
               // 원본 이미지 파일 가져오기
-              var originalPath = result.Path;
+              var originalPath = pickFileResult.Path;
               var originalFile = await StorageFile.GetFileFromPathAsync(originalPath);
 
               // LocalFolder의 Image 폴더 안에 이미지 파일 복사
@@ -100,7 +100,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteAction = async (imageViewModel) =>
       {
-        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(ImageCollectionKey);
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(NoteId);
         imageViewerWindow.Activate();
         if (ImageViewModels.Contains(imageViewModel))
         {

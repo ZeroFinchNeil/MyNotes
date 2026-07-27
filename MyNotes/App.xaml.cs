@@ -141,6 +141,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
     services.AddWindowServices();
     services.AddNavigationServices();
     services.AddNoteServices();
+    services.AddMediaServices();
     services.AddCommandServices();
 
     services.AddDbCoreServices();

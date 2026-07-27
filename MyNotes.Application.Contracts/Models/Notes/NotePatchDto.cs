@@ -16,8 +16,6 @@ internal sealed record NotePatchDto
 
   public Optional<string> Body { get; init; }
 
-  public Optional<IReadOnlyList<string>> BodyImagePaths { get; init; }
-
   public Optional<string> BackgroundColor { get; init; }
 
   public Optional<string?> BackgroundImagePath { get; init; }
@@ -31,7 +29,6 @@ internal sealed record NotePatchDto
     NavigationId.IsUndefined: true,
     Title.IsUndefined: true,
     Body.IsUndefined: true,
-    BodyImagePaths.IsUndefined: true,
     BackgroundColor.IsUndefined: true,
     BackgroundImagePath.IsUndefined: true,
     IsBookmarked.IsUndefined: true,

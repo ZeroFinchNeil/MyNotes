@@ -16,7 +16,6 @@ internal static class NoteMappers
     Modified = note.Modified,
     Title = note.Title,
     Body = note.Body,
-    BodyImagePaths = note.BodyImagePaths,
     BackgroundColor = note.BackgroundColor,
     BackgroundImagePath = note.BackgroundImagePath,
     IsBookmarked = note.IsBookmarked,

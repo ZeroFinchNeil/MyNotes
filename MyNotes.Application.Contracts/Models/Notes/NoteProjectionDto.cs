@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using DotNext;
 
@@ -21,8 +20,6 @@ internal sealed record NoteProjectionDto
 
   public Optional<string> Body { get; init; }
 
-  public Optional<IReadOnlyList<string>> BodyImagePaths { get; init; }
-
   public Optional<string> BackgroundColor { get; init; }
 
   public Optional<string?> BackgroundImagePath { get; init; }
@@ -38,7 +35,6 @@ internal sealed record NoteProjectionDto
     Modified.IsUndefined: true,
     Title.IsUndefined: true,
     Body.IsUndefined: true,
-    BodyImagePaths.IsUndefined: true,
     BackgroundColor.IsUndefined: true,
     BackgroundImagePath.IsUndefined: true,
     IsBookmarked.IsUndefined: true,

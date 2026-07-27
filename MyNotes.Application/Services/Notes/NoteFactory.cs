@@ -25,7 +25,6 @@ internal sealed partial class NoteFactory
     Modified = DateTimeOffset.UtcNow,
     Title = AppDefaultSettings.NoteTitle,
     Body = AppDefaultSettings.NoteBodyRtfText,
-    BodyImagePaths = AppDefaultSettings.NoteBodyImagePaths,
     BackgroundColor = SettingsService.Load(AppSettingsDescriptors.NoteBackground),
     BackgroundImagePath = AppDefaultSettings.NoteBackgroundImagePath,
     IsBookmarked = AppDefaultSettings.IsNoteBookmarked,

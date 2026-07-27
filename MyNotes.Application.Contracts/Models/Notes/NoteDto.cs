@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 using MyNotes.Domain.ValueObjects;
 
@@ -18,8 +17,6 @@ internal sealed record NoteDto
   public required string Title { get; init; }
 
   public required string Body { get; init; }
-
-  public required IReadOnlyList<string> BodyImagePaths { get; init; }
 
   public required string BackgroundColor { get; init; }
 

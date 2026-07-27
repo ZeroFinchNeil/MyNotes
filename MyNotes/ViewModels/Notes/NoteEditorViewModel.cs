@@ -210,16 +210,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
         ChangeSystemBackdropExtended();
         _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.BackdropLuminosityOpacity;
         break;
-      case nameof(Note.BodyImagePaths):
-        await NoteService.Modification.UpdateNoteAsync(new UpdateNoteAppCommand()
-        {
-          PatchDto = new NotePatchDto()
-          {
-            Id = Note.Id,
-            BodyImagePaths = new([.. Note.BodyImagePaths.Select(d => d.FilePath)])
-          }
-        });
-        break;
       case nameof(Note.ShowImagePanel):
         await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
         {

@@ -12,7 +12,6 @@ using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Mappers;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
@@ -58,7 +57,7 @@ internal sealed partial class NotePage : Page
 
     var noteService = App.Services.GetRequiredService<NoteService>();
 
-    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(NoteImageCollectionMapper.CreateImageCollectionKey(note));
+    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(note.Id);
 
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
@@ -361,18 +360,11 @@ partial class NotePage
     }
   }
 
-  private void ImageViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => UpdateNoteImagePaths();
-
-  private void UpdateNoteImagePaths()
+  private void ImageViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
-    if (ImageCollectionViewModel.ImageViewModels is null)
-    {
-      return;
-    }
-
-    ViewModel.Note.BodyImagePaths = [.. ImageCollectionViewModel.ImageViewModels.Select(vm => vm.ImageDescriptor)];
     ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels.Count > 0;
   }
+
   private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)

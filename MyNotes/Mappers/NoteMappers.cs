@@ -33,8 +33,6 @@ internal static class NoteMappers
       BackdropKind = (BackdropKind)viewStateDto.BackdropKind,
       BackdropTintOpacity = viewStateDto.BackdropTintOpacity,
       BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity,
-      //BodyImagePaths = [..noteDto.BodyImagePaths],
-      BodyImagePaths = [],
       ShowImagePanel = viewStateDto.ShowImagePanel,
       ImagePanelHeight = viewStateDto.ImagePanelHeight,
       Size = new(viewStateDto.Width, viewStateDto.Height),
@@ -52,7 +50,6 @@ internal static class NoteMappers
     Modified = noteModel.Modified,
     Title = noteModel.Title,
     Body = noteModel.Body,
-    BodyImagePaths = [.. noteModel.BodyImagePaths.Select(d => d.FilePath)],
     BackgroundColor = noteModel.BackgroundColor.ToString(),
     BackgroundImagePath = noteModel.BackgroundImagePath,
     IsBookmarked = noteModel.IsBookmarked,
@@ -83,7 +80,6 @@ internal static class NoteMappers
     noteModel.BackdropKind = (BackdropKind)viewStateDto.BackdropKind;
     noteModel.BackdropTintOpacity = viewStateDto.BackdropTintOpacity;
     noteModel.BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity;
-    noteModel.BodyImagePaths = [];
     noteModel.ShowImagePanel = viewStateDto.ShowImagePanel;
     noteModel.ImagePanelHeight = viewStateDto.ImagePanelHeight;
     noteModel.Size = new(viewStateDto.Width, viewStateDto.Height);

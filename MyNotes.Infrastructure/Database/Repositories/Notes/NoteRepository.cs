@@ -305,10 +305,6 @@ internal class NoteRepository : INoteRepository
         {
           entity.Body = body;
         }
-        if (notePatchDto.BodyImagePaths.TryGet(out var bodyImagePaths) && JsonSerializer.Serialize(bodyImagePaths, AppJson.JsonSerializerOptions) is { } bodyImagePathsJson)
-        {
-          entity.BodyImagePaths = bodyImagePathsJson;
-        }
         if (notePatchDto.BackgroundColor.TryGet(out var backgroundColor) && entity.BackgroundColor != backgroundColor)
         {
           entity.BackgroundColor = backgroundColor;

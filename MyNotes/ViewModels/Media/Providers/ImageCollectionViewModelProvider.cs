@@ -2,15 +2,17 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Domain.ValueObjects;
+
 namespace MyNotes.ViewModels.Media.Providers;
 
-internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<ImageCollectionKey, ImageCollectionViewModel>
+internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<ImageCollectionKey, WeakReference<ImageCollectionViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<NoteId, WeakReference<ImageCollectionViewModel>> ResolvedViewModels = new();
 
-  public ImageCollectionViewModel Resolve(ImageCollectionKey key)
+  public ImageCollectionViewModel Resolve(NoteId key)
   {
     if (TryResolve(key, out var viewmodel))
     {
@@ -23,7 +25,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     return newViewModel;
   }
 
-  public bool TryResolve(ImageCollectionKey key, [NotNullWhen(true)] out ImageCollectionViewModel? imageCollectionViewModel)
+  public bool TryResolve(NoteId key, [NotNullWhen(true)] out ImageCollectionViewModel? imageCollectionViewModel)
   {
     if (ResolvedViewModels.TryGetValue(key, out var wr)
         && wr.TryGetTarget(out var viewmodel)
@@ -37,7 +39,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     return false;
   }
 
-  public bool Release(ImageCollectionKey key)
+  public bool Release(NoteId key)
   {
     if (TryResolve(key, out var viewmodel))
     {

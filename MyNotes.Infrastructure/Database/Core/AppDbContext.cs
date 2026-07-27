@@ -7,8 +7,10 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
+using MyNotes.Infrastructure.Database.Entities.Media;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 using MyNotes.Infrastructure.Database.Entities.Notes;
+using MyNotes.Shared.Constants;
 
 using Windows.Storage;
 
@@ -29,12 +31,15 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
   /// <summary>노트 뷰 상태 DB 엔티티</summary>
   public DbSet<NoteViewStateEntity> NoteViewStateEntities => Set<NoteViewStateEntity>();
 
+  /// <summary>이미지 메타데이터 DB 엔티티</summary>
+  public DbSet<ImageEntity> ImageEntities => Set<ImageEntity>();
+
   private static readonly StorageFolder _localFolder = ApplicationData.Current.LocalFolder;
 
   /// <summary>EFCore(SQLite) 연결 문자열</summary>
   private static readonly string _connectionString = new SqliteConnectionStringBuilder()
   {
-    DataSource = Path.Combine(_localFolder.Path, "data.db"),
+    DataSource = Path.Combine(_localFolder.Path, AppRepositorySettings.DbFileName),
     ForeignKeys = true,
     DefaultTimeout = 60
   }.ToString();
@@ -101,6 +106,18 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
         .OnDelete(DeleteBehavior.Cascade);
 
       entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
+    });
+
+    modelBuilder.Entity<ImageEntity>(entity =>
+    {
+      entity.HasOne<NoteEntity>()
+        .WithOne()
+        .HasForeignKey<ImageEntity>(e => e.NoteId)
+        .IsRequired()
+        .OnDelete(DeleteBehavior.Cascade);
+
+      entity.Property(e => e.Id).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
+      entity.Property(e => e.NoteId).Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Throw);
     });
   }
 

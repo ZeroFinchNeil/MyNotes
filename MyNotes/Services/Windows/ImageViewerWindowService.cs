@@ -2,6 +2,7 @@
 
 using Microsoft.UI.Content;
 
+using MyNotes.Domain.ValueObjects;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
@@ -13,14 +14,14 @@ namespace MyNotes.Services.Windows;
 internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
 {
   private readonly INativeWindowing NativeWindowing;
-  private KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
+  private KeyValuePair<NoteId, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
 
   public ImageViewerWindowService(INativeWindowing nativeWindowing)
   {
     NativeWindowing = nativeWindowing;
   }
 
-  public async Task<ImageViewerWindow> GetOrCreate(ImageCollectionKey key)
+  public async Task<ImageViewerWindow> GetOrCreate(NoteId key)
   {
     if (_imageViewerWindowPair is not null)
     {
@@ -39,7 +40,7 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
     }
 
     ImageViewerWindow newWindow = new(key);
-    _imageViewerWindowPair = new KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>(key, new(newWindow));
+    _imageViewerWindowPair = new KeyValuePair<NoteId, WeakReference<ImageViewerWindow>>(key, new(newWindow));
     return newWindow;
   }
 

@@ -38,9 +38,6 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   public partial string Body { get; set; } = string.Empty;
 
   [ObservableProperty]
-  public partial ImmutableList<ImageDescriptor> BodyImagePaths { get; set; } = [];
-
-  [ObservableProperty]
   public partial Color BackgroundColor { get; set; } = AppDefaultSettings.NoteBackground.ToColor();
 
   [ObservableProperty]

@@ -1,3 +1,4 @@
+using MyNotes.Domain.ValueObjects;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Media;
 
@@ -8,12 +9,12 @@ internal sealed partial class ImageViewerWindow : Window
 {
   #region Object Lifetime Management
 
-  public ImageViewerWindow(ImageCollectionKey imageCollectionKey)
+  public ImageViewerWindow(NoteId noteId)
   {
     TrackReference();
     InitializeComponent();
 
-    this.Content = new ImageViewerPage(imageCollectionKey);
+    this.Content = new ImageViewerPage(noteId);
     this.Closed += ImageViewerWindow_Closed;
   }
   public bool IsClosed { get; private set; }
