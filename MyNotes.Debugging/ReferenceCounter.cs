@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading;
 
-namespace MyNotes.Common.Lifetime;
+namespace MyNotes.Debugging;
 
-[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
 {
   public required T Instance { get; init; }
@@ -12,7 +11,7 @@ internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
   public int ReferenceCount => Volatile.Read(ref _referenceCount);
   public bool HasNoReferences => ReferenceCount <= 0;
 
-  public ReferenceCounter() { TrackReference(); }
+  public ReferenceCounter() { }
 
   public void Increment()
   {

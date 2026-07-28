@@ -4,10 +4,11 @@ using Microsoft.UI.Xaml;
 
 using MyNotes.Common.Querying;
 using MyNotes.Common.Structures;
+using MyNotes.Shared.Constants;
 
 using Windows.Foundation;
 
-namespace MyNotes.Shared.Constants;
+namespace MyNotes.Application.Services.Settings;
 
 internal static class AppSettingsDescriptors
 {

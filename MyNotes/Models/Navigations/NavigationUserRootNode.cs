@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Constants;
+using MyNotes.Strings;
 
 namespace MyNotes.Models.Navigations;
 

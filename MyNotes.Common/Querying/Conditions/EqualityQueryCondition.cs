@@ -1,6 +1,6 @@
 ﻿using MyNotes.Common.Querying;
 
-namespace MyNotes.Shared.Queries.Conditions;
+namespace MyNotes.Common.Querying.Conditions;
 
 internal sealed class EqualityQueryCondition<TTarget> : IQueryCondition<TTarget, EqualityMatchType, EqualityQueryCondition<TTarget>> where TTarget : notnull
 {

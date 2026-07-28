@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Enums.Navigations;
 using MyNotes.Application.Contracts.Models.Navigations;
 using MyNotes.Common.Enums.Modes;

@@ -1,7 +1,7 @@
 ﻿using DotNext;
 
 using MyNotes.Application.Commands.Navigations;
-using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+using MyNotes.Application.Contracts.Enums.Navigations;
 using MyNotes.Application.Contracts.Models.Navigations;
 using MyNotes.Application.Results;
 using MyNotes.Application.Results.Navigations;

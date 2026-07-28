@@ -9,14 +9,13 @@ using MyNotes.Application.Commands.Notes;
 using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Results;
 using MyNotes.Application.Services.Notes;
+using MyNotes.Application.Services.Settings;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Structures;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Settings;
-using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Shell.Contracts.Converters;
 

@@ -2,7 +2,7 @@
 
 using MyNotes.Application.Contracts.Enums.Notes;
 using MyNotes.Common.Querying;
-using MyNotes.Shared.Queries.Conditions;
+using MyNotes.Common.Querying.Conditions;
 
 namespace MyNotes.Application.Contracts.Models.Notes.Queries;
 

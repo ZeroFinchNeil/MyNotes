@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Models.Navigations;
+using MyNotes.Application.Services.Settings;
 using MyNotes.Domain.Entities.Navigations;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Services.Settings;
 
 namespace MyNotes.Application.Services.Navigations;
 

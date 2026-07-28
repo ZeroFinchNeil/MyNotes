@@ -2,7 +2,7 @@
 
 using Windows.Foundation.Collections;
 
-namespace MyNotes.Services.Settings;
+namespace MyNotes.Application.Services.Settings;
 
 /// <summary>
 /// 로컬 애플리케이션 데이터 저장소에 애플리케이션 설정을 저장, 검색 및 모니터링하기 위한 메서드와 이벤트를 제공합니다.

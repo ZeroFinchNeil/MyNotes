@@ -5,16 +5,17 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Globalization;
 
+using MyNotes.Application.Services.Settings;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Querying;
 using MyNotes.Constants;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.Shared.Enums.Settings;
+using MyNotes.Strings;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 

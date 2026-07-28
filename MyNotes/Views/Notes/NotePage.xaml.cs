@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Services.Notes;
+using MyNotes.Application.Services.Settings;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
@@ -15,9 +16,7 @@ using MyNotes.Domain.ValueObjects;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Notes;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;

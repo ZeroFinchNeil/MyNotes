@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Application.Contracts.Database.Repositories.Navigations;
+﻿namespace MyNotes.Application.Contracts.Enums.Navigations;
 
 public enum NavigationInsertPosition
 {

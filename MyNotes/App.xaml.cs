@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Services.App;
 using MyNotes.Application.Services.Notes;
+using MyNotes.Application.Services.Settings;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Logging;
@@ -15,7 +16,6 @@ using MyNotes.Services;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
 

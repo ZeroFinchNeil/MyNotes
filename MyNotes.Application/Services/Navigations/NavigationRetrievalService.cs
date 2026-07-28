@@ -26,7 +26,7 @@ internal sealed partial class NavigationRetrievalService
       Icon = default,
       Title = default!,
       IsDeleted = default,
-      ViewStateDto = default!
+      ViewStateDto = null!
     };
 
     NavigationTreeNodeDto BuildTreeNode(NavigationDto navigationDto) => navigationDto.IsComposite

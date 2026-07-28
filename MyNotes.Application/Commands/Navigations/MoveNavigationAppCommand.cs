@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Database.Repositories.Navigations;
+﻿using MyNotes.Application.Contracts.Enums.Navigations;
 using MyNotes.Domain.ValueObjects;
 
 namespace MyNotes.Application.Commands.Navigations;

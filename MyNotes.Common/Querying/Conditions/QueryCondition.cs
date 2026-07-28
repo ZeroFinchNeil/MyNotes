@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MyNotes.Shared.Queries.Conditions;
+namespace MyNotes.Common.Querying.Conditions;
 
 internal class QueryCondition<TTarget, TCondition> : IQueryCondition<TTarget, TCondition, QueryCondition<TTarget, TCondition>> where TTarget : notnull where TCondition : Enum
 {

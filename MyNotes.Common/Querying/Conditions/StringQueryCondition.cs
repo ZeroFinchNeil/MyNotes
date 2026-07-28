@@ -1,6 +1,4 @@
-﻿using MyNotes.Common.Querying;
-
-namespace MyNotes.Shared.Queries.Conditions;
+﻿namespace MyNotes.Common.Querying.Conditions;
 
 internal class StringQueryCondition : IQueryCondition<string, TextMatchType, StringQueryCondition>
 {

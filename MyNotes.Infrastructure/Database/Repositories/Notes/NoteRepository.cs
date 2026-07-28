@@ -19,13 +19,13 @@ using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Expressions;
 using MyNotes.Common.Querying;
+using MyNotes.Common.Querying.Conditions;
 using MyNotes.Common.Structures;
 using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Infrastructure.Mappers;
 using MyNotes.Shared.Constants;
-using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Notes;
 

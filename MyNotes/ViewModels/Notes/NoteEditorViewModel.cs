@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Storage.Pickers;
 
@@ -366,7 +367,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   #endregion
 
   #region Background
-  public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors => AppColors.DefaultPaletteColorBrushes;
+  public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors { get; } = [.. AppColors.DefaultPaletteColors.Select(c => new SolidColorBrush(c.ToColor()))];
 
   private SolidColorBrush? _selectedPaletteBackgroundColor;
   public SolidColorBrush? SelectedPaletteBackgroundColor
@@ -590,7 +591,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   #endregion
 
   #region Font Color
-  public IReadOnlyList<SolidColorBrush> PaletteFontColors => AppColors.DefaultPaletteColorBrushes;
+  public IReadOnlyList<SolidColorBrush> PaletteFontColors { get; } = [.. AppColors.DefaultPaletteColors.Select(c => new SolidColorBrush(c.ToColor()))];
 
   public SolidColorBrush? SelectedPaletteFontColor
   {
@@ -626,7 +627,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   #endregion
 
   #region Text Highlight Color
-  public IReadOnlyList<SolidColorBrush> PaletteHighlightColors => AppColors.DefaultPaletteColorBrushes;
+  public IReadOnlyList<SolidColorBrush> PaletteHighlightColors { get; } = [.. AppColors.DefaultPaletteColors.Select(c => new SolidColorBrush(c.ToColor()))];
 
   public SolidColorBrush? SelectedPaletteHighlightColor
   {

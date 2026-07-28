@@ -1,6 +1,6 @@
 ﻿using Windows.ApplicationModel.Resources;
 
-namespace MyNotes.Shared.Constants;
+namespace MyNotes.Strings;
 
 internal class LocalizedStrings
 {

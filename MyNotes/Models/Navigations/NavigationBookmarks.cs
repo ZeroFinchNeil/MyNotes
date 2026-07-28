@@ -2,9 +2,9 @@
 
 using MyNotes.Common.Querying;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Constants;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;
+using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;

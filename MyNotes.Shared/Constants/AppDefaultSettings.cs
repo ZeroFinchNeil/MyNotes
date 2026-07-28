@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Media;
 
-using MyNotes.Common.Querying;
 using MyNotes.Shared.Enums.Media;
 using MyNotes.Shared.Enums.Navigations;
 using MyNotes.Shared.Enums.Notes;

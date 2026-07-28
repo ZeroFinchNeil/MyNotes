@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Database.Repositories.Navigations;
 using MyNotes.Application.Contracts.Enums.Navigations;
 using MyNotes.Application.Contracts.Models.Navigations;
 using MyNotes.Application.Contracts.Persistence;

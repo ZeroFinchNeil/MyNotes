@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Services.Settings;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
@@ -10,7 +11,6 @@ using MyNotes.Domain.ValueObjects;
 using MyNotes.Infrastructure.Logging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.Shared.Constants;
 using MyNotes.ViewModels;

@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 
 using Microsoft.Windows.Globalization;
 
-using MyNotes.Shared.Constants;
-
-namespace MyNotes.Shared.Enums.Settings;
+namespace MyNotes.Strings;
 
 public sealed record AppLanguage
 {

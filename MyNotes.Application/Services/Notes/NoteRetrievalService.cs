@@ -3,8 +3,8 @@ using MyNotes.Application.Contracts.Models.Notes;
 using MyNotes.Application.Contracts.Models.Notes.Queries;
 using MyNotes.Application.Contracts.Persistence.Notes;
 using MyNotes.Common.Querying;
+using MyNotes.Common.Querying.Conditions;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Queries.Conditions;
 
 namespace MyNotes.Application.Services.Notes;
 

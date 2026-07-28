@@ -15,7 +15,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="DotNext" Version="6.4.1" />
+    <PackageReference Include="DotNext" Version="6.5.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <PrivateAssets>all</PrivateAssets>
@@ -27,7 +27,7 @@
     <PackageReference Include="Lucene.Net.Queries" Version="4.8.0-beta00017" />
     <PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00017" />
     <PackageReference Include="Lucene.Net.Sandbox" Version="4.8.0-beta00017" />
-    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.2.0" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.3.1" />
   </ItemGroup>
   
   <ItemGroup>

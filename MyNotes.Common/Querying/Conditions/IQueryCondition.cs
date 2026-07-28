@@ -1,9 +1,11 @@
 ﻿using System;
 
-namespace MyNotes.Shared.Queries.Conditions;
+using MyNotes.Common.Querying.Conditions;
 
-internal interface IQueryCondition
-{ }
+namespace MyNotes.Common.Querying.Conditions
+{
+  internal interface IQueryCondition { }
+}
 
 internal interface IQueryCondition<out TTarget, out TCondition> : IQueryCondition where TTarget : notnull where TCondition : Enum
 {

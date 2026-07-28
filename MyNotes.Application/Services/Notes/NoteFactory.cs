@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Services.Settings;
 using MyNotes.Domain.Entities.Notes;
 using MyNotes.Domain.ValueObjects;
-using MyNotes.Services.Settings;
 using MyNotes.Shared.Constants;
 
 using Windows.Graphics;
