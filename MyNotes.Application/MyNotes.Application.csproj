@@ -28,11 +28,12 @@
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
-    <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
-    <ProjectReference Include="..\MyNotes.Shell.Contracts\MyNotes.Shell.Contracts.csproj" />
-    <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Media\Queries\" />
+    <Folder Include="Media\Results\" />
+    <Folder Include="Navigations\Queries\" />
+    <Folder Include="Notes\Queries\" />
     <Folder Include="Queries\" />
   </ItemGroup>
   

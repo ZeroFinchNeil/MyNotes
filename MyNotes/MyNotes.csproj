@@ -52,8 +52,7 @@
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
     <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
-    <ProjectReference Include="..\MyNotes.Shared\MyNotes.Shared.csproj" />
-    <ProjectReference Include="..\MyNotes.Shell.Contracts\MyNotes.Shell.Contracts.csproj" />
+    <ProjectReference Include="..\MyNotes.Presentation.Contracts\MyNotes.Presentation.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
     <ProjectReference Include="..\MyNotes.Analyzer\MyNotes.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>

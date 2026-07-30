@@ -3,7 +3,8 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:templates="using:MyNotes.Templates"
-      xmlns:navEnums="using:MyNotes.Shared.Enums.Navigations">
+      xmlns:helpers="using:MyNotes.Common.Helpers"
+      xmlns:navEnums="using:MyNotes.Application.Contracts.Navigations.Models">
 
   <Grid>
     <Grid.RowDefinitions>
@@ -88,7 +89,7 @@
 
               <!--Style: View Ratio-->
               <templates:MenuFlyoutElementContainer Padding="8"
-                                                    Visibility="{x:Bind NoteListViewModel.VisibleWhenEquals(NoteListViewModel.PreviewLayoutType, navEnums:PreviewLayoutType.Grid), Mode=OneWay}">
+                                                    Visibility="{x:Bind helpers:ObjectHelper.VisibleWhenEquals(NoteListViewModel.PreviewLayoutType, navEnums:PreviewLayoutType.Grid), Mode=OneWay}">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />

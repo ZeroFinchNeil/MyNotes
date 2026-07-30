@@ -1,13 +1,12 @@
 ﻿using DotNext;
 
-using MyNotes.Application.Commands.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations;
-using MyNotes.Application.Services.Navigations;
-using MyNotes.Common.Querying;
-using MyNotes.Mappers;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
+using MyNotes.Application.Navigations.Commands;
+using MyNotes.Application.Navigations.Services;
+using MyNotes.Common.Mappers;
 using MyNotes.Models.Navigations;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Services.Navigations;
 
@@ -145,7 +144,7 @@ internal sealed partial class NavigationController : IDisposable
             PatchDto = new LeafNavigationViewStatePatchDto()
             {
               Id = node.Id,
-              NoteSortKey = node.NoteSortKey ?? Optional<NoteSortKey>.None
+              NoteSortKey = node.NoteSortKey
             }
           });
           break;
@@ -155,7 +154,7 @@ internal sealed partial class NavigationController : IDisposable
             PatchDto = new LeafNavigationViewStatePatchDto()
             {
               Id = node.Id,
-              NoteSortDirection = node.NoteSortDirection ?? Optional<SortDirection>.None
+              NoteSortDirection = node.NoteSortDirection
             }
           });
           break;
@@ -165,7 +164,7 @@ internal sealed partial class NavigationController : IDisposable
             PatchDto = new LeafNavigationViewStatePatchDto()
             {
               Id = node.Id,
-              PreviewLayoutType = node.PreviewLayoutType ?? Optional<PreviewLayoutType>.None
+              PreviewLayoutType = node.PreviewLayoutType
             }
           });
           break;
@@ -175,7 +174,7 @@ internal sealed partial class NavigationController : IDisposable
             PatchDto = new LeafNavigationViewStatePatchDto()
             {
               Id = node.Id,
-              PreviewTileSize = node.PreviewTileSize ?? Optional<PreviewTileSize>.None
+              PreviewTileSize = node.PreviewTileSize
             }
           });
           break;
@@ -185,7 +184,7 @@ internal sealed partial class NavigationController : IDisposable
             PatchDto = new LeafNavigationViewStatePatchDto()
             {
               Id = node.Id,
-              PreviewTileRatio = node.PreviewTileRatio ?? Optional<PreviewTileRatio>.None
+              PreviewTileRatio = node.PreviewTileRatio
             }
           });
           break;

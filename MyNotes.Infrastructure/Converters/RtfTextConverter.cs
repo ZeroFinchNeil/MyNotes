@@ -1,7 +1,7 @@
 ﻿using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Controls;
 
-using MyNotes.Shell.Contracts.Converters;
+using MyNotes.Application.Contracts.Converters;
 
 namespace MyNotes.Infrastructure.Converters;
 

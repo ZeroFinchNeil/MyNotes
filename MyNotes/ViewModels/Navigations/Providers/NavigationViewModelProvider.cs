@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations.Providers;

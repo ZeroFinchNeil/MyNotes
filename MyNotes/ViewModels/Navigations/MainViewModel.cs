@@ -2,10 +2,9 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Structures;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
@@ -50,7 +49,7 @@ internal sealed partial class MainViewModel : ViewModelBase
     _menuItems = [.. HeaderMenuItems, UserRootNavigationViewModel];
     //_menuItems = [.. HeaderMenuItems, .. UserNavigationViewModels];
     MenuItems = new(_menuItems);
-    
+
     NavigationController.CurrentNavigationChanged += NavigationController_CurrentNavigationChanged;
 
     SetCommands();

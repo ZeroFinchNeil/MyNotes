@@ -8,7 +8,7 @@
       xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
       xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
       xmlns:helpers="using:MyNotes.Common.Helpers"
-      xmlns:settingsEnums="using:MyNotes.Shared.Enums.Settings">
+      xmlns:converters="using:MyNotes.Common.Converters">
 
   <!--#region Resources -->
   <Page.Resources>
@@ -59,7 +59,7 @@
             <controls:SettingsCard.HeaderIcon>
               <IconSourceElement IconSource="{StaticResource PaintBrushPathIconSource}" />
             </controls:SettingsCard.HeaderIcon>
-            <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay}"
+            <ComboBox SelectedIndex="{x:Bind ViewModel.AppTheme, Mode=TwoWay, Converter={StaticResource ElementThemeToIntConverter}}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/Appearance_DefaultThemeComboBoxItem"
                             Tag="Default" />
@@ -79,7 +79,8 @@
                         SelectedItem="{x:Bind ViewModel.AppLanguage, Mode=TwoWay}"
                         MinWidth="160">
                 <ComboBox.ItemTemplate>
-                  <DataTemplate x:DataType="settingsEnums:AppLanguage">
+                  <DataTemplate x:DataType="mmu:AppLanguage"
+                                xmlns:mmu="using:MyNotes.Models.UI">
                     <StackPanel Orientation="Horizontal"
                                 Spacing="6">
                       <TextBlock Text="{x:Bind NativeName}" />
@@ -169,8 +170,9 @@
                                      Header="Initial page"
                                      Description="Initial page"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}"
-                                     IsExpanded="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
-            <ComboBox SelectedIndex="{x:Bind ViewModel.InitialPageType, Mode=TwoWay}"
+                                     IsExpanded="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, mmn:InitialPageType.Preferred), Mode=OneWay}"
+                                     xmlns:mmn="using:MyNotes.Models.Navigations">
+            <ComboBox SelectedIndex="{x:Bind ViewModel.InitialPageType, Mode=TwoWay, Converter={StaticResource InitialPageTypeToIntConverter}}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/General_HomePageComboBoxItem"
                             Content="Home page" />
@@ -200,7 +202,7 @@
               </controls:SettingsCard>
               <controls:SettingsCard Header="Select a preferred page."
                                      HeaderIcon="Add"
-                                     IsEnabled="{x:Bind ViewModel.InitialPageType.Equals(3), Mode=OneWay}">
+                                     IsEnabled="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, mmn:InitialPageType.Preferred), Mode=OneWay}">
                 <ComboBox ItemsSource="{x:Bind ViewModel.InitialPageOptions}"
                           SelectedItem="{x:Bind ViewModel.SelectedInitialPageOption, Mode=TwoWay}"
                           MinWidth="160">
@@ -267,7 +269,7 @@
           <!-- Default Note Backdrop -->
           <controls:SettingsCard x:Uid="/SettingsPage/Note_BackdropSettingsCard"
                                  HeaderIcon="{ui:FontIcon Glyph=&#xF4A5;}">
-            <ComboBox SelectedIndex="{x:Bind ViewModel.NoteBackdrop, Mode=TwoWay}"
+            <ComboBox SelectedIndex="{x:Bind ViewModel.NoteBackdrop, Mode=TwoWay, Converter={StaticResource BackdropKindToIntConverter}}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/Note_BackdropNoneComboBoxItem" />
               <ComboBoxItem x:Uid="/SettingsPage/Note_BackdropAcrylicComboBoxItem" />
@@ -353,7 +355,7 @@
                              VerticalAlignment="Center" />
                   <ComboBox Grid.Row="0"
                             Grid.Column="1"
-                            SelectedIndex="{x:Bind ViewModel.NoteSortKey, Mode=TwoWay}"
+                            SelectedIndex="{x:Bind ViewModel.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyToIntConverter}}"
                             MinWidth="140">
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_NoteSortKeyModifiedComboBoxItem" />
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_NoteSortKeyCreatedComboBoxItem" />
@@ -362,7 +364,7 @@
 
                   <ComboBox Grid.Row="1"
                             Grid.Column="1"
-                            SelectedIndex="{x:Bind ViewModel.NoteSortDirection, Mode=TwoWay}"
+                            SelectedIndex="{x:Bind ViewModel.NoteSortDirection, Mode=TwoWay, Converter={StaticResource SortDirectionToIntConverter}}"
                             MinWidth="140">
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_NoteSortDirectionAscendingComboBoxItem" />
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_NoteSortDirectionDescendingComboBoxItem" />
@@ -420,7 +422,7 @@
 
                   <ComboBox Grid.Row="0"
                             Grid.Column="1"
-                            SelectedIndex="{x:Bind ViewModel.PreviewLayoutType, Mode=TwoWay}"
+                            SelectedIndex="{x:Bind ViewModel.PreviewLayoutType, Mode=TwoWay, Converter={StaticResource PreviewLayoutTypeToIntConverter}}"
                             MinWidth="140">
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewLayoutTypeGridComboBoxItem" />
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewLayoutTypeListComboBoxItem" />
@@ -428,7 +430,7 @@
 
                   <ComboBox Grid.Row="1"
                             Grid.Column="1"
-                            SelectedIndex="{x:Bind ViewModel.PreviewTileSize, Mode=TwoWay}"
+                            SelectedIndex="{x:Bind ViewModel.PreviewTileSize, Mode=TwoWay, Converter={StaticResource PreviewTileSizeToIntConverter}}"
                             MinWidth="140">
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewTileSizeSmallestComboBoxItem" />
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewTileSizeSmallerComboBoxItem" />
@@ -441,7 +443,7 @@
 
                   <ComboBox Grid.Row="2"
                             Grid.Column="1"
-                            SelectedIndex="{x:Bind ViewModel.PreviewTileRatio, Mode=TwoWay}"
+                            SelectedIndex="{x:Bind ViewModel.PreviewTileRatio, Mode=TwoWay, Converter={StaticResource PreviewTileRatioToIntConverter}}"
                             MinWidth="140">
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewTileRatioShorterComboBoxItem" />
                     <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_PreviewTileRatioShortComboBoxItem" />
@@ -467,7 +469,7 @@
             <controls:SettingsCard.HeaderIcon>
               <IconSourceElement IconSource="{StaticResource SquareRoundedBadgePathIconSource}" />
             </controls:SettingsCard.HeaderIcon>
-            <ComboBox SelectedIndex="{x:Bind ViewModel.GroupIconBadge, Mode=TwoWay}"
+            <ComboBox SelectedIndex="{x:Bind ViewModel.GroupIconBadge, Mode=TwoWay, Converter={StaticResource GroupIconBadgeToIntConverter}}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeNoneComboBoxItem" />
               <ComboBoxItem x:Uid="/SettingsPage/ListAndGroup_GroupIconBadgeFolderComboBoxItem" />

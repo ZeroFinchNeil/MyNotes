@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,21 +10,20 @@ using DotNext;
 using Microsoft.EntityFrameworkCore;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Enums.Notes;
-using MyNotes.Application.Contracts.Models.Notes;
-using MyNotes.Application.Contracts.Models.Notes.Queries;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Contracts.Persistence;
-using MyNotes.Application.Contracts.Persistence.Notes;
+using MyNotes.Application.Contracts.Querying.Conditions;
+using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Expressions;
-using MyNotes.Common.Querying;
 using MyNotes.Common.Querying.Conditions;
 using MyNotes.Common.Structures;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
+using MyNotes.Domain.Notes;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Infrastructure.Mappers;
-using MyNotes.Shared.Constants;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Notes;
 
@@ -92,7 +90,7 @@ internal class NoteRepository : INoteRepository
       .ToListAsync(cancellationToken);
   }
 
-  public async Task<NoteProjectionDto> GetNoteFieldValuesAsync(NoteId noteId, NoteGetFields noteGetFields, CancellationToken cancellationToken = default)
+  public async Task<NoteProjectionDto> GetNoteFieldValuesAsync(NoteId noteId, NoteProjectionFields noteGetFields, CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -102,17 +100,17 @@ internal class NoteRepository : INoteRepository
       .Select(e => new NoteProjectionDto()
       {
         Id = noteId,
-        NavigationId = noteGetFields.HasFlag(NoteGetFields.NavigationId)
+        NavigationId = noteGetFields.HasFlag(NoteProjectionFields.NavigationId)
           ? e.Navigation.HasValue
             ? new(NavigationId.Create(e.Navigation.Value)) : new(null)
           : Optional<NavigationId?>.None,
-        Created = noteGetFields.HasFlag(NoteGetFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
-        Modified = noteGetFields.HasFlag(NoteGetFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
-        Title = noteGetFields.HasFlag(NoteGetFields.Title) ? new(e.Title) : Optional<string>.None,
-        Body = noteGetFields.HasFlag(NoteGetFields.Body) ? new(e.Body) : Optional<string>.None,
-        BackgroundColor = noteGetFields.HasFlag(NoteGetFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
-        IsBookmarked = noteGetFields.HasFlag(NoteGetFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
-        IsDeleted = noteGetFields.HasFlag(NoteGetFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,
+        Created = noteGetFields.HasFlag(NoteProjectionFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
+        Modified = noteGetFields.HasFlag(NoteProjectionFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
+        Title = noteGetFields.HasFlag(NoteProjectionFields.Title) ? new(e.Title) : Optional<string>.None,
+        Body = noteGetFields.HasFlag(NoteProjectionFields.Body) ? new(e.Body) : Optional<string>.None,
+        BackgroundColor = noteGetFields.HasFlag(NoteProjectionFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
+        IsBookmarked = noteGetFields.HasFlag(NoteProjectionFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
+        IsDeleted = noteGetFields.HasFlag(NoteProjectionFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,
       })
       .FirstOrDefaultAsync(cancellationToken)
       ?? new NoteProjectionDto()
@@ -377,7 +375,7 @@ internal class NoteRepository : INoteRepository
             }
             if (noteViewStatePatchDto.BackgroundImageAlignment.TryGet(out var backgroundImageAlignment))
             {
-              setters.SetProperty(e => e.BackgroundImageAlignment, backgroundImageAlignment);
+              setters.SetProperty(e => e.BackgroundImageAlignment, (int)backgroundImageAlignment);
             }
             if (noteViewStatePatchDto.BackgroundImageOpacity.TryGet(out var backgroundImageOpacity))
             {
@@ -389,7 +387,7 @@ internal class NoteRepository : INoteRepository
             }
             if (noteViewStatePatchDto.BackdropKind.TryGet(out var backdropKind))
             {
-              setters.SetProperty(e => e.BackdropKind, backdropKind);
+              setters.SetProperty(e => e.BackdropKind, (int)backdropKind);
             }
             if (noteViewStatePatchDto.BackdropTintOpacity.TryGet(out var backdropTintOpacity))
             {

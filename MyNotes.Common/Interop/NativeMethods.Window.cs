@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-using Microsoft.UI.Xaml;
-
-using WinRT.Interop;
-
 namespace MyNotes.Common.Interop;
 
 internal static partial class NativeMethods
@@ -81,8 +77,6 @@ internal static partial class NativeMethods
     public int Right;
     public int Bottom;
   }
-
-  public static IntPtr GetWindowHandle(Window window) => WindowNative.GetWindowHandle(window);
 
   public static double GetWindowScaleFactor(IntPtr hWnd) => GetDpiForWindow(hWnd) / 96.0;
   #endregion

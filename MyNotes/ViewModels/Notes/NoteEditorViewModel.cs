@@ -5,19 +5,18 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.Application.Commands.Notes;
-using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Converters;
+using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes.Commands;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
-using MyNotes.Application.Services.Notes;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
+using MyNotes.Constants;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Media;
-using MyNotes.Shared.Enums.Notes;
-using MyNotes.Shell.Contracts.Converters;
 using MyNotes.Templates.Media;
 
 namespace MyNotes.ViewModels.Notes;
@@ -177,7 +176,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
           PatchDto = new NoteViewStatePatchDto()
           {
             Id = Note.Id,
-            BackgroundImageAlignment = (int)Note.BackgroundImageAlignment
+            BackgroundImageAlignment = Note.BackgroundImageAlignment
           }
         });
         break;
@@ -199,7 +198,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
           PatchDto = new NoteViewStatePatchDto()
           {
             Id = Note.Id,
-            BackdropKind = (int)Note.BackdropKind
+            BackdropKind = Note.BackdropKind
           }
         });
         break;

@@ -1,5 +1,5 @@
 ﻿using MyNotes.Common.Enums.Modes;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Templates;

@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Persistence.Media;
+﻿using MyNotes.Application.Contracts.Media.Persistence;
 
 namespace MyNotes.Infrastructure.Storage.Media;
 

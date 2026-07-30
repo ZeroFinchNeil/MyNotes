@@ -1,6 +1,6 @@
-﻿using MyNotes.Common.Querying;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
+﻿using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
@@ -9,60 +9,60 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
 {
   public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 
-  public NoteSortKey? NoteSortKey
+  public required NoteSortKey NoteSortKey
   {
     get;
     set
     {
-      if (value is null || Enum.IsDefined(value.Value))
+      if (Enum.IsDefined(value))
       {
         SetProperty(ref field, value);
       }
     }
   }
 
-  public SortDirection? NoteSortDirection
+  public required SortDirection NoteSortDirection
   {
     get;
     set
     {
-      if (value is null || Enum.IsDefined(value.Value))
+      if (Enum.IsDefined(value))
       {
         SetProperty(ref field, value);
       }
     }
   }
 
-  public PreviewLayoutType? PreviewLayoutType
+  public required PreviewLayoutType PreviewLayoutType
   {
     get;
     set
     {
-      if (value is null || Enum.IsDefined(value.Value))
+      if (Enum.IsDefined(value))
       {
         SetProperty(ref field, value);
       }
     }
   }
 
-  public PreviewTileSize? PreviewTileSize
+  public required PreviewTileSize PreviewTileSize
   {
     get;
     set
     {
-      if (value is null || Enum.IsDefined(value.Value))
+      if (Enum.IsDefined(value))
       {
         SetProperty(ref field, value);
       }
     }
   }
 
-  public PreviewTileRatio? PreviewTileRatio
+  public required PreviewTileRatio PreviewTileRatio
   {
     get;
     set
     {
-      if (value is null || Enum.IsDefined(value.Value))
+      if (Enum.IsDefined(value))
       {
         SetProperty(ref field, value);
       }

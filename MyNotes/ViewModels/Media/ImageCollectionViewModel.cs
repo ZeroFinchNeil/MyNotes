@@ -5,10 +5,10 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Common.Commands;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Constants;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Media;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
 using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.ViewModels.Media;
@@ -30,7 +30,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     NoteId = noteId;
 
-    ImageViewModels = NoteId.CollectionReference.TryGetTarget(out var collection) ? collection : new();
+    //ImageViewModels = NoteId.CollectionReference.TryGetTarget(out var collection) ? collection : new();
+    ImageViewModels = [];
     SetCommands();
   }
   #endregion

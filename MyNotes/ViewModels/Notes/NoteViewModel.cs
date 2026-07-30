@@ -5,19 +5,18 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Application.Commands.Notes;
-using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Converters;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes.Commands;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
-using MyNotes.Application.Services.Notes;
-using MyNotes.Application.Services.Settings;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Structures;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
-using MyNotes.Shared.Enums.Notes;
-using MyNotes.Shell.Contracts.Converters;
+using MyNotes.Services.Settings;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -25,18 +24,18 @@ internal sealed partial class NoteViewModel : ViewModelBase
 {
   private readonly NoteCommandService NoteCommandService;
   private readonly NoteService NoteService;
-  private readonly SettingsService SettingsService;
+  private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, SettingsService settingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NoteService = noteService;
-    SettingsService = settingsService;
+    ViewStateSettingsService = viewStateSettingsService;
     RtfTextConverter = rtfTextConverter;
 
     Note = note;
@@ -110,7 +109,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()
   {
-    if (SettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
+    if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
     {
       DeleteNoteAppCommand appCommand = new()
       {

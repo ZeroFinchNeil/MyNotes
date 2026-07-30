@@ -1,8 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Services.Settings;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
+using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.ViewModels.Navigations;
@@ -10,8 +11,8 @@ namespace MyNotes.ViewModels.Navigations;
 internal sealed class UserRootGroupNavigationViewModel : UserGroupNavigationViewModel
 {
   #region Object Lifetime Management
-  public UserRootGroupNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, SettingsService settingsService, NavigationUserRootNode navigation)
-    : base(provider, navigationCommandService, settingsService, navigation)
+  public UserRootGroupNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, ViewStateSettingsService viewStateSettingsService, NavigationUserRootNode navigation)
+    : base(provider, navigationCommandService, viewStateSettingsService, navigation)
   {
   }
 

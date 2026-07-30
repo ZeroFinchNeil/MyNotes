@@ -3,9 +3,9 @@
 using Microsoft.Windows.Widgets.Providers;
 
 using MyNotes.Common.Interop;
+using MyNotes.Constants;
 using MyNotes.Services.Widget;
 using MyNotes.Services.Widgets;
-using MyNotes.Shared.Constants;
 
 namespace MyNotes;
 

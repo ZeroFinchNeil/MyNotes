@@ -1,27 +1,29 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using MyNotes.Application.Commands.Notes;
-using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Settings;
+using MyNotes.Application.Notes.Commands;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
-using MyNotes.Application.Services.App;
-using MyNotes.Application.Services.Notes;
-using MyNotes.Application.Services.Settings;
+using MyNotes.Application.Settings;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
+using MyNotes.Common.Mappers;
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Mappers;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Settings;
+using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -41,7 +43,7 @@ internal sealed class NoteCommandService : ICommandService
   private readonly MainWindowService MainWindowService;
   private readonly DialogService DialogService;
   private readonly JumpListService JumpListService;
-  private readonly SettingsService SettingsService;
+  private readonly ViewStateSettingsService ViewStateSettingsService;
 
   public Command<NoteModel> OpenNoteWindowCommand { get; }
   public Command<NoteModel> MinimizeNoteWindowCommand { get; }
@@ -64,7 +66,7 @@ internal sealed class NoteCommandService : ICommandService
     MainWindowService mainWindowService,
     DialogService dialogService,
     JumpListService jumpListService,
-    SettingsService settingsService
+    ViewStateSettingsService viewStateSettingsService
     )
   {
     NoteService = noteService;
@@ -77,7 +79,7 @@ internal sealed class NoteCommandService : ICommandService
     MainWindowService = mainWindowService;
     DialogService = dialogService;
     JumpListService = jumpListService;
-    SettingsService = settingsService;
+    ViewStateSettingsService = viewStateSettingsService;
 
     OpenNoteWindowCommand = new()
     {
@@ -155,8 +157,8 @@ internal sealed class NoteCommandService : ICommandService
             && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
             && nvm is UserListNavigationViewModel navigationViewModel)
         {
-          var size = SettingsService.Load(AppSettingsDescriptors.NoteSize).SizeInt32;
-          var position = MainWindowService.GetNewWindowPosition(size) ?? AppDefaultSettings.WindowPosition.PointInt32;
+          var size = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
+          var position = MainWindowService.GetNewWindowPosition(size) ?? ViewStateSettingsDescriptors.NoteWindowPosition.PointInt32;
 
           CreateNoteAppCommand appCommand = new()
           {

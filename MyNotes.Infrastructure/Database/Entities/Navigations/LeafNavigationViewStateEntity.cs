@@ -9,15 +9,20 @@ internal class LeafNavigationViewStateEntity : IDatabaseEntity<LeafNavigationVie
   [Key, Required]
   public required Guid Id { get; init; }
 
-  public required int? NoteSortKey { get; init; }
+  [Required]
+  public required int NoteSortKey { get; init; }
 
-  public required int? NoteSortDirection { get; init; }
+  [Required]
+  public required int NoteSortDirection { get; init; }
 
-  public required int? PreviewLayoutType { get; init; }
+  [Required]
+  public required int PreviewLayoutType { get; init; }
 
-  public required int? PreviewTileSize { get; init; }
+  [Required]
+  public required int PreviewTileSize { get; init; }
 
-  public required int? PreviewTileRatio { get; init; }
+  [Required]
+  public required int PreviewTileRatio { get; init; }
 
   public bool Equals(LeafNavigationViewStateEntity? other) => other is not null && other.Id == Id;
 

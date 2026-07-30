@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
+using MyNotes.Application.Contracts.Settings;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Models.Navigations;
-using MyNotes.Shared.Constants;
 using MyNotes.Templates;
 
 namespace MyNotes.ViewModels.Dialogs;

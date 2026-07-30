@@ -3,16 +3,16 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Services.Settings;
+using MyNotes.Application.Settings;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Logging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.Views.Windows;
@@ -24,11 +24,12 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class MainPage : Page
 {
-  private readonly MainViewModel ViewModel;
-  private readonly SettingsService SettingsService;
-  private readonly MainWindowService MainWindowService;
-  private readonly AppLogger LoggingService;
   private readonly IServiceScope ServiceScope;
+  private readonly MainViewModel ViewModel;
+  private readonly MainWindowService MainWindowService;
+
+  private readonly SettingsViewModel SettingsViewModel;
+  private readonly AppLogger LoggingService;
 
   private readonly NavigationId _initialNavigationId;
 
@@ -40,17 +41,18 @@ internal sealed partial class MainPage : Page
 
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
-    SettingsService = ServiceScope.ServiceProvider.GetRequiredService<SettingsService>();
     MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<MainWindowService>();
-    LoggingService = ServiceScope.ServiceProvider.GetRequiredService<AppLogger>();
+
+    SettingsViewModel = App.Services.GetRequiredService<SettingsViewModel>();
+    LoggingService = App.Services.GetRequiredService<AppLogger>();
 
     mainWindow.SetTitleBar(MainPage_TitleBarGrid);
 
     // 시작 내비게이션(페이지) 설정
-    _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsService.Load(AppSettingsDescriptors.InitialPageId));
+    _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsViewModel.InitialPageId);
 
     // 앱 테마 설정 
-    var theme = (ElementTheme)SettingsService.Load(AppSettingsDescriptors.AppTheme);
+    var theme = (ElementTheme)SettingsViewModel.AppTheme;
     this.RequestedTheme = theme;
 
     // 메신저 등록
@@ -221,9 +223,9 @@ internal sealed partial class MainPage : Page
             case INavigationInitialTarget initialTarget:
               MainPage_NavigationFrame.Navigate(initialTarget.PageType, navigation);
               if (initialTarget is NavigationHome or NavigationBookmarks or NavigationUserLeafNode
-                  && SettingsService.Load(AppSettingsDescriptors.InitialPageType) == (int)InitialPageType.LastOpened)
+                  && SettingsViewModel.InitialPageType is InitialPageType.LastOpened)
               {
-                SettingsService.Save(AppSettingsDescriptors.InitialPageId, initialTarget.Id.Value);
+                SettingsViewModel.InitialPageId = initialTarget.Id.Value;
               }
               break;
             case INavigationNode node:

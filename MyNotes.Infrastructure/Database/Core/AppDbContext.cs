@@ -7,10 +7,10 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
+using MyNotes.Infrastructure.Database.Constants;
 using MyNotes.Infrastructure.Database.Entities.Media;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 using MyNotes.Infrastructure.Database.Entities.Notes;
-using MyNotes.Shared.Constants;
 
 using Windows.Storage;
 
@@ -39,7 +39,7 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
   /// <summary>EFCore(SQLite) 연결 문자열</summary>
   private static readonly string _connectionString = new SqliteConnectionStringBuilder()
   {
-    DataSource = Path.Combine(_localFolder.Path, AppRepositorySettings.DbFileName),
+    DataSource = Path.Combine(_localFolder.Path, DbCoreSettings.DbFileName),
     ForeignKeys = true,
     DefaultTimeout = 60
   }.ToString();

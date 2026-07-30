@@ -1,7 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Structures;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;

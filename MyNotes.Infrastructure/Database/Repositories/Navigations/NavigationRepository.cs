@@ -11,13 +11,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Navigations.Persistence;
 using MyNotes.Application.Contracts.Persistence;
-using MyNotes.Application.Contracts.Persistence.Navigations;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Infrastructure.Constants.Navigations;
+using MyNotes.Domain.Navigations;
+using MyNotes.Infrastructure.Database.Constants;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
 using MyNotes.Infrastructure.Mappers;
@@ -123,7 +122,7 @@ internal partial class NavigationRepository : INavigationRepository
     return null;
   }
 
-  public async Task<NavigationProjectionDto> GetNavigationFieldValuesAsync(NavigationId navigationId, NavigationGetFields navigationGetFields, CancellationToken cancellationToken = default)
+  public async Task<NavigationProjectionDto> GetNavigationFieldValuesAsync(NavigationId navigationId, NavigationProjectionFields navigationGetFields, CancellationToken cancellationToken = default)
   {
     await using AppDbContext context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
 
@@ -133,11 +132,11 @@ internal partial class NavigationRepository : INavigationRepository
       .Select(e => new NavigationProjectionDto()
       {
         Id = navigationId,
-        ParentId = navigationGetFields.HasFlag(NavigationGetFields.ParentId) ? NavigationId.Create(e.Parent) : Optional<NavigationId>.None,
-        IsComposite = navigationGetFields.HasFlag(NavigationGetFields.IsComposite) ? e.IsComposite : Optional<bool>.None,
-        Icon = navigationGetFields.HasFlag(NavigationGetFields.Icon) ? e.Icon : Optional<int>.None,
-        Title = navigationGetFields.HasFlag(NavigationGetFields.Title) ? e.Title : Optional<string>.None,
-        IsDeleted = navigationGetFields.HasFlag(NavigationGetFields.IsDeleted) ? e.IsDeleted : Optional<bool>.None,
+        ParentId = navigationGetFields.HasFlag(NavigationProjectionFields.ParentId) ? NavigationId.Create(e.Parent) : Optional<NavigationId>.None,
+        IsComposite = navigationGetFields.HasFlag(NavigationProjectionFields.IsComposite) ? e.IsComposite : Optional<bool>.None,
+        Icon = navigationGetFields.HasFlag(NavigationProjectionFields.Icon) ? e.Icon : Optional<int>.None,
+        Title = navigationGetFields.HasFlag(NavigationProjectionFields.Title) ? e.Title : Optional<string>.None,
+        IsDeleted = navigationGetFields.HasFlag(NavigationProjectionFields.IsDeleted) ? e.IsDeleted : Optional<bool>.None,
       })
       .FirstOrDefaultAsync(cancellationToken)
       ?? new()

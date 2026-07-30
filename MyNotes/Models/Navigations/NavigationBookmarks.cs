@@ -1,9 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Common.Querying;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
+using MyNotes.Domain.Navigations;
 using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
@@ -21,17 +21,17 @@ internal sealed partial class NavigationBookmarks : NavigationCoreNode, INavigat
   private NavigationBookmarks() : base(typeof(BookmarksPage)) { }
 
   [ObservableProperty]
-  public partial NoteSortKey? NoteSortKey { get; set; }
+  public partial NoteSortKey NoteSortKey { get; set; }
 
   [ObservableProperty]
-  public partial SortDirection? NoteSortDirection { get; set; }
+  public partial SortDirection NoteSortDirection { get; set; }
 
   [ObservableProperty]
-  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
+  public partial PreviewLayoutType PreviewLayoutType { get; set; }
 
   [ObservableProperty]
-  public partial PreviewTileSize? PreviewTileSize { get; set; }
+  public partial PreviewTileSize PreviewTileSize { get; set; }
 
   [ObservableProperty]
-  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
+  public partial PreviewTileRatio PreviewTileRatio { get; set; }
 }

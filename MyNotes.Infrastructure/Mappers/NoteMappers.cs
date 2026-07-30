@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
 
-using MyNotes.Application.Contracts.Models.Notes;
+using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Debugging.Attributes;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
+using MyNotes.Domain.Notes;
 using MyNotes.Infrastructure.Database.Entities.Notes;
 using MyNotes.Infrastructure.Search.Documents.Notes;
-using MyNotes.Shared.Constants;
 
 namespace MyNotes.Infrastructure.Mappers;
 
@@ -33,10 +32,10 @@ internal static class NoteMappers
     Id = noteViewStateDbDto.Id.Value,
     ShowBackgroundImage = noteViewStateDbDto.ShowBackgroundImage,
     BackgroundImageStretch = noteViewStateDbDto.BackgroundImageStretch,
-    BackgroundImageAlignment = noteViewStateDbDto.BackgroundImageAlignment,
+    BackgroundImageAlignment = (int)noteViewStateDbDto.BackgroundImageAlignment,
     BackgroundImageOpacity = noteViewStateDbDto.BackgroundImageOpacity,
     BackgroundImageBlur = noteViewStateDbDto.BackgroundImageBlur,
-    BackdropKind = noteViewStateDbDto.BackdropKind,
+    BackdropKind = (int)noteViewStateDbDto.BackdropKind,
     BackdropTintOpacity = noteViewStateDbDto.BackdropTintOpacity,
     BackdropLuminosityOpacity = noteViewStateDbDto.BackdropLuminosityOpacity,
     ShowImagePanel = noteViewStateDbDto.ShowImagePanel,
@@ -55,10 +54,10 @@ internal static class NoteMappers
     Id = NoteId.Create(noteViewStateEntity.Id),
     ShowBackgroundImage = noteViewStateEntity.ShowBackgroundImage,
     BackgroundImageStretch = noteViewStateEntity.BackgroundImageStretch,
-    BackgroundImageAlignment = noteViewStateEntity.BackgroundImageAlignment,
+    BackgroundImageAlignment = (AlignmentPosition)noteViewStateEntity.BackgroundImageAlignment,
     BackgroundImageOpacity = noteViewStateEntity.BackgroundImageOpacity,
     BackgroundImageBlur = noteViewStateEntity.BackgroundImageBlur,
-    BackdropKind = noteViewStateEntity.BackdropKind,
+    BackdropKind = (BackdropKind)noteViewStateEntity.BackdropKind,
     BackdropTintOpacity = noteViewStateEntity.BackdropTintOpacity,
     BackdropLuminosityOpacity = noteViewStateEntity.BackdropLuminosityOpacity,
     ShowImagePanel = noteViewStateEntity.ShowImagePanel,

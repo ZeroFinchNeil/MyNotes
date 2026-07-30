@@ -1,4 +1,4 @@
-﻿using MyNotes.Application.Contracts.Models.Notes;
+﻿using MyNotes.Application.Contracts.Notes.Models;
 
 namespace MyNotes.Models.Notes;
 

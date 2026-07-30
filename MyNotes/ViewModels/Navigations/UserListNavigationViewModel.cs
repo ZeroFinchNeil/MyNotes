@@ -4,13 +4,12 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
+using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Common.Structures;
 using MyNotes.Constants;
-using MyNotes.Helpers;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
-using MyNotes.Shared.Enums.Settings;
 
 namespace MyNotes.ViewModels.Navigations;
 

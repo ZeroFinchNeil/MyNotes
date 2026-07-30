@@ -1,14 +1,13 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.UI.Xaml.Documents;
 
+using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Settings;
 using MyNotes.Common.Helpers;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Models.Media;
-using MyNotes.Shared.Constants;
-using MyNotes.Shared.Enums.Media;
-using MyNotes.Shared.Enums.Notes;
+using MyNotes.Domain.Navigations;
+using MyNotes.Domain.Notes;
 
 namespace MyNotes.Models.Notes;
 
@@ -29,31 +28,31 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   public required DateTimeOffset Created { get; init; }
 
   [ObservableProperty]
-  public partial DateTimeOffset Modified { get; set; }
+  public required partial DateTimeOffset Modified { get; set; }
 
   [ObservableProperty]
-  public partial string Title { get; set; } = string.Empty;
+  public required partial string Title { get; set; }
 
   [ObservableProperty]
-  public partial string Body { get; set; } = string.Empty;
+  public required partial string Body { get; set; }
 
   [ObservableProperty]
-  public partial Color BackgroundColor { get; set; } = AppDefaultSettings.NoteBackground.ToColor();
+  public required partial Color BackgroundColor { get; set; }
 
   [ObservableProperty]
-  public partial string? BackgroundImagePath { get; set; }
+  public required partial string? BackgroundImagePath { get; set; }
 
   [ObservableProperty]
-  public partial bool IsBookmarked { get; set; }
+  public required partial bool IsBookmarked { get; set; }
 
   [ObservableProperty]
-  public partial bool IsDeleted { get; set; }
+  public required partial bool IsDeleted { get; set; }
 
   // Presentation Properties
   [ObservableProperty]
-  public partial bool ShowBackgroundImage { get; set; }
+  public required partial bool ShowBackgroundImage { get; set; }
 
-  public Stretch BackgroundImageStretch
+  public required Stretch BackgroundImageStretch
   {
     get;
     set
@@ -65,7 +64,7 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
     }
   }
 
-  public AlignmentPosition BackgroundImageAlignment
+  public required AlignmentPosition BackgroundImageAlignment
   {
     get;
     set
@@ -78,12 +77,12 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   }
 
   [ObservableProperty]
-  public partial double BackgroundImageOpacity { get; set; }
+  public required partial double BackgroundImageOpacity { get; set; }
 
   [ObservableProperty]
-  public partial double BackgroundImageBlur { get; set; }
+  public required partial double BackgroundImageBlur { get; set; }
 
-  public BackdropKind BackdropKind
+  public required BackdropKind BackdropKind
   {
     get;
     set
@@ -93,34 +92,34 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
         SetProperty(ref field, value);
       }
     }
-  } = AppDefaultSettings.NoteBackdropKind;
+  }
 
   [ObservableProperty]
-  public partial double BackdropTintOpacity { get; set; }
+  public required partial double BackdropTintOpacity { get; set; }
 
   [ObservableProperty]
-  public partial double BackdropLuminosityOpacity { get; set; }
+  public required partial double BackdropLuminosityOpacity { get; set; }
 
   [ObservableProperty]
-  public partial bool ShowImagePanel { get; set; }
+  public required partial bool ShowImagePanel { get; set; }
 
   [ObservableProperty]
-  public partial double ImagePanelHeight { get; set; }
+  public required partial double ImagePanelHeight { get; set; }
 
   [ObservableProperty]
-  public partial SizeInt32 Size { get; set; } = AppDefaultSettings.NoteSize.SizeInt32;
+  public required partial SizeInt32 Size { get; set; }
 
   [ObservableProperty]
-  public partial PointInt32 Position { get; set; } = AppDefaultSettings.NotePosition.PointInt32;
+  public required partial PointInt32 Position { get; set; }
 
   [ObservableProperty]
-  public partial bool IsTextEditorReadOnly { get; set; }
+  public required partial bool IsTextEditorReadOnly { get; set; }
 
   [ObservableProperty]
-  public partial bool IsWindowOpen { get; set; }
+  public required partial bool IsWindowOpen { get; set; }
 
   [ObservableProperty]
-  public partial bool IsAlwaysOnTop { get; set; }
+  public required partial bool IsAlwaysOnTop { get; set; }
 
   // View-only Properties
   public List<TextRange> HighlighterRanges { get; } = new();

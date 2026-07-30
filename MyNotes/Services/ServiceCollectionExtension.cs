@@ -1,14 +1,17 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Contracts.Converters;
 using MyNotes.Application.Contracts.Database.Core;
-using MyNotes.Application.Contracts.Models.Notes;
-using MyNotes.Application.Contracts.Persistence.Media;
-using MyNotes.Application.Contracts.Persistence.Navigations;
-using MyNotes.Application.Contracts.Persistence.Notes;
-using MyNotes.Application.Services.Media;
-using MyNotes.Application.Services.Navigations;
-using MyNotes.Application.Services.Notes;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Application.Contracts.Media.Persistence;
+using MyNotes.Application.Contracts.Navigations.Persistence;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Notes.Persistence;
+using MyNotes.Application.Contracts.Settings;
+using MyNotes.Application.Media.Services;
+using MyNotes.Application.Navigations.Services;
+using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Settings.Services;
+using MyNotes.Domain.Notes;
 using MyNotes.Infrastructure.Converters;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Repositories.Media;
@@ -17,13 +20,14 @@ using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
 using MyNotes.Infrastructure.Storage.Media;
+using MyNotes.Infrastructure.Storage.Settings;
 using MyNotes.Infrastructure.Windowing;
 using MyNotes.Models;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
-using MyNotes.Shell.Contracts.Converters;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs;
@@ -43,6 +47,13 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<MainWindowService>();
       services.AddSingleton<NoteWindowService>();
       services.AddSingleton<ImageViewerWindowService>();
+    }
+
+    public void AddSettingsService()
+    {
+      services.AddSingleton<ISettingsStorage, SettingsStorage>();
+      services.AddSingleton<AppSettingsService>();
+      services.AddSingleton<ViewStateSettingsService>();
     }
 
     public void AddNoteServices()
@@ -98,7 +109,7 @@ internal static class ServiceCollectionExtension
     public void AddViewModels()
     {
       services.AddScoped<MainViewModel>();
-      services.AddScoped<SettingsViewModel>();
+      services.AddSingleton<SettingsViewModel>();
     }
 
     public void AddViewModelProviders()

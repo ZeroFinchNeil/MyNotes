@@ -2,11 +2,12 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Models.Notes;
-using MyNotes.Application.Services.App;
-using MyNotes.Application.Services.Notes;
-using MyNotes.Application.Services.Settings;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Settings;
+using MyNotes.Application.Settings.Services;
+using MyNotes.Constants;
+using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Logging;
 using MyNotes.Infrastructure.Search.Core;
@@ -16,8 +17,9 @@ using MyNotes.Services;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
+using MyNotes.Services.Settings;
+using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Constants;
 
 namespace MyNotes;
 
@@ -61,7 +63,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
     _ = LaunchArgumentsPipeServerStreamAsync();
     var mainWindowService = Services.GetRequiredService<MainWindowService>();
-    var settingsService = Services.GetRequiredService<SettingsService>();
+    var ViewStateSettingsService = Services.GetRequiredService<ViewStateSettingsService>();
 
     AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
     switch (appActivationArguments.Kind)
@@ -72,7 +74,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
         var noteModelFactory = Services.GetRequiredService<IModelFactory<NoteDto, NoteModel>>();
         var notes = (await noteService.Retrieval.GetOpenNotesAsync()).Select(noteModelFactory.Create).ToList();
 
-        if (notes.Count == 0 || settingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
+        if (notes.Count == 0 || ViewStateSettingsService.Load(ViewStateSettingsDescriptors.IsMainWindowOpen))
         {
           var mainWindow = await mainWindowService.GetOrCreate();
           mainWindow.Activate();
@@ -136,9 +138,9 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
     services.AddSingleton<JumpListService>();
     services.AddSingleton<AppLogger>();
     services.AddSingleton<DialogService>();
-    services.AddSingleton<SettingsService>();
 
     services.AddWindowServices();
+    services.AddSettingsService();
     services.AddNavigationServices();
     services.AddNoteServices();
     services.AddMediaServices();

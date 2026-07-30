@@ -3,12 +3,13 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Services.Settings;
+using MyNotes.Application.Settings;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.Templates.Media;
 using MyNotes.ViewModels.Notes.Providers;
@@ -49,7 +50,7 @@ internal sealed partial class NoteWindow : Window
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정
-    var minimumWindowSize = AppSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
+    var minimumWindowSize = ViewStateSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
     var presenter = AppWindow.Presenter as OverlappedPresenter;
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);

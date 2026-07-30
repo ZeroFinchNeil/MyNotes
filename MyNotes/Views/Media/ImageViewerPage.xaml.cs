@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
 

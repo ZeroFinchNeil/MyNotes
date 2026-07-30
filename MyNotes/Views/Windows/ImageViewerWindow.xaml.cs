@@ -1,4 +1,4 @@
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Media;
 

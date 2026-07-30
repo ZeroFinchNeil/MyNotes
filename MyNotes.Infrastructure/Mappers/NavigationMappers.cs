@@ -1,12 +1,11 @@
 ﻿using System;
 
-using MyNotes.Application.Contracts.Models.Navigations;
-using MyNotes.Common.Querying;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Debugging.Attributes;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Entities.Navigations;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
 
 namespace MyNotes.Infrastructure.Mappers;
 
@@ -33,11 +32,11 @@ internal static class NavigationMappers
   public static LeafNavigationViewStateEntity ToEntity(LeafNavigationViewStateDto leafDto) => new()
   {
     Id = leafDto.Id.Value,
-    NoteSortKey = (int?)leafDto.NoteSortKey,
-    NoteSortDirection = (int?)leafDto.NoteSortDirection,
-    PreviewLayoutType = (int?)leafDto.PreviewLayoutType,
-    PreviewTileSize = (int?)leafDto.PreviewTileSize,
-    PreviewTileRatio = (int?)leafDto.PreviewTileRatio
+    NoteSortKey = (int)leafDto.NoteSortKey,
+    NoteSortDirection = (int)leafDto.NoteSortDirection,
+    PreviewLayoutType = (int)leafDto.PreviewLayoutType,
+    PreviewTileSize = (int)leafDto.PreviewTileSize,
+    PreviewTileRatio = (int)leafDto.PreviewTileRatio
   };
 
   public static CompositeNavigationViewStateDto ToDto(CompositeNavigationViewStateEntity compositeViewStateEntity) => new()
@@ -49,11 +48,11 @@ internal static class NavigationMappers
   public static LeafNavigationViewStateDto ToDto(LeafNavigationViewStateEntity leafViewStateEntity) => new()
   {
     Id = NavigationId.Create(leafViewStateEntity.Id),
-    NoteSortKey = (NoteSortKey?)leafViewStateEntity.NoteSortKey,
-    NoteSortDirection = (SortDirection?)leafViewStateEntity.NoteSortDirection,
-    PreviewLayoutType = (PreviewLayoutType?)leafViewStateEntity.PreviewLayoutType,
-    PreviewTileSize = (PreviewTileSize?)leafViewStateEntity.PreviewTileSize,
-    PreviewTileRatio = (PreviewTileRatio?)leafViewStateEntity.PreviewTileRatio,
+    NoteSortKey = (NoteSortKey)leafViewStateEntity.NoteSortKey,
+    NoteSortDirection = (SortDirection)leafViewStateEntity.NoteSortDirection,
+    PreviewLayoutType = (PreviewLayoutType)leafViewStateEntity.PreviewLayoutType,
+    PreviewTileSize = (PreviewTileSize)leafViewStateEntity.PreviewTileSize,
+    PreviewTileRatio = (PreviewTileRatio)leafViewStateEntity.PreviewTileRatio,
   };
 
   public static NavigationViewStateDto ToDto(INavigationViewStateEntity viewStateEntity) => viewStateEntity switch

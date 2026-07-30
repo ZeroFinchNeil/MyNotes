@@ -1,9 +1,9 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Querying;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Models.Navigations;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;

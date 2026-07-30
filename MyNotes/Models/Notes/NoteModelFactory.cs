@@ -1,6 +1,6 @@
-﻿using MyNotes.Application.Contracts.Models.Notes;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Mappers;
+﻿using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Common.Mappers;
+using MyNotes.Domain.Notes;
 
 namespace MyNotes.Models.Notes;
 

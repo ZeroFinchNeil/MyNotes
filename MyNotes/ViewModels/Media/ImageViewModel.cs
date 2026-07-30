@@ -1,8 +1,8 @@
 ﻿using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Common.Commands;
+using MyNotes.Constants;
 using MyNotes.Models.Media;
-using MyNotes.Shared.Constants;
 
 namespace MyNotes.ViewModels.Media;
 

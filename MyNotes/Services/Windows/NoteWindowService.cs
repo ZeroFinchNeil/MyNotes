@@ -2,7 +2,7 @@
 
 using Microsoft.UI.Content;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;

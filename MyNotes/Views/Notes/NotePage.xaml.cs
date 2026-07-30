@@ -6,18 +6,21 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.Application.Services.Notes;
-using MyNotes.Application.Services.Settings;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Settings;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
+using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
-using MyNotes.Shared.Enums.Notes;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.ViewModels.Notes;
@@ -67,8 +70,8 @@ internal sealed partial class NotePage : Page
 
     SetEditorText();
 
-    var settingsService = App.Services.GetRequiredService<SettingsService>();
-    ChangeFlyoutTheme((ElementTheme)settingsService.Load(AppSettingsDescriptors.AppTheme));
+    var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
+    ChangeFlyoutTheme(viewStateSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, ViewStateSettingsDescriptors.AppTheme));
 
     RegisterMessengers();
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 
 namespace MyNotes.Models.Notes;
 

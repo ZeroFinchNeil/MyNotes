@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Navigations;
 
 namespace MyNotes.Models.Navigations;
 

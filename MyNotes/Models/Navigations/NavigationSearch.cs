@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using MyNotes.Common.Querying;
-using MyNotes.Shared.Enums.Navigations;
-using MyNotes.Shared.Enums.Notes;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Models.Navigations;
@@ -24,17 +24,17 @@ internal sealed partial class NavigationSearch : ObservableObject, INavigation, 
   public Type PageType { get; } = typeof(SearchResultsPage);
 
   [ObservableProperty]
-  public partial NoteSortKey? NoteSortKey { get; set; }
+  public partial NoteSortKey NoteSortKey { get; set; }
 
   [ObservableProperty]
-  public partial SortDirection? NoteSortDirection { get; set; }
+  public partial SortDirection NoteSortDirection { get; set; }
 
   [ObservableProperty]
-  public partial PreviewLayoutType? PreviewLayoutType { get; set; }
+  public partial PreviewLayoutType PreviewLayoutType { get; set; }
 
   [ObservableProperty]
-  public partial PreviewTileSize? PreviewTileSize { get; set; }
+  public partial PreviewTileSize PreviewTileSize { get; set; }
 
   [ObservableProperty]
-  public partial PreviewTileRatio? PreviewTileRatio { get; set; }
+  public partial PreviewTileRatio PreviewTileRatio { get; set; }
 }

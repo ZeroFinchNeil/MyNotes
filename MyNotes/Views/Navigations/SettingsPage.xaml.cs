@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Shared.Constants;
+using MyNotes.Constants;
 using MyNotes.ViewModels;
 
 using Windows.System;
@@ -10,7 +10,6 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class SettingsPage : Page
 {
-  private readonly IServiceScope ServiceScope;
   private readonly SettingsViewModel ViewModel;
   private readonly DispatcherTimer _startupTaskTimer = new() { Interval = TimeSpan.FromMilliseconds(1500) };
 
@@ -19,8 +18,7 @@ internal sealed partial class SettingsPage : Page
   {
     TrackReference();
     InitializeComponent();
-    ServiceScope = App.Services.CreateScope();
-    ViewModel = ServiceScope.ServiceProvider.GetRequiredService<SettingsViewModel>();
+    ViewModel = App.Services.GetRequiredService<SettingsViewModel>();
 
     _ = CheckStartupState();
     _startupTaskTimer.Tick += StartupTaskTimer_Tick;
@@ -49,8 +47,6 @@ internal sealed partial class SettingsPage : Page
     // StartupTaskTimer 정지 및 해제
     _startupTaskTimer.Stop();
     _startupTaskTimer.Tick -= StartupTaskTimer_Tick;
-
-    ServiceScope.Dispose();
   }
   #endregion
 

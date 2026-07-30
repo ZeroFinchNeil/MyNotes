@@ -2,7 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 
 namespace MyNotes.ViewModels.Media.Providers;
 

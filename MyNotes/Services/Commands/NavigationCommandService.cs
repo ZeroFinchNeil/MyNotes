@@ -1,17 +1,17 @@
 ﻿using DotNext;
 
 using MyNotes.Application.Commands.Navigations;
-using MyNotes.Application.Contracts.Enums.Navigations;
-using MyNotes.Application.Contracts.Models.Navigations;
+using MyNotes.Application.Contracts.Navigations.Models;
+using MyNotes.Application.Navigations.Commands;
+using MyNotes.Application.Navigations.Results;
+using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Results;
-using MyNotes.Application.Results.Navigations;
-using MyNotes.Application.Services.Navigations;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
+using MyNotes.Common.Mappers;
 using MyNotes.Common.Structures;
-using MyNotes.Domain.ValueObjects;
-using MyNotes.Mappers;
+using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
@@ -167,7 +167,7 @@ internal sealed class NavigationCommandService : ICommandService
         }
 
         expectedTargetSiblings.Insert(targetIndex, sourceNavigation.Id);
-        
+
         MoveNavigationAppCommand appCommand = new()
         {
           SourceNavigationId = sourceNavigation.Id,

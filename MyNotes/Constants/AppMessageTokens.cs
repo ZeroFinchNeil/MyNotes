@@ -1,5 +1,5 @@
 ﻿using MyNotes.Common.Messages;
-using MyNotes.Domain.ValueObjects;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Constants;

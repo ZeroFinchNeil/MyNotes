@@ -1,6 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System.Threading.Tasks;
 
-using MyNotes.Application.Contracts.Persistence.Media;
+using Microsoft.EntityFrameworkCore;
+
+using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Contracts.Media.Persistence;
 using MyNotes.Infrastructure.Database.Core;
 
 namespace MyNotes.Infrastructure.Database.Repositories.Media;
@@ -12,5 +15,10 @@ internal sealed class ImageRepository : IImageRepository
   public ImageRepository(IDbContextFactory<AppDbContext> dbContextFactory)
   {
     DbContextFactory = dbContextFactory;
+  }
+
+  public Task AttachImageAsync(ImageDto imageDto)
+  {
+    throw new System.NotImplementedException();
   }
 }
