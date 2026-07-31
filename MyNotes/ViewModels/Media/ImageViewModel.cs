@@ -54,7 +54,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       if (!Failed && await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
       {
-        var file = await folder.GetFileAsync(ImageDescriptor.FileName);
+        var file = await folder.GetFileAsync(ImageDescriptor.FilePath);
         await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
       }
       return true;

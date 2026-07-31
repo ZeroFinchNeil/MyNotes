@@ -5,9 +5,7 @@ namespace MyNotes.Application.Media.Commands;
 
 internal sealed record AttachImageAppCommand
 {
-  public required ImageId Id { get; init; }
-
   public required NoteId NoteId { get; init; }
 
-  public required string FileNameWithExtension { get; init; }
+  public required string OriginalFilePath { get; init; }
 }

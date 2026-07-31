@@ -11,6 +11,13 @@ public readonly record struct ImageId
 
   public Guid Value { get; init; }
 
-  private ImageId(Guid id) => Value = id;
+  public string Name { get; }
+
+  private ImageId(Guid id)
+  {
+    Value = id;
+    Name = Value.ToString("N");
+  }
+
   public ImageId() => throw new InvalidOperationException("ImageId has not been properly initialized.");
 }

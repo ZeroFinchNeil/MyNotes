@@ -4,10 +4,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Windows.Storage.Pickers;
 
+using MyNotes.Application.Media.Commands;
+using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Mappers;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
-using MyNotes.Models.Media;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Media.Providers;
 
@@ -15,6 +17,7 @@ namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
+  private readonly ImageService ImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
   private readonly NoteWindowService NoteWindowService;
   private readonly ImageViewerWindowService ImageViewerWindowService;
@@ -22,8 +25,9 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
+  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
   {
+    ImageService = imageService;
     ImageViewModelProvider = imageViewModelProvider;
     NoteWindowService = noteWindowService;
     ImageViewerWindowService = imageViewerWindowService;
@@ -59,6 +63,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       {
         if (NoteWindowService.TryGetWindowInfo(NoteId, out _, out var appWindow))
         {
+          // FilePicker 열기
           FileOpenPicker picker = new(appWindow.OwnerWindowId)
           {
             ViewMode = PickerViewMode.Thumbnail
@@ -74,14 +79,13 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
             try
             {
               // 원본 이미지 파일 가져오기
-              var originalPath = pickFileResult.Path;
-              var originalFile = await StorageFile.GetFileFromPathAsync(originalPath);
+              var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
+              {
+                NoteId = NoteId,
+                OriginalFilePath = pickFileResult.Path
+              });
 
-              // LocalFolder의 Image 폴더 안에 이미지 파일 복사
-              ImageDescriptor imageDescriptor = ImageDescriptor.Create(originalPath);
-
-              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists);
-              var copiedFile = await originalFile.CopyAsync(folder, imageDescriptor.FileName, NameCollisionOption.ReplaceExisting);
+              var imageDescriptor = ImageMapper.ToModel(imageDto);
 
               if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
               {
