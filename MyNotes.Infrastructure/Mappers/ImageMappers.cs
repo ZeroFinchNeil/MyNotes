@@ -1,5 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Debugging.Attributes;
+using MyNotes.Domain.Media;
+using MyNotes.Domain.Notes;
 using MyNotes.Infrastructure.Database.Entities.Media;
 
 namespace MyNotes.Infrastructure.Mappers;
@@ -14,5 +16,13 @@ internal static class ImageMappers
     OriginalFileName = imageDto.OriginalFileName,
     StoredExtension = imageDto.StoredExtension,
     Position = position
+  };
+
+  public static ImageDto ToDto(ImageEntity imageEntity) => new()
+  {
+    Id = ImageId.Create(imageEntity.Id),
+    NoteId = NoteId.Create(imageEntity.NoteId),
+    OriginalFileName = imageEntity.OriginalFileName,
+    StoredExtension = imageEntity.StoredExtension
   };
 }

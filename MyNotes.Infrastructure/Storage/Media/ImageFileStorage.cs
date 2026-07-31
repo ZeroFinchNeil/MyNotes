@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,11 +11,32 @@ namespace MyNotes.Infrastructure.Storage.Media;
 
 internal sealed class ImageFileStorage : IImageFileStorage
 {
+  private static string _imageFolderName = "Images";
 
-  public async Task Save(string originalPath, string fileName, CancellationToken cancellationToken = default)
+  public async Task SaveImage(string originalPath, string fileName, CancellationToken cancellationToken = default)
   {
     var originalFile = await StorageFile.GetFileFromPathAsync(originalPath);
-    var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync("Images", CreationCollisionOption.OpenIfExists);
+    var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(_imageFolderName, CreationCollisionOption.OpenIfExists);
     var copiedFile = await originalFile.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
+  }
+
+  public async Task DeleteImage(string fileName, CancellationToken cancellationToken = default)
+  {
+    try
+    {
+      if (await ApplicationData.Current.LocalFolder.CreateFolderAsync(_imageFolderName, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
+      {
+        var file = await folder.GetFileAsync(fileName);
+        await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+      }
+    }
+    catch (FileNotFoundException)
+    {
+
+    }
+    catch
+    {
+
+    }
   }
 }

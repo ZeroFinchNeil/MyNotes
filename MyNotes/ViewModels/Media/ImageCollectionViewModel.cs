@@ -34,14 +34,19 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     NoteId = noteId;
 
-    //ImageViewModels = NoteId.CollectionReference.TryGetTarget(out var collection) ? collection : new();
-    ImageViewModels = [];
+    _ = InitializeAsync();
     SetCommands();
   }
   #endregion
 
+  private async Task InitializeAsync()
+  {
+    var imageDtos = await ImageService.GetImagesAsync(NoteId);
+    ImageViewModels = [.. imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i)))];
+  }
+
   [ObservableProperty]
-  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; }
+  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; } = [];
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }

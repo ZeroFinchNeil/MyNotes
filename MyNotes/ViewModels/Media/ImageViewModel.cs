@@ -1,5 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Media.Imaging;
 
+using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Constants;
 using MyNotes.Models.Media;
@@ -8,14 +9,17 @@ namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
+  private readonly ImageService ImageService;
+
   public ImageDescriptor ImageDescriptor { get; }
   public BitmapImage? Image { get; }
 
   public bool Failed { get; private set; } = false;
 
   #region Object Lifetime Management
-  public ImageViewModel(ImageDescriptor imageDescriptor)
+  public ImageViewModel(ImageService imageService, ImageDescriptor imageDescriptor)
   {
+    ImageService = imageService;
     ImageDescriptor = imageDescriptor;
 
     Image = new()
@@ -50,23 +54,13 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   public async Task<bool> DeleteImageAsync()
   {
-    try
+    if(!Failed)
     {
-      if (!Failed && await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
-      {
-        var file = await folder.GetFileAsync(ImageDescriptor.FilePath);
-        await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
-      }
+      await ImageService.DeleteImageAsync(ImageDescriptor.Id);
       return true;
     }
-    catch (FileNotFoundException)
-    {
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
+
+    return false;
   }
 }
 

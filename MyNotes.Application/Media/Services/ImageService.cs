@@ -1,6 +1,8 @@
 ﻿using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Media.Persistence;
 using MyNotes.Application.Media.Commands;
+using MyNotes.Domain.Media;
+using MyNotes.Domain.Notes;
 
 namespace MyNotes.Application.Media.Services;
 
@@ -25,8 +27,18 @@ internal sealed class ImageService
       StoredExtension = System.IO.Path.GetExtension(appCommand.OriginalFilePath)
     };
     await ImageRepository.AttachImageAsync(imageDto, cancellationToken);
-    await ImageFileStorage.Save(appCommand.OriginalFilePath, imageDto.Id.Name, cancellationToken);
+    await ImageFileStorage.SaveImage(appCommand.OriginalFilePath, imageDto.Id.Name, cancellationToken);
 
     return imageDto;
+  }
+
+  public async Task<IReadOnlyList<ImageDto>> GetImagesAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  {
+    return await ImageRepository.GetImagesAsync(noteId, cancellationToken);
+  }
+
+  public async Task DeleteImageAsync(ImageId imageId, CancellationToken cancellationToken = default)
+  {
+    await ImageFileStorage.DeleteImage(imageId.Name, cancellationToken);
   }
 }
