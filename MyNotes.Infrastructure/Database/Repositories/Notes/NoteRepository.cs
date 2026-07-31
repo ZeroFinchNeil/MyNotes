@@ -286,7 +286,7 @@ internal class NoteRepository : INoteRepository
     {
       if (await context.NoteEntities.Where(e => e.Id == notePatchDto.Id.Value).SingleOrDefaultAsync(cancellationToken) is NoteEntity entity)
       {
-        if (entity.Modified < modified)
+        if (entity.Modified > modified)
         {
           return PersistenceMutationStatus.Expired;
         }
