@@ -31,7 +31,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Media\Queries\" />
-    <Folder Include="Media\Results\" />
     <Folder Include="Navigations\Queries\" />
     <Folder Include="Notes\Queries\" />
     <Folder Include="Queries\" />

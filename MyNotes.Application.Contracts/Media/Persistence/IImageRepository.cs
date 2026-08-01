@@ -15,4 +15,8 @@ internal interface IImageRepository
   public Task AttachImageAsync(ImageDto imageDto, CancellationToken cancellationToken = default);
 
   public Task<IReadOnlyList<ImageDto>> GetImagesAsync(NoteId noteId, CancellationToken cancellationToken = default);
+
+  public Task DeleteImageAsync(ImageId imageId, CancellationToken cancellationToken = default);
+
+  public Task MoveImageAsync(ImageId sourceImageId, ImageId targetImageId, CancellationToken cancellationToken = default);
 }

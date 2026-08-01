@@ -344,8 +344,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
         };
       }
 
-      await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand() { PatchDto = noteViewStatePatchDto });
-
+      var res = await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand() { PatchDto = noteViewStatePatchDto });
       _noteViewStateDebouncingProperties = NoteViewStateDebouncingProperties.None;
     }
   }

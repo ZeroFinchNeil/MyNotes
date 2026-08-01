@@ -37,6 +37,20 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     _ = InitializeAsync();
     SetCommands();
   }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+    {
+      return;
+    }
+
+    if (disposing)
+    {
+    }
+
+    base.Dispose(disposing);
+  }
   #endregion
 
   private async Task InitializeAsync()
@@ -50,6 +64,22 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
+
+  public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
+  {
+    if (sourceIndex < 0 || sourceIndex >= ImageViewModels.Count || targetIndex < 0 || targetIndex >= ImageViewModels.Count)
+    {
+      return false;
+    }
+
+    await ImageService.MoveImageAsync(new MoveImageAppCommand()
+    {
+      SourceId = ImageViewModels[sourceIndex].ImageDescriptor.Id,
+      TargetId = ImageViewModels[targetIndex].ImageDescriptor.Id
+    });
+
+    return true;
+  }
 }
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase

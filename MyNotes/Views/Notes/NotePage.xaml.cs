@@ -8,8 +8,6 @@ using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
-using MyNotes.Application.Settings;
-using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
@@ -38,6 +36,7 @@ internal sealed partial class NotePage : Page
 {
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly NoteEditorViewModelProvider NoteEditorViewModelProvider;
+  private readonly ImageCollectionViewModelProvider ImageCollectionViewModelProvider;
 
   private readonly NoteViewModel ViewModel;
   private readonly NoteEditorViewModel EditorViewModel;
@@ -52,14 +51,13 @@ internal sealed partial class NotePage : Page
 
     NoteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
     NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
 
-    var imageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ViewModel = NoteViewModelProvider.Resolve(note);
     EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
+    ImageCollectionViewModel = ImageCollectionViewModelProvider.Resolve(note.Id);
 
     var noteService = App.Services.GetRequiredService<NoteService>();
-
-    ImageCollectionViewModel = imageCollectionViewModelProvider.Resolve(note.Id);
 
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
@@ -150,6 +148,8 @@ internal sealed partial class NotePage : Page
 
     ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
 
+    ImageCollectionViewModelProvider.Release(ViewModel.Note.Id);
+
     // 빈 노트 완전 삭제 로직
     await ViewModel.DeleteNotePermanentlyWhenEmpty();
 
@@ -178,6 +178,54 @@ internal sealed partial class NotePage : Page
     _newWndProcCallback = null;
   }
   #endregion
+
+  int _sourceIndex = -1;
+  private void NotePage_ImagesGridView_DragItemsStarting(object sender, DragItemsStartingEventArgs e)
+  {
+    if (e.Items.FirstOrDefault() is ImageViewModel sourceItem)
+    {
+      _sourceIndex = NotePage_ImagesGridView.Items.IndexOf(sourceItem);
+    }
+  }
+
+  private async void NotePage_ImagesGridView_Drop(object sender, DragEventArgs e)
+  {
+    var pointerPosition = e.GetPosition(NotePage_ImagesGridView);
+    int dropIndex = -1;
+    int count = NotePage_ImagesGridView.Items.Count;
+    for (int index = 0; index < count; index++)
+    {
+      if (NotePage_ImagesGridView.ContainerFromIndex(index) is not GridViewItem container)
+      {
+        continue;
+      }
+
+      var containerBounds = container.TransformToVisual(NotePage_ImagesGridView).TransformBounds(new Rect(0, 0, container.ActualWidth, container.ActualHeight));
+
+      if (containerBounds.Contains(pointerPosition))
+      {
+        dropIndex = index;
+        break;
+      }
+    }
+
+    if (_sourceIndex != dropIndex && _sourceIndex >= 0 && _sourceIndex < count && dropIndex >= 0 && dropIndex < count)
+    {
+      if (await ImageCollectionViewModel.MoveImageAsync(_sourceIndex, dropIndex))
+      {
+        var sourceItem = ImageCollectionViewModel.ImageViewModels[_sourceIndex];
+        ImageCollectionViewModel.ImageViewModels.RemoveAt(_sourceIndex);
+        ImageCollectionViewModel.ImageViewModels.Insert(dropIndex, sourceItem);
+      }
+    }
+
+    _sourceIndex = -1;
+  }
+
+  private void NotePage_ImagesGridView_DragOver(object sender, DragEventArgs e)
+  {
+    e.AcceptedOperation = DataPackageOperation.Move;
+  }
 }
 
 partial class NotePage

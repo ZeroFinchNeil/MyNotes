@@ -1,55 +1,46 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 
 namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
-
-  private readonly Dictionary<NoteId, WeakReference<ImageCollectionViewModel>> ResolvedViewModels = new();
+  private readonly ConcurrentDictionary<NoteId, ReferenceCounter<ImageCollectionViewModel>> ResolveTable = new();
 
   public ImageCollectionViewModel Resolve(NoteId key)
   {
-    if (TryResolve(key, out var viewmodel))
+    var rc = ResolveTable.GetOrAdd(key, noteId => new ReferenceCounter<ImageCollectionViewModel>()
     {
-      return viewmodel;
-    }
+      Instance = ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, key)
+    });
 
-    ImageCollectionViewModel newViewModel = ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(ServiceProvider, key);
-    ResolvedViewModels[key] = new WeakReference<ImageCollectionViewModel>(newViewModel);
-
-    return newViewModel;
+    rc.Increment();
+    return rc.Instance;
   }
 
   public bool TryResolve(NoteId key, [NotNullWhen(true)] out ImageCollectionViewModel? imageCollectionViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(key, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.Disposed)
+    if (ResolveTable.TryGetValue(key, out var rc))
     {
-      imageCollectionViewModel = viewmodel;
-      return true;
+      var viewmodel = rc.Instance;
+      if (!rc.HasNoReferences && !viewmodel.Disposed)
+      {
+        imageCollectionViewModel = viewmodel;
+        return true;
+      }
+      else
+      {
+        ResolveTable.TryRemove(key, out _);
+      }
     }
-
     imageCollectionViewModel = null;
     return false;
   }
 
-  public bool Release(NoteId key)
-  {
-    if (TryResolve(key, out var viewmodel))
-    {
-      if (!viewmodel.Disposed)
-      {
-        viewmodel.Dispose();
-      }
-
-      ResolvedViewModels.Remove(key);
-    }
-    return false;
-  }
+  public bool Release(NoteId key) => ResolveTable.TryGetValue(key, out var rc) && rc.Decrement() && ResolveTable.TryRemove(key, out _);
 }

@@ -8,7 +8,7 @@
       xmlns:tmpls="using:MyNotes.Templates"
       xmlns:ui="using:CommunityToolkit.WinUI"
       xmlns:mxi="using:Microsoft.Xaml.Interactivity"
-      xmlns:helpers="using:MyNotes.Helpers">
+      xmlns:helpers="using:MyNotes.Common.Helpers">
 
   <Grid x:Name="MainPage_RootGrid">
     <Grid.RowDefinitions>

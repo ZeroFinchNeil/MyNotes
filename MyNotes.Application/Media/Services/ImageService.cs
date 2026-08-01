@@ -1,6 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Media.Persistence;
 using MyNotes.Application.Media.Commands;
+using MyNotes.Application.Media.Results;
 using MyNotes.Domain.Media;
 using MyNotes.Domain.Notes;
 
@@ -39,6 +40,12 @@ internal sealed class ImageService
 
   public async Task DeleteImageAsync(ImageId imageId, CancellationToken cancellationToken = default)
   {
+    await ImageRepository.DeleteImageAsync(imageId, cancellationToken);
     await ImageFileStorage.DeleteImage(imageId.Name, cancellationToken);
+  }
+
+  public async Task MoveImageAsync(MoveImageAppCommand appCommand, CancellationToken cancellationToken = default)
+  {
+    await ImageRepository.MoveImageAsync(appCommand.SourceId, appCommand.TargetId, cancellationToken);
   }
 }

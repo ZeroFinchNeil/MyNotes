@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Domain.Media;
 using MyNotes.Models.Media;
 namespace MyNotes.ViewModels.Media.Providers;
 
@@ -10,7 +11,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly ConditionalWeakTable<ImageDescriptor, WeakReference<ImageViewModel>> ResolveTable = new();
+  private readonly Dictionary<ImageId, WeakReference<ImageViewModel>> ResolveTable = new();
 
   public ImageViewModel Resolve(ImageDescriptor descriptor)
   {
@@ -21,13 +22,13 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
 
     ImageViewModel newViewModel = ActivatorUtilities.CreateInstance<ImageViewModel>(ServiceProvider, descriptor);
 
-    ResolveTable.AddOrUpdate(descriptor, new WeakReference<ImageViewModel>(newViewModel));
+    ResolveTable[descriptor.Id] = new WeakReference<ImageViewModel>(newViewModel);
     return newViewModel;
   }
 
   public bool TryResolve(ImageDescriptor descriptor, [NotNullWhen(true)] out ImageViewModel? noteImageViewModel)
   {
-    if (ResolveTable.TryGetValue(descriptor, out var wr)
+    if (ResolveTable.TryGetValue(descriptor.Id, out var wr)
         && wr.TryGetTarget(out var viewmodel)
         && !viewmodel.Disposed)
     {
@@ -48,7 +49,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
         viewmodel.Dispose();
       }
 
-      ResolveTable.Remove(descriptor);
+      ResolveTable.Remove(descriptor.Id);
     }
     return false;
   }

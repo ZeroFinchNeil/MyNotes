@@ -4,19 +4,20 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
 internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteModel, NoteViewModel>
 {
-  private readonly ConcurrentDictionary<NoteModel, ReferenceCounter<NoteViewModel>> ResolveTable = new();
+  private readonly ConcurrentDictionary<NoteId, ReferenceCounter<NoteViewModel>> ResolveTable = new();
 
   public NoteViewModel Resolve(NoteModel noteModel)
   {
-    var rc = ResolveTable.GetOrAdd(noteModel, n => new ReferenceCounter<NoteViewModel>()
+    var rc = ResolveTable.GetOrAdd(noteModel.Id, noteId => new ReferenceCounter<NoteViewModel>()
     {
-      Instance = ActivatorUtilities.CreateInstance<NoteViewModel>(serviceProvider, n)
+      Instance = ActivatorUtilities.CreateInstance<NoteViewModel>(serviceProvider, noteModel)
     });
 
     rc.Increment();
@@ -25,7 +26,8 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
 
   public bool TryResolve(NoteModel noteModel, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
   {
-    if (ResolveTable.TryGetValue(noteModel, out var rc))
+    NoteId noteId = noteModel.Id;
+    if (ResolveTable.TryGetValue(noteId, out var rc))
     {
       var viewmodel = rc.Instance;
       if (!rc.HasNoReferences && !viewmodel.Disposed)
@@ -35,7 +37,7 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
       }
       else
       {
-        ResolveTable.TryRemove(noteModel, out _);
+        ResolveTable.TryRemove(noteId, out _);
       }
     }
     noteViewModel = null;
@@ -43,5 +45,5 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
   }
 
   public bool Release(NoteModel noteModel) =>
-    ResolveTable.TryGetValue(noteModel, out var rc) && rc.Decrement() && ResolveTable.TryRemove(noteModel, out _);
+    ResolveTable.TryGetValue(noteModel.Id, out var rc) && rc.Decrement() && ResolveTable.TryRemove(noteModel.Id, out _);
 }

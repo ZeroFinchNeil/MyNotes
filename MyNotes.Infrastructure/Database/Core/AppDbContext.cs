@@ -110,6 +110,8 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
 
     modelBuilder.Entity<ImageEntity>(entity =>
     {
+      entity.HasIndex(e => new { e.NoteId, e.Position }).IsUnique();
+
       entity.HasOne<NoteEntity>()
         .WithMany()
         .HasForeignKey(e => e.NoteId)

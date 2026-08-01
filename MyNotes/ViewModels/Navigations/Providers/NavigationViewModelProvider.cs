@@ -19,7 +19,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     {
       return viewmodel;
     }
-
+    
     NavigationViewModelBase newViewModel = navigation switch
     {
       NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
@@ -40,30 +40,30 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
   public IReadOnlyList<T> Resolve<T>(IEnumerable<INavigation> navigations) where T : NavigationViewModelBase => [.. navigations.Select(Resolve).OfType<T>()];
 
-  public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelbase)
+  public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
   {
     if (ResolvedViewModels.TryGetValue(navigation, out var wr)
         && wr.TryGetTarget(out var viewmodel)
         && !viewmodel.Disposed)
     {
-      viewmodelbase = viewmodel;
+      viewmodelBase = viewmodel;
       return true;
     }
 
-    viewmodelbase = null;
+    viewmodelBase = null;
     return false;
   }
 
-  public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelbase)
+  public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
   {
     if (ResolvedViewModels.Keys.FirstOrDefault(k => k is INavigationNode n && n.Id == navigationId) is INavigation navigation
       && ResolvedViewModels[navigation].TryGetTarget(out var viewmodel))
     {
-      viewmodelbase = viewmodel;
+      viewmodelBase = viewmodel;
       return true;
     }
 
-    viewmodelbase = null;
+    viewmodelBase = null;
     return false;
   }
 
