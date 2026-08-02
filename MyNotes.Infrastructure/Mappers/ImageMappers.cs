@@ -26,3 +26,11 @@ internal static class ImageMappers
     StoredExtension = imageEntity.StoredExtension
   };
 }
+
+internal static class ImageMappersExtensions
+{
+  extension(ImageEntity entity)
+  {
+    public ImageDto ToDto() => ImageMappers.ToDto(entity);
+  }
+}

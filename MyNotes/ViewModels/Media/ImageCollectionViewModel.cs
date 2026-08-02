@@ -55,7 +55,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
   private async Task InitializeAsync()
   {
-    var imageDtos = await ImageService.GetImagesAsync(NoteId);
+    var imageDtos = await ImageService.GetImagesByNoteIdAsync(NoteId);
     ImageViewModels = [.. imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i)))];
   }
 
@@ -84,7 +84,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  public Command InsertImageCommand { get; private set; }
+  public AsyncCommand<Microsoft.UI.WindowId> InsertImageCommand { get; private set; }
 
   public Command<ImageViewModel> ShowImageCommand { get; private set; }
   public Command<ImageViewModel> DeleteImageCommand { get; private set; }
@@ -94,43 +94,40 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     InsertImageCommand = new()
     {
-      ExecuteAction = async () =>
+      ExecuteFunc = async (windowId) =>
       {
-        if (NoteWindowService.TryGetWindowInfo(NoteId, out _, out var appWindow))
+        // FilePicker 열기
+        FileOpenPicker picker = new(windowId)
         {
-          // FilePicker 열기
-          FileOpenPicker picker = new(appWindow.OwnerWindowId)
-          {
-            ViewMode = PickerViewMode.Thumbnail
-          };
+          ViewMode = PickerViewMode.Thumbnail
+        };
 
-          foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
+        foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
+        {
+          picker.FileTypeFilter.Add(fileType);
+        }
+
+        foreach (var pickFileResult in await picker.PickMultipleFilesAsync())
+        {
+          try
           {
-            picker.FileTypeFilter.Add(fileType);
+            // 원본 이미지 파일 가져오기
+            var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
+            {
+              NoteId = NoteId,
+              OriginalFilePath = pickFileResult.Path
+            });
+
+            var imageDescriptor = ImageMapper.ToModel(imageDto);
+
+            if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
+            {
+              ImageViewModels.Add(imageViewModel);
+            }
           }
-
-          foreach (var pickFileResult in await picker.PickMultipleFilesAsync())
+          catch (Exception e)
           {
-            try
-            {
-              // 원본 이미지 파일 가져오기
-              var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
-              {
-                NoteId = NoteId,
-                OriginalFilePath = pickFileResult.Path
-              });
-
-              var imageDescriptor = ImageMapper.ToModel(imageDto);
-
-              if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
-              {
-                ImageViewModels.Add(imageViewModel);
-              }
-            }
-            catch (Exception e)
-            {
-              Console.WriteLine("{0}: {1}", "File Exception", e.Message);
-            }
+            Console.WriteLine("{0}: {1}", "File Exception", e.Message);
           }
         }
       }

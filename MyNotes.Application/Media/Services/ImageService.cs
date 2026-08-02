@@ -33,10 +33,9 @@ internal sealed class ImageService
     return imageDto;
   }
 
-  public async Task<IReadOnlyList<ImageDto>> GetImagesAsync(NoteId noteId, CancellationToken cancellationToken = default)
-  {
-    return await ImageRepository.GetImagesAsync(noteId, cancellationToken);
-  }
+  public Task<ImageDto?> GetImageAsync(ImageId imageId, CancellationToken cancellationToken = default) => ImageRepository.GetImageAsync(imageId, cancellationToken);
+
+  public Task<IReadOnlyList<ImageDto>> GetImagesByNoteIdAsync(NoteId noteId, CancellationToken cancellationToken = default) => ImageRepository.GetImagesByNoteIdAsync(noteId, cancellationToken);
 
   public async Task DeleteImageAsync(ImageId imageId, CancellationToken cancellationToken = default)
   {

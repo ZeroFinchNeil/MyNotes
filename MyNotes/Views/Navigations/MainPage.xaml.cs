@@ -3,56 +3,49 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Settings;
-using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
-using MyNotes.Infrastructure.Logging;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
-using MyNotes.Services.Windows;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
-using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
 
 namespace MyNotes.Views.Navigations;
 
 [Debugging.Attributes.ReferenceTracker]
-internal sealed partial class MainPage : Page
+internal sealed partial class MainPage : Page, ITitleBarProvider
 {
   private readonly IServiceScope ServiceScope;
   private readonly MainViewModel ViewModel;
-  private readonly MainWindowService MainWindowService;
 
   private readonly SettingsViewModel SettingsViewModel;
-  private readonly AppLogger LoggingService;
 
   private readonly NavigationId _initialNavigationId;
 
+  public UIElement TitleBarElement { get; }
+
   #region Object Lifetime Management
-  public MainPage(MainWindow mainWindow, NavigationId? initialNavigationId = null)
+  public MainPage(NavigationId? initialNavigationId = null)
   {
     TrackReference();
     InitializeComponent();
 
+    TitleBarElement = MainPage_TitleBarGrid;
+
     ServiceScope = App.Services.CreateScope();
     ViewModel = ServiceScope.ServiceProvider.GetRequiredService<MainViewModel>();
-    MainWindowService = ServiceScope.ServiceProvider.GetRequiredService<MainWindowService>();
 
     SettingsViewModel = App.Services.GetRequiredService<SettingsViewModel>();
-    LoggingService = App.Services.GetRequiredService<AppLogger>();
-
-    mainWindow.SetTitleBar(MainPage_TitleBarGrid);
 
     // 시작 내비게이션(페이지) 설정
     _initialNavigationId = initialNavigationId ?? NavigationId.GetOrCreate(SettingsViewModel.InitialPageId);
 
     // 앱 테마 설정 
-    var theme = (ElementTheme)SettingsViewModel.AppTheme;
+    var theme = SettingsViewModel.AppTheme;
     this.RequestedTheme = theme;
 
     // 메신저 등록
@@ -167,8 +160,11 @@ internal sealed partial class MainPage : Page
 
   private void SetRegionsForCustomTitleBar()
   {
-    if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (this.XamlRoot is XamlRoot xamlRoot)
     {
+      var appWindowId = xamlRoot.ContentIslandEnvironment.AppWindowId;
+      var appWindow = AppWindow.GetFromWindowId(appWindowId);
+
       double scaleFactor = xamlRoot.RasterizationScale;
 
       // FlowDirection에 따른 캡션 컨트롤 여백 지정
@@ -185,7 +181,7 @@ internal sealed partial class MainPage : Page
       RectInt32 SearchBoxRect = SearchBoxPosition.AsScaledRectInt32(scaleFactor);
 
       // 제목 표시줄 드래그 제외할 영역 설정
-      var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
+      var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindowId);
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
     }
   }
@@ -250,8 +246,11 @@ internal sealed partial class MainPage : Page
   {
     this.RequestedTheme = theme;
 
-    if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow))
+    if (this.XamlRoot is XamlRoot xamlRoot)
     {
+      var appWindowId = xamlRoot.ContentIslandEnvironment.AppWindowId;
+      var appWindow = AppWindow.GetFromWindowId(appWindowId);
+
       appWindow.TitleBar.PreferredTheme = theme switch
       {
         ElementTheme.Light => TitleBarTheme.Light,
@@ -369,8 +368,10 @@ internal sealed partial class MainPage : Page
     {
       if (message.Value == WindowActivationState.Deactivated)
       {
-        if (MainWindowService.TryGetWindowInfo(this, out _, out var appWindow))
+        if (this.XamlRoot is XamlRoot xamlRoot)
         {
+          var appWindowId = xamlRoot.ContentIslandEnvironment.AppWindowId;
+          var appWindow = AppWindow.GetFromWindowId(appWindowId);
           var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
           _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
         }

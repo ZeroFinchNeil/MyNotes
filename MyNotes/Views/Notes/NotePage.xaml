@@ -349,9 +349,10 @@
                                   Icon="NewWindow"
                                   Text="Show"
                                   Click="NotePage_ShowImageMenuFlyoutItem_Click" />
-                  <MenuFlyoutItem Icon="SaveLocal"
+                  <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem" 
+                                  Icon="SaveLocal"
                                   Text="Save local"
-                                  Command="{x:Bind SaveImageCommand}" />
+                                  Click="NotePage_SaveImageMenuFlyoutItem_Click" />
                   <MenuFlyoutSeparator />
                   <MenuFlyoutItem x:Name="NotePage_DeleteImageMenuFlyoutItem"
                                   Icon="Delete"
@@ -1137,7 +1138,7 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}" />
+                                Click="NotePage_InsertImagesButton_Click" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

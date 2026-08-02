@@ -32,7 +32,7 @@ using Windows.System;
 namespace MyNotes.Views.Notes;
 
 [Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NotePage : Page
+internal sealed partial class NotePage : Page, ITitleBarProvider
 {
   private readonly NoteViewModelProvider NoteViewModelProvider;
   private readonly NoteEditorViewModelProvider NoteEditorViewModelProvider;
@@ -41,13 +41,16 @@ internal sealed partial class NotePage : Page
   private readonly NoteViewModel ViewModel;
   private readonly NoteEditorViewModel EditorViewModel;
   private readonly ImageCollectionViewModel ImageCollectionViewModel;
-  private readonly NoteWindowService NoteWindowService;
+
+  public UIElement TitleBarElement { get; }
 
   #region Object Lifetime Management
-  internal NotePage(NoteWindow noteWindow, NoteModel note)
+  internal NotePage(NoteModel note)
   {
     TrackReference();
     InitializeComponent();
+
+    TitleBarElement = NotePage_TitleBarGrid;
 
     NoteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
     NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
@@ -63,9 +66,6 @@ internal sealed partial class NotePage : Page
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
 
-    NoteWindowService = App.Services.GetRequiredService<NoteWindowService>();
-    noteWindow.SetTitleBar(NotePage_TitleBarGrid);
-
     SetEditorText();
 
     var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
@@ -78,62 +78,63 @@ internal sealed partial class NotePage : Page
     this.SizeChanged += NotePage_SizeChanged;
     this.Loaded += NotePage_Loaded;
     this.Unloaded += NotePage_Unloaded;
-    noteWindow.AppWindow.Closing += AppWindow_Closing;
   }
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)
   {
-    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out var hWnd, out var appWindow))
+    var windowId = this.XamlRoot.ContentIslandEnvironment.AppWindowId;
+    var hWnd = Win32Interop.GetWindowFromWindowId(windowId);
+    var appWindow = AppWindow.GetFromWindowId(windowId);
+
+    appWindow.Closing += AppWindow_Closing;
+    appWindow.Changed += AppWindow_Changed;
+
+    ViewModel.Note.IsWindowOpen = true;
+    (appWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = ViewModel.Note.IsAlwaysOnTop;
+
+    _newWndProcCallback = (handle, msg, wParam, lParam) =>
     {
-      appWindow.Changed += AppWindow_Changed;
-
-      ViewModel.Note.IsWindowOpen = true;
-      (appWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = ViewModel.Note.IsAlwaysOnTop;
-
-      _newWndProcCallback = (handle, msg, wParam, lParam) =>
+      // 시스템에 의한 종료 시 창 복원을 위해 창 닫힘을 기록하지 않음
+      switch (msg)
       {
-        // 시스템에 의한 종료 시 창 복원을 위해 창 닫힘을 기록하지 않음
-        switch (msg)
-        {
-          case (uint)NativeMethods.WindowMessage.WM_CLOSE:
-            break;
-          case (uint)NativeMethods.WindowMessage.WM_QUERYENDSESSION:
-            _isManualClose = false;
-            break;
-        }
+        case (uint)NativeMethods.WindowMessage.WM_CLOSE:
+          break;
+        case (uint)NativeMethods.WindowMessage.WM_QUERYENDSESSION:
+          _isManualClose = false;
+          break;
+      }
 
-        // 기존 wndProc 호출
-        return NativeMethods.CallWindowProc(_oldWndProc, handle, msg, wParam, lParam);
-      };
+      // 기존 wndProc 호출
+      return NativeMethods.CallWindowProc(_oldWndProc, handle, msg, wParam, lParam);
+    };
 
-      _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
-      _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
+    _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
+    _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
 
-      if (ViewModel.Note.NavigationId == NavigationId.Empty)
+    if (ViewModel.Note.NavigationId == NavigationId.Empty)
+    {
+      var dialogService = App.Services.GetRequiredService<DialogService>();
+      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      var dialogResponse = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
+      var contentDialogResult = dialogResponse.Result;
+      switch (contentDialogResult)
       {
-        var dialogService = App.Services.GetRequiredService<DialogService>();
-        var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-        var dialogResponse = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
-        var contentDialogResult = dialogResponse.Result;
-        switch (contentDialogResult)
-        {
-          case ContentDialogResult.Primary:
-            if (dialogResponse.Data is NavigationId parentId && parentId != NavigationId.Empty)
+        case ContentDialogResult.Primary:
+          if (dialogResponse.Data is NavigationId parentId && parentId != NavigationId.Empty)
+          {
+            ViewModel.Note.NavigationId = parentId;
+
+            if (noteListViewModelProvider.TryResolve(parentId, out var noteListViewModel)
+              && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
+              && !noteViewModels.Contains(ViewModel))
             {
-              ViewModel.Note.NavigationId = parentId;
-
-              if (noteListViewModelProvider.TryResolve(parentId, out var noteListViewModel)
-                && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
-                && !noteViewModels.Contains(ViewModel))
-              {
-                noteViewModels.Add(ViewModel);
-              }
+              noteViewModels.Add(ViewModel);
             }
-            break;
-          case ContentDialogResult.None:
-            ViewModel.CloseWindowCommand.Execute(ViewModel.Note);
-            break;
-        }
+          }
+          break;
+        case ContentDialogResult.None:
+          ViewModel.CloseWindowCommand.Execute(ViewModel.Note);
+          break;
       }
     }
 
@@ -226,6 +227,11 @@ internal sealed partial class NotePage : Page
   {
     e.AcceptedOperation = DataPackageOperation.Move;
   }
+
+  private void NotePage_InsertImagesButton_Click(object sender, RoutedEventArgs e)
+  {
+    ImageCollectionViewModel.InsertImageCommand.Execute(this.XamlRoot.ContentIslandEnvironment.AppWindowId);
+  }
 }
 
 partial class NotePage
@@ -233,7 +239,7 @@ partial class NotePage
   // 타이틀 바 드래그 영역 계산
   private void SetRegionsForCustomTitleBar()
   {
-    if (NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow) && this.XamlRoot is XamlRoot xamlRoot)
+    if (this.XamlRoot is XamlRoot xamlRoot && xamlRoot.ContentIslandEnvironment.AppWindowId is Microsoft.UI.WindowId appWindowId)
     {
       double scaleFactor = xamlRoot.RasterizationScale;
 
@@ -251,7 +257,7 @@ partial class NotePage
       RectInt32 CloseButtonRect = CloseButtonPosition.AsScaledRectInt32(scaleFactor);
 
       // 제목 표시줄 드래그 제외할 영역 설정
-      var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
+      var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindowId);
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [PinButtonRect, MoreButtonRect, TitleRenameTextBoxRect, MinimizeButtonRect, CloseButtonRect]);
     }
   }
@@ -284,7 +290,7 @@ partial class NotePage
 
   private void NotePage_SizeChanged(object sender, SizeChangedEventArgs e)
   {
-    if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
+    if (FocusManager.GetFocusedElement(this.XamlRoot) is FrameworkElement focusedElement
       && focusedElement == NotePage_TextEditorRichEditBox)
     {
       NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
@@ -320,8 +326,7 @@ partial class NotePage
 
   private async void NotePage_SaveAsMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
   {
-    if (sender is MenuFlyoutItem item
-      && NoteWindowService.TryGetWindowInfo(this, ViewModel.Note.Id, out _, out var appWindow))
+    if (sender is MenuFlyoutItem item && item.XamlRoot.ContentIslandEnvironment.AppWindowId is Microsoft.UI.WindowId appWindowId)
     {
       (string Extension, string Kind)? fileType = item.Tag switch
       {
@@ -343,7 +348,7 @@ partial class NotePage
           suggestedFileName = $"MyNote_{DateTime.UtcNow:yyyyMMdd_hhmmss}";
         }
 
-        FileSavePicker picker = new(appWindow.Id)
+        FileSavePicker picker = new(appWindowId)
         {
           SuggestedFileName = suggestedFileName,
           SuggestedStartLocation = PickerLocationId.Desktop
@@ -420,6 +425,14 @@ partial class NotePage
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
       ImageCollectionViewModel.ShowImageCommand?.Execute(imageViewModel);
+    }
+  }
+
+  private void NotePage_SaveImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
+  {
+    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
+    {
+      imageViewModel.SaveImageCommand?.Execute(element.XamlRoot.ContentIslandEnvironment.AppWindowId);
     }
   }
 

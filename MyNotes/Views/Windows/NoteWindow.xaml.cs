@@ -63,7 +63,9 @@ internal sealed partial class NoteWindow : Window
     this.Activated += NoteWindow_Activated;
     this.Closed += NoteWindow_Closed;
 
-    this.Content = new NotePage(this, note);
+    NotePage pageContent = new(note);
+    this.Content = pageContent;
+    this.SetTitleBar(pageContent.TitleBarElement);
 
     Loaded?.Invoke(this, EventArgs.Empty);
     LoadTCS.TrySetResult();

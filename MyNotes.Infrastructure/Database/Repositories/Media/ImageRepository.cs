@@ -52,8 +52,16 @@ internal sealed class ImageRepository : IImageRepository
     await context.SaveChangesAsync(cancellationToken);
     await NormalizePositionAsync(imageDto.NoteId.Value, cancellationToken);
   }
+  public async Task<ImageDto?> GetImageAsync(ImageId imageId, CancellationToken cancellationToken = default)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    return (await context.ImageEntities
+      .AsNoTracking()
+      .SingleOrDefaultAsync(e => e.Id == imageId.Value, cancellationToken))
+      ?.ToDto();
+  }
 
-  public async Task<IReadOnlyList<ImageDto>> GetImagesAsync(NoteId noteId, CancellationToken cancellationToken = default)
+  public async Task<IReadOnlyList<ImageDto>> GetImagesByNoteIdAsync(NoteId noteId, CancellationToken cancellationToken = default)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
     return await context.ImageEntities

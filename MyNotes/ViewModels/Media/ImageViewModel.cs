@@ -1,8 +1,11 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+﻿using System.Diagnostics.CodeAnalysis;
 
+using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
+
+using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
-using MyNotes.Constants;
 using MyNotes.Models.Media;
 
 namespace MyNotes.ViewModels.Media;
@@ -29,6 +32,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
       DecodePixelHeight = 1024
     };
     Image.ImageFailed += Image_ImageFailed;
+
+    SetCommands();
   }
   protected override void Dispose(bool disposing)
   {
@@ -54,7 +59,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   public async Task<bool> DeleteImageAsync()
   {
-    if(!Failed)
+    if (!Failed)
     {
       await ImageService.DeleteImageAsync(ImageDescriptor.Id);
       return true;
@@ -66,14 +71,26 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
-  public Command? SaveImageCommand { get; private set; }
+  public AsyncCommand<Microsoft.UI.WindowId> SaveImageCommand { get; private set; }
 
+  [MemberNotNull(nameof(SaveImageCommand))]
   private void SetCommands()
   {
     SaveImageCommand = new()
     {
-      ExecuteAction = () =>
+      ExecuteFunc = async (windowId) =>
       {
+        FolderPicker picker = new(windowId);
+        PickFolderResult pickFolderResult = await picker.PickSingleFolderAsync();
+        if (pickFolderResult is not null)
+        {
+          if (await ImageService.GetImageAsync(ImageDescriptor.Id) is ImageDto imageDto)
+          {
+            var folder = await StorageFolder.GetFolderFromPathAsync(pickFolderResult.Path);
+            StorageFile originalFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.FilePath);
+            await originalFile.CopyAsync(folder, $"{imageDto.OriginalFileName}{imageDto.StoredExtension}", NameCollisionOption.GenerateUniqueName);
+          }
+        }
       }
     };
   }
