@@ -108,7 +108,9 @@ internal sealed partial class MainWindow : Window
     // MainWindow 시작 플래그
     ViewStateSettingsService.Save(ViewStateSettingsDescriptors.IsMainWindowOpen, true);
 
-    this.Content = new MainPage(this, _initialNavigationId);
+    MainPage contentPage = new(_initialNavigationId);
+    this.Content = contentPage;
+    this.SetTitleBar(contentPage.TitleBarElement);
 
     Loaded?.Invoke(this, EventArgs.Empty);
     LoadTCS.TrySetResult();

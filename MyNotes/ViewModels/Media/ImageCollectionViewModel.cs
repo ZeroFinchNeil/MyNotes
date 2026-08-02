@@ -4,10 +4,12 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Windows.Storage.Pickers;
 
+using MyNotes.Application.Media.Commands;
+using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Mappers;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
-using MyNotes.Models.Media;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Media.Providers;
 
@@ -15,6 +17,7 @@ namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
+  private readonly ImageService ImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
   private readonly NoteWindowService NoteWindowService;
   private readonly ImageViewerWindowService ImageViewerWindowService;
@@ -22,30 +25,66 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
+  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
   {
+    ImageService = imageService;
     ImageViewModelProvider = imageViewModelProvider;
     NoteWindowService = noteWindowService;
     ImageViewerWindowService = imageViewerWindowService;
 
     NoteId = noteId;
 
-    //ImageViewModels = NoteId.CollectionReference.TryGetTarget(out var collection) ? collection : new();
-    ImageViewModels = [];
+    _ = InitializeAsync();
     SetCommands();
+  }
+
+  protected override void Dispose(bool disposing)
+  {
+    if (Disposed)
+    {
+      return;
+    }
+
+    if (disposing)
+    {
+    }
+
+    base.Dispose(disposing);
   }
   #endregion
 
+  private async Task InitializeAsync()
+  {
+    var imageDtos = await ImageService.GetImagesByNoteIdAsync(NoteId);
+    ImageViewModels = [.. imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i)))];
+  }
+
   [ObservableProperty]
-  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; }
+  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; } = [];
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
+
+  public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
+  {
+    if (sourceIndex < 0 || sourceIndex >= ImageViewModels.Count || targetIndex < 0 || targetIndex >= ImageViewModels.Count)
+    {
+      return false;
+    }
+
+    await ImageService.MoveImageAsync(new MoveImageAppCommand()
+    {
+      SourceId = ImageViewModels[sourceIndex].ImageDescriptor.Id,
+      TargetId = ImageViewModels[targetIndex].ImageDescriptor.Id
+    });
+
+    return true;
+  }
 }
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  public Command InsertImageCommand { get; private set; }
+  public AsyncCommand<Microsoft.UI.WindowId> InsertImageCommand { get; private set; }
 
   public Command<ImageViewModel> ShowImageCommand { get; private set; }
   public Command<ImageViewModel> DeleteImageCommand { get; private set; }
@@ -55,43 +94,40 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     InsertImageCommand = new()
     {
-      ExecuteAction = async () =>
+      ExecuteFunc = async (windowId) =>
       {
-        if (NoteWindowService.TryGetWindowInfo(NoteId, out _, out var appWindow))
+        // FilePicker 열기
+        FileOpenPicker picker = new(windowId)
         {
-          FileOpenPicker picker = new(appWindow.OwnerWindowId)
-          {
-            ViewMode = PickerViewMode.Thumbnail
-          };
+          ViewMode = PickerViewMode.Thumbnail
+        };
 
-          foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
+        foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
+        {
+          picker.FileTypeFilter.Add(fileType);
+        }
+
+        foreach (var pickFileResult in await picker.PickMultipleFilesAsync())
+        {
+          try
           {
-            picker.FileTypeFilter.Add(fileType);
+            // 원본 이미지 파일 가져오기
+            var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
+            {
+              NoteId = NoteId,
+              OriginalFilePath = pickFileResult.Path
+            });
+
+            var imageDescriptor = ImageMapper.ToModel(imageDto);
+
+            if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
+            {
+              ImageViewModels.Add(imageViewModel);
+            }
           }
-
-          foreach (var pickFileResult in await picker.PickMultipleFilesAsync())
+          catch (Exception e)
           {
-            try
-            {
-              // 원본 이미지 파일 가져오기
-              var originalPath = pickFileResult.Path;
-              var originalFile = await StorageFile.GetFileFromPathAsync(originalPath);
-
-              // LocalFolder의 Image 폴더 안에 이미지 파일 복사
-              ImageDescriptor imageDescriptor = ImageDescriptor.Create(originalPath);
-
-              var folder = await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists);
-              var copiedFile = await originalFile.CopyAsync(folder, imageDescriptor.FileName, NameCollisionOption.ReplaceExisting);
-
-              if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
-              {
-                ImageViewModels.Add(imageViewModel);
-              }
-            }
-            catch (Exception e)
-            {
-              Console.WriteLine("{0}: {1}", "File Exception", e.Message);
-            }
+            Console.WriteLine("{0}: {1}", "File Exception", e.Message);
           }
         }
       }

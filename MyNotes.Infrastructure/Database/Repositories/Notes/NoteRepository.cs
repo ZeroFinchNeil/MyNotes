@@ -438,7 +438,14 @@ internal class NoteRepository : INoteRepository
         fallbackValue: 0,
         cancellationToken: cancellationToken);
 
-      return updateResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+      if (updateResult > 0)
+      {
+        await transaction.CommitAsync(cancellationToken);
+        return PersistenceMutationStatus.Applied;
+      }
+
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.NotFound;
     }
     catch
     {
@@ -454,29 +461,40 @@ internal class NoteRepository : INoteRepository
 
     try
     {
+      int deleteResult;
       switch (deleteMode)
       {
         case DeleteMode.MoveToTrash:
-          var updateResult = await context.EnqueueOperationAsync(
+          deleteResult = await context.EnqueueOperationAsync(
             operation: () => context.NoteEntities
               .Where(e => e.Id == noteId.Value && !e.IsDeleted)
               .ExecuteUpdate(setters => setters.SetProperty(e => e.IsDeleted, true)),
             defaultValue: 0,
             fallbackValue: 0,
             cancellationToken: cancellationToken);
-          return updateResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+          break;
         case DeleteMode.Permanent:
-          var deleteResult = await context.EnqueueOperationAsync(
+          deleteResult = await context.EnqueueOperationAsync(
             operation: () => context.NoteEntities
               .Where(e => e.Id == noteId.Value)
               .ExecuteDelete(),
             defaultValue: 0,
             fallbackValue: 0,
             cancellationToken: cancellationToken);
-          return deleteResult > 0 ? PersistenceMutationStatus.Applied : PersistenceMutationStatus.NotFound;
+          break;
         default:
+          await transaction.RollbackAsync(cancellationToken);
           return PersistenceMutationStatus.Unchanged;
       }
+
+      if (deleteResult > 0)
+      {
+        await transaction.CommitAsync(cancellationToken);
+        return PersistenceMutationStatus.Applied;
+      }
+
+      await transaction.RollbackAsync(cancellationToken);
+      return PersistenceMutationStatus.NotFound;
     }
     catch
     {

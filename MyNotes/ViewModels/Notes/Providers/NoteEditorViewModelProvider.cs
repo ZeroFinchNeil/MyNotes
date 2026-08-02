@@ -2,6 +2,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
@@ -10,7 +11,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<NoteModel, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<NoteId, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
 
   NoteEditorViewModel IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
 
@@ -22,14 +23,14 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
     }
 
     NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(ServiceProvider, note, document);
-    ResolvedViewModels[note] = new WeakReference<NoteEditorViewModel>(newViewModel);
+    ResolvedViewModels[note.Id] = new WeakReference<NoteEditorViewModel>(newViewModel);
 
     return newViewModel;
   }
 
   public bool TryResolve(NoteModel note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(note, out var wr)
+    if (ResolvedViewModels.TryGetValue(note.Id, out var wr)
         && wr.TryGetTarget(out var viewmodel)
         && !viewmodel.Disposed)
     {
@@ -50,7 +51,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
         await viewmodel.DisposeAsync();
       }
 
-      return ResolvedViewModels.Remove(note);
+      return ResolvedViewModels.Remove(note.Id);
     }
 
     return false;

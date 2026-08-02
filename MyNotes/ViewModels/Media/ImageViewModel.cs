@@ -1,21 +1,28 @@
-﻿using Microsoft.UI.Xaml.Media.Imaging;
+﻿using System.Diagnostics.CodeAnalysis;
 
+using Microsoft.UI.Xaml.Media.Imaging;
+using Microsoft.Windows.Storage.Pickers;
+
+using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
-using MyNotes.Constants;
 using MyNotes.Models.Media;
 
 namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
+  private readonly ImageService ImageService;
+
   public ImageDescriptor ImageDescriptor { get; }
   public BitmapImage? Image { get; }
 
   public bool Failed { get; private set; } = false;
 
   #region Object Lifetime Management
-  public ImageViewModel(ImageDescriptor imageDescriptor)
+  public ImageViewModel(ImageService imageService, ImageDescriptor imageDescriptor)
   {
+    ImageService = imageService;
     ImageDescriptor = imageDescriptor;
 
     Image = new()
@@ -25,6 +32,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
       DecodePixelHeight = 1024
     };
     Image.ImageFailed += Image_ImageFailed;
+
+    SetCommands();
   }
   protected override void Dispose(bool disposing)
   {
@@ -50,36 +59,38 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   public async Task<bool> DeleteImageAsync()
   {
-    try
+    if (!Failed)
     {
-      if (!Failed && await ApplicationData.Current.LocalFolder.CreateFolderAsync(AppStrings.ImageFolderName, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
-      {
-        var file = await folder.GetFileAsync(ImageDescriptor.FileName);
-        await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
-      }
+      await ImageService.DeleteImageAsync(ImageDescriptor.Id);
       return true;
     }
-    catch (FileNotFoundException)
-    {
-      return true;
-    }
-    catch
-    {
-      return false;
-    }
+
+    return false;
   }
 }
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
-  public Command? SaveImageCommand { get; private set; }
+  public AsyncCommand<Microsoft.UI.WindowId> SaveImageCommand { get; private set; }
 
+  [MemberNotNull(nameof(SaveImageCommand))]
   private void SetCommands()
   {
     SaveImageCommand = new()
     {
-      ExecuteAction = () =>
+      ExecuteFunc = async (windowId) =>
       {
+        FolderPicker picker = new(windowId);
+        PickFolderResult pickFolderResult = await picker.PickSingleFolderAsync();
+        if (pickFolderResult is not null)
+        {
+          if (await ImageService.GetImageAsync(ImageDescriptor.Id) is ImageDto imageDto)
+          {
+            var folder = await StorageFolder.GetFolderFromPathAsync(pickFolderResult.Path);
+            StorageFile originalFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.FilePath);
+            await originalFile.CopyAsync(folder, $"{imageDto.OriginalFileName}{imageDto.StoredExtension}", NameCollisionOption.GenerateUniqueName);
+          }
+        }
       }
     };
   }

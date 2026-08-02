@@ -29,7 +29,7 @@ internal sealed class NoteModelStore : IModelStore<NoteId, NoteModel>
     return noteModel;
   }
 
-  public bool TryGetModel(NoteId key, [NotNullWhen(true)] out NoteModel? noteModel)
+  public bool TryGet(NoteId key, [NotNullWhen(true)] out NoteModel? noteModel)
   {
     if (ResolveTable.TryGetValue(key, out var wr) && wr.TryGetTarget(out var model))
     {

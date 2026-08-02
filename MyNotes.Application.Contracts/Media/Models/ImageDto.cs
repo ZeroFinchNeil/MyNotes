@@ -9,5 +9,7 @@ internal sealed record ImageDto
 
   public required NoteId NoteId { get; init; }
 
-  public required string FileNameWithExtension { get; init; }
+  public required string OriginalFileName { get; init; }
+
+  public required string StoredExtension { get; init; }
 }

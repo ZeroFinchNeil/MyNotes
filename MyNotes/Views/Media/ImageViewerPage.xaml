@@ -4,7 +4,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mediavm="using:MyNotes.ViewModels.Media">
 
-  <Grid Background="#202020">
+  <Grid Background="{StaticResource CardBackgroundFillColorDefaultBrush}">
     <FlipView ItemsSource="{x:Bind ViewModel.ImageViewModels}"
               SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
               Background="Transparent">

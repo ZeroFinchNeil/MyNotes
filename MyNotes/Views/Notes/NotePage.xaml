@@ -306,7 +306,6 @@
           Padding="6,0">
       <GridView x:Name="NotePage_ImagesGridView"
                 Grid.Row="0"
-                CanReorderItems="True"
                 CanDragItems="True"
                 AllowDrop="True"
                 ItemsSource="{x:Bind ImageCollectionViewModel.ImageViewModels}"
@@ -320,16 +319,21 @@
                 MinHeight="120"
                 MaxHeight="{x:Bind ViewModel.ImagePanelMaxHeight, Mode=OneWay}"
                 Padding="0,6"
-                Margin="0,0,0,6">
+                Margin="0,0,0,6"
+                DragItemsStarting="NotePage_ImagesGridView_DragItemsStarting"
+                DragOver="NotePage_ImagesGridView_DragOver"
+                Drop="NotePage_ImagesGridView_Drop">
         <GridView.ItemsPanel>
           <ItemsPanelTemplate>
-            <ItemsStackPanel Orientation="Horizontal"></ItemsStackPanel>
+            <ItemsStackPanel Orientation="Horizontal" />
           </ItemsPanelTemplate>
         </GridView.ItemsPanel>
 
         <GridView.ItemContainerStyle>
           <Style TargetType="GridViewItem"
                  BasedOn="{StaticResource DefaultGridViewItemStyle}">
+            <Setter Property="AllowDrop"
+                    Value="True" />
           </Style>
         </GridView.ItemContainerStyle>
 
@@ -345,9 +349,10 @@
                                   Icon="NewWindow"
                                   Text="Show"
                                   Click="NotePage_ShowImageMenuFlyoutItem_Click" />
-                  <MenuFlyoutItem Icon="SaveLocal"
+                  <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem" 
+                                  Icon="SaveLocal"
                                   Text="Save local"
-                                  Command="{x:Bind SaveImageCommand}" />
+                                  Click="NotePage_SaveImageMenuFlyoutItem_Click" />
                   <MenuFlyoutSeparator />
                   <MenuFlyoutItem x:Name="NotePage_DeleteImageMenuFlyoutItem"
                                   Icon="Delete"
@@ -1133,7 +1138,7 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}" />
+                                Click="NotePage_InsertImagesButton_Click" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

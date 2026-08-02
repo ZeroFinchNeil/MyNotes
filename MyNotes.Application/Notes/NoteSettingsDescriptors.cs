@@ -33,7 +33,7 @@ internal static class NoteSettingsDescriptors
   public static double NoteBackdropTintOpacity { get; } = 0.5;
   public static double NoteBackdropLuminosityOpacity { get; } = 0.5;
   public static IReadOnlyList<string> NoteBodyImagePaths { get; } = [];
-  public static bool ShowNoteImagePanel { get; } = false;
+  public static bool ShowNoteImagePanel { get; } = true;
   public static double NoteImagePanelHeight { get; } = 120.0;
   public static bool IsNoteTextEditorReadOnly { get; } = false;
   public static bool IsNoteWindowOpen { get; } = true;

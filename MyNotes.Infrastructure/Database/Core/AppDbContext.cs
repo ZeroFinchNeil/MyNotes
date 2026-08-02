@@ -110,9 +110,11 @@ internal sealed partial class AppDbContext(AppDbContextTaskDispatcher taskDispat
 
     modelBuilder.Entity<ImageEntity>(entity =>
     {
+      entity.HasIndex(e => new { e.NoteId, e.Position }).IsUnique();
+
       entity.HasOne<NoteEntity>()
-        .WithOne()
-        .HasForeignKey<ImageEntity>(e => e.NoteId)
+        .WithMany()
+        .HasForeignKey(e => e.NoteId)
         .IsRequired()
         .OnDelete(DeleteBehavior.Cascade);
 
