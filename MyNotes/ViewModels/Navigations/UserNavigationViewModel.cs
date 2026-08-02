@@ -17,12 +17,12 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
 
   public override NavigationUserNode Navigation { get; }
 
-  public virtual AsyncCommand<NavigationUserNode>? AddListCommand { get; }
-  public virtual Command<NavigationUserNode>? AddGroupCommand { get; }
-  public virtual Command<NavigationUserNode>? UpdateCommand { get; }
-  public virtual Command<NavigationUserNode>? DeleteCommand { get; }
-  public virtual Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>>? MoveToGroupCommand { get; }
-  public virtual Command<NavigationUserNode>? SetAsStartPageCommand { get; }
+  public abstract AsyncCommand AddListCommand { get; protected set; }
+  public abstract AsyncCommand AddGroupCommand { get; protected set; }
+  public abstract AsyncCommand UpdateCommand { get; protected set; }
+  public abstract AsyncCommand DeleteCommand { get; protected set; }
+  public abstract AsyncCommand<NavigationUserCompositeNode> MoveToGroupCommand { get; protected set; }
+  public abstract AsyncCommand SetAsStartPageCommand { get; protected set; }
 
   [ObservableProperty]
   public partial BitmapImage? IconImage { get; set; }

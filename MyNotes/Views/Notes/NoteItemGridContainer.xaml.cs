@@ -1,8 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Structures;
-using MyNotes.Domain.Navigations;
-using MyNotes.Models.Notes;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -83,7 +80,7 @@ internal sealed partial class NoteItemGridContainer : UserControl
           Text = targetNavigation.Title,
           Icon = new ImageIcon() { Source = targetVM.IconImage },
           Command = ViewModel.MoveToListCommand,
-          CommandParameter = new SourceTargetPair<NoteModel, NavigationId> { Source = ViewModel.Note, Target = targetNavigation.Id }
+          CommandParameter = targetNavigation.Id
         });
       }
 

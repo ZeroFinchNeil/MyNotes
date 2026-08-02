@@ -61,7 +61,7 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
           Text = targetNavigation.Title,
           Icon = new ImageIcon() { Source = targetVM.IconImage },
           Command = ViewModel.MoveToGroupCommand,
-          CommandParameter = new SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode> { Source = ViewModel.Navigation, Target = targetNavigation }
+          CommandParameter = targetNavigation
         });
       }
 

@@ -346,7 +346,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
     if (sender is UserNavigationViewItem { ViewModel: NavigationViewModelBase { Navigation: NavigationUserNode dropTargetNavigation } }
         && _dragSourceNavigationViewModel is NavigationViewModelBase { Navigation: NavigationUserNode dragSourceNavigation })
     {
-      await ViewModel.MoveNavigationAsync(new() { Source = dragSourceNavigation, Target = dropTargetNavigation });
+      await ViewModel.MoveNavigationAsync(dragSourceNavigation, dropTargetNavigation);
     }
   }
   #endregion

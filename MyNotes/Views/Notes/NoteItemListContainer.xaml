@@ -36,8 +36,7 @@
                Style="{StaticResource BodyStrongTextBlockStyle}">
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                             CommandParameter="{x:Bind ViewModel.Note}" />
+          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </TextBlock>
@@ -55,8 +54,7 @@
             Background="Transparent">
       <interactivity:Interaction.Behaviors>
         <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                             CommandParameter="{x:Bind ViewModel.Note}" />
+          <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
         </interactivity:EventTriggerBehavior>
       </interactivity:Interaction.Behaviors>
     </Border>

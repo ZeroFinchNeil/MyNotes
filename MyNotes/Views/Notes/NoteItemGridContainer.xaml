@@ -61,8 +61,7 @@
                                                    IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=OneWay}"
                                                    Visibility="Collapsed"
                                                    Style="{StaticResource AlternateIconToggleButtonStyle_32x16}"
-                                                   Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}"
-                                                   CommandParameter="{x:Bind ViewModel.Note}" />
+                                                   Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}" />
 
         <!-- Title -->
         <TextBlock Grid.Column="1"
@@ -75,8 +74,7 @@
                    Style="{StaticResource BodyStrongTextBlockStyle}">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                               CommandParameter="{x:Bind ViewModel.Note}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
         </TextBlock>
@@ -104,8 +102,7 @@
                                 Icon="{ui:FontIcon Glyph=&#xE8AD;}"
                                 Width="60"
                                 Height="48"
-                                Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                CommandParameter="{x:Bind ViewModel.Note}" />
+                                Command="{x:Bind ViewModel.OpenWindowCommand}" />
                   <AppBarButton Label="Share"
                                 Icon="Share"
                                 Width="60"
@@ -114,8 +111,7 @@
                                 Icon="Delete"
                                 Width="60"
                                 Height="48"
-                                Command="{x:Bind ViewModel.RemoveNoteCommand}"
-                                CommandParameter="{x:Bind ViewModel.Note}" />
+                                Command="{x:Bind ViewModel.RemoveNoteCommand}" />
                 </StackPanel>
               </templates:MenuFlyoutElementContainer>
 
@@ -130,8 +126,7 @@
                               Icon="{ui:FontIcon Glyph=&#xE932;}" />
               <MenuFlyoutItem Text="Add to jump list"
                               Icon="Add"
-                              Command="{x:Bind ViewModel.AddNoteToJumpListCommand}"
-                              CommandParameter="{x:Bind ViewModel.Note}" />
+                              Command="{x:Bind ViewModel.AddNoteToJumpListCommand}" />
               <MenuFlyoutSeparator />
               <MenuFlyoutItem Text="About"
                               Icon="{ui:FontIcon Glyph=&#xE946;}" />
@@ -150,8 +145,7 @@
               Background="Transparent">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}"
-                                               CommandParameter="{x:Bind ViewModel.Note}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
       </Border>

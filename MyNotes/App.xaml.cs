@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
-using MyNotes.Application.Settings;
-using MyNotes.Application.Settings.Services;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Core;
@@ -202,8 +200,10 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
             (await mainWindowService.GetOrCreate(NavigationId.Home)).Activate();
             break;
           case AppStrings.LaunchArgument_JumpList_NewNote:
-            var noteCommandService = Services.GetRequiredKeyedService<ICommandService>(CommandServiceType.Note) as NoteCommandService;
-            noteCommandService?.CreateNewNoteCommand.Execute(null);
+            if (Services.GetRequiredKeyedService<ICommandService>(CommandServiceType.Note) is NoteCommandService noteCommandService)
+            {
+              await noteCommandService.CreateNewNoteAsync(null);
+            }
             break;
           case AppStrings.LaunchArgument_JumpList_Settings:
             (await mainWindowService.GetOrCreate(NavigationId.Settings)).Activate();

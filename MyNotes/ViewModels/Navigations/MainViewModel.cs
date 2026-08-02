@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -108,9 +110,9 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   public void NavigateBack() => NavigationController.NavigateBack();
 
-  public async Task MoveNavigationAsync(SourceTargetPair<NavigationUserNode, NavigationUserNode> navigationPair)
+  public async Task MoveNavigationAsync(NavigationUserNode sourceNavigation, NavigationUserNode targetNavigation)
   {
-    NavigationCommandService.MoveToCommand.Execute(navigationPair);
+    await NavigationCommandService.MoveToAsync(sourceNavigation, targetNavigation);
     SyncNavigation();
   }
 
@@ -136,16 +138,27 @@ internal sealed partial class MainViewModel : ViewModelBase
 
 internal sealed partial class MainViewModel : ViewModelBase
 {
-  public AsyncCommand<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
+  public AsyncCommand<NavigationUserNode> AddListCommand { get; private set; }
 
-  public Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
+  public AsyncCommand<NavigationUserNode> AddGroupCommand { get; private set; }
 
-  public Command? ToggleNavigationPaneCommand { get; private set; }
+  public Command ToggleNavigationPaneCommand { get; private set; }
 
-  public Command<string>? SearchNoteCommand { get; private set; }
+  public Command<string> SearchNoteCommand { get; private set; }
 
+  [MemberNotNull(nameof(AddListCommand), nameof(AddGroupCommand), nameof(ToggleNavigationPaneCommand), nameof(SearchNoteCommand))]
   private void SetCommands()
   {
+    AddListCommand = new()
+    {
+      ExecuteFunc = (targetNavigation) => NavigationCommandService.AddNavigationAsync(targetNavigation, false)
+    };
+
+    AddGroupCommand = new()
+    {
+      ExecuteFunc = (targetNavigation) => NavigationCommandService.AddNavigationAsync(targetNavigation, true)
+    };
+
     ToggleNavigationPaneCommand = new()
     {
       ExecuteAction = () => IsNavigationPaneOpen = !IsNavigationPaneOpen

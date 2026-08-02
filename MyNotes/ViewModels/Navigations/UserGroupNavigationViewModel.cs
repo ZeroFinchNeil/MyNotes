@@ -1,14 +1,13 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Settings;
-using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
-using MyNotes.Common.Structures;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
@@ -43,6 +42,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
     Navigation.PropertyChanged += Navigation_PropertyChanged;
     Navigation.ChildNodes.CollectionChanged += ChildNodes_CollectionChanged;
 
+    SetCommands();
     // Register messenger
     RegisterMessenger();
   }
@@ -168,12 +168,47 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
     return null;
   }
 
-  public override AsyncCommand<NavigationUserNode> AddListCommand => NavigationCommandService.AddListCommand;
-  public override Command<NavigationUserNode> AddGroupCommand => NavigationCommandService.AddGroupCommand;
-  public override Command<NavigationUserNode> UpdateCommand => NavigationCommandService.UpdateCommand;
-  public override Command<NavigationUserNode> DeleteCommand => NavigationCommandService.DeleteCommand;
-  public override Command<SourceTargetPair<NavigationUserNode, NavigationUserCompositeNode>> MoveToGroupCommand => NavigationCommandService.MoveToGroupCommand;
-  public override Command<NavigationUserNode> SetAsStartPageCommand => NavigationCommandService.SetAsStartPageCommand;
+  public override AsyncCommand AddListCommand { get; protected set; }
+  public override AsyncCommand AddGroupCommand { get; protected set; }
+  public override AsyncCommand UpdateCommand { get; protected set; }
+  public override AsyncCommand DeleteCommand { get; protected set; }
+  public override AsyncCommand<NavigationUserCompositeNode> MoveToGroupCommand { get; protected set; }
+  public override AsyncCommand SetAsStartPageCommand { get; protected set; }
+
+  [MemberNotNull(nameof(AddListCommand), nameof(AddGroupCommand), nameof(UpdateCommand), nameof(DeleteCommand), nameof(MoveToGroupCommand), nameof(SetAsStartPageCommand))]
+  private void SetCommands()
+  {
+    AddListCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.AddNavigationAsync(Navigation, false)
+    };
+
+    AddGroupCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.AddNavigationAsync(Navigation, true)
+    };
+
+    UpdateCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.UpdateNavigationAsync(Navigation)
+    };
+
+    DeleteCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.DeleteNavigationAsync(Navigation)
+    };
+
+    MoveToGroupCommand = new()
+    {
+      ExecuteFunc = (targetGroupNavigation) => NavigationCommandService.MoveToGroupAsync(Navigation, targetGroupNavigation)
+    };
+
+    SetAsStartPageCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.SetAsStartPageAsync(Navigation),
+      CanExecuteFunc = () => false
+    };
+  }
 
   private void RegisterMessenger()
   {

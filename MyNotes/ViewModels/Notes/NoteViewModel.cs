@@ -12,7 +12,6 @@ using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Common.Structures;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
@@ -23,6 +22,7 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteViewModel : ViewModelBase
 {
   private readonly NoteCommandService NoteCommandService;
+  private readonly NavigationCommandService NavigationCommandService;
   private readonly NoteService NoteService;
   private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
@@ -30,10 +30,11 @@ internal sealed partial class NoteViewModel : ViewModelBase
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, NoteService noteService, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
+    NavigationCommandService = (NavigationCommandService)navigationCommandService;
     NoteService = noteService;
     ViewStateSettingsService = viewStateSettingsService;
     RtfTextConverter = rtfTextConverter;
@@ -164,27 +165,76 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
 partial class NoteViewModel
 {
-  public Command<NoteModel> OpenWindowCommand => NoteCommandService.OpenNoteWindowCommand;
-  public Command<NoteModel> MinimizeWindowCommand => NoteCommandService.MinimizeNoteWindowCommand;
-  public Command<NoteModel> CloseWindowCommand => NoteCommandService.CloseNoteWindowCommand;
-  public Command<SourceTargetPair<NoteModel, NavigationId>> MoveToListCommand => NoteCommandService.MoveNoteToListCommand;
-
-  public AsyncCommand<NavigationId?> CreateNewNoteCommand => NoteCommandService.CreateNewNoteCommand;
-  public Command<NoteModel> ViewListCommand => NoteCommandService.ViewListCommand;
+  public AsyncCommand OpenWindowCommand { get; private set; }
+  public Command MinimizeWindowCommand { get; private set; }
+  public Command CloseWindowCommand { get; private set; }
+  public Command PinWindowCommand { get; private set; }
+  public AsyncCommand<NavigationId> MoveToListCommand { get; private set; }
+  public AsyncCommand CreateNewNoteCommand { get; private set; }
+  public AsyncCommand ViewListCommand { get; private set; }
   public AsyncCommand RenameNoteTitleCommand { get; private set; }
-  public AsyncCommand<NoteModel> ToggleBookmarkNoteCommand => NoteCommandService.ToggleBookmarkNoteCommand;
-  public AsyncCommand<NoteModel> RemoveNoteCommand => NoteCommandService.RemoveNoteCommand;
-
-  public Command<NoteModel> AddNoteToJumpListCommand => NoteCommandService.AddNoteToJumpListCommand;
+  public AsyncCommand ToggleBookmarkNoteCommand { get; private set; }
+  public AsyncCommand RemoveNoteCommand { get; private set; }
+  public AsyncCommand AddNoteToJumpListCommand { get; private set; }
 
   public string OldTitle { get; set; } = string.Empty;
 
-  [MemberNotNull(nameof(RenameNoteTitleCommand))]
+  [MemberNotNull(nameof(OpenWindowCommand), nameof(MinimizeWindowCommand), nameof(CloseWindowCommand), nameof(PinWindowCommand), nameof(MoveToListCommand), nameof(CreateNewNoteCommand), nameof(ViewListCommand), nameof(RenameNoteTitleCommand), nameof(ToggleBookmarkNoteCommand), nameof(RemoveNoteCommand), nameof(AddNoteToJumpListCommand))]
   public void SetCommands()
   {
+    OpenWindowCommand = new()
+    {
+      ExecuteFunc = () => NoteCommandService.OpenNoteWindowAsync(Note)
+    };
+
+    MinimizeWindowCommand = new()
+    {
+      ExecuteAction = () => NoteCommandService.MinimizeNoteWindow(Note.Id)
+    };
+
+    CloseWindowCommand = new()
+    {
+      ExecuteAction = () => NoteCommandService.CloseNoteWindow(Note.Id)
+    };
+
+    PinWindowCommand = new()
+    {
+      ExecuteAction = () => NoteCommandService.PinNoteWindow(Note.Id, Note.IsAlwaysOnTop)
+    };
+
+    MoveToListCommand = new()
+    {
+      ExecuteFunc = (targetNavigationId) => NoteCommandService.MoveNoteToListAsync(Note, targetNavigationId)
+    };
+
+    CreateNewNoteCommand = new()
+    {
+      ExecuteFunc = () => NoteCommandService.CreateNewNoteAsync(Note.NavigationId)
+    };
+
+    ViewListCommand = new()
+    {
+      ExecuteFunc = () => NavigationCommandService.ViewNavigationListPageAsync(Note.NavigationId)
+    };
+
     RenameNoteTitleCommand = new()
     {
-      ExecuteFunc = async () => await NoteCommandService.RenameNoteTitle(Note, OldTitle)
+      ExecuteFunc = () => NoteCommandService.RenameNoteTitleAsync(Note, OldTitle)
+    };
+
+    ToggleBookmarkNoteCommand = new()
+    {
+      ExecuteFunc = () => NoteCommandService.ToggleBookmarkNoteAsync(Note)
+    };
+
+    RemoveNoteCommand = new()
+    {
+      ExecuteFunc = () => NoteCommandService.RemoveNoteAsync(Note)
+    };
+
+    AddNoteToJumpListCommand = new()
+    {
+      ExecuteFunc = () => NoteCommandService.AddNoteToJumpList(Note)
     };
   }
 }

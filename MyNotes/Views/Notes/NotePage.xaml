@@ -132,7 +132,8 @@
       <tmpls:AlternateSubtleIconToggleButton x:Name="NotePage_PinButton"
                                              x:Uid="/NotePage/PinButton"
                                              Grid.Column="0"
-                                             IsChecked="{x:Bind ViewModel.Note.IsAlwaysOnTop, Mode=TwoWay}">
+                                             IsChecked="{x:Bind ViewModel.Note.IsAlwaysOnTop, Mode=TwoWay}"
+                                             Command="{x:Bind ViewModel.PinWindowCommand}">
         <tmpls:AlternateSubtleIconToggleButton.Icon>
           <FontIcon Glyph="&#xE718;" />
         </tmpls:AlternateSubtleIconToggleButton.Icon>
@@ -179,14 +180,12 @@
             <!-- New Note -->
             <MenuFlyoutItem x:Uid="/NotePage/NewNoteMenuFlyoutItem"
                             Icon="Add"
-                            Command="{x:Bind ViewModel.CreateNewNoteCommand}"
-                            CommandParameter="{x:Null}" />
+                            Command="{x:Bind ViewModel.CreateNewNoteCommand}" />
 
             <!-- View List -->
             <MenuFlyoutItem x:Uid="/NotePage/ViewListMenuFlyoutItem"
                             Icon="{ctw:FontIcon Glyph=&#xE71D;}"
-                            Command="{x:Bind ViewModel.ViewListCommand}"
-                            CommandParameter="{x:Bind ViewModel.Note}" />
+                            Command="{x:Bind ViewModel.ViewListCommand}" />
 
             <MenuFlyoutSeparator />
 
@@ -199,8 +198,7 @@
                                            Icon="Favorite"
                                            CheckedIcon="UnFavorite"
                                            IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=OneWay}"
-                                           Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}"
-                                           CommandParameter="{x:Bind ViewModel.Note}" />
+                                           Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}" />
 
             <!-- Show Images -->
             <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
@@ -280,8 +278,7 @@
                               x:Uid="/NotePage/MinimizeButton"
                               Grid.Column="3"
                               Content="{ctw:FontIcon Glyph=&#xE738;}"
-                              Command="{x:Bind ViewModel.MinimizeWindowCommand}"
-                              CommandParameter="{x:Bind ViewModel.Note}">
+                              Command="{x:Bind ViewModel.MinimizeWindowCommand}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
@@ -290,8 +287,7 @@
                               x:Uid="/NotePage/CloseButton"
                               Grid.Column="4"
                               Content="{ctw:FontIcon Glyph=&#xE711;}"
-                              Command="{x:Bind ViewModel.CloseWindowCommand}"
-                              CommandParameter="{x:Bind ViewModel.Note}">
+                              Command="{x:Bind ViewModel.CloseWindowCommand}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
