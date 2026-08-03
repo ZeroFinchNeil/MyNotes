@@ -91,15 +91,17 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
         }
         break;
       case NotifyCollectionChangedAction.Remove:
-        if (e.OldItems is IList { Count: > 0 })
+        if (e.OldItems is IList { Count: > 0 } removedItems)
         {
+          NavigationViewModelProvider.Release((INavigation)removedItems[0]!);
           ChildNodeViewModels.RemoveAt(e.OldStartingIndex);
         }
         break;
       case NotifyCollectionChangedAction.Replace:
-        if (e.NewItems is IList { Count: > 0 } replacedItems && replacedItems[0] is INavigation replacedItem
+        if (e.OldItems is IList { Count: > 0 } oldItems && e.NewItems is IList { Count: > 0 } replacedItems && replacedItems[0] is INavigation replacedItem
           && e.NewStartingIndex < ChildNodeViewModels.Count)
         {
+          NavigationViewModelProvider.Release((INavigation)oldItems[0]!);
           ChildNodeViewModels[e.NewStartingIndex] = NavigationViewModelProvider.Resolve(replacedItem);
         }
         break;

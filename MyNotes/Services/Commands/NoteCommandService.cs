@@ -126,9 +126,9 @@ internal sealed class NoteCommandService : ICommandService
           && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel)
           && noteListViewModel.NoteViewModels?.FirstOrDefault(vm => vm.Note == sourceNoteModel) is NoteViewModel sourceNoteViewModel)
       {
+        sourceNoteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
         noteListViewModel.NoteViewModels.Remove(sourceNoteViewModel);
       }
-      sourceNoteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
     }
   }
 

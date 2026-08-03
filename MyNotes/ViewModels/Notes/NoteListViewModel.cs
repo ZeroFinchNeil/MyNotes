@@ -1,4 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Diagnostics.CodeAnalysis;
+
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
@@ -6,11 +8,9 @@ using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
-using MyNotes.Application.Contracts.Settings;
 using MyNotes.Application.Navigations;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
-using MyNotes.Application.Settings;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
@@ -77,7 +77,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   #endregion
 
   [ObservableProperty]
-  public partial NoteViewModelCollection? NoteViewModels { get; private set; }
+  public partial NoteViewModelCollection NoteViewModels { get; private set; }
 
   private NoteSortKey _noteSortKey;
   public NoteSortKey NoteSortKey
@@ -234,6 +234,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
   }
 
+  [MemberNotNull(nameof(NoteViewModels))]
   public async Task LoadNoteViewModels()
   {
     NoteViewModels = new(GetComparer(NoteSortKey, NoteSortDirection));
@@ -308,6 +309,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase
         (added as NoteViewModel)?.Note.PropertyChanged += Note_PropertyChanged_WhileActive;
       }
     }
+
+    if (e.Action is NotifyCollectionChangedAction.Remove)
+    {
+      if (e.OldItems is IList { Count: > 0 } oldItems)
+      {
+        NoteViewModelProvider.Release(((NoteViewModel)oldItems[0]!).Note);
+      }
+    }
   }
 
   public void UnloadNoteViewModels()
@@ -325,7 +334,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       NoteViewModelProvider.Release(noteViewModel.Note);
     }
     NoteViewModels.Clear();
-    NoteViewModels = null;
   }
 
   private void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
@@ -336,12 +344,12 @@ internal sealed partial class NoteListViewModel : ViewModelBase
       switch (e.PropertyName)
       {
         case nameof(NoteModel.Title):
-          NoteViewModels?.ReorderItem(noteViewModel);
+          NoteViewModels.ReorderItem(noteViewModel);
           break;
         case nameof(NoteModel.IsBookmarked):
           if (!note.IsBookmarked && Navigation is NavigationBookmarks)
           {
-            NoteViewModels?.Remove(noteViewModel);
+            NoteViewModels.Remove(noteViewModel);
           }
           break;
       }
@@ -467,7 +475,7 @@ partial class NoteListViewModel
           }
           NoteModel noteModel = NoteModelFactory.Create(bundleDto);
           NoteViewModel noteViewModel = NoteViewModelProvider.Resolve(noteModel);
-          NoteViewModels?.Add(noteViewModel);
+          NoteViewModels.Add(noteViewModel);
 
           await NoteWindowService.OpenNoteWindow(noteModel);
         }
@@ -483,19 +491,19 @@ partial class NoteListViewModel
         switch (Navigation)
         {
           case NavigationBookmarks:
-            var noteViewModel = NoteViewModels?.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
+            var noteViewModel = NoteViewModels.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
             if (message.NewValue)
             {
               if (noteViewModel is null)
               {
-                NoteViewModels?.Add(NoteViewModelProvider.Resolve(targetNote));
+                NoteViewModels.Add(NoteViewModelProvider.Resolve(targetNote));
               }
             }
             else
             {
               if (noteViewModel is not null)
               {
-                NoteViewModels?.Remove(noteViewModel);
+                NoteViewModels.Remove(noteViewModel);
               }
             }
             break;
@@ -505,12 +513,12 @@ partial class NoteListViewModel
 
     WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NoteId, bool>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.IsNoteInListToken(Navigation), (recipient, message) =>
     {
-      message.Reply(NoteViewModels?.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
+      message.Reply(NoteViewModels.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
     });
 
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteViewModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.RemoveNoteFromListToken(Navigation), (recipient, message) =>
     {
-      NoteViewModels?.Remove(message.Value);
+      NoteViewModels.Remove(message.Value);
     });
   }
 
