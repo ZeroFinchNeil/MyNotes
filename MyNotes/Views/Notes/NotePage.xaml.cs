@@ -57,7 +57,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
     ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
 
     ViewModel = NoteViewModelProvider.Resolve(note);
-    EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
+    EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document).Result;
     ImageCollectionViewModel = ImageCollectionViewModelProvider.Resolve(note.Id);
 
     var noteService = App.Services.GetRequiredService<NoteService>();

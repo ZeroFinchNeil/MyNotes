@@ -3,6 +3,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.WinUI.Helpers;
 
+using DotNext.Collections.Generic;
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Converters;
@@ -16,6 +19,8 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
 using MyNotes.Models.Notes;
+using MyNotes.Services.ViewState;
+using MyNotes.Services.ViewState.Descriptors;
 using MyNotes.Services.Windows;
 using MyNotes.Templates.Media;
 
@@ -24,24 +29,24 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteService NoteService;
+  private readonly IViewStatePersistenceCoordinator<NoteViewStatePatchDto> ViewStatePersistenceCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
   private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(NoteService noteService, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(NoteService noteService, IViewStatePersistenceCoordinator<NoteViewStatePatchDto> viewStatePersistenceCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
   {
     NoteService = noteService;
+    ViewStatePersistenceCoordinator = viewStatePersistenceCoordinator;
     NoteWindowService = noteWindowService;
     RtfTextConverter = rtfTextConverter;
 
     Note = note;
     Document = document;
-    _notePropertyDebounceTCS.TrySetResult();
     Note.PropertyChanged += Note_PropertyChanged;
     _editorThrottleTimer.Tick += EditorDebounceTimer_Tick;
-    _notePropertyDebounceTimer.Tick += NotePropertyDebounceTimer_Tick;
     _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
     _backgroundImageAlignmentX = Note.BackgroundImageAlignment switch
     {
@@ -86,10 +91,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     {
       Note.PropertyChanged -= Note_PropertyChanged;
 
-      await NotePropertyDebounceTask;
-
       _editorThrottleTimer.Tick -= EditorDebounceTimer_Tick;
-      _notePropertyDebounceTimer.Tick -= NotePropertyDebounceTimer_Tick;
     }
   }
 
@@ -100,18 +102,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   }
   #endregion
 
-  private readonly DispatcherTimer _notePropertyDebounceTimer = new() { Interval = TimeSpan.FromMilliseconds(500) };
-
-  private TaskCompletionSource _notePropertyDebounceTCS = new();
-  private Task NotePropertyDebounceTask => _notePropertyDebounceTCS.Task;
-
-  private async void NotePropertyDebounceTimer_Tick(object? sender, object e)
-  {
-    _notePropertyDebounceTimer.Stop();
-    await UpdateNoteAsync();
-    _notePropertyDebounceTCS.TrySetResult();
-  }
-
   [Flags]
   private enum NoteDebouncingProperties
   {
@@ -120,35 +110,23 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     BackgroundColor = 1 << 1,
   }
 
-  private enum NoteViewStateDebouncingProperties
-  {
-    None = 0,
-    BackgroundImageOpacity = 1 << 0,
-    BackgroundImageBlur = 1 << 1,
-    BackdropTintOpacity = 1 << 2,
-    BackdropLuminosityOpacity = 1 << 3,
-    ImagePanelHeight = 1 << 4,
-    Size = 1 << 5,
-    Position = 1 << 6
-  }
-
-  private NoteDebouncingProperties _noteDebouncingProperties = NoteDebouncingProperties.None;
-  private NoteViewStateDebouncingProperties _noteViewStateDebouncingProperties = NoteViewStateDebouncingProperties.None;
-
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    _notePropertyDebounceTimer.Stop();
+    if (e.PropertyName is null || !ViewStatePersistenceDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    {
+      return;
+    }
+
+    ViewStatePersistenceCoordinator.Submit(persistenceDescriptor.PropertyName, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.SaveMode);
 
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
       case nameof(Note.Body):  // * Debouncing
-        _noteDebouncingProperties |= NoteDebouncingProperties.Body;
         break;
       case nameof(Note.BackgroundColor):  // * Debouncing
         SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
         ChangeSystemBackdropExtended();
-        _noteDebouncingProperties |= NoteDebouncingProperties.BackgroundColor;
         break;
       case nameof(Note.BackgroundImagePath):
         await NoteService.Modification.UpdateNoteAsync(new UpdateNoteAppCommand()
@@ -160,32 +138,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
           }
         });
         break;
-      case nameof(Note.BackgroundImageStretch):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            BackgroundImageStretch = (int)Note.BackgroundImageStretch
-          }
-        });
-        break;
-      case nameof(Note.BackgroundImageAlignment):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            BackgroundImageAlignment = Note.BackgroundImageAlignment
-          }
-        });
-        break;
-      case nameof(Note.BackgroundImageOpacity):  // * Debouncing
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.BackgroundImageOpacity;
-        break;
-      case nameof(Note.BackgroundImageBlur): // * Debouncing
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.BackgroundImageBlur;
-        break;
       case nameof(Note.BackdropKind):
         ChangeSystemBackdrop();
         ChangeSystemBackdropExtended();
@@ -193,159 +145,13 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
         {
           Note.ShowBackgroundImage = false;
         }
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            BackdropKind = Note.BackdropKind
-          }
-        });
         break;
       case nameof(Note.BackdropTintOpacity): // * Debouncing
         ChangeSystemBackdropExtended();
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.BackdropTintOpacity;
         break;
       case nameof(Note.BackdropLuminosityOpacity): // * Debouncing
         ChangeSystemBackdropExtended();
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.BackdropLuminosityOpacity;
         break;
-      case nameof(Note.ShowImagePanel):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            ShowImagePanel = Note.ShowImagePanel
-          }
-        });
-        break;
-      case nameof(Note.ImagePanelHeight): // * Debouncing
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.ImagePanelHeight;
-        break;
-      case nameof(Note.Size): // * Debouncing
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.Size;
-        break;
-      case nameof(Note.Position): // * Debouncing
-        _noteViewStateDebouncingProperties |= NoteViewStateDebouncingProperties.Position;
-        break;
-      case nameof(Note.IsWindowOpen):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            IsWindowOpen = Note.IsWindowOpen
-          }
-        });
-        break;
-      case nameof(Note.IsTextEditorReadOnly):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            IsTextEditorReadOnly = Note.IsTextEditorReadOnly
-          }
-        });
-        break;
-      case nameof(Note.IsAlwaysOnTop):
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            IsAlwaysOnTop = Note.IsAlwaysOnTop
-          }
-        });
-        break;
-    }
-
-    _notePropertyDebounceTimer.Start();
-    _notePropertyDebounceTCS = new();
-  }
-
-  private async Task UpdateNoteAsync()
-  {
-    if (_noteDebouncingProperties is not NoteDebouncingProperties.None)
-    {
-      NotePatchDto notePatchDto = new() { Id = Note.Id };
-      if (_noteDebouncingProperties.HasFlag(NoteDebouncingProperties.Body))
-      {
-        notePatchDto = notePatchDto with { Body = Note.Body };
-      }
-      if (_noteDebouncingProperties.HasFlag(NoteDebouncingProperties.BackgroundColor))
-      {
-        notePatchDto = notePatchDto with { BackgroundColor = Note.BackgroundColor.ToString() };
-      }
-
-      var updateNoteResult = await NoteService.Modification.UpdateNoteAsync(new UpdateNoteAppCommand() { PatchDto = notePatchDto });
-      if (updateNoteResult.Status is AppUpdateStatus.Succeeded)
-      {
-        Note.Modified = updateNoteResult.Modified ?? throw new InvalidOperationException();
-      }
-
-      _noteDebouncingProperties = NoteDebouncingProperties.None;
-    }
-
-    if (_noteViewStateDebouncingProperties is not NoteViewStateDebouncingProperties.None)
-    {
-      NoteViewStatePatchDto noteViewStatePatchDto = new() { Id = Note.Id };
-
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.BackgroundImageOpacity))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          BackgroundImageOpacity = Math.Round(Note.BackgroundImageOpacity, 2, MidpointRounding.AwayFromZero)
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.BackgroundImageBlur))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          BackgroundImageBlur = Math.Round(Note.BackgroundImageBlur, 2, MidpointRounding.AwayFromZero)
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.BackdropTintOpacity))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          BackdropTintOpacity = Math.Round(Note.BackdropTintOpacity, 2, MidpointRounding.AwayFromZero)
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.BackdropLuminosityOpacity))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          BackdropLuminosityOpacity = Math.Round(Note.BackdropLuminosityOpacity, 2, MidpointRounding.AwayFromZero)
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.ImagePanelHeight))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          ImagePanelHeight = Note.ImagePanelHeight
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.Size))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          Width = Note.Size.Width,
-          Height = Note.Size.Height
-        };
-      }
-      if (_noteViewStateDebouncingProperties.HasFlag(NoteViewStateDebouncingProperties.Position))
-      {
-        noteViewStatePatchDto = noteViewStatePatchDto with
-        {
-          PositionX = Note.Position.X,
-          PositionY = Note.Position.Y
-        };
-      }
-
-      var res = await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand() { PatchDto = noteViewStatePatchDto });
-      _noteViewStateDebouncingProperties = NoteViewStateDebouncingProperties.None;
     }
   }
 
@@ -777,6 +583,155 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
 partial class NoteEditorViewModel
 {
+  private static readonly IReadOnlyDictionary<string, ViewStatePersistenceDescriptor<NoteModel, NoteViewStatePatchDto>> ViewStatePersistenceDescriptors = new Dictionary<string, ViewStatePersistenceDescriptor<NoteModel, NoteViewStatePatchDto>>()
+  {
+    [nameof(NoteModel.BackgroundImageStretch)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackgroundImageStretch),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundImageStretch = (int)noteModel.BackgroundImageStretch
+      }
+    },
+    [nameof(NoteModel.BackgroundImageAlignment)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackgroundImageAlignment),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundImageAlignment = noteModel.BackgroundImageAlignment
+      }
+    },
+    [nameof(NoteModel.BackgroundImageOpacity)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackgroundImageOpacity),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundImageOpacity = Math.Round(noteModel.BackgroundImageOpacity, 2, MidpointRounding.AwayFromZero)
+      }
+    },
+    [nameof(NoteModel.BackgroundImageBlur)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackgroundImageBlur),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundImageBlur = Math.Round(noteModel.BackgroundImageBlur, 2, MidpointRounding.AwayFromZero)
+      }
+    },
+    [nameof(NoteModel.BackdropKind)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackdropKind),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackdropKind = noteModel.BackdropKind
+      }
+    },
+    [nameof(NoteModel.BackdropTintOpacity)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackdropTintOpacity),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackdropTintOpacity = Math.Round(noteModel.BackdropTintOpacity, 2, MidpointRounding.AwayFromZero)
+      }
+    },
+    [nameof(NoteModel.BackdropLuminosityOpacity)] = new()
+    {
+      PropertyName = nameof(NoteModel.BackdropLuminosityOpacity),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        BackdropLuminosityOpacity = Math.Round(noteModel.BackdropLuminosityOpacity, 2, MidpointRounding.AwayFromZero)
+      }
+    },
+    [nameof(NoteModel.ShowImagePanel)] = new()
+    {
+      PropertyName = nameof(NoteModel.ShowImagePanel),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        ShowImagePanel = noteModel.ShowImagePanel
+      }
+    },
+    [nameof(NoteModel.ImagePanelHeight)] = new()
+    {
+      PropertyName = nameof(NoteModel.ImagePanelHeight),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        ImagePanelHeight = noteModel.ImagePanelHeight
+      }
+    },
+    [nameof(NoteModel.Size)] = new()
+    {
+      PropertyName = nameof(NoteModel.Size),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        Width = noteModel.Size.Width,
+        Height = noteModel.Size.Height
+      }
+    },
+    [nameof(NoteModel.Position)] = new()
+    {
+      PropertyName = nameof(NoteModel.Position),
+      SaveMode = ViewStateSaveMode.Batched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        PositionX = noteModel.Position.X,
+        PositionY = noteModel.Position.Y
+      }
+    },
+    [nameof(NoteModel.IsTextEditorReadOnly)] = new()
+    {
+      PropertyName = nameof(NoteModel.IsTextEditorReadOnly),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        IsTextEditorReadOnly = noteModel.IsTextEditorReadOnly
+      }
+    },
+    [nameof(NoteModel.IsWindowOpen)] = new()
+    {
+      PropertyName = nameof(NoteModel.IsWindowOpen),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        IsWindowOpen = noteModel.IsWindowOpen
+      }
+    },
+    [nameof(NoteModel.IsAlwaysOnTop)] = new()
+    {
+      PropertyName = nameof(NoteModel.IsAlwaysOnTop),
+      SaveMode = ViewStateSaveMode.Immediate,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        IsAlwaysOnTop = noteModel.IsAlwaysOnTop
+      }
+    },
+  };
+}
+
+partial class NoteEditorViewModel
+{
   public Command UpdateSelectionCommand { get; private set; }
   public Command UpdateTextChangingCommand { get; private set; }
   public Command UpdateTextChangedCommand { get; private set; }
@@ -938,3 +893,4 @@ partial class NoteEditorViewModel
     };
   }
 }
+

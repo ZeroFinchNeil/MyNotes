@@ -4,8 +4,6 @@ using Microsoft.UI.Xaml.Documents;
 
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Contracts.Settings;
-using MyNotes.Common.Helpers;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
 

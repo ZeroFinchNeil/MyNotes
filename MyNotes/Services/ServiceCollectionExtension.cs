@@ -17,6 +17,7 @@ using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Database.Repositories.Media;
 using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
+using MyNotes.Infrastructure.Logging;
 using MyNotes.Infrastructure.Search.Core;
 using MyNotes.Infrastructure.Search.Repositories.Notes;
 using MyNotes.Infrastructure.Storage.Media;
@@ -25,8 +26,13 @@ using MyNotes.Infrastructure.Windowing;
 using MyNotes.Models;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
+using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Shell;
+using MyNotes.Services.ViewState;
+using MyNotes.Services.ViewState.Batching;
+using MyNotes.Services.ViewState.Dispatcher;
 using MyNotes.Services.Windows;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
@@ -41,6 +47,16 @@ internal static class ServiceCollectionExtension
 {
   extension(IServiceCollection services)
   {
+    public void AddAppCoreServices()
+    {
+      services.AddSingleton<JumpListService>();
+      services.AddSingleton<AppLogger>();
+      services.AddSingleton<DialogService>();
+
+      services.AddSingleton(TimeProvider.System);
+      services.AddScoped(typeof(IViewStatePersistenceCoordinator<>), typeof(ViewStatePersistenceCoordinator<>));
+    }
+
     public void AddWindowServices()
     {
       services.AddSingleton<INativeWindowing, NativeWindowing>();
@@ -62,6 +78,9 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<IModelFactory<NoteDto, NoteModel>, NoteModelFactory>();
       services.AddSingleton<IModelUpdater<NoteDto, NoteModel>, NoteModelUpdater>();
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
+
+      services.AddScoped<IViewStatePatchBatcher<string, NoteViewStatePatchDto>, NoteViewStatePatchBatcher>();
+      services.AddScoped<IViewStatePersistenceDispatcher<NoteViewStatePatchDto>, NoteViewStatePersistenceDispatcher>();
 
       // Application
       services.AddSingleton<NoteService>();

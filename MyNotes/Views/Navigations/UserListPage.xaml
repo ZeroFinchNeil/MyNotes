@@ -36,7 +36,7 @@
           <Flyout Placement="Bottom"
                   ShouldConstrainToRootBounds="False">
             <templates:IconPicker x:Name="UpdateUserNodeDialog_IconPicker"
-                                  Icon="{x:Bind ViewModel.Navigation.Icon, Mode=TwoWay}"
+                                  Icon="{x:Bind NoteListViewModel.Icon, Mode=TwoWay}"
                                   DecodePixelWidth="40"
                                   DecodePixelHeight="40" />
           </Flyout>
@@ -71,28 +71,28 @@
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Modified"
                                    Tag="{StaticResource NoteSortKeyModified}"
-                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Modified)}"
+                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.Navigation.NoteSortKey, noteEnums:NoteSortKey.Modified)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Created"
                                    Tag="{StaticResource NoteSortKeyCreated}"
-                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Created)}"
+                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.Navigation.NoteSortKey, noteEnums:NoteSortKey.Created)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Title"
                                    Tag="{StaticResource NoteSortKeyTitle}"
-                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(NoteListViewModel.NoteSortKey, noteEnums:NoteSortKey.Title)}"
+                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.Navigation.NoteSortKey, noteEnums:NoteSortKey.Title)}"
                                    Click="UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click" />
               <MenuFlyoutSeparator />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Ascending"
                                    Tag="{StaticResource SortDirectionAscending}"
-                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(NoteListViewModel.NoteSortDirection, querying:SortDirection.Ascending)}"
+                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.Navigation.NoteSortDirection, querying:SortDirection.Ascending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Descending"
                                    Tag="{StaticResource SortDirectionDescending}"
-                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(NoteListViewModel.NoteSortDirection, querying:SortDirection.Descending)}"
+                                   IsChecked="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.Navigation.NoteSortDirection, querying:SortDirection.Descending)}"
                                    Click="UserListPage_NoteSortDirectionRadioMenuFlyoutItem_Click" />
             </MenuFlyoutSubItem>
 
@@ -105,7 +105,7 @@
                 <RadioButtons Header="Layout"
                               HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
                               MaxColumns="2"
-                              SelectedIndex="{x:Bind NoteListViewModel.ToInt(NoteListViewModel.PreviewLayoutType), Mode=TwoWay, BindBack=PreviewLayoutTypeBindBack}">
+                              SelectedIndex="{x:Bind ViewModel.Navigation.PreviewLayoutType, Mode=TwoWay, Converter={StaticResource PreviewLayoutTypeToIntConverter}}">
                   <RadioButton GroupName="Layout"
                                Tag="{StaticResource PreviewLayoutTypeGrid}"
                                Content="Grid" />
@@ -136,7 +136,7 @@
                           Width="240"
                           SnapsTo="Ticks"
                           IsThumbToolTipEnabled="False"
-                          Value="{x:Bind NoteListViewModel.ToDouble(NoteListViewModel.PreviewTileSize), Mode=TwoWay, BindBack=PreviewTileSizeBindBack}" />
+                          Value="{x:Bind ViewModel.Navigation.PreviewTileSize, Mode=TwoWay, Converter={StaticResource PreviewTileSizeToSliderValueConverter}}" />
                   <Grid Grid.Row="1">
                     <TextBlock Text="Small"
                                HorizontalAlignment="Left"

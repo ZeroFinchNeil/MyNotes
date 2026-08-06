@@ -28,7 +28,7 @@
       </tmpls:MenuFlyoutElementContainer>
       <MenuFlyoutItem x:Uid="/MainPage/NavigationUserNode_UpdateMenuFlyoutItem"
                       Icon="Rename"
-                      Command="{x:Bind ViewModel.UpdateCommand}">
+                      Command="{x:Bind ViewModel.ChangeTitleAndIconCommand}">
         <MenuFlyoutItem.KeyboardAccelerators>
           <KeyboardAccelerator Key="F2" />
         </MenuFlyoutItem.KeyboardAccelerators>

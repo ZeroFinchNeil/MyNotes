@@ -19,7 +19,7 @@ internal abstract partial class UserNavigationViewModel : NavigationViewModelBas
 
   public abstract AsyncCommand AddListCommand { get; protected set; }
   public abstract AsyncCommand AddGroupCommand { get; protected set; }
-  public abstract AsyncCommand UpdateCommand { get; protected set; }
+  public abstract AsyncCommand ChangeTitleAndIconCommand { get; protected set; }
   public abstract AsyncCommand DeleteCommand { get; protected set; }
   public abstract AsyncCommand<NavigationUserCompositeNode> MoveToGroupCommand { get; protected set; }
   public abstract AsyncCommand SetAsStartPageCommand { get; protected set; }

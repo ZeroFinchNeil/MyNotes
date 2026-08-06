@@ -87,7 +87,7 @@ internal sealed class NavigationCommandService : ICommandService
     }
   }
 
-  public async Task UpdateNavigationAsync(NavigationUserNode navigation)
+  public async Task ChangeNavigationTitleAndIconAsync(NavigationUserNode navigation)
   {
     if (MainWindowService.TryGetCurrentWindow(out var mainWindow) && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
     {
