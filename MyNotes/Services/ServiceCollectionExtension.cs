@@ -98,8 +98,8 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<IModelUpdater<NoteDto, NoteModel>, NoteModelUpdater>();
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
 
-      services.AddScoped<IUpdateBatcher<string, NoteViewStatePatchDto>, NoteViewStatePatchBatcher>();
-      services.AddScoped<IUpdateBatchDispatcher<NoteViewStatePatchDto>, NoteViewStatePersistenceDispatcher>();
+      services.AddScoped<IUpdateBatcher<string, NoteViewStatePatchDto>, NoteViewStateUpdateBatcher>();
+      services.AddScoped<IUpdateBatchDispatcher<NoteViewStatePatchDto>, NoteViewStateUpdateBatchDispatcher>();
 
       // Application
       services.AddSingleton<NoteService>();

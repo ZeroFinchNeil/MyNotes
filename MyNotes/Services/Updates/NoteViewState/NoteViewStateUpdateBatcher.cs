@@ -4,7 +4,7 @@ using MyNotes.Debugging.Attributes;
 namespace MyNotes.Services.Updates.NoteViewState;
 
 [ReferenceTracker]
-internal sealed partial class NoteViewStatePatchBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
+internal sealed partial class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
 {
   private readonly TimeProvider BatchTimeProvider;
   private readonly IUpdateBatchDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
@@ -15,7 +15,7 @@ internal sealed partial class NoteViewStatePatchBatcher : IUpdateBatcher<string,
   private bool HasPendingPatch => _pendingEntries.Count > 0;
   private readonly Lock _pendingLock = new();
 
-  public NoteViewStatePatchBatcher(TimeProvider timeProvider, IUpdateBatchDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
+  public NoteViewStateUpdateBatcher(TimeProvider timeProvider, IUpdateBatchDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
   {
     BatchTimeProvider = timeProvider;
     ViewStatePersistenceDispatcher = viewStatePersistenceDispatcher;

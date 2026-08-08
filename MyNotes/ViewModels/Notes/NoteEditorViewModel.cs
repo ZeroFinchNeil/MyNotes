@@ -107,7 +107,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    if (e.PropertyName is null || !ViewStatePersistenceDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    if (e.PropertyName is null || !ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
     {
       return;
     }
@@ -578,7 +578,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
 partial class NoteEditorViewModel
 {
-  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>> ViewStatePersistenceDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>>()
+  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>>()
   {
     [nameof(NoteModel.BackgroundImageStretch)] = new()
     {

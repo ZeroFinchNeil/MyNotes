@@ -53,6 +53,5 @@ internal abstract partial class UpdateBatchDispatcher<TPatch> : IUpdateBatchDisp
     var completed = PersistenceChannel.Writer.TryComplete();
     Console.WriteLine("{0}: {1}", "Dispatcher Disposing & completed", completed);
     await _workerTask;
-
   }
 }
