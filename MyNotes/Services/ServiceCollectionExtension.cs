@@ -73,8 +73,8 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<DialogService>();
 
       services.AddSingleton(TimeProvider.System);
-      services.AddScoped(typeof(IUpdateCoordinator<>), typeof(UpdateCoordinator<>));
       services.AddScoped(typeof(IUpdateCoordinator<,>), typeof(UpdateCoordinator<,>));
+      services.AddScoped(typeof(IUpdateCoordinator<,,>), typeof(UpdateCoordinator<,,>));
       services.AddSingleton(typeof(IUpdateDispatcher<>), typeof(UpdateDispatcher<>));
       services.AddSingleton(typeof(IUpdateDispatcher<,>), typeof(UpdateDispatcher<,>));
 

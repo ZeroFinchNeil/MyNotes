@@ -1,17 +1,17 @@
 ﻿namespace MyNotes.Services.Updates;
 
-internal sealed class UpdateCoordinator<TPatch> : IUpdateCoordinator<TPatch> where TPatch : notnull
+internal sealed class UpdateCoordinator<TKey, TPatch> : IUpdateCoordinator<TKey, TPatch> where TKey : notnull where TPatch : notnull
 {
   private readonly IUpdateDispatcher<TPatch> Dispatcher;
-  private readonly IUpdateBatcher<string, TPatch> Batcher;
+  private readonly IUpdateBatcher<TKey, TPatch> Batcher;
 
-  public UpdateCoordinator(IUpdateDispatcher<TPatch> dispatcher, IUpdateBatcher<string, TPatch> batcher)
+  public UpdateCoordinator(IUpdateDispatcher<TPatch> dispatcher, IUpdateBatcher<TKey, TPatch> batcher)
   {
     Dispatcher = dispatcher;
     Batcher = batcher;
   }
 
-  public void Submit(string key, TPatch patch, UpdateBatchMode updateDispatchMode)
+  public void Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode)
   {
     ArgumentNullException.ThrowIfNull(patch);
 
@@ -27,7 +27,7 @@ internal sealed class UpdateCoordinator<TPatch> : IUpdateCoordinator<TPatch> whe
   }
 }
 
-internal sealed class UpdateCoordinator<TPatch, TResult> : IUpdateCoordinator<TPatch, TResult> where TPatch : notnull where TResult : notnull
+internal sealed class UpdateCoordinator<TKey, TPatch, TResult> : IUpdateCoordinator<TKey, TPatch, TResult> where TKey : notnull where TPatch : notnull where TResult : notnull
 {
-  public TResult Submit(string key, TPatch patch, UpdateBatchMode updateDispatchMode) => throw new NotImplementedException();
+  public TResult Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode) => throw new NotImplementedException();
 }

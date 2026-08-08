@@ -1,11 +1,11 @@
 ﻿namespace MyNotes.Services.Updates;
 
-internal interface IUpdateCoordinator<TPatch> where TPatch : notnull
+internal interface IUpdateCoordinator<TKey, TPatch> where TKey : notnull where TPatch : notnull
 {
-  public void Submit(string key, TPatch patch, UpdateBatchMode updateDispatchMode);
+  public void Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode);
 }
 
-internal interface IUpdateCoordinator<TPatch, TResult> where TPatch : notnull where TResult : notnull
+internal interface IUpdateCoordinator<TKey, TPatch, TResult> where TKey : notnull where TPatch : notnull where TResult : notnull
 {
-  public TResult Submit(string key, TPatch patch, UpdateBatchMode updateDispatchMode);
+  public TResult Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode);
 }

@@ -16,6 +16,7 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Updates;
 
 namespace MyNotes.ViewModels.Notes;
 
@@ -24,18 +25,20 @@ internal sealed partial class NoteViewModel : ViewModelBase
   private readonly NoteCommandService NoteCommandService;
   private readonly NavigationCommandService NavigationCommandService;
   private readonly NoteService NoteService;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> UpdateBatchCoordinator;
   private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateBatchCoordinator, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
     NoteService = noteService;
+    UpdateBatchCoordinator = updateBatchCoordinator;
     ViewStateSettingsService = viewStateSettingsService;
     RtfTextConverter = rtfTextConverter;
 
@@ -65,8 +68,32 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
   #region Note 내부 속성 변경 시 데이터베이스에 반영 및 기타 로직 실행
 
+  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>>()
+  {
+    [nameof(NoteModel.ShowBackgroundImage)] = new()
+    {
+      Key = nameof(NoteModel.ShowBackgroundImage),
+      BatchMode = UpdateBatchMode.Unbatched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        ShowBackgroundImage = noteModel.ShowBackgroundImage
+      }
+    },
+  };
+
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
+    if (e.PropertyName is null)
+    {
+      return;
+    }
+
+    if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    {
+      UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+    }
+
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
@@ -80,14 +107,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
         {
           BackgroundImage = null;
         }
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            ShowBackgroundImage = new(Note.ShowBackgroundImage)
-          }
-        });
         break;
       case nameof(Note.BackgroundImagePath):
         SetBackgroundImage();

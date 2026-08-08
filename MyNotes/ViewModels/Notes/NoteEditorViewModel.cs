@@ -24,14 +24,14 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteService NoteService;
-  private readonly IUpdateCoordinator<NoteViewStatePatchDto> UpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> UpdateBatchCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
   private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<NoteViewStatePatchDto> updateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
   {
     NoteService = noteService;
     UpdateBatchCoordinator = updateBatchCoordinator;
@@ -107,12 +107,15 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
-    if (e.PropertyName is null || !ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    if (e.PropertyName is null)
     {
       return;
     }
 
-    UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+    if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    {
+      UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+    }
 
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
