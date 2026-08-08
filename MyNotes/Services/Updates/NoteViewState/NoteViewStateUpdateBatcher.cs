@@ -1,13 +1,11 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Debugging.Attributes;
 
 namespace MyNotes.Services.Updates.NoteViewState;
 
-[ReferenceTracker]
-internal sealed partial class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
+internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
 {
   private readonly TimeProvider BatchTimeProvider;
-  private readonly IUpdateBatchDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
+  private readonly IUpdateDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
 
   private readonly TimeSpan _batchTimeSpan = TimeSpan.FromMilliseconds(3000);
   private ITimer? _batchTimer;
@@ -15,11 +13,10 @@ internal sealed partial class NoteViewStateUpdateBatcher : IUpdateBatcher<string
   private bool HasPendingPatch => _pendingEntries.Count > 0;
   private readonly Lock _pendingLock = new();
 
-  public NoteViewStateUpdateBatcher(TimeProvider timeProvider, IUpdateBatchDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
+  public NoteViewStateUpdateBatcher(TimeProvider timeProvider, IUpdateDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
   {
     BatchTimeProvider = timeProvider;
     ViewStatePersistenceDispatcher = viewStatePersistenceDispatcher;
-    TrackReference();
   }
 
   public void AddOrMerge(string key, NoteViewStatePatchDto patch)
@@ -52,7 +49,7 @@ internal sealed partial class NoteViewStateUpdateBatcher : IUpdateBatcher<string
       if (HasPendingPatch)
       {
         var patch = NoteViewStatePatchDto.Composite(_pendingEntries.Values);
-        ViewStatePersistenceDispatcher.TryEnqueue(patch);
+        ViewStatePersistenceDispatcher.TryDispatch(patch);
         _pendingEntries.Clear();
         _batchTimer?.Dispose();
       }

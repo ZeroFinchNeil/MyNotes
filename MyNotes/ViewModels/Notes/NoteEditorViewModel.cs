@@ -24,14 +24,14 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteService NoteService;
-  private readonly IUpdateBatchCoordinator<NoteViewStatePatchDto> UpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<NoteViewStatePatchDto> UpdateBatchCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
   private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(NoteService noteService, IUpdateBatchCoordinator<NoteViewStatePatchDto> updateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<NoteViewStatePatchDto> updateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
   {
     NoteService = noteService;
     UpdateBatchCoordinator = updateBatchCoordinator;
@@ -112,7 +112,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
       return;
     }
 
-    UpdateBatchCoordinator.Submit(persistenceDescriptor.PropertyName, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.UpdateDispatchMode);
+    UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
 
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
@@ -578,12 +578,12 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
 partial class NoteEditorViewModel
 {
-  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, NoteViewStatePatchDto>>()
+  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>>()
   {
     [nameof(NoteModel.BackgroundImageStretch)] = new()
     {
-      PropertyName = nameof(NoteModel.BackgroundImageStretch),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.BackgroundImageStretch),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -592,8 +592,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackgroundImageAlignment)] = new()
     {
-      PropertyName = nameof(NoteModel.BackgroundImageAlignment),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.BackgroundImageAlignment),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -602,8 +602,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackgroundImageOpacity)] = new()
     {
-      PropertyName = nameof(NoteModel.BackgroundImageOpacity),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.BackgroundImageOpacity),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -612,8 +612,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackgroundImageBlur)] = new()
     {
-      PropertyName = nameof(NoteModel.BackgroundImageBlur),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.BackgroundImageBlur),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -622,8 +622,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackdropKind)] = new()
     {
-      PropertyName = nameof(NoteModel.BackdropKind),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.BackdropKind),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -632,8 +632,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackdropTintOpacity)] = new()
     {
-      PropertyName = nameof(NoteModel.BackdropTintOpacity),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.BackdropTintOpacity),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -642,8 +642,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.BackdropLuminosityOpacity)] = new()
     {
-      PropertyName = nameof(NoteModel.BackdropLuminosityOpacity),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.BackdropLuminosityOpacity),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -652,8 +652,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.ShowImagePanel)] = new()
     {
-      PropertyName = nameof(NoteModel.ShowImagePanel),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.ShowImagePanel),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -662,8 +662,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.ImagePanelHeight)] = new()
     {
-      PropertyName = nameof(NoteModel.ImagePanelHeight),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.ImagePanelHeight),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -672,8 +672,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.Size)] = new()
     {
-      PropertyName = nameof(NoteModel.Size),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.Size),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -683,8 +683,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.Position)] = new()
     {
-      PropertyName = nameof(NoteModel.Position),
-      UpdateDispatchMode = UpdateDispatchMode.Batched,
+      Key = nameof(NoteModel.Position),
+      BatchMode = UpdateBatchMode.Batched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -694,8 +694,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.IsTextEditorReadOnly)] = new()
     {
-      PropertyName = nameof(NoteModel.IsTextEditorReadOnly),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.IsTextEditorReadOnly),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -704,8 +704,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.IsWindowOpen)] = new()
     {
-      PropertyName = nameof(NoteModel.IsWindowOpen),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.IsWindowOpen),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,
@@ -714,8 +714,8 @@ partial class NoteEditorViewModel
     },
     [nameof(NoteModel.IsAlwaysOnTop)] = new()
     {
-      PropertyName = nameof(NoteModel.IsAlwaysOnTop),
-      UpdateDispatchMode = UpdateDispatchMode.Immediate,
+      Key = nameof(NoteModel.IsAlwaysOnTop),
+      BatchMode = UpdateBatchMode.Unbatched,
       CreatePatch = (noteModel) => new NoteViewStatePatchDto()
       {
         Id = noteModel.Id,

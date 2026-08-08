@@ -73,7 +73,11 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<DialogService>();
 
       services.AddSingleton(TimeProvider.System);
-      services.AddScoped(typeof(IUpdateBatchCoordinator<>), typeof(UpdateBatchCoordinator<>));
+      services.AddScoped(typeof(IUpdateCoordinator<>), typeof(UpdateCoordinator<>));
+      services.AddScoped(typeof(IUpdateCoordinator<,>), typeof(UpdateCoordinator<,>));
+      services.AddSingleton(typeof(IUpdateDispatcher<>), typeof(UpdateDispatcher<>));
+      services.AddSingleton(typeof(IUpdateDispatcher<,>), typeof(UpdateDispatcher<,>));
+
     }
 
     private void AddWindowServices()
@@ -99,7 +103,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
 
       services.AddScoped<IUpdateBatcher<string, NoteViewStatePatchDto>, NoteViewStateUpdateBatcher>();
-      services.AddScoped<IUpdateBatchDispatcher<NoteViewStatePatchDto>, NoteViewStateUpdateBatchDispatcher>();
+      services.AddSingleton<IUpdateHandler<NoteViewStatePatchDto>, NoteViewStateUpdateHandler>();
 
       // Application
       services.AddSingleton<NoteService>();

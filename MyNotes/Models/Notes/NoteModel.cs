@@ -4,12 +4,13 @@ using Microsoft.UI.Xaml.Documents;
 
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
 
 namespace MyNotes.Models.Notes;
 
-[Debugging.Attributes.ReferenceTracker]
+[ReferenceTracker]
 internal sealed partial class NoteModel : ObservableObject, IComparable<NoteModel>
 {
   public NoteModel()
