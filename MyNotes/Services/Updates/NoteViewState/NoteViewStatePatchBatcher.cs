@@ -1,14 +1,13 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Debugging.Attributes;
-using MyNotes.Services.ViewState.Dispatcher;
 
-namespace MyNotes.Services.ViewState.Batching;
+namespace MyNotes.Services.Updates.NoteViewState;
 
 [ReferenceTracker]
-internal sealed partial class NoteViewStatePatchBatcher : IViewStatePatchBatcher<string, NoteViewStatePatchDto>
+internal sealed partial class NoteViewStatePatchBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
 {
   private readonly TimeProvider BatchTimeProvider;
-  private readonly IViewStatePersistenceDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
+  private readonly IUpdateBatchDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
 
   private readonly TimeSpan _batchTimeSpan = TimeSpan.FromMilliseconds(3000);
   private ITimer? _batchTimer;
@@ -16,7 +15,7 @@ internal sealed partial class NoteViewStatePatchBatcher : IViewStatePatchBatcher
   private bool HasPendingPatch => _pendingEntries.Count > 0;
   private readonly Lock _pendingLock = new();
 
-  public NoteViewStatePatchBatcher(TimeProvider timeProvider, IViewStatePersistenceDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
+  public NoteViewStatePatchBatcher(TimeProvider timeProvider, IUpdateBatchDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
   {
     BatchTimeProvider = timeProvider;
     ViewStatePersistenceDispatcher = viewStatePersistenceDispatcher;

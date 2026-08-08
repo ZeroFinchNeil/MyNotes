@@ -89,6 +89,7 @@
 
   <ItemGroup>
     <Folder Include="Services\Notes\" />
+    <Folder Include="Services\Updates\Note\" />
   </ItemGroup>
 
     <!-- Publish Properties -->

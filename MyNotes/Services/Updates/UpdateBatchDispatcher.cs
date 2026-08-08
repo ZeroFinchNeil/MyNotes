@@ -2,14 +2,14 @@
 
 using MyNotes.Debugging.Attributes;
 
-namespace MyNotes.Services.ViewState.Dispatcher;
+namespace MyNotes.Services.Updates;
 
 [ReferenceTracker]
-internal abstract partial class ViewStatePersistenceDispatcher<TPatch> : IViewStatePersistenceDispatcher<TPatch>
+internal abstract partial class UpdateBatchDispatcher<TPatch> : IUpdateBatchDispatcher<TPatch> where TPatch : notnull
 {
   private readonly Channel<TPatch> PersistenceChannel = Channel.CreateUnbounded<TPatch>(new UnboundedChannelOptions() { SingleReader = true, SingleWriter = false });
 
-  public ViewStatePersistenceDispatcher()
+  public UpdateBatchDispatcher()
   {
     TrackReference();
     _workerTask = RunConsumerWorker();

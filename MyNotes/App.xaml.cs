@@ -109,7 +109,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
     this.UnhandledException -= App_UnhandledException;
     AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
     TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
-    
+
     await Services.DisposeAsync();
   }
 
@@ -124,25 +124,12 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private static ServiceProvider ConfigureServices()
   {
-    ServiceCollection services = new();
-
-    // Service
-    services.AddAppCoreServices();
-    services.AddWindowServices();
-    services.AddSettingsService();
-    services.AddNavigationServices();
-    services.AddNoteServices();
-    services.AddMediaServices();
-    services.AddCommandServices();
-    services.AddDbCoreServices();
-    services.AddSearchCoreServices();
-
-    // ViewModel
-    services.AddViewModelProviders();
-    services.AddViewModels();
-
-    return services.BuildServiceProvider();
+    ServiceCollection serviceCollection = new();
+    serviceCollection.ConfigureServices();
+    serviceCollection.MakeReadOnly();
+    return serviceCollection.BuildServiceProvider();
   }
+
   private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExceptionLog(e.Exception);
 
   private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)

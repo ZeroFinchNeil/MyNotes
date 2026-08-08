@@ -30,9 +30,8 @@ using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Shell;
-using MyNotes.Services.ViewState;
-using MyNotes.Services.ViewState.Batching;
-using MyNotes.Services.ViewState.Dispatcher;
+using MyNotes.Services.Updates;
+using MyNotes.Services.Updates.NoteViewState;
 using MyNotes.Services.Windows;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
@@ -47,17 +46,37 @@ internal static class ServiceCollectionExtension
 {
   extension(IServiceCollection services)
   {
-    public void AddAppCoreServices()
+    public IServiceCollection ConfigureServices()
+    {
+      // Service
+      services.AddAppCoreServices();
+      services.AddWindowServices();
+      services.AddSettingsService();
+      services.AddNavigationServices();
+      services.AddNoteServices();
+      services.AddMediaServices();
+      services.AddCommandServices();
+      services.AddDbCoreServices();
+      services.AddSearchCoreServices();
+
+      // ViewModel
+      services.AddViewModelProviders();
+      services.AddViewModels();
+
+      return services;
+    }
+
+    private void AddAppCoreServices()
     {
       services.AddSingleton<JumpListService>();
       services.AddSingleton<AppLogger>();
       services.AddSingleton<DialogService>();
 
       services.AddSingleton(TimeProvider.System);
-      services.AddScoped(typeof(IViewStatePersistenceCoordinator<>), typeof(ViewStatePersistenceCoordinator<>));
+      services.AddScoped(typeof(IUpdateBatchCoordinator<>), typeof(UpdateBatchCoordinator<>));
     }
 
-    public void AddWindowServices()
+    private void AddWindowServices()
     {
       services.AddSingleton<INativeWindowing, NativeWindowing>();
       services.AddSingleton<MainWindowService>();
@@ -65,22 +84,22 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<ImageViewerWindowService>();
     }
 
-    public void AddSettingsService()
+    private void AddSettingsService()
     {
       services.AddSingleton<ISettingsStorage, SettingsStorage>();
       services.AddSingleton<AppSettingsService>();
       services.AddSingleton<ViewStateSettingsService>();
     }
 
-    public void AddNoteServices()
+    private void AddNoteServices()
     {
       // Presentation
       services.AddSingleton<IModelFactory<NoteDto, NoteModel>, NoteModelFactory>();
       services.AddSingleton<IModelUpdater<NoteDto, NoteModel>, NoteModelUpdater>();
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
 
-      services.AddScoped<IViewStatePatchBatcher<string, NoteViewStatePatchDto>, NoteViewStatePatchBatcher>();
-      services.AddScoped<IViewStatePersistenceDispatcher<NoteViewStatePatchDto>, NoteViewStatePersistenceDispatcher>();
+      services.AddScoped<IUpdateBatcher<string, NoteViewStatePatchDto>, NoteViewStatePatchBatcher>();
+      services.AddScoped<IUpdateBatchDispatcher<NoteViewStatePatchDto>, NoteViewStatePersistenceDispatcher>();
 
       // Application
       services.AddSingleton<NoteService>();
@@ -96,7 +115,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<INoteSearcher, NoteSearcher>();
     }
 
-    public void AddNavigationServices()
+    private void AddNavigationServices()
     {
       services.AddSingleton<INavigationRepository, NavigationRepository>();
 
@@ -112,26 +131,26 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NavigationController>();
     }
 
-    public void AddMediaServices()
+    private void AddMediaServices()
     {
       services.AddSingleton<IImageRepository, ImageRepository>();
       services.AddSingleton<IImageFileStorage, ImageFileStorage>();
       services.AddSingleton<ImageService>();
     }
 
-    public void AddCommandServices()
+    private void AddCommandServices()
     {
       services.AddKeyedSingleton<ICommandService, NavigationCommandService>(CommandServiceType.Navigation);
       services.AddKeyedSingleton<ICommandService, NoteCommandService>(CommandServiceType.Note);
     }
 
-    public void AddViewModels()
+    private void AddViewModels()
     {
       services.AddScoped<MainViewModel>();
       services.AddSingleton<SettingsViewModel>();
     }
 
-    public void AddViewModelProviders()
+    private void AddViewModelProviders()
     {
       services.AddSingleton<NavigationViewModelProvider>();
 
@@ -145,7 +164,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<ImageCollectionViewModelProvider>();
     }
 
-    public void AddDbCoreServices()
+    private void AddDbCoreServices()
     {
       services.AddSingleton<AppDbContextTaskDispatcher>();
       services.AddDbContextFactory<AppDbContext>();
@@ -153,7 +172,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<IAppDbTransactionFactory, AppDbTransactionFactory>();
     }
 
-    public void AddSearchCoreServices()
+    private void AddSearchCoreServices()
     {
       services.AddSingleton<IRtfTextConverter, RtfTextConverter>();
       services.AddSingleton<AppSearchContext>();
