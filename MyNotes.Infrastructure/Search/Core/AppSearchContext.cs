@@ -131,7 +131,7 @@ internal sealed class AppSearchContext : IDisposable
       }
     });
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
-    await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    await request.WaitAsync(cancellationToken);
     _commitTimer.Stop();
     CommitCount = 0;
   }
@@ -177,7 +177,7 @@ internal sealed class AppSearchContext : IDisposable
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
     CommitCount++;
     _commitTimer.Start();
-    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    return await request.WaitAsync(cancellationToken);
   }
   #endregion
 
@@ -196,7 +196,7 @@ internal sealed class AppSearchContext : IDisposable
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
     CommitCount++;
     _commitTimer.Start();
-    await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    await request.WaitAsync(cancellationToken);
   }
   #endregion
 
@@ -236,7 +236,7 @@ internal sealed class AppSearchContext : IDisposable
     SearchIndexingOperationRequest<IAsyncEnumerable<NoteSearchDocument>> request = new(Search);
 
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    return await request.WaitAsync(cancellationToken);
   }
   #endregion
 
@@ -249,7 +249,7 @@ internal sealed class AppSearchContext : IDisposable
       Matches = GetIndexReaderMatches(searchText, cancellationToken)
     }, null);
     await NoteSearchIndexChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task.WaitAsync(cancellationToken);
+    return await request.WaitAsync(cancellationToken);
   }
 
   private async IAsyncEnumerable<NoteSearchTokenMatch> GetIndexReaderMatches(string searchText, [EnumeratorCancellation] CancellationToken cancellationToken = default)

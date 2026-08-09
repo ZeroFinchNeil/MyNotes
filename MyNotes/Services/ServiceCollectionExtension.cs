@@ -9,6 +9,7 @@ using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Contracts.Settings;
 using MyNotes.Application.Media.Services;
 using MyNotes.Application.Navigations.Services;
+using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Domain.Notes;
@@ -31,6 +32,7 @@ using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Shell;
 using MyNotes.Services.Updates;
+using MyNotes.Services.Updates.Note;
 using MyNotes.Services.Updates.NoteViewState;
 using MyNotes.Services.Windows;
 using MyNotes.Shell.Contracts.Windowing;
@@ -101,6 +103,9 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<IModelFactory<NoteDto, NoteModel>, NoteModelFactory>();
       services.AddSingleton<IModelUpdater<NoteDto, NoteModel>, NoteModelUpdater>();
       services.AddSingleton<IModelStore<NoteId, NoteModel>, NoteModelStore>();
+
+      services.AddScoped<IUpdateBatcher<string, NotePatchDto, UpdateNoteResult>, NoteUpdateBatcher>();
+      services.AddSingleton<IUpdateHandler<NotePatchDto, UpdateNoteResult>, NoteUpdateHandler>();
 
       services.AddScoped<IUpdateBatcher<string, NoteViewStatePatchDto>, NoteViewStateUpdateBatcher>();
       services.AddSingleton<IUpdateHandler<NoteViewStatePatchDto>, NoteViewStateUpdateHandler>();

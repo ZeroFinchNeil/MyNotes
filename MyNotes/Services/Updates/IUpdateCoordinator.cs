@@ -7,5 +7,5 @@ internal interface IUpdateCoordinator<TKey, TPatch> where TKey : notnull where T
 
 internal interface IUpdateCoordinator<TKey, TPatch, TResult> where TKey : notnull where TPatch : notnull where TResult : notnull
 {
-  public TResult Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode);
+  public Task<TResult> Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode, CancellationToken cancellationToken = default);
 }

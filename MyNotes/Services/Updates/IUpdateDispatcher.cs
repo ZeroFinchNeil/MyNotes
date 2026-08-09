@@ -7,5 +7,5 @@ internal interface IUpdateDispatcher<TPatch> : IAsyncDisposable where TPatch : n
 
 internal interface IUpdateDispatcher<TPatch, TResult> : IAsyncDisposable where TPatch : notnull where TResult : notnull
 {
-  public Task<TResult> DispatchAsync(TPatch patch);
+  public Task<TResult> DispatchAsync(TPatch patch, CancellationToken cancellationToken = default);
 }

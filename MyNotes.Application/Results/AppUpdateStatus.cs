@@ -5,5 +5,6 @@ internal enum AppUpdateStatus
   Succeeded,
   Unchanged,
   TargetNotFound,
+  Canceled,
   Failed
 }

@@ -59,6 +59,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     if (disposing)
     {
+      Note.PropertyChanged -= Note_PropertyChanged;
       _ = NoteService.Modification.CommitSearchIndexAsync();
     }
 

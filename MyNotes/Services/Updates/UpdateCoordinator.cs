@@ -1,16 +1,7 @@
 ﻿namespace MyNotes.Services.Updates;
 
-internal sealed class UpdateCoordinator<TKey, TPatch> : IUpdateCoordinator<TKey, TPatch> where TKey : notnull where TPatch : notnull
+internal sealed class UpdateCoordinator<TKey, TPatch>(IUpdateDispatcher<TPatch> Dispatcher, IUpdateBatcher<TKey, TPatch> Batcher) : IUpdateCoordinator<TKey, TPatch> where TKey : notnull where TPatch : notnull
 {
-  private readonly IUpdateDispatcher<TPatch> Dispatcher;
-  private readonly IUpdateBatcher<TKey, TPatch> Batcher;
-
-  public UpdateCoordinator(IUpdateDispatcher<TPatch> dispatcher, IUpdateBatcher<TKey, TPatch> batcher)
-  {
-    Dispatcher = dispatcher;
-    Batcher = batcher;
-  }
-
   public void Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode)
   {
     ArgumentNullException.ThrowIfNull(patch);
@@ -27,7 +18,17 @@ internal sealed class UpdateCoordinator<TKey, TPatch> : IUpdateCoordinator<TKey,
   }
 }
 
-internal sealed class UpdateCoordinator<TKey, TPatch, TResult> : IUpdateCoordinator<TKey, TPatch, TResult> where TKey : notnull where TPatch : notnull where TResult : notnull
+internal sealed class UpdateCoordinator<TKey, TPatch, TResult>(IUpdateDispatcher<TPatch, TResult> Dispatcher, IUpdateBatcher<TKey, TPatch, TResult> Batcher) : IUpdateCoordinator<TKey, TPatch, TResult> where TKey : notnull where TPatch : notnull where TResult : notnull
 {
-  public TResult Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode) => throw new NotImplementedException();
+  public async Task<TResult> Submit(TKey key, TPatch patch, UpdateBatchMode updateDispatchMode, CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(patch);
+
+    return updateDispatchMode switch
+    {
+      UpdateBatchMode.Unbatched => await Dispatcher.DispatchAsync(patch, cancellationToken),
+      UpdateBatchMode.Batched => await Batcher.AddOrMergeAsync(key, patch, cancellationToken),
+      _ => throw new InvalidOperationException(),
+    };
+  }
 }

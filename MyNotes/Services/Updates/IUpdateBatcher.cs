@@ -9,7 +9,7 @@ internal interface IUpdateBatcher<TKey, TPatch> : IAsyncDisposable where TKey : 
 
 internal interface IUpdateBatcher<TKey, TPatch, TResult> : IAsyncDisposable where TKey : notnull where TPatch : notnull where TResult : notnull
 {
-  public TResult AddOrMerge(TKey key, TPatch patch);
+  public Task<TResult> AddOrMergeAsync(TKey key, TPatch patch, CancellationToken cancellationToken = default);
 
-  public TResult Flush();
+  public Task FlushAsync(CancellationToken cancellationToken = default);
 }

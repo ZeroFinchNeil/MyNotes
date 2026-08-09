@@ -5,13 +5,9 @@ using MyNotes.Common.Operations;
 
 namespace MyNotes.Infrastructure.Database.Core;
 
-internal sealed class DbContextOperationRequest<T>(Func<T> operation, T fallbackValue) : IOperationRequest<T>
+internal sealed class DbContextOperationRequest<T>(Func<T> operation, T fallbackValue) : OperationRequest<T>(operation, fallbackValue)
 {
-  public TaskCompletionSource<T> TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-  public Func<T> Operation { get; } = operation;
-  public T FallbackValue { get; } = fallbackValue;
-
-  public void Execute()
+  public override void Execute()
   {
     try
     {

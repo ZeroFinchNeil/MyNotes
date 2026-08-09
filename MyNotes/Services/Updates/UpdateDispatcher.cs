@@ -46,15 +46,23 @@ internal sealed class UpdateDispatcher<TPatch> : IUpdateDispatcher<TPatch> where
   }
 }
 
-internal sealed class UpdateDispatcher<TPatch, TResult> : IUpdateDispatcher<TPatch, TResult> where TPatch : notnull where TResult : notnull
+internal sealed class UpdateDispatcher<TPatch, TResult>(IUpdateHandler<TPatch, TResult> UpdateHandler) : IUpdateDispatcher<TPatch, TResult> where TPatch : notnull where TResult : notnull
 {
-  public Task<TResult> DispatchAsync(TPatch patch)
+  public Task<TResult> DispatchAsync(TPatch patch, CancellationToken cancellationToken = default) => UpdateHandler.HandleAsync(patch, cancellationToken);
+
+  private bool _disposeStarted;
+
+  public async ValueTask DisposeAsync()
   {
-    throw new NotImplementedException();
+    await DisposeAsyncCore().ConfigureAwait(false);
+    GC.SuppressFinalize(this);
   }
 
-  public ValueTask DisposeAsync()
+  private async ValueTask DisposeAsyncCore()
   {
-    throw new NotImplementedException();
+    if (Interlocked.Exchange(ref _disposeStarted, true))
+    {
+      return;
+    }
   }
 }

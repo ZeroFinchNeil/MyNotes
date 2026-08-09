@@ -9,7 +9,9 @@ using MyNotes.Application.Contracts.Converters;
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Commands;
+using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Results;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
@@ -24,24 +26,26 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteService NoteService;
-  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> UpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateBatchCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
   private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateBatchCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
   {
     NoteService = noteService;
-    UpdateBatchCoordinator = updateBatchCoordinator;
+    NoteUpdateBatchCoordinator = noteUpdateBatchCoordinator;
+    ViewStateUpdateBatchCoordinator = viewStateUpdateBatchCoordinator;
     NoteWindowService = noteWindowService;
     RtfTextConverter = rtfTextConverter;
 
     Note = note;
     Document = document;
     Note.PropertyChanged += Note_PropertyChanged;
-    _editorThrottleTimer.Tick += EditorDebounceTimer_Tick;
+    _bodyEditorBatchTimer.Tick += BodyEditorBatchTimer_Tick;
     _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
     _backgroundImageAlignmentX = Note.BackgroundImageAlignment switch
     {
@@ -86,7 +90,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     {
       Note.PropertyChanged -= Note_PropertyChanged;
 
-      _editorThrottleTimer.Tick -= EditorDebounceTimer_Tick;
+      _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
     }
   }
 
@@ -112,29 +116,19 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
       return;
     }
 
-    if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var viewStatePatchDescriptor))
     {
-      UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+      ViewStateUpdateBatchCoordinator.Submit(viewStatePatchDescriptor.Key, viewStatePatchDescriptor.CreatePatch(Note), viewStatePatchDescriptor.BatchMode);
     }
 
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
-      case nameof(Note.Body):  // * Debouncing
-        break;
       case nameof(Note.BackgroundColor):  // * Debouncing
         SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
         ChangeSystemBackdropExtended();
-        break;
-      case nameof(Note.BackgroundImagePath):
-        await NoteService.Modification.UpdateNoteAsync(new UpdateNoteAppCommand()
-        {
-          PatchDto = new NotePatchDto()
-          {
-            Id = Note.Id,
-            BackgroundImagePath = Note.BackgroundImagePath
-          }
-        });
+        var updateResult = await UpdateNoteAsync(nameof(NoteModel.BackgroundColor));
+        //Console.WriteLine("{0}: {1}", "UpdateResult", updateResult);
         break;
       case nameof(Note.BackdropKind):
         ChangeSystemBackdrop();
@@ -153,20 +147,9 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     }
   }
 
-  #region Body
-  public async Task UpdateNoteBodyAsync()
-  {
-    UpdateNoteAppCommand appCommand = new()
-    {
-      PatchDto = new NotePatchDto()
-      {
-        Id = Note.Id,
-        Body = new(Note.Body)
-      }
-    };
-    var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
-  }
-  #endregion
+  private async Task<UpdateNoteResult> UpdateNoteAsync(string propertyName) => NotePatchDescriptors.TryGetValue(propertyName, out var notePatchDescriptor)
+    ? await NoteUpdateBatchCoordinator.Submit(notePatchDescriptor.Key, notePatchDescriptor.CreatePatch(Note), notePatchDescriptor.BatchMode)
+    : new UpdateNoteResult() { Status = AppUpdateStatus.Failed };
 
   #region Background
   public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors { get; } = [.. AppColors.DefaultPaletteColors.Select(c => new SolidColorBrush(c.ToColor()))];
@@ -581,6 +564,40 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
 partial class NoteEditorViewModel
 {
+  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, string, NotePatchDto>> NotePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, string, NotePatchDto>>()
+  {
+    [nameof(NoteModel.Body)] = new()
+    {
+      Key = nameof(NoteModel.Body),
+      BatchMode = UpdateBatchMode.Unbatched,
+      CreatePatch = (noteModel) => new NotePatchDto()
+      {
+        Id = noteModel.Id,
+        Body = noteModel.Body
+      }
+    },
+    [nameof(NoteModel.BackgroundColor)] = new()
+    {
+      Key = nameof(NoteModel.BackgroundColor),
+      BatchMode = UpdateBatchMode.Batched,
+      CreatePatch = (noteModel) => new NotePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundColor = noteModel.BackgroundColor.ToString()
+      }
+    },
+    [nameof(NoteModel.BackgroundImagePath)] = new()
+    {
+      Key = nameof(NoteModel.BackgroundImagePath),
+      BatchMode = UpdateBatchMode.Batched,
+      CreatePatch = (noteModel) => new NotePatchDto()
+      {
+        Id = noteModel.Id,
+        BackgroundImagePath = noteModel.BackgroundImagePath
+      }
+    },
+  };
+
   private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>>()
   {
     [nameof(NoteModel.BackgroundImageStretch)] = new()
@@ -732,7 +749,7 @@ partial class NoteEditorViewModel
 {
   public Command UpdateSelectionCommand { get; private set; }
   public Command UpdateTextChangingCommand { get; private set; }
-  public Command UpdateTextChangedCommand { get; private set; }
+  public AsyncCommand UpdateTextChangedCommand { get; private set; }
   public Command DecreaseSelectionFontSizeCommand { get; private set; }
   public Command IncreaseSelectionFontSizeCommand { get; private set; }
   public Command ChangeSelectionFontColorCommand { get; private set; }
@@ -747,27 +764,27 @@ partial class NoteEditorViewModel
   private bool _shouldChangePreview = false;
   public readonly int PreviewTextMaxLength = 500;
 
-  private readonly DispatcherTimer _editorThrottleTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
-  private bool _isEditorThrottling = false;
+  private readonly DispatcherTimer _bodyEditorBatchTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
+  private readonly SemaphoreSlim _bodyEditorBatchSemaphore = new(1, 1);
 
-  private void EditorDebounceTimer_Tick(object? sender, object e)
+  private async void BodyEditorBatchTimer_Tick(object? sender, object e) => await UpdateNoteBodyAsync();
+
+  public async Task UpdateNoteBodyAsync()
   {
-    Console.WriteLine("{0}: {1}", "Editor Tick", DateTimeOffset.Now);
+    await _bodyEditorBatchSemaphore.WaitAsync();
 
-    _editorThrottleTimer.Stop();
-    _isEditorThrottling = false;
-    ReflectEditorBodyChanges();
-  }
+    _bodyEditorBatchTimer.Stop();
 
-  public void ReflectEditorBodyChanges()
-  {
     Document.GetText(TextGetOptions.FormatRtf, out var editorText);
     editorText = AppRegexes.LastParInRtfRegex().Replace(editorText, "}");
 
     if (Note.Body != editorText)
     {
       Note.Body = editorText;
+      await UpdateNoteAsync(nameof(NoteModel.Body));
     }
+
+    _bodyEditorBatchSemaphore.Release();
 
     if (_shouldChangePreview)
     {
@@ -800,17 +817,13 @@ partial class NoteEditorViewModel
 
     UpdateTextChangedCommand = new()
     {
-      ExecuteAction = () =>
+      ExecuteFunc = async () =>
       {
         UpdateSelectionFormatStates();
 
-        if (_isEditorThrottling)
-        {
-          return;
-        }
-
-        _isEditorThrottling = true;
-        _editorThrottleTimer.Start();
+        await _bodyEditorBatchSemaphore.WaitAsync();
+        _bodyEditorBatchTimer.Start();
+        _bodyEditorBatchSemaphore.Release();
       }
     };
 

@@ -5,7 +5,7 @@ namespace MyNotes.Services.Updates.NoteViewState;
 internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteViewStatePatchDto>
 {
   private readonly TimeProvider BatchTimeProvider;
-  private readonly IUpdateDispatcher<NoteViewStatePatchDto> ViewStatePersistenceDispatcher;
+  private readonly IUpdateDispatcher<NoteViewStatePatchDto> ViewStateUpdateDispatcher;
 
   private readonly TimeSpan _batchTimeSpan = TimeSpan.FromMilliseconds(3000);
   private ITimer? _batchTimer;
@@ -16,7 +16,7 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
   public NoteViewStateUpdateBatcher(TimeProvider timeProvider, IUpdateDispatcher<NoteViewStatePatchDto> viewStatePersistenceDispatcher)
   {
     BatchTimeProvider = timeProvider;
-    ViewStatePersistenceDispatcher = viewStatePersistenceDispatcher;
+    ViewStateUpdateDispatcher = viewStatePersistenceDispatcher;
   }
 
   public void AddOrMerge(string key, NoteViewStatePatchDto patch)
@@ -49,7 +49,7 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
       if (HasPendingPatch)
       {
         var patch = NoteViewStatePatchDto.Composite(_pendingEntries.Values);
-        ViewStatePersistenceDispatcher.TryDispatch(patch);
+        ViewStateUpdateDispatcher.TryDispatch(patch);
         _pendingEntries.Clear();
         _batchTimer?.Dispose();
       }
