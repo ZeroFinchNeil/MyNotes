@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Debugging;
+using MyNotes.Common.Lifetime;
 using MyNotes.Domain.Notes;
 
 namespace MyNotes.ViewModels.Media.Providers;
@@ -11,36 +11,51 @@ namespace MyNotes.ViewModels.Media.Providers;
 internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
 {
   private readonly ConcurrentDictionary<NoteId, ReferenceCounter<ImageCollectionViewModel>> ResolveTable = new();
+  private readonly Func<NoteId, ImageCollectionViewModel> _factory = noteId => ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, noteId);
 
-  public ImageCollectionViewModel Resolve(NoteId key)
+  public ImageCollectionViewModel Resolve(NoteId noteId)
   {
-    var rc = ResolveTable.GetOrAdd(key, noteId => new ReferenceCounter<ImageCollectionViewModel>()
-    {
-      Instance = ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, key)
-    });
+    var counter = ResolveTable.GetOrAdd(noteId, noteId => new ReferenceCounter<ImageCollectionViewModel>(_factory(noteId)));
 
-    rc.Increment();
-    return rc.Instance;
+    if (counter.TryAcquire(out var viewmodel))
+    {
+      return viewmodel;
+    }
+
+    var newCounter = new ReferenceCounter<ImageCollectionViewModel>(_factory(noteId));
+    ResolveTable.AddOrUpdate(noteId, newCounter, (k, v) => v = newCounter);
+
+    return newCounter.TryAcquire(out var newViewModel) ? newViewModel : throw new InvalidOperationException();
   }
 
-  public bool TryResolve(NoteId key, [NotNullWhen(true)] out ImageCollectionViewModel? imageCollectionViewModel)
+  public bool TryResolve(NoteId noteId, [NotNullWhen(true)] out ImageCollectionViewModel? noteViewModel)
   {
-    if (ResolveTable.TryGetValue(key, out var rc))
+    if (ResolveTable.TryGetValue(noteId, out var counter)
+      && counter.TryAcquire(out var viewmodel, false))
     {
-      var viewmodel = rc.Instance;
-      if (!rc.HasNoReferences && !viewmodel.Disposed)
+      if (!viewmodel.Disposed)
       {
-        imageCollectionViewModel = viewmodel;
+        noteViewModel = viewmodel;
         return true;
       }
       else
       {
-        ResolveTable.TryRemove(key, out _);
+        ResolveTable.TryRemove(noteId, out _);
       }
     }
-    imageCollectionViewModel = null;
+    noteViewModel = null;
     return false;
   }
 
-  public bool Release(NoteId key) => ResolveTable.TryGetValue(key, out var rc) && rc.Decrement() && ResolveTable.TryRemove(key, out _);
+  public bool Release(NoteId noteId)
+  {
+    if (ResolveTable.TryGetValue(noteId, out var counter))
+    {
+      var viewmodel = counter.Release();
+      viewmodel.Dispose();
+      return true;
+    }
+
+    return false;
+  }
 }
