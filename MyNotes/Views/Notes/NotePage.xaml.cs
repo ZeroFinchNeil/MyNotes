@@ -152,7 +152,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
     // 빈 노트 완전 삭제 로직
     await ViewModel.DeleteNotePermanentlyWhenEmpty();
 
-    NoteViewModelProvider.Release(ViewModel.Note);
+    NoteViewModelProvider.ReleaseAsync(ViewModel.Note);
 
     UnregisterMessengers();
     Bindings.StopTracking();

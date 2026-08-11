@@ -65,12 +65,14 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
       try
       {
         reference = _instance;
+
         if (--_referenceCount == 0)
         {
           _instance = null;
           _isDetached = true;
           return true;
         }
+
         return false;
       }
       finally

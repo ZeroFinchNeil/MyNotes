@@ -64,6 +64,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   public async ValueTask DisposeAsync()
   {
     await DisposeAsyncCore().ConfigureAwait(false);
+    //await Task.Delay(2000);
     Dispose(disposing: false);
   }
   #endregion

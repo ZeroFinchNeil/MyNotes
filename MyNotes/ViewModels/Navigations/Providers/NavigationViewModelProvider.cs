@@ -11,7 +11,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<INavigation, WeakReference<NavigationViewModelBase>> ResolvedViewModels = new();
+  private readonly Dictionary<INavigation, NavigationViewModelBase> ResolvedViewModels = new();
 
   public NavigationViewModelBase Resolve(INavigation navigation)
   {
@@ -31,7 +31,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       _ => throw new ArgumentException("Invalid navigation")
     };
 
-    ResolvedViewModels[navigation] = new WeakReference<NavigationViewModelBase>(newViewModel);
+    ResolvedViewModels[navigation] = newViewModel;
 
     return newViewModel;
   }
@@ -42,8 +42,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
   public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
+    if (ResolvedViewModels.TryGetValue(navigation, out var viewmodel)
         && !viewmodel.Disposed)
     {
       viewmodelBase = viewmodel;
@@ -57,7 +56,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
   public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
   {
     if (ResolvedViewModels.Keys.FirstOrDefault(k => k is INavigationNode n && n.Id == navigationId) is INavigation navigation
-      && ResolvedViewModels[navigation].TryGetTarget(out var viewmodel))
+      && ResolvedViewModels.TryGetValue(navigation, out var viewmodel))
     {
       viewmodelBase = viewmodel;
       return true;

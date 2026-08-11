@@ -2,7 +2,7 @@
 
 internal interface IAsyncViewModelProvider<TModel, TViewModel> where TModel : notnull where TViewModel : ViewModelBase, IAsyncDisposable
 {
-  public TViewModel? Resolve(TModel model);
+  public TViewModel Resolve(TModel model);
 
   /// <summary>
   /// Attempts to resolve a ViewModel instance from the specified model.

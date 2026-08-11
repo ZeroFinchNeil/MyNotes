@@ -20,6 +20,7 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
@@ -31,7 +32,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NoteListViewModel : ViewModelBase
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly ViewStateSettingsService ViewStateSettingsService;
@@ -64,21 +65,20 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     _ = LoadNoteViewModels();
   }
 
-  private async ValueTask DisposeAsyncCore()
+  protected override void Dispose(bool disposing)
   {
     if (Disposed)
     {
       return;
     }
 
-    UnregisterMessengers();
-    await UnloadNoteViewModels();
-  }
+    if (disposing)
+    {
+      UnloadNoteViewModels();
+      UnregisterMessengers();
+    }
 
-  public async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
+    base.Dispose(disposing);
   }
   #endregion
 
@@ -273,7 +273,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteModelFactory.Create);
         foreach (var note in leafNotes)
         {
-          note.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(note));
         }
         break;
@@ -294,7 +293,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         foreach (var searchResultDto in searchResultDtos)
         {
           NoteModel searchedNote = NoteModelFactory.Create(searchResultDto);
-          searchedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(searchedNote));
         }
         break;
@@ -303,7 +301,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         foreach (var bookmarkResultDto in bookmarkResultDtos)
         {
           NoteModel bookmarkedNote = NoteModelFactory.Create(bookmarkResultDto);
-          bookmarkedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(bookmarkedNote));
         }
         break;
@@ -312,12 +309,15 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         foreach (var trashResultDto in trashResultDtos)
         {
           NoteModel trashedNote = NoteModelFactory.Create(trashResultDto);
-          trashedNote.PropertyChanged += Note_PropertyChanged_WhileActive;
           NoteViewModels.Add(NoteViewModelProvider.Resolve(trashedNote));
         }
         break;
     }
 
+    foreach (var noteViewModel in NoteViewModels)
+    {
+      noteViewModel.PropertyChanged += Note_PropertyChanged_WhileActive;
+    }
     NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
   }
 
@@ -325,30 +325,23 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
   {
     if (e.OldItems is IList removedItems)
     {
-      foreach (var removed in removedItems)
+      foreach (var removed in removedItems.OfType<NoteViewModel>())
       {
-        (removed as NoteViewModel)?.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
+        removed.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
+        await NoteViewModelProvider.ReleaseAsync(removed.Note);
       }
     }
     if (e.NewItems is IList addedItems)
     {
-      foreach (var added in addedItems)
+      foreach (var added in addedItems.OfType<NoteViewModel>())
       {
-        (added as NoteViewModel)?.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-        (added as NoteViewModel)?.Note.PropertyChanged += Note_PropertyChanged_WhileActive;
-      }
-    }
-
-    if (e.Action is NotifyCollectionChangedAction.Remove)
-    {
-      if (e.OldItems is IList { Count: > 0 } oldItems)
-      {
-        NoteViewModelProvider.Release(((NoteViewModel)oldItems[0]!).Note);
+        added.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
+        added.Note.PropertyChanged += Note_PropertyChanged_WhileActive;
       }
     }
   }
 
-  public async Task UnloadNoteViewModels()
+  public void UnloadNoteViewModels()
   {
     if (NoteViewModels is null)
     {
@@ -356,13 +349,8 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     }
 
     NoteViewModels.CollectionChanged -= NoteViewModels_CollectionChanged;
-
-    foreach (var noteViewModel in NoteViewModels)
-    {
-      noteViewModel.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-      NoteViewModelProvider.Release(noteViewModel.Note);
-    }
     NoteViewModels.Clear();
+    //important: Clear 시 NoteViewModel Dispose
   }
 
   private void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)

@@ -14,7 +14,7 @@ internal interface IViewModelProvider<TModel, TViewModel> where TModel : notnull
   /// <para>A ViewModel instance that represents the specified Model.</para>
   /// <para>주어진 모델에 해당하는 뷰모델 인스턴스입니다.</para>
   /// </returns>
-  public TViewModel? Resolve(TModel model);
+  public TViewModel Resolve(TModel model);
 
   /// <summary>
   /// Attempts to resolve a ViewModel instance from the specified model.

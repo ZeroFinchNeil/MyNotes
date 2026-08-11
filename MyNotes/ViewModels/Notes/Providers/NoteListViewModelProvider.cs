@@ -11,7 +11,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
 {
   private readonly IServiceProvider ServiceProvider = serviceProvider;
 
-  private readonly Dictionary<INavigationNoteList, WeakReference<NoteListViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<INavigationNoteList, NoteListViewModel> ResolvedViewModels = new();
 
   public NoteListViewModel Resolve(INavigationNoteList navigation)
   {
@@ -21,15 +21,14 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     }
 
     NoteListViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteListViewModel>(ServiceProvider, navigation);
-    ResolvedViewModels[navigation] = new WeakReference<NoteListViewModel>(newViewModel);
+    ResolvedViewModels[navigation] = newViewModel;
 
     return newViewModel;
   }
 
   public bool TryResolve(INavigationNoteList navigation, [NotNullWhen(true)] out NoteListViewModel? noteViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
+    if (ResolvedViewModels.TryGetValue(navigation, out var viewmodel)
         && !viewmodel.Disposed)
     {
       noteViewModel = viewmodel;
@@ -44,8 +43,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
   {
     var navigation = ResolvedViewModels.Keys.FirstOrDefault(nav => nav is NavigationUserLeafNode node && node.Id == navigationId);
     if (navigation is not null
-        && ResolvedViewModels.TryGetValue(navigation, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
+        && ResolvedViewModels.TryGetValue(navigation, out var viewmodel)
         && !viewmodel.Disposed)
     {
       noteViewModel = viewmodel;
