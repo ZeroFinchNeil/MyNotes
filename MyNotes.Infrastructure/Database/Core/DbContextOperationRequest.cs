@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 
 using MyNotes.Common.Operations;
+using MyNotes.Debugging;
 
 namespace MyNotes.Infrastructure.Database.Core;
 
@@ -12,7 +13,7 @@ internal sealed class DbContextOperationRequest<T>(Func<T> operation, T fallback
     try
     {
       var result = Operation.Invoke();
-      Console.WriteLine("{0}: {1}", "Operation invoked", result);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "DbContext Operation invoked", result);
       var r = TaskCompletionSource.TrySetResult(result);
     }
     catch (OperationCanceledException)

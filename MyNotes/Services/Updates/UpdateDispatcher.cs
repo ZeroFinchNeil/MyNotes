@@ -1,5 +1,7 @@
 ﻿using System.Threading.Channels;
 
+using MyNotes.Debugging;
+
 namespace MyNotes.Services.Updates;
 
 internal sealed class UpdateDispatcher<TPatch> : IUpdateDispatcher<TPatch> where TPatch : notnull
@@ -41,7 +43,7 @@ internal sealed class UpdateDispatcher<TPatch> : IUpdateDispatcher<TPatch> where
     }
 
     var completed = DispatcherChannel.Writer.TryComplete();
-    Console.WriteLine("{0}: {1}", "Dispatcher Disposing & completed", completed);
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "Dispatcher Disposing & completed", completed);
     await _workerTask;
   }
 }

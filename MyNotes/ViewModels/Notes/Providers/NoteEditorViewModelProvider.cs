@@ -9,11 +9,11 @@ namespace MyNotes.ViewModels.Notes.Providers;
 
 internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
 {
-  private readonly Dictionary<NoteId, NoteEditorViewModelScope> ResolvedViewModels = new();
+  private readonly Dictionary<NoteId, NoteEditorViewModelScope> ResolveTable = new();
 
   NoteEditorViewModel IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
 
-  public async ValueTask<NoteEditorViewModel> Resolve(NoteModel note, RichEditTextDocument document)
+  public async ValueTask<NoteEditorViewModel> ResolveAsync(NoteModel note, RichEditTextDocument document)
   {
     if (TryResolve(note, out var viewmodel))
     {
@@ -24,7 +24,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
     try
     {
       NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document);
-      ResolvedViewModels[note.Id] = new NoteEditorViewModelScope(newViewModel, scope);
+      ResolveTable[note.Id] = new NoteEditorViewModelScope(newViewModel, scope);
 
       return newViewModel;
     }
@@ -37,7 +37,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
 
   public bool TryResolve(NoteModel note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(note.Id, out var viewmodelScope)
+    if (ResolveTable.TryGetValue(note.Id, out var viewmodelScope)
         && !viewmodelScope.ViewModel.Disposed)
     {
       noteEditorViewModel = viewmodelScope.ViewModel;
@@ -55,10 +55,10 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
       if (!viewmodel.Disposed)
       {
         await viewmodel.DisposeAsync();
-        await ResolvedViewModels[note.Id].Scope.DisposeAsync();
+        await ResolveTable[note.Id].Scope.DisposeAsync();
       }
 
-      return ResolvedViewModels.Remove(note.Id);
+      return ResolveTable.Remove(note.Id);
     }
 
     return false;

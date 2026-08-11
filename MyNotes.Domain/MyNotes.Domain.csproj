@@ -11,5 +11,8 @@
     <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
+  </ItemGroup>
   
 </Project>

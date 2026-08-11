@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 using MyNotes.Application.Contracts.Settings;
+using MyNotes.Debugging;
 
 using Windows.Foundation;
 using Windows.Foundation.Collections;
@@ -32,7 +33,7 @@ internal sealed class SettingsStorage : ISettingsStorage
   /// </remarks>
   public bool IsValid(object value)
   {
-    Console.WriteLine("{0}: {1}", "Settings Type", value.GetType());
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "Settings Type", value.GetType());
     return value switch
     {
       byte or short or ushort or int or uint or long or ulong or float or double or

@@ -68,7 +68,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
     var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
     ChangeFlyoutTheme(viewStateSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, ViewStateSettingsDescriptors.AppTheme));
 
-    EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document).Result;
+    EditorViewModel = NoteEditorViewModelProvider.ResolveAsync(note, NotePage_TextEditorRichEditBox.Document).Result;
     RegisterMessengers();
 
     _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;

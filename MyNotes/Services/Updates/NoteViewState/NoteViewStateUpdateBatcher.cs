@@ -1,4 +1,5 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Debugging;
 
 namespace MyNotes.Services.Updates.NoteViewState;
 
@@ -7,7 +8,7 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
   private readonly TimeProvider BatchTimeProvider;
   private readonly IUpdateDispatcher<NoteViewStatePatchDto> ViewStateUpdateDispatcher;
 
-  private readonly TimeSpan _batchTimeSpan = TimeSpan.FromMilliseconds(3000);
+  private readonly TimeSpan _batchTimeSpan = TimeSpan.FromMilliseconds(500);
   private ITimer? _batchTimer;
   private readonly Dictionary<string, NoteViewStatePatchDto> _pendingEntries = [];
   private bool HasPendingPatch => _pendingEntries.Count > 0;
@@ -26,7 +27,6 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
     {
       if (!HasPendingPatch)
       {
-        _timestamp = BatchTimeProvider.GetTimestamp();
         _batchTimer ??= BatchTimeProvider.CreateTimer(OnTimerElapsed, this, _batchTimeSpan, Timeout.InfiniteTimeSpan);
       }
 
@@ -34,13 +34,7 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
     }
   }
 
-  private long _timestamp;
-
-  private async void OnTimerElapsed(object? state)
-  {
-    Console.WriteLine($"OnTimerElapsed entered: {DateTimeOffset.Now:O}, " + $"elapsed: {BatchTimeProvider.GetElapsedTime(_timestamp)}");
-    Flush();
-  }
+  private async void OnTimerElapsed(object? state) => Flush();
 
   public void Flush()
   {
@@ -67,7 +61,6 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
       return;
     }
 
-    Console.WriteLine("{0}: {1}", "Batcher Disposing", true);
     if (_batchTimer is not null)
     {
       await _batchTimer.DisposeAsync();

@@ -15,6 +15,7 @@ using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Navigations.Persistence;
 using MyNotes.Application.Contracts.Persistence;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Constants;
 using MyNotes.Infrastructure.Database.Core;
@@ -784,8 +785,8 @@ internal partial class NavigationRepository
 
         long boundaryStep = boundarySpan / (repositionItemCount + 1L);
 
-        Console.WriteLine("{0}: {1}", "boundarySpan", boundarySpan);
-        Console.WriteLine("{0}: {1}", "boundaryStep", boundaryStep);
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "boundarySpan", boundarySpan);
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "boundaryStep", boundaryStep);
 
         return boundaryStep <= 0
           ? throw new InvalidOperationException($"Position 재배치 간격을 확보할 수 없습니다. Left={leftBoundaryPosition.Value}, Right={rightBoundaryPosition.Value}, RangeCount={repositionItemCount}")
@@ -814,8 +815,8 @@ internal partial class NavigationRepository
        ? NavigationEntitySettings.DefaultPositionStep
        : (int)Math.Clamp(totalSpan / (includedItemCount - 1L), NavigationEntitySettings.DefaultPositionStep, NavigationEntitySettings.MaxPositionStep);
 
-      Console.WriteLine("{0}: {1}", "totalSpan", totalSpan);
-      Console.WriteLine("{0}: {1}", "preferredStep", preferredStep);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "totalSpan", totalSpan);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "preferredStep", preferredStep);
 
       if (leftBoundaryPosition is int)
       {

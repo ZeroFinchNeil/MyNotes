@@ -30,15 +30,15 @@ internal sealed partial class DebugWindow : Window
 
   private static void PrintSeparator()
   {
-    Console.WriteLine();
-    Console.WriteLine("-------------------------------------------------------------------------------");
-    Console.WriteLine();
+    ConsoleHelper.WriteLine(true);
+    ConsoleHelper.WriteLine(true, "-------------------------------------------------------------------------------");
+    ConsoleHelper.WriteLine(true);
   }
 
   private static void PrintPadding(ConsoleColor paddingColor)
   {
     Console.BackgroundColor = paddingColor;
-    Console.WriteLine(" ");
+    ConsoleHelper.WriteLine(true, " ");
     Console.BackgroundColor = ConsoleColor.White;
   }
 

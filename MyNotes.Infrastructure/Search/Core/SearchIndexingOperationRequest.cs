@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using MyNotes.Common.Operations;
+using MyNotes.Debugging;
 
 namespace MyNotes.Infrastructure.Search.Core;
 
@@ -13,6 +14,7 @@ internal class SearchIndexingOperationRequest<T>(Func<T> operation, T fallbackVa
     try
     {
       var result = Operation.Invoke();
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "SearchIndexing Operation invoked", result);
       TaskCompletionSource.TrySetResult(result);
     }
     catch (OperationCanceledException)
@@ -44,6 +46,7 @@ internal class SearchIndexingOperationRequest(Action operation) : OperationReque
     try
     {
       Operation.Invoke();
+      ConsoleHelper.WriteLine(true, "SearchIndexing Operation invoked");
       TaskCompletionSource.TrySetResult();
     }
     catch (OperationCanceledException)

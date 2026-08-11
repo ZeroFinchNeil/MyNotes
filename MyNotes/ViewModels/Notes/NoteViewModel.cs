@@ -20,25 +20,25 @@ using MyNotes.Services.Updates;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteViewModel : ViewModelBase
+internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteCommandService NoteCommandService;
   private readonly NavigationCommandService NavigationCommandService;
   private readonly NoteService NoteService;
-  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> UpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
   private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateBatchCoordinator, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
     NoteService = noteService;
-    UpdateBatchCoordinator = updateBatchCoordinator;
+    NoteUpdateCoordinator = updateCoordinator;
     ViewStateSettingsService = viewStateSettingsService;
     RtfTextConverter = rtfTextConverter;
 
@@ -50,20 +50,21 @@ internal sealed partial class NoteViewModel : ViewModelBase
     SetCommands();
   }
 
-  protected override void Dispose(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
     if (Disposed)
     {
       return;
     }
 
-    if (disposing)
-    {
-      Note.PropertyChanged -= Note_PropertyChanged;
-      _ = NoteService.Modification.CommitSearchIndexAsync();
-    }
+    Note.PropertyChanged -= Note_PropertyChanged;
+    await NoteService.Modification.CommitSearchIndexAsync();
+  }
 
-    base.Dispose(disposing);
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore().ConfigureAwait(false);
+    Dispose(disposing: false);
   }
   #endregion
 
@@ -92,7 +93,7 @@ internal sealed partial class NoteViewModel : ViewModelBase
 
     if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
     {
-      UpdateBatchCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+      NoteUpdateCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
     }
 
     // 뷰에 반영(TwoWay 바인딩 시) 
@@ -113,19 +114,6 @@ internal sealed partial class NoteViewModel : ViewModelBase
         SetBackgroundImage();
         break;
     }
-  }
-
-  public async Task UpdateNoteTitle(string oldTitle)
-  {
-    UpdateNoteAppCommand appCommand = new()
-    {
-      PatchDto = new NotePatchDto()
-      {
-        Id = Note.Id,
-        Title = new(Note.Title)
-      }
-    };
-    var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
   }
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()

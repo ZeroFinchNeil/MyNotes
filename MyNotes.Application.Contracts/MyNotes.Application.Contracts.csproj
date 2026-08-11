@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
+    <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
   </ItemGroup>
   

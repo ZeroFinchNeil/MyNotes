@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Logging;
@@ -144,7 +145,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private void WriteExceptionLog(Exception ex)
   {
-    Console.WriteLine("{0}: {1}", "Exception", ex);
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "Exception", ex);
     var loggingService = Services.GetRequiredService<AppLogger>();
     loggingService.Write(ex);
   }
@@ -170,7 +171,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
       string? arg;
       while ((arg = sr.ReadLine()?.Trim()) is not null)
       {
-        Console.WriteLine("{0}: {1}", "arg", arg);
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "arg", arg);
         switch (arg)
         {
           case AppStrings.LaunchArgument_JumpList_MainWindow:

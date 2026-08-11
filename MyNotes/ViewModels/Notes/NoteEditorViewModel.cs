@@ -8,9 +8,7 @@ using Microsoft.Windows.Storage.Pickers;
 using MyNotes.Application.Contracts.Converters;
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Results;
-using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
@@ -25,20 +23,18 @@ namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
 {
-  private readonly NoteService NoteService;
-  private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateBatchCoordinator;
-  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateBatchCoordinator;
+  private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateCoordinator;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
   private readonly NoteModel Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(NoteService noteService, IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateBatchCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateBatchCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
   {
-    NoteService = noteService;
-    NoteUpdateBatchCoordinator = noteUpdateBatchCoordinator;
-    ViewStateUpdateBatchCoordinator = viewStateUpdateBatchCoordinator;
+    NoteUpdateCoordinator = noteUpdateCoordinator;
+    ViewStateUpdateCoordinator = viewStateUpdateCoordinator;
     NoteWindowService = noteWindowService;
     RtfTextConverter = rtfTextConverter;
 
@@ -64,39 +60,22 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     SetCommands();
   }
 
-  protected override void Dispose(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
     if (Disposed)
     {
       return;
     }
 
-    if (disposing)
-    {
+    Note.PropertyChanged -= Note_PropertyChanged;
 
-    }
-
-    base.Dispose(disposing);
-  }
-
-  private async ValueTask DisposeAsync(bool disposing)
-  {
-    if (Disposed)
-    {
-      return;
-    }
-
-    if (disposing)
-    {
-      Note.PropertyChanged -= Note_PropertyChanged;
-
-      _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
-    }
+    _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
+    await UpdateNoteBodyAsync();
   }
 
   public async ValueTask DisposeAsync()
   {
-    await DisposeAsync(disposing: true).ConfigureAwait(false);
+    await DisposeAsyncCore().ConfigureAwait(false);
     Dispose(disposing: false);
   }
   #endregion
@@ -118,7 +97,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
     if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var viewStatePatchDescriptor))
     {
-      ViewStateUpdateBatchCoordinator.Submit(viewStatePatchDescriptor.Key, viewStatePatchDescriptor.CreatePatch(Note), viewStatePatchDescriptor.BatchMode);
+      ViewStateUpdateCoordinator.Submit(viewStatePatchDescriptor.Key, viewStatePatchDescriptor.CreatePatch(Note), viewStatePatchDescriptor.BatchMode);
     }
 
     // 뷰에 반영(TwoWay 바인딩 시) 
@@ -127,8 +106,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
       case nameof(Note.BackgroundColor):  // * Debouncing
         SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
         ChangeSystemBackdropExtended();
-        var updateResult = await UpdateNoteAsync(nameof(NoteModel.BackgroundColor));
-        //Console.WriteLine("{0}: {1}", "UpdateResult", updateResult);
+        var updateResult = await UpdateAsync(nameof(NoteModel.BackgroundColor));
         break;
       case nameof(Note.BackdropKind):
         ChangeSystemBackdrop();
@@ -147,8 +125,8 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     }
   }
 
-  private async Task<UpdateNoteResult> UpdateNoteAsync(string propertyName) => NotePatchDescriptors.TryGetValue(propertyName, out var notePatchDescriptor)
-    ? await NoteUpdateBatchCoordinator.Submit(notePatchDescriptor.Key, notePatchDescriptor.CreatePatch(Note), notePatchDescriptor.BatchMode)
+  private async Task<UpdateNoteResult> UpdateAsync(string propertyName) => NotePatchDescriptors.TryGetValue(propertyName, out var notePatchDescriptor)
+    ? await NoteUpdateCoordinator.Submit(notePatchDescriptor.Key, notePatchDescriptor.CreatePatch(Note), notePatchDescriptor.BatchMode)
     : new UpdateNoteResult() { Status = AppUpdateStatus.Failed };
 
   #region Background
@@ -765,14 +743,12 @@ partial class NoteEditorViewModel
   public readonly int PreviewTextMaxLength = 500;
 
   private readonly DispatcherTimer _bodyEditorBatchTimer = new() { Interval = TimeSpan.FromMilliseconds(2000) };
-  private readonly SemaphoreSlim _bodyEditorBatchSemaphore = new(1, 1);
+  private Task? _updateNoteBodyTask;
 
-  private async void BodyEditorBatchTimer_Tick(object? sender, object e) => await UpdateNoteBodyAsync();
+  private void BodyEditorBatchTimer_Tick(object? sender, object e) => _updateNoteBodyTask = UpdateNoteBodyAsync();
 
   public async Task UpdateNoteBodyAsync()
   {
-    await _bodyEditorBatchSemaphore.WaitAsync();
-
     _bodyEditorBatchTimer.Stop();
 
     Document.GetText(TextGetOptions.FormatRtf, out var editorText);
@@ -781,10 +757,8 @@ partial class NoteEditorViewModel
     if (Note.Body != editorText)
     {
       Note.Body = editorText;
-      await UpdateNoteAsync(nameof(NoteModel.Body));
+      await UpdateAsync(nameof(NoteModel.Body));
     }
-
-    _bodyEditorBatchSemaphore.Release();
 
     if (_shouldChangePreview)
     {
@@ -821,9 +795,12 @@ partial class NoteEditorViewModel
       {
         UpdateSelectionFormatStates();
 
-        await _bodyEditorBatchSemaphore.WaitAsync();
+        if (_updateNoteBodyTask is not null)
+        {
+          await _updateNoteBodyTask;
+        }
+
         _bodyEditorBatchTimer.Start();
-        _bodyEditorBatchSemaphore.Release();
       }
     };
 

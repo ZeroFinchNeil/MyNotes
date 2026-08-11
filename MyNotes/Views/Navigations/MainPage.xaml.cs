@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
@@ -97,8 +98,8 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
         }
       }
 
-      Console.WriteLine("{0}: {1}", "group", title);
-      Console.WriteLine("{0}: {1}", "index", index);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "group", title);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "index", index);
     }
   }
 

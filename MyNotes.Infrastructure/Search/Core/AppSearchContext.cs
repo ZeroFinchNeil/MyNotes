@@ -16,6 +16,7 @@ using Lucene.Net.Store;
 using Lucene.Net.Util;
 
 using MyNotes.Common.Operations;
+using MyNotes.Debugging;
 using MyNotes.Infrastructure.Search.Analyzers;
 using MyNotes.Infrastructure.Search.Constants;
 using MyNotes.Infrastructure.Search.Documents.Notes;
@@ -261,7 +262,7 @@ internal sealed class AppSearchContext : IDisposable
       IndexSearcher indexSearcher = new(indexReader);
       MultiFieldQueryParser parser = new(LuceneVersion, [nameof(NoteSearchDocument.Title), nameof(NoteSearchDocument.Body)], NoteSearchAnalyzer) { DefaultOperator = Operator.AND };
       var searchQuery = parser.Parse(searchText);
-      Console.WriteLine("{0}: {1}", "SearchQuery", searchQuery);
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "SearchQuery", searchQuery);
       ScoreDoc? currentDoc = null;
 
       while (true)

@@ -76,12 +76,12 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   private void NavigationController_CurrentNavigationChanged(object sender, INavigation? args)
   {
-    //Console.WriteLine("{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
-    //Console.WriteLine("{0}: {1}", "NavigationController.NavigationBackStack.Count", NavigationController.NavigationBackStack.Count);
-    //Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+    //ConsoleHelper.WriteLine(true, "{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
+    //ConsoleHelper.WriteLine(true, "{0}: {1}", "NavigationController.NavigationBackStack.Count", NavigationController.NavigationBackStack.Count);
+    //ConsoleHelper.WriteLine(true, "{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
     SyncNavigation();
     CanNavigateBack = NavigationController.NavigationBackStack.Count > 0;
-    //Console.WriteLine("{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
+    //ConsoleHelper.WriteLine(true, "{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
   }
 
   public void NavigateTo(INavigation navigation)

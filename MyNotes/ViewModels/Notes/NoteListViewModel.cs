@@ -31,7 +31,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteListViewModel : ViewModelBase
+internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly ViewStateSettingsService ViewStateSettingsService;
@@ -64,20 +64,21 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     _ = LoadNoteViewModels();
   }
 
-  protected override void Dispose(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
     if (Disposed)
     {
       return;
     }
 
-    if (disposing)
-    {
-      UnregisterMessengers();
-      UnloadNoteViewModels();
-    }
+    UnregisterMessengers();
+    await UnloadNoteViewModels();
+  }
 
-    base.Dispose(disposing);
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore().ConfigureAwait(false);
+    Dispose(disposing: false);
   }
   #endregion
 
@@ -320,7 +321,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
   }
 
-  private void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+  private async void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
     if (e.OldItems is IList removedItems)
     {
@@ -347,7 +348,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
   }
 
-  public void UnloadNoteViewModels()
+  public async Task UnloadNoteViewModels()
   {
     if (NoteViewModels is null)
     {
@@ -512,7 +513,7 @@ partial class NoteListViewModel
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, async (recipient, message) =>
     {
       if (message.Sender is NoteModel targetNote)
       {

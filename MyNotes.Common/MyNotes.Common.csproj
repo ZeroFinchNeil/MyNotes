@@ -14,5 +14,8 @@
   <ItemGroup>
     <PackageReference Include="DotNext" Version="6.5.0" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
+  </ItemGroup>
   
 </Project>
