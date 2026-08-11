@@ -51,8 +51,11 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
   {
     if (ResolveTable.TryGetValue(noteId, out var counter))
     {
-      var viewmodel = counter.Release();
-      viewmodel.Dispose();
+      if (counter.ReleaseOrDetach(out var viewmodel))
+      {
+        viewmodel.Dispose();
+      }
+
       return true;
     }
 

@@ -50,7 +50,7 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
     }
   }
 
-  public T Release()
+  public bool ReleaseOrDetach(out T reference)
   {
     lock (_syncRoot)
     {
@@ -62,14 +62,21 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
       Debug.Assert(_instance is not null);
       Debug.Assert(_referenceCount > 0);
 
-      T reference = _instance;
-      if (--_referenceCount == 0)
+      try
       {
-        _instance = null;
-        _isDetached = true;
+        reference = _instance;
+        if (--_referenceCount == 0)
+        {
+          _instance = null;
+          _isDetached = true;
+          return true;
+        }
+        return false;
       }
-      ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Decreased", _referenceCount, typeof(T).Name);
-      return reference;
+      finally
+      {
+        ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Decreased", _referenceCount, typeof(T).Name);
+      }
     }
   }
 }

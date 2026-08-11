@@ -53,8 +53,10 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
   {
     if (ResolveTable.TryGetValue(noteModel.Id, out var counter))
     {
-      var viewmodel = counter.Release();
-      viewmodel.Dispose();
+      if (counter.ReleaseOrDetach(out var viewmodel))
+      {
+        viewmodel.Dispose();
+      }
       return true;
     }
 
