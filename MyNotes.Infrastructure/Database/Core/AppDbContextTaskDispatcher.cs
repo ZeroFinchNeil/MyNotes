@@ -20,7 +20,7 @@ internal sealed partial class AppDbContextTaskDispatcher : IDisposable
   {
     DbContextOperationRequest<T> request = new(operation, fallbackValue);
     await DbContextChannel.Writer.WriteAsync(request, cancellationToken);
-    return await request.TaskCompletionSource.Task;
+    return await request.Result;
   }
 
   private Task RunWorker() => Task.Run(async () =>

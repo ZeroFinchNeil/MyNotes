@@ -9,8 +9,11 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Application.Navigations;
+using MyNotes.Application.Navigations.Commands;
+using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
@@ -23,15 +26,16 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
-using MyNotes.Shell.Contracts.Windowing;
+using MyNotes.Templates;
 using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteListViewModel : ViewModelBase
+internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly ViewStateSettingsService ViewStateSettingsService;
+  private readonly NavigationService NavigationService;
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
   private readonly MainWindowService MainWindowService;
@@ -40,10 +44,11 @@ internal sealed partial class NoteListViewModel : ViewModelBase
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(INativeWindowing nativeWindowing, AppSettingsService appSettingsService, ViewStateSettingsService viewStateSettingsService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(AppSettingsService appSettingsService, ViewStateSettingsService viewStateSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     AppSettingsService = appSettingsService;
     ViewStateSettingsService = viewStateSettingsService;
+    NavigationService = navigationService;
     NoteService = noteService;
     NoteWindowService = noteWindowService;
     MainWindowService = mainWindowService;
@@ -59,25 +64,49 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     _ = LoadNoteViewModels();
   }
 
-  protected override void Dispose(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
     if (Disposed)
     {
       return;
     }
 
-    if (disposing)
-    {
-      UnregisterMessengers();
-      UnloadNoteViewModels();
-    }
+    UnregisterMessengers();
+    await UnloadNoteViewModels();
+  }
 
-    base.Dispose(disposing);
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore().ConfigureAwait(false);
+    Dispose(disposing: false);
   }
   #endregion
 
   [ObservableProperty]
   public partial NoteViewModelCollection NoteViewModels { get; private set; }
+
+  [ObservableProperty]
+  public partial Icon Icon { get; set; }
+
+  async partial void OnIconChanged(Icon oldValue, Icon newValue)
+  {
+    if (Navigation is NavigationUserNode navigationUserNode)
+    {
+      var updateResult = await NavigationService.Modification.UpdateNavigationAsync(new UpdateNavigationAppCommand()
+      {
+        PatchDto = new NavigationPatchDto()
+        {
+          Id = navigationUserNode.Id,
+          Icon = (int)newValue
+        }
+      });
+      if (updateResult is AppUpdateStatus.Succeeded)
+      {
+
+        navigationUserNode.Icon = newValue;
+      }
+    }
+  }
 
   private NoteSortKey _noteSortKey;
   public NoteSortKey NoteSortKey
@@ -292,7 +321,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
   }
 
-  private void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+  private async void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
   {
     if (e.OldItems is IList removedItems)
     {
@@ -319,7 +348,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase
     }
   }
 
-  public void UnloadNoteViewModels()
+  public async Task UnloadNoteViewModels()
   {
     if (NoteViewModels is null)
     {
@@ -484,7 +513,7 @@ partial class NoteListViewModel
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, async (recipient, message) =>
     {
       if (message.Sender is NoteModel targetNote)
       {

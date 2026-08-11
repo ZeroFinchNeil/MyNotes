@@ -1,21 +1,20 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 using MyNotes.Common.Operations;
+using MyNotes.Debugging;
 
 namespace MyNotes.Infrastructure.Search.Core;
 
-internal class SearchIndexingOperationRequest<T>(Func<T> operation, T fallbackValue = default!) : IOperationRequest<T>
+internal class SearchIndexingOperationRequest<T>(Func<T> operation, T fallbackValue = default!) : OperationRequest<T>(operation, fallbackValue)
 {
-  public TaskCompletionSource<T> TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
-  public Func<T> Operation { get; } = operation;
-  public T FallbackValue { get; } = fallbackValue;
-
-  public void Execute()
+  public override void Execute()
   {
     try
     {
       var result = Operation.Invoke();
+      ConsoleHelper.WriteLine(true, "{0}: {1}", "SearchIndexing Operation invoked", result);
       TaskCompletionSource.TrySetResult(result);
     }
     catch (OperationCanceledException)
@@ -34,20 +33,20 @@ internal class SearchIndexingOperationRequest<T>(Func<T> operation, T fallbackVa
       }
     }
   }
+
+  public Task<T> WaitAsync(CancellationToken cancellationToken = default) => TaskCompletionSource.Task.WaitAsync(cancellationToken);
 }
 
-internal class SearchIndexingOperationRequest(Action operation) : IOperationRequest
+internal class SearchIndexingOperationRequest(Action operation) : OperationRequest
 {
-  public TaskCompletionSource TaskCompletionSource { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
   public Action Operation { get; } = operation;
 
-  public Task Task => TaskCompletionSource.Task;
-
-  public void Execute()
+  public override void Execute()
   {
     try
     {
       Operation.Invoke();
+      ConsoleHelper.WriteLine(true, "SearchIndexing Operation invoked");
       TaskCompletionSource.TrySetResult();
     }
     catch (OperationCanceledException)
@@ -66,4 +65,6 @@ internal class SearchIndexingOperationRequest(Action operation) : IOperationRequ
       }
     }
   }
+
+  public Task WaitAsync(CancellationToken cancellationToken = default) => TaskCompletionSource.Task.WaitAsync(cancellationToken);
 }

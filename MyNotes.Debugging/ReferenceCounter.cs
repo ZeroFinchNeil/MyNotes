@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Threading;
 
+using MyNotes.Debugging;
+
 namespace MyNotes.Debugging;
 
 internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
@@ -16,13 +18,13 @@ internal sealed partial class ReferenceCounter<T> where T : class, IDisposable
   public void Increment()
   {
     Interlocked.Increment(ref _referenceCount);
-    Console.WriteLine("{0}: {1}", "Reference Count (Increased)", ReferenceCount);
+    ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Increased", ReferenceCount, typeof(T).Name);
   }
 
   public bool Decrement(bool dispose = true)
   {
     var newCount = Interlocked.Decrement(ref _referenceCount);
-    Console.WriteLine("{0}: {1}", "Reference Count (Decreased)", ReferenceCount);
+    ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Decreased", ReferenceCount, typeof(T).Name);
     if (newCount == 0)
     {
       if (dispose)

@@ -13,6 +13,7 @@ using MyNotes.Application.Notes;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
@@ -149,7 +150,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        Console.WriteLine("{0}: {1}", "InitialPageId", value);
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "InitialPageId", value);
         ViewStateSettingsService.Save(ViewStateSettingsDescriptors.InitialPageId, value);
       }
     }

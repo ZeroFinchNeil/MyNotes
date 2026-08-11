@@ -7,34 +7,40 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
-
-  private readonly Dictionary<NoteId, WeakReference<NoteEditorViewModel>> ResolvedViewModels = new();
+  private readonly Dictionary<NoteId, NoteEditorViewModelScope> ResolveTable = new();
 
   NoteEditorViewModel IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
 
-  public NoteEditorViewModel Resolve(NoteModel note, RichEditTextDocument document)
+  public async ValueTask<NoteEditorViewModel> ResolveAsync(NoteModel note, RichEditTextDocument document)
   {
     if (TryResolve(note, out var viewmodel))
     {
       return viewmodel;
     }
 
-    NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(ServiceProvider, note, document);
-    ResolvedViewModels[note.Id] = new WeakReference<NoteEditorViewModel>(newViewModel);
+    var scope = ScopeFactory.CreateAsyncScope();
+    try
+    {
+      NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document);
+      ResolveTable[note.Id] = new NoteEditorViewModelScope(newViewModel, scope);
 
-    return newViewModel;
+      return newViewModel;
+    }
+    catch
+    {
+      await scope.DisposeAsync();
+      throw;
+    }
   }
 
   public bool TryResolve(NoteModel note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
   {
-    if (ResolvedViewModels.TryGetValue(note.Id, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.Disposed)
+    if (ResolveTable.TryGetValue(note.Id, out var viewmodelScope)
+        && !viewmodelScope.ViewModel.Disposed)
     {
-      noteEditorViewModel = viewmodel;
+      noteEditorViewModel = viewmodelScope.ViewModel;
       return true;
     }
 
@@ -49,11 +55,14 @@ internal sealed class NoteEditorViewModelProvider(IServiceProvider serviceProvid
       if (!viewmodel.Disposed)
       {
         await viewmodel.DisposeAsync();
+        await ResolveTable[note.Id].Scope.DisposeAsync();
       }
 
-      return ResolvedViewModels.Remove(note.Id);
+      return ResolveTable.Remove(note.Id);
     }
 
     return false;
   }
+
+  private record NoteEditorViewModelScope(NoteEditorViewModel ViewModel, AsyncServiceScope Scope);
 }

@@ -9,6 +9,7 @@ using MyNotes.Application.Media.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Mappers;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Media.Providers;
@@ -127,7 +128,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
           }
           catch (Exception e)
           {
-            Console.WriteLine("{0}: {1}", "File Exception", e.Message);
+            ConsoleHelper.WriteLine(true, "{0}: {1}", "File Exception", e.Message);
           }
         }
       }

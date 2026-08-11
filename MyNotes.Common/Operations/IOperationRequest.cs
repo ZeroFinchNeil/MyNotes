@@ -11,9 +11,10 @@ public interface IOperationRequest
 
 public interface IOperationRequest<T> : IOperationRequest
 {
-  public TaskCompletionSource<T> TaskCompletionSource { get; }
   public Func<T> Operation { get; }
   public T FallbackValue { get; }
 
-  Task IOperationRequest.Task => TaskCompletionSource.Task;
+  public Task<T> Result { get; }
+
+  Task IOperationRequest.Task => Result;
 }

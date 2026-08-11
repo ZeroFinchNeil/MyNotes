@@ -67,12 +67,12 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
 
   public override AsyncCommand AddListCommand { get; protected set; }
   public override AsyncCommand AddGroupCommand { get; protected set; }
-  public override AsyncCommand UpdateCommand { get; protected set; }
+  public override AsyncCommand ChangeTitleAndIconCommand { get; protected set; }
   public override AsyncCommand DeleteCommand { get; protected set; }
   public override AsyncCommand<NavigationUserCompositeNode> MoveToGroupCommand { get; protected set; }
   public override AsyncCommand SetAsStartPageCommand { get; protected set; }
 
-  [MemberNotNull(nameof(AddListCommand), nameof(AddGroupCommand), nameof(UpdateCommand), nameof(DeleteCommand), nameof(MoveToGroupCommand), nameof(SetAsStartPageCommand))]
+  [MemberNotNull(nameof(AddListCommand), nameof(AddGroupCommand), nameof(ChangeTitleAndIconCommand), nameof(DeleteCommand), nameof(MoveToGroupCommand), nameof(SetAsStartPageCommand))]
   private void SetCommands()
   {
     AddListCommand = new()
@@ -85,9 +85,9 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
       ExecuteFunc = () => NavigationCommandService.AddNavigationAsync(Navigation, true)
     };
 
-    UpdateCommand = new()
+    ChangeTitleAndIconCommand = new()
     {
-      ExecuteFunc = () => NavigationCommandService.UpdateNavigationAsync(Navigation)
+      ExecuteFunc = () => NavigationCommandService.ChangeNavigationTitleAndIconAsync(Navigation)
     };
 
     DeleteCommand = new()

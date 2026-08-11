@@ -8,11 +8,14 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-    <SignAssembly>True</SignAssembly>
+    <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="DotNext" Version="6.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
   </ItemGroup>
   
 </Project>

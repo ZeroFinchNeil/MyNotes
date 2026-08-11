@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -26,7 +27,7 @@ internal sealed partial class NoteItemGridContainer : UserControl
 
   private void UserListPageNoteItemGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
-    Console.WriteLine("{0}: {1}", "Container Unloaded", true);
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "Container Unloaded", true);
 
     Bindings.StopTracking();
   }

@@ -11,9 +11,11 @@ public interface IAsyncOperationRequest
 
 public interface IAsyncOperationRequest<T> : IAsyncOperationRequest
 {
-  public TaskCompletionSource<T> TaskCompletionSource { get; }
   public Func<Task<T>> Operation { get; }
+
   public T FallbackValue { get; }
 
-  Task IAsyncOperationRequest.Task => TaskCompletionSource.Task;
+  public Task<T> Result { get; }
+
+  Task IAsyncOperationRequest.Task => Result;
 }

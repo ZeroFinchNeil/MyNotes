@@ -18,12 +18,10 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
-using MyNotes.Views.Windows;
 
 using Windows.ApplicationModel.DataTransfer;
 using Windows.Storage.Streams;
@@ -57,20 +55,20 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
     ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
 
     ViewModel = NoteViewModelProvider.Resolve(note);
-    EditorViewModel = NoteEditorViewModelProvider.Resolve(note, NotePage_TextEditorRichEditBox.Document);
+
+    // Editor BodyText
+    SetEditorText();
+
+    // Editor ImagePanel
     ImageCollectionViewModel = ImageCollectionViewModelProvider.Resolve(note.Id);
-
-    var noteService = App.Services.GetRequiredService<NoteService>();
-
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
     imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
 
-    SetEditorText();
-
     var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
     ChangeFlyoutTheme(viewStateSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, ViewStateSettingsDescriptors.AppTheme));
 
+    EditorViewModel = NoteEditorViewModelProvider.ResolveAsync(note, NotePage_TextEditorRichEditBox.Document).Result;
     RegisterMessengers();
 
     _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;
@@ -563,8 +561,6 @@ partial class NotePage
   private async void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     args.Handled = true;
-    EditorViewModel.ReflectEditorBodyChanges();
-
     await EditorViewModel.UpdateNoteBodyAsync();
     NotePage_InfoBar.Title = "Saved";
     NotePage_InfoBar.ActionButton = null;

@@ -16,26 +16,29 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Settings;
+using MyNotes.Services.Updates;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteViewModel : ViewModelBase
+internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteCommandService NoteCommandService;
   private readonly NavigationCommandService NavigationCommandService;
   private readonly NoteService NoteService;
+  private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
   private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
     NoteService = noteService;
+    NoteUpdateCoordinator = updateCoordinator;
     ViewStateSettingsService = viewStateSettingsService;
     RtfTextConverter = rtfTextConverter;
 
@@ -47,26 +50,52 @@ internal sealed partial class NoteViewModel : ViewModelBase
     SetCommands();
   }
 
-  protected override void Dispose(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
     if (Disposed)
     {
       return;
     }
 
-    if (disposing)
-    {
-      _ = NoteService.Modification.CommitSearchIndexAsync();
-    }
+    Note.PropertyChanged -= Note_PropertyChanged;
+    await NoteService.Modification.CommitSearchIndexAsync();
+  }
 
-    base.Dispose(disposing);
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore().ConfigureAwait(false);
+    Dispose(disposing: false);
   }
   #endregion
 
   #region Note 내부 속성 변경 시 데이터베이스에 반영 및 기타 로직 실행
 
+  private static readonly IReadOnlyDictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>> ViewStatePatchDescriptors = new Dictionary<string, PatchDescriptor<NoteModel, string, NoteViewStatePatchDto>>()
+  {
+    [nameof(NoteModel.ShowBackgroundImage)] = new()
+    {
+      Key = nameof(NoteModel.ShowBackgroundImage),
+      BatchMode = UpdateBatchMode.Unbatched,
+      CreatePatch = (noteModel) => new NoteViewStatePatchDto()
+      {
+        Id = noteModel.Id,
+        ShowBackgroundImage = noteModel.ShowBackgroundImage
+      }
+    },
+  };
+
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
+    if (e.PropertyName is null)
+    {
+      return;
+    }
+
+    if (ViewStatePatchDescriptors.TryGetValue(e.PropertyName, out var persistenceDescriptor))
+    {
+      NoteUpdateCoordinator.Submit(persistenceDescriptor.Key, persistenceDescriptor.CreatePatch(Note), persistenceDescriptor.BatchMode);
+    }
+
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
@@ -80,32 +109,11 @@ internal sealed partial class NoteViewModel : ViewModelBase
         {
           BackgroundImage = null;
         }
-        await NoteService.Modification.UpdateNoteViewStateAsync(new UpdateNoteViewStateAppCommand()
-        {
-          PatchDto = new NoteViewStatePatchDto()
-          {
-            Id = Note.Id,
-            ShowBackgroundImage = new(Note.ShowBackgroundImage)
-          }
-        });
         break;
       case nameof(Note.BackgroundImagePath):
         SetBackgroundImage();
         break;
     }
-  }
-
-  public async Task UpdateNoteTitle(string oldTitle)
-  {
-    UpdateNoteAppCommand appCommand = new()
-    {
-      PatchDto = new NotePatchDto()
-      {
-        Id = Note.Id,
-        Title = new(Note.Title)
-      }
-    };
-    var updateResult = await NoteService.Modification.UpdateNoteAsync(appCommand);
   }
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()

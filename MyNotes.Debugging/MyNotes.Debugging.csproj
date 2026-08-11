@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-    <SignAssembly>True</SignAssembly>
+    <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 

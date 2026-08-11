@@ -47,6 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Analyzer\MyNotes.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\MyNotes.Application\MyNotes.Application.csproj" />
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
@@ -54,7 +55,6 @@
     <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
     <ProjectReference Include="..\MyNotes.Presentation.Contracts\MyNotes.Presentation.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
-    <ProjectReference Include="..\MyNotes.Analyzer\MyNotes.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -87,6 +87,10 @@
     </Page>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\Notes\" />
+  </ItemGroup>
+
     <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
@@ -94,7 +98,7 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <ApplicationIcon>AppIcon.ico</ApplicationIcon>
-    <SignAssembly>True</SignAssembly>
+    <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>

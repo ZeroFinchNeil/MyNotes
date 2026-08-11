@@ -1,8 +1,4 @@
-﻿using DotNext;
-
-using MyNotes.Application.Contracts.Navigations.Models;
-using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Contracts.Querying.Models;
+﻿using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Services;
 using MyNotes.Common.Mappers;

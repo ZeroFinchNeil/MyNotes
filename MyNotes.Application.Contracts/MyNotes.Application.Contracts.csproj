@@ -8,7 +8,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-    <SignAssembly>True</SignAssembly>
+    <SignAssembly>False</SignAssembly>
     <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
@@ -26,6 +26,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
+    <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
   </ItemGroup>
   

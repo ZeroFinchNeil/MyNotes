@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Infrastructure.Database.Core;
 using MyNotes.Infrastructure.Logging;
@@ -13,10 +14,8 @@ using MyNotes.Models;
 using MyNotes.Models.Notes;
 using MyNotes.Services;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Settings;
-using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
 
 namespace MyNotes;
@@ -99,29 +98,25 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 #endif
   }
 
-  public bool Disposed { get; private set; }
+  private bool _disposeStarted;
 
-  private async ValueTask DisposeAsync(bool disposing)
+  private async ValueTask DisposeAsyncCore()
   {
-    if (Disposed)
+    if (Interlocked.Exchange(ref _disposeStarted, true))
     {
       return;
     }
 
-    if (disposing)
-    {
-      this.UnhandledException -= App_UnhandledException;
-      AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
-      TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
+    this.UnhandledException -= App_UnhandledException;
+    AppDomain.CurrentDomain.UnhandledException -= CurrentDomain_UnhandledException;
+    TaskScheduler.UnobservedTaskException -= TaskScheduler_UnobservedTaskException;
 
-      await Services.DisposeAsync();
-    }
-    Disposed = true;
+    await Services.DisposeAsync();
   }
 
   public async ValueTask DisposeAsync()
   {
-    await DisposeAsync(disposing: true);
+    await DisposeAsyncCore().ConfigureAwait(false);
     GC.SuppressFinalize(this);
   }
   #endregion
@@ -130,29 +125,12 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private static ServiceProvider ConfigureServices()
   {
-    ServiceCollection services = new();
-
-    // Service
-    services.AddSingleton<JumpListService>();
-    services.AddSingleton<AppLogger>();
-    services.AddSingleton<DialogService>();
-
-    services.AddWindowServices();
-    services.AddSettingsService();
-    services.AddNavigationServices();
-    services.AddNoteServices();
-    services.AddMediaServices();
-    services.AddCommandServices();
-
-    services.AddDbCoreServices();
-    services.AddSearchCoreServices();
-
-    // ViewModel
-    services.AddViewModelProviders();
-    services.AddViewModels();
-
-    return services.BuildServiceProvider();
+    ServiceCollection serviceCollection = new();
+    serviceCollection.ConfigureServices();
+    serviceCollection.MakeReadOnly();
+    return serviceCollection.BuildServiceProvider();
   }
+
   private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e) => WriteExceptionLog(e.Exception);
 
   private void CurrentDomain_UnhandledException(object sender, System.UnhandledExceptionEventArgs e)
@@ -167,7 +145,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private void WriteExceptionLog(Exception ex)
   {
-    Console.WriteLine("{0}: {1}", "Exception", ex);
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "Exception", ex);
     var loggingService = Services.GetRequiredService<AppLogger>();
     loggingService.Write(ex);
   }
@@ -180,7 +158,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
   private async Task LaunchArgumentsPipeServerStreamAsync()
   {
-    while (!Disposed)
+    while (!_disposeStarted)
     {
       using NamedPipeServerStream pipeServerStream = new(AppStrings.NamedPipe_LaunchArguments, PipeDirection.In, 1, PipeTransmissionMode.Byte, PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
 
@@ -193,7 +171,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
       string? arg;
       while ((arg = sr.ReadLine()?.Trim()) is not null)
       {
-        Console.WriteLine("{0}: {1}", "arg", arg);
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "arg", arg);
         switch (arg)
         {
           case AppStrings.LaunchArgument_JumpList_MainWindow:
