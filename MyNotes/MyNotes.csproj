@@ -11,7 +11,6 @@
     <WinUISDKReferences>false</WinUISDKReferences>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
@@ -98,7 +97,5 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <ApplicationIcon>AppIcon.ico</ApplicationIcon>
-    <SignAssembly>False</SignAssembly>
-    <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 </Project>

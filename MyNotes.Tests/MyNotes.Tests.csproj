@@ -2,14 +2,21 @@
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
-    <RootNamespace>MyNotes.Domain</RootNamespace>
+    <RootNamespace>MyNotes.Tests</RootNamespace>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
-    <Platforms>ARM64;x64;x86;AnyCPU</Platforms>
+    <Platforms>ARM64;x64;x86</Platforms>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\MyNotes.Application\MyNotes.Application.csproj" />
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
+    <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
+    <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
+    <ProjectReference Include="..\MyNotes\MyNotes.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="UnitTests\" />
   </ItemGroup>
   
 </Project>

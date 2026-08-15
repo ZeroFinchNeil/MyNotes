@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace MyNotes.Debugging;
 
-internal static class ReferenceTracker
+public static class ReferenceTracker
 {
   private static readonly ConcurrentDictionary<Type, ConcurrentBag<WeakReference>> _referenceTable = new();
 

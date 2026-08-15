@@ -4,3 +4,4 @@
 [assembly: InternalsVisibleTo("MyNotes.Application")]
 [assembly: InternalsVisibleTo("MyNotes.Application.Contracts")]
 [assembly: InternalsVisibleTo("MyNotes.Infrastructure")]
+[assembly: InternalsVisibleTo("MyNotes.Tests")]

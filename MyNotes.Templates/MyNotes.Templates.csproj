@@ -9,9 +9,6 @@
     <Platforms>ARM64;x64;x86;AnyCPU</Platforms>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunAnalyzersDuringLiveAnalysis>True</RunAnalyzersDuringLiveAnalysis>
-    <SignAssembly>False</SignAssembly>
-    <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />

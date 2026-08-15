@@ -11,8 +11,6 @@
     <Platforms>x64;AnyCPU;x86;ARM64</Platforms>
     <SignAssembly>False</SignAssembly>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <RunAnalyzersDuringLiveAnalysis>true</RunAnalyzersDuringLiveAnalysis>
-    <AssemblyOriginatorKeyFile>C:\Projects\MyNotes\Security\MyNotes.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <ItemGroup>

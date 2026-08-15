@@ -3,8 +3,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
-using DotNext.Collections.Generic;
-
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
@@ -107,11 +105,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
         {
           if (ChildNodeViewModels.FirstOrDefault(vm => vm.Navigation == oldItems[0]!) is UserNavigationViewModel oldViewModel)
           {
-            using var replacedLease = NavigationViewModelProvider.Resolve(replacedItem);
-            if (replacedLease is not null)
-            {
-              _childNodeViewModelLeases.Replace(oldViewModel, replacedLease);
-            }
+            _childNodeViewModelLeases.Replace(oldViewModel, NavigationViewModelProvider.Resolve(replacedItem));
           }
         }
         break;
