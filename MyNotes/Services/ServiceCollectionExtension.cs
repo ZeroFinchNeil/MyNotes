@@ -37,7 +37,7 @@ using MyNotes.Services.Updates.NoteViewState;
 using MyNotes.Services.Windows;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Dialogs;
+using MyNotes.ViewModels.Dialogs.Providers;
 using MyNotes.ViewModels.Media.Providers;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes.Providers;
@@ -163,7 +163,7 @@ internal static class ServiceCollectionExtension
     {
       services.AddSingleton<NavigationViewModelProvider>();
 
-      services.AddSingleton<DialogViewModelFactory>();
+      services.AddSingleton<DialogViewModelProvider>();
 
       services.AddSingleton<NoteViewModelProvider>();
       services.AddSingleton<NoteEditorViewModelProvider>();

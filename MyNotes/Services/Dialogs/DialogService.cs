@@ -4,22 +4,24 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Dialogs;
+using MyNotes.ViewModels.Dialogs.Providers;
 using MyNotes.Views.Dialogs;
 
 namespace MyNotes.Services.Dialogs;
 
 internal sealed class DialogService
 {
-  private readonly DialogViewModelFactory ViewModelFactory;
+  private readonly DialogViewModelProvider ViewModelFactory;
 
-  public DialogService(DialogViewModelFactory viewmodelFactory)
+  public DialogService(DialogViewModelProvider viewmodelFactory)
   {
     ViewModelFactory = viewmodelFactory;
   }
 
   public async Task<DialogResponse<(Icon Icon, string Title)?>> ShowEditUserNavigationDialogAsync(XamlRoot xamlRoot, NavigationUserNode targetNavigation, EditMode editMode, bool isCompositeNode)
   {
-    if (ViewModelFactory.Create(DialogType.EditUserNavigation, targetNavigation, editMode, isCompositeNode) is EditUserNavigationDialogViewModel viewmodel)
+    using var lease = ViewModelFactory.Resolve(DialogType.EditUserNavigation, targetNavigation, editMode, isCompositeNode);
+    if (lease.ViewModel is EditUserNavigationDialogViewModel viewmodel)
     {
       ContentDialog dialog = editMode switch
       {
@@ -38,7 +40,8 @@ internal sealed class DialogService
 
   public async Task<DialogResponse<DeleteMode>> ShowConfirmDeleteDialogAsync(XamlRoot xamlRoot, string targetTypeName, string targetName, DeleteMode deleteMode)
   {
-    if (ViewModelFactory.Create(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode) is ConfirmDeleteDialogViewModel viewmodel)
+    using var lease = ViewModelFactory.Resolve(DialogType.ConfirmDelete, targetTypeName, targetName, deleteMode);
+    if (lease.ViewModel is ConfirmDeleteDialogViewModel viewmodel)
     {
       var dialog = new ConfirmDeleteDialog(viewmodel) { XamlRoot = xamlRoot };
       return new() { Result = await ShowNewDialog(dialog), Data = viewmodel.DeleteMode };
@@ -48,7 +51,8 @@ internal sealed class DialogService
 
   public async Task<DialogResponse<NavigationId?>> ShowSelectNoteParentDialogAsync(XamlRoot xamlRoot)
   {
-    if (ViewModelFactory.Create(DialogType.SelectNoteParent) is SelectNoteParentDialogViewModel viewmodel)
+    using var lease = ViewModelFactory.Resolve(DialogType.SelectNoteParent);
+    if (lease.ViewModel is SelectNoteParentDialogViewModel viewmodel)
     {
       var dialog = new SelectNoteParentDialog(viewmodel) { XamlRoot = xamlRoot };
       return new() { Result = await ShowNewDialog(dialog), Data = viewmodel.SelectedNavigationViewModel?.Navigation.Id };

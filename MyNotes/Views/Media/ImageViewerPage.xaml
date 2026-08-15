@@ -2,7 +2,7 @@
 <Page x:Class="MyNotes.Views.Media.ImageViewerPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:mediavm="using:MyNotes.ViewModels.Media">
+      xmlns:vmm="using:MyNotes.ViewModels.Media">
 
   <Grid Background="{StaticResource CardBackgroundFillColorDefaultBrush}">
     <FlipView ItemsSource="{x:Bind ViewModel.ImageViewModels}"
@@ -22,7 +22,7 @@
         </Style>
       </FlipView.ItemContainerStyle>
       <FlipView.ItemTemplate>
-        <DataTemplate x:DataType="mediavm:ImageViewModel">
+        <DataTemplate x:DataType="vmm:ImageViewModel">
 
           <Image Source="{x:Bind Image, Mode=OneWay}">
             <Image.ContextFlyout>

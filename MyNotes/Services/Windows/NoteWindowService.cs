@@ -105,7 +105,7 @@ internal class NoteWindowService : IWindowService<NoteId, NoteWindow>
 
     if (activate)
     {
-      await noteWindow.LoadTask;
+      await noteWindow.InitializationTask;
       noteWindow.Activate();
     }
 

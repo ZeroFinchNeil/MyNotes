@@ -1,56 +1,120 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Lifetime;
 using MyNotes.Domain.Media;
 using MyNotes.Models.Media;
 namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<ImageDescriptor, ImageViewModel>
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
+  private readonly ConcurrentDictionary<ImageDescriptor, ImageViewModelCache> ResolveTable = new();
+  private readonly Func<ImageDescriptor, ImageViewModelCache> _cacheFactory = imageDescriptor => new
+  (
+    referenceCounterFactory: () => new ReferenceCounter<ImageViewModel>(ActivatorUtilities.CreateInstance<ImageViewModel>(serviceProvider, imageDescriptor))
+  );
 
-  private readonly Dictionary<ImageId, WeakReference<ImageViewModel>> ResolveTable = new();
-
-  public ImageViewModel Resolve(ImageDescriptor descriptor)
+  public IViewModelLease<ImageViewModel> Resolve(ImageDescriptor imageDescriptor)
   {
-    if (TryResolve(descriptor, out var viewmodel))
+    var cache = ResolveTable.GetOrAdd(imageDescriptor, _cacheFactory.Invoke);
+
+    lock (cache.SyncRoot)
     {
-      return viewmodel;
+      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      {
+        return CreateLease(imageDescriptor, viewmodel, cache);
+      }
     }
 
-    ImageViewModel newViewModel = ActivatorUtilities.CreateInstance<ImageViewModel>(ServiceProvider, descriptor);
+    ImageViewModelCache newCache = _cacheFactory(imageDescriptor);
 
-    ResolveTable[descriptor.Id] = new WeakReference<ImageViewModel>(newViewModel);
-    return newViewModel;
+    lock (newCache.SyncRoot)
+    {
+      ResolveTable.AddOrUpdate(imageDescriptor, newCache, (k, v) => v = newCache);
+      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(imageDescriptor, viewmodel, newCache) : throw new InvalidOperationException();
+    }
   }
 
-  public bool TryResolve(ImageDescriptor descriptor, [NotNullWhen(true)] out ImageViewModel? noteImageViewModel)
+  private ImageViewModelLease CreateLease(ImageDescriptor imageDescriptor, ImageViewModel viewmodel, ImageViewModelCache cache) => new ImageViewModelLease()
   {
-    if (ResolveTable.TryGetValue(descriptor.Id, out var wr)
-        && wr.TryGetTarget(out var viewmodel)
-        && !viewmodel.Disposed)
+    ViewModel = viewmodel,
+    ReleaseFunc = () => Release(imageDescriptor, cache)
+  };
+
+  public IViewModelLease<ImageViewModel>? Acquire(ImageDescriptor imageDescriptor)
+  {
+    if (ResolveTable.TryGetValue(imageDescriptor, out var cache))
     {
-      noteImageViewModel = viewmodel;
+      lock (cache.SyncRoot)
+      {
+        if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+        {
+          if (!viewmodel.Disposed)
+          {
+            return CreateLease(imageDescriptor, viewmodel, cache);
+          }
+          else
+          {
+            ResolveTable.TryRemove(imageDescriptor, out _);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  private bool Release(ImageDescriptor imageDescriptor, ImageViewModelCache cache)
+  {
+    lock (cache.SyncRoot)
+    {
+      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+      {
+        ResolveTable.TryRemove(imageDescriptor, out _);
+      }
       return true;
     }
-
-    noteImageViewModel = null;
-    return false;
   }
 
-  public bool Release(ImageDescriptor descriptor)
+  private sealed class ImageViewModelLease() : IViewModelLease<ImageViewModel>
   {
-    if (TryResolve(descriptor, out var viewmodel))
+    public required ImageViewModel ViewModel { get; init; }
+    public required Func<bool> ReleaseFunc { get; init; }
+
+    public bool Disposed { get; private set; }
+
+    private void Dispose(bool disposing)
     {
-      if (!viewmodel.Disposed)
+      if (Disposed)
       {
-        viewmodel.Dispose();
+        return;
       }
 
-      ResolveTable.Remove(descriptor.Id);
+      if (disposing)
+      {
+        if (ReleaseFunc.Invoke())
+        {
+          ViewModel.Dispose();
+        }
+      }
+
+      Disposed = true;
     }
-    return false;
+
+    public void Dispose()
+    {
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+  }
+
+  private sealed class ImageViewModelCache(Func<ReferenceCounter<ImageViewModel>> referenceCounterFactory)
+  {
+    public Lock SyncRoot { get; } = new();
+
+    private readonly Lazy<ReferenceCounter<ImageViewModel>> _referenceCounter = new(referenceCounterFactory);
+
+    public ReferenceCounter<ImageViewModel> ReferenceCounter => _referenceCounter.Value;
   }
 }

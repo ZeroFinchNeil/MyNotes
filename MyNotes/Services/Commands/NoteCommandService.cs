@@ -5,7 +5,6 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
-using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
@@ -121,44 +120,39 @@ internal sealed class NoteCommandService : ICommandService
 
     if (updateResult.Status is AppUpdateStatus.Succeeded)
     {
-      if (NavigationViewModelProvider.TryResolve(oldNavigationId, out var s)
-          && s is UserListNavigationViewModel sourceViewModel
-          && NoteListViewModelProvider.TryResolve(sourceViewModel.Navigation, out var noteListViewModel)
-          && noteListViewModel.NoteViewModels?.FirstOrDefault(vm => vm.Note == sourceNoteModel) is NoteViewModel sourceNoteViewModel)
+      using var navigationLease = NavigationViewModelProvider.Acquire(oldNavigationId);
+      if (navigationLease?.ViewModel is UserListNavigationViewModel sourceViewModel)
       {
         sourceNoteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
-        noteListViewModel.NoteViewModels.Remove(sourceNoteViewModel);
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(sourceNoteModel), AppMessageTokens.RemoveNoteFromListToken(sourceViewModel.Navigation));
       }
     }
   }
 
   public async Task CreateNewNoteAsync(NavigationId? navigationId = null)
   {
-    if (navigationId is NavigationId targetNavigationId
-      && NavigationViewModelProvider.TryResolve(targetNavigationId, out var nvm)
-      && nvm is UserListNavigationViewModel navigationViewModel)
+    if (navigationId is NavigationId targetNavigationId)
     {
-      var size = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
-      var position = MainWindowService.GetNewWindowPosition(size) ?? ViewStateSettingsDescriptors.NoteWindowPosition.PointInt32;
-
-      CreateNoteAppCommand appCommand = new()
+      using var navigationLease = NavigationViewModelProvider.Acquire(targetNavigationId);
+      if (navigationLease?.ViewModel is UserListNavigationViewModel navigationViewModel)
       {
-        NavigationId = navigationViewModel.Navigation.Id,
-        Size = size,
-        Position = position
-      };
+        var size = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
+        var position = MainWindowService.GetNewWindowPosition(size) ?? ViewStateSettingsDescriptors.NoteWindowPosition.PointInt32;
 
-      if (await NoteService.Creation.AddNoteAsync(appCommand) is NoteDto newNoteDto)
-      {
-        NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);
-        NoteViewModel newNoteViewModel = NoteViewModelProvider.Resolve(newNoteModel);
-        await NoteWindowService.OpenNoteWindow(newNoteModel);
-
-        if (NoteListViewModelProvider.TryResolve(navigationViewModel.Navigation, out var noteListViewModel)
-            && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
-            && !noteViewModels.Contains(newNoteViewModel))
+        CreateNoteAppCommand appCommand = new()
         {
-          noteViewModels.Add(newNoteViewModel);
+          NavigationId = navigationViewModel.Navigation.Id,
+          Size = size,
+          Position = position
+        };
+
+        if (await NoteService.Creation.AddNoteAsync(appCommand) is NoteDto newNoteDto)
+        {
+          NoteModel newNoteModel = NoteModelFactory.Create(newNoteDto);
+          await using var noteViewModelLease = await NoteViewModelProvider.ResolveAsync(newNoteModel);
+          NoteViewModel newNoteViewModel = noteViewModelLease.ViewModel;
+          await NoteWindowService.OpenNoteWindow(newNoteModel);
+          WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(newNoteModel), AppMessageTokens.AddNoteToListToken(navigationViewModel.Navigation));
         }
       }
     }
@@ -238,10 +232,9 @@ internal sealed class NoteCommandService : ICommandService
         {
           noteModel.IsDeleted = true;
 
-          if (NavigationController.CurrentNavigation is INavigationNoteList navigation
-              && NoteViewModelProvider.TryResolve(noteModel, out var noteViewModel))
+          if (NavigationController.CurrentNavigation is INavigationNoteList navigation)
           {
-            WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteViewModel>(noteViewModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+            WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
           }
         }
       }

@@ -48,21 +48,24 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
       var navigationController = App.Services.GetRequiredService<NavigationController>();
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
 
-      foreach (var targetVM in navigationViewModelProvider.Resolve<UserGroupNavigationViewModel>(navigationController.UserCompositeNavigations))
+      foreach(var targetNavigation in navigationController.UserCompositeNavigations.OfType<NavigationUserCompositeNode>())
       {
-        var targetNavigation = targetVM.Navigation;
-        if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
+        using var lease = navigationViewModelProvider.Acquire(targetNavigation);
+        if(lease?.ViewModel is UserGroupNavigationViewModel targetViewModel)
         {
-          continue;
-        }
+          if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
+          {
+            continue;
+          }
 
-        MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
-        {
-          Text = targetNavigation.Title,
-          Icon = new ImageIcon() { Source = targetVM.IconImage },
-          Command = ViewModel.MoveToGroupCommand,
-          CommandParameter = targetNavigation
-        });
+          MainPage_MoveToGroupMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
+          {
+            Text = targetNavigation.Title,
+            Icon = new ImageIcon() { Source = targetViewModel.IconImage },
+            Command = ViewModel.MoveToGroupCommand,
+            CommandParameter = targetNavigation
+          });
+        }
       }
 
       MainPage_MoveToGroupMenuFlyoutSubItem.IsEnabled = MainPage_MoveToGroupMenuFlyoutSubItem.Items.Count > 0;

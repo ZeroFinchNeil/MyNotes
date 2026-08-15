@@ -35,7 +35,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     NoteId = noteId;
 
-    _ = InitializeAsync();
+    InitializationTask = InitializeAsync();
     SetCommands();
   }
 
@@ -48,26 +48,33 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     if (disposing)
     {
+      _imageViewModelLeases?.Dispose();
     }
 
     base.Dispose(disposing);
   }
   #endregion
 
+  public Task InitializationTask { get; }
   private async Task InitializeAsync()
   {
     var imageDtos = await ImageService.GetImagesByNoteIdAsync(NoteId);
-    ImageViewModels = [.. imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i)))];
+    _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i))));
   }
 
-  [ObservableProperty]
-  public partial ObservableCollection<ImageViewModel> ImageViewModels { get; private set; } = [];
+  private LeasedImageViewModelCollection? _imageViewModelLeases;
+  public IReadOnlyList<ImageViewModel>? ImageViewModels => _imageViewModelLeases?.ViewModels;
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
 
   public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
   {
+    if (ImageViewModels is null)
+    {
+      return false;
+    }
+
     if (sourceIndex < 0 || sourceIndex >= ImageViewModels.Count || targetIndex < 0 || targetIndex >= ImageViewModels.Count)
     {
       return false;
@@ -78,6 +85,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       SourceId = ImageViewModels[sourceIndex].ImageDescriptor.Id,
       TargetId = ImageViewModels[targetIndex].ImageDescriptor.Id
     });
+
+    _imageViewModelLeases?.Move(sourceIndex, targetIndex);
 
     return true;
   }
@@ -120,11 +129,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
             });
 
             var imageDescriptor = ImageMapper.ToModel(imageDto);
-
-            if (ImageViewModelProvider.Resolve(imageDescriptor) is ImageViewModel imageViewModel)
-            {
-              ImageViewModels.Add(imageViewModel);
-            }
+            _imageViewModelLeases?.Add(ImageViewModelProvider.Resolve(imageDescriptor));
           }
           catch (Exception e)
           {
@@ -140,9 +145,10 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       {
         var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(NoteId);
         imageViewerWindow.Activate();
-        if (ImageViewModels.Contains(imageViewModel))
+        if (ImageViewModels is not null && ImageViewModels.Contains(imageViewModel))
         {
           SelectedImage = imageViewModel;
+
         }
       }
     };
@@ -153,7 +159,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       {
         if (await imageViewModel.DeleteImageAsync())
         {
-          ImageViewModels.Remove(imageViewModel);
+          _imageViewModelLeases?.Remove(imageViewModel);
         }
       }
     };

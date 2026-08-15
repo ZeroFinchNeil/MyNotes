@@ -1,31 +1,23 @@
-﻿using MyNotes.Models.Notes;
+﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
-namespace MyNotes.ViewModels.Notes;
+namespace MyNotes.Common.Collections;
 
-[Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NoteViewModelCollection : ObservableCollection<NoteViewModel>
+public sealed class SortedObservableCollection<T> : ObservableCollection<T>
 {
-  private List<NoteViewModel> Inner => (List<NoteViewModel>)Items;
-  public Comparer<NoteViewModel> Comparer { get; private set; }
+  private List<T> Inner => (List<T>)Items;
+  public Comparer<T> Comparer { get; private set; }
 
   #region Object Lifetime Management
-  private NoteViewModelCollection() : base(new List<NoteViewModel>())
+  private SortedObservableCollection() : base(new List<T>())
   {
-    TrackReference();
     Comparer = null!;
   }
 
-  public NoteViewModelCollection(Comparer<NoteModel> comparer) : this() => Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
-  public NoteViewModelCollection(Comparer<NoteViewModel> comparer) : this() => Comparer = comparer;
+  public SortedObservableCollection(Comparer<T> comparer) : this() => Comparer = comparer;
 
-  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<NoteModel> comparer) : this()
-  {
-    Comparer = Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note));
-    Inner.AddRange(items);
-    Inner.Sort(Comparer);
-  }
-
-  public NoteViewModelCollection(IEnumerable<NoteViewModel> items, Comparer<NoteViewModel> comparer) : this()
+  public SortedObservableCollection(IEnumerable<T> items, Comparer<T> comparer) : this()
   {
     Comparer = comparer;
     Inner.AddRange(items);
@@ -33,13 +25,13 @@ internal sealed partial class NoteViewModelCollection : ObservableCollection<Not
   }
   #endregion
 
-  protected override void InsertItem(int index, NoteViewModel item)
+  protected override void InsertItem(int index, T item)
   {
     int sortedIndex = GetSortedIndex(item);
     base.InsertItem(sortedIndex, item);
   }
 
-  protected override void SetItem(int index, NoteViewModel item)
+  protected override void SetItem(int index, T item)
   {
     var oldItem = Inner[index];
     if (Comparer.Compare(oldItem, item) == 0)
@@ -65,18 +57,13 @@ internal sealed partial class NoteViewModelCollection : ObservableCollection<Not
 
   protected override void MoveItem(int oldIndex, int newIndex) { }
 
-  private int GetSortedIndex(NoteViewModel item)
+  private int GetSortedIndex(T item)
   {
     int index = Inner.BinarySearch(item, Comparer);
     return (index >= 0) ? index : ~index;
   }
 
-  public void Rearrange(Comparer<NoteModel> comparer)
-  {
-    Rearrange(Comparer<NoteViewModel>.Create((x, y) => comparer.Compare(x.Note, y.Note)));
-  }
-
-  public void ReorderItem(NoteViewModel item)
+  public void ReorderItem(T item)
   {
     int oldIndex = Inner.IndexOf(item);
     if (oldIndex < 0)
@@ -108,10 +95,10 @@ internal sealed partial class NoteViewModelCollection : ObservableCollection<Not
   /// 지정한 Comparer로 컬렉션의 정렬 규칙 자체를 재조정하고
   /// 모든 항목을 새 Comparer 기준으로 다시 배열합니다.
   /// 이후 추가되는 항목도 이 Comparer에 따라 자동으로 정렬됩니다.
-  public void Rearrange(Comparer<NoteViewModel> comparer)
+  public void Rearrange(Comparer<T> comparer)
   {
     int count = Inner.Count;
-    NoteViewModel[] temp = new NoteViewModel[count];
+    T[] temp = new T[count];
     Inner.CopyTo(0, temp, 0, count);
 
     Clear();

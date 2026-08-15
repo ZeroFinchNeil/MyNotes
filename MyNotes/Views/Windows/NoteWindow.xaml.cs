@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Settings;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
@@ -11,7 +10,6 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
-using MyNotes.Templates.Media;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
 
@@ -24,10 +22,10 @@ internal sealed partial class NoteWindow : Window
 
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
-
-  private readonly TaskCompletionSource LoadTCS = new();
-  public Task LoadTask => LoadTCS.Task;
+  public Task InitializationTask { get; }
   public event EventHandler? Loaded;
+
+  private NotePage? _pageContent;
 
   #region Object Lifetime Management
   public NoteWindow(NoteModel note)
@@ -42,6 +40,8 @@ internal sealed partial class NoteWindow : Window
     // WindowService에 등록
     NoteId = note.Id;
     NoteWindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
+
+    InitializationTask = InitializeAsync(provider, note);
 
     // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -62,26 +62,31 @@ internal sealed partial class NoteWindow : Window
     // 창 활성화 변경 시
     this.Activated += NoteWindow_Activated;
     this.Closed += NoteWindow_Closed;
+  }
 
-    NotePage pageContent = new(note);
-    this.Content = pageContent;
-    this.SetTitleBar(pageContent.TitleBarElement);
+  private async Task InitializeAsync(NoteViewModelProvider provider, NoteModel noteModel)
+  {
+    _pageContent = new NotePage(await provider.ResolveAsync(noteModel));
+    await _pageContent.InitializeAsync();
+    this.Content = _pageContent;
+    this.SetTitleBar(_pageContent.TitleBarElement);
 
     Loaded?.Invoke(this, EventArgs.Empty);
-    LoadTCS.TrySetResult();
   }
 
   public bool IsClosed { get; set; } = false;
 
-  private void NoteWindow_Closed(object sender, WindowEventArgs args)
+  private async void NoteWindow_Closed(object sender, WindowEventArgs args)
   {
     IsClosed = true;
 
-    this.Activated -= NoteWindow_Activated;
-    this.Closed -= NoteWindow_Closed;
-
     // WindowService에서 Window 테이블에서 제거
     NoteWindowService.NoteWindowTable.Remove(NoteId);
+
+    if (_pageContent is not null)
+    {
+      await _pageContent.DisposeAsync();
+    }
   }
   #endregion
 

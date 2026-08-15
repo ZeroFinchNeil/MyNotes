@@ -203,11 +203,15 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       return;
     }
 
-    var viewmodels = NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationController.UserLeafNavigations);
-    if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
-    {
-      InitialPageId = viewmodels.Count > 0 ? viewmodels[0].Navigation.Id.Value : NavigationId.Home.Value;
-    }
+    //foreach(var navigation in NavigationController.UserLeafNavigations)
+    //{
+
+    //}
+    //var viewmodels = NavigationController.UserLeafNavigations.Select(n => NavigationViewModelProvider.Resolve(n).ViewModel).OfType(;
+    //if (viewmodels.FirstOrDefault(vm => vm.Navigation.Id.Value == InitialPageId) is null)
+    //{
+    //  InitialPageId = viewmodels.Count > 0 ? viewmodels[0].Navigation.Id.Value : NavigationId.Home.Value;
+    //}
 
     //RequestMessage<IReadOnlyList<UserListNavigationViewModel>> message = new();
     //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);
@@ -227,10 +231,10 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   {
     var previousSelection = SelectedInitialPageOption;
 
-    foreach (var viewmodel in NavigationViewModelProvider.Resolve<UserListNavigationViewModel>(NavigationController.UserLeafNavigations))
-    {
-      InitialPageOptions.Add(viewmodel);
-    }
+    //foreach (var viewmodel in NavigationViewModelProvider.Resolve(NavigationController.UserLeafNavigations).Select(lease => lease.ViewModel).OfType<UserListNavigationViewModel>())
+    //{
+    //  InitialPageOptions.Add(viewmodel);
+    //}
 
     //RequestMessage<IReadOnlyList<UserListNavigationViewModel>> message = new();
     //WeakReferenceMessenger.Default.Send(message, AppMessageTokens.GetAllListNavigationViewModelsToken);

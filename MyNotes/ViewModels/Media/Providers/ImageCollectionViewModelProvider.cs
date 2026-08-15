@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,56 +9,111 @@ namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
 {
-  private readonly ConcurrentDictionary<NoteId, ReferenceCounter<ImageCollectionViewModel>> ResolveTable = new();
-  private readonly Func<NoteId, ImageCollectionViewModel> _factory = noteId => ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, noteId);
+  private readonly ConcurrentDictionary<NoteId, ImageCollectionViewModelCache> ResolveTable = new();
+  private readonly Func<NoteId, ImageCollectionViewModelCache> _cacheFactory = noteId => new
+  (
+    referenceCounterFactory: () => new ReferenceCounter<ImageCollectionViewModel>(ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, noteId))
+  );
 
-  public ImageCollectionViewModel Resolve(NoteId noteId)
+  public IViewModelLease<ImageCollectionViewModel> Resolve(NoteId noteId)
   {
-    var counter = ResolveTable.GetOrAdd(noteId, noteId => new ReferenceCounter<ImageCollectionViewModel>(_factory(noteId)));
+    var cache = ResolveTable.GetOrAdd(noteId, _cacheFactory.Invoke);
 
-    if (counter.TryAcquire(out var viewmodel))
+    lock (cache.SyncRoot)
     {
-      return viewmodel;
+      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      {
+        return CreateLease(noteId, viewmodel, cache);
+      }
     }
 
-    var newCounter = new ReferenceCounter<ImageCollectionViewModel>(_factory(noteId));
-    ResolveTable.AddOrUpdate(noteId, newCounter, (k, v) => v = newCounter);
+    ImageCollectionViewModelCache newCache = _cacheFactory(noteId);
 
-    return newCounter.TryAcquire(out var newViewModel) ? newViewModel : throw new InvalidOperationException();
+    lock (newCache.SyncRoot)
+    {
+      ResolveTable.AddOrUpdate(noteId, newCache, (k, v) => v = newCache);
+      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(noteId, viewmodel, newCache) : throw new InvalidOperationException();
+    }
   }
 
-  public bool TryResolve(NoteId noteId, [NotNullWhen(true)] out ImageCollectionViewModel? noteViewModel)
+  private ImageCollectionViewModelLease CreateLease(NoteId noteId, ImageCollectionViewModel viewmodel, ImageCollectionViewModelCache cache) => new ImageCollectionViewModelLease()
   {
-    if (ResolveTable.TryGetValue(noteId, out var counter)
-      && counter.TryAcquire(out var viewmodel, false))
+    ViewModel = viewmodel,
+    ReleaseFunc = () => Release(noteId, cache)
+  };
+
+  public IViewModelLease<ImageCollectionViewModel>? Acquire(NoteId noteId)
+  {
+    if (ResolveTable.TryGetValue(noteId, out var cache))
     {
-      if (!viewmodel.Disposed)
+      lock (cache.SyncRoot)
       {
-        noteViewModel = viewmodel;
-        return true;
+        if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+        {
+          if (!viewmodel.Disposed)
+          {
+            return CreateLease(noteId, viewmodel, cache);
+          }
+          else
+          {
+            ResolveTable.TryRemove(noteId, out _);
+          }
+        }
       }
-      else
+    }
+    return null;
+  }
+
+  private bool Release(NoteId noteId, ImageCollectionViewModelCache cache)
+  {
+    lock (cache.SyncRoot)
+    {
+      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
       {
         ResolveTable.TryRemove(noteId, out _);
       }
-    }
-    noteViewModel = null;
-    return false;
-  }
-
-  public bool Release(NoteId noteId)
-  {
-    if (ResolveTable.TryGetValue(noteId, out var counter))
-    {
-      if (counter.ReleaseOrDetach(out var viewmodel))
-      {
-        viewmodel.Dispose(); 
-        ResolveTable.TryRemove(noteId, out _);
-      }
-
       return true;
     }
+  }
 
-    return false;
+  private sealed class ImageCollectionViewModelLease() : IViewModelLease<ImageCollectionViewModel>
+  {
+    public required ImageCollectionViewModel ViewModel { get; init; }
+    public Func<bool>? ReleaseFunc { get; init; }
+
+    public bool Disposed { get; private set; }
+
+    private void Dispose(bool disposing)
+    {
+      if (Disposed)
+      {
+        return;
+      }
+
+      if (disposing)
+      {
+        if (ReleaseFunc is null || ReleaseFunc.Invoke())
+        {
+          ViewModel.Dispose();
+        }
+      }
+
+      Disposed = true;
+    }
+
+    public void Dispose()
+    {
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+  }
+
+  private sealed class ImageCollectionViewModelCache(Func<ReferenceCounter<ImageCollectionViewModel>> referenceCounterFactory)
+  {
+    public Lock SyncRoot { get; } = new();
+
+    private readonly Lazy<ReferenceCounter<ImageCollectionViewModel>> _referenceCounter = new(referenceCounterFactory);
+
+    public ReferenceCounter<ImageCollectionViewModel> ReferenceCounter => _referenceCounter.Value;
   }
 }

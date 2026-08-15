@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
-using MyNotes.Common.Structures;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
@@ -22,16 +21,18 @@ internal sealed partial class MainViewModel : ViewModelBase
   private readonly NavigationCommandService NavigationCommandService;
 
   // Header
-  public IReadOnlyList<NavigationViewModelBase> HeaderMenuItems { get; }
+  private readonly LeasedNavigationViewModelCollection _headerMenuItemLeases;
+  public IReadOnlyList<NavigationViewModelBase> HeaderMenuItems => _headerMenuItemLeases.ViewModels;
 
   // User
-  public UserRootGroupNavigationViewModel UserRootNavigationViewModel { get; }
+  public IViewModelLease<NavigationViewModelBase> _userRootNavigationViewModelLease;
+  public UserRootGroupNavigationViewModel UserRootNavigationViewModel => (UserRootGroupNavigationViewModel)_userRootNavigationViewModelLease.ViewModel;
   //public IReadOnlyList<NavigationViewModelBase> UserNavigationViewModels => UserRootNavigationViewModel.ChildNodeViewModels;
 
   // Footer
-  public IReadOnlyList<NavigationViewModelBase> FooterMenuItems { get; }
+  private readonly LeasedNavigationViewModelCollection _footerMenuItemLeases;
+  public IReadOnlyList<NavigationViewModelBase> FooterMenuItems => _footerMenuItemLeases.ViewModels;
 
-  private readonly ObservableCollection<NavigationViewModelBase> _menuItems;
   public ReadOnlyObservableCollection<NavigationViewModelBase> MenuItems { get; }
 
   [ObservableProperty]
@@ -45,12 +46,10 @@ internal sealed partial class MainViewModel : ViewModelBase
     NavigationViewModelProvider = navigationViewModelProvider;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
 
-    HeaderMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationController.PrimaryCoreNavigations)];
-    UserRootNavigationViewModel = (UserRootGroupNavigationViewModel)NavigationViewModelProvider.Resolve(NavigationController.UserRootNavigation);
-    FooterMenuItems = [.. NavigationViewModelProvider.Resolve(NavigationController.SecondaryCoreNavigations)];
-    _menuItems = [.. HeaderMenuItems, UserRootNavigationViewModel];
-    //_menuItems = [.. HeaderMenuItems, .. UserNavigationViewModels];
-    MenuItems = new(_menuItems);
+    _headerMenuItemLeases = new(NavigationController.PrimaryCoreNavigations.Select(NavigationViewModelProvider.Resolve));
+    _userRootNavigationViewModelLease = NavigationViewModelProvider.Resolve(NavigationController.UserRootNavigation);
+    _footerMenuItemLeases = new(NavigationController.SecondaryCoreNavigations.Select(NavigationViewModelProvider.Resolve));
+    MenuItems = new([.. HeaderMenuItems, UserRootNavigationViewModel]);
 
     NavigationController.CurrentNavigationChanged += NavigationController_CurrentNavigationChanged;
 
@@ -68,6 +67,9 @@ internal sealed partial class MainViewModel : ViewModelBase
     {
       NavigationController.CurrentNavigationChanged -= NavigationController_CurrentNavigationChanged;
       NavigationController.ResetNavigation();
+      _headerMenuItemLeases.Dispose();
+      _userRootNavigationViewModelLease.Dispose();
+      _footerMenuItemLeases.Dispose();
     }
 
     base.Dispose(disposing);
@@ -120,12 +122,25 @@ internal sealed partial class MainViewModel : ViewModelBase
   {
     if (CurrentNavigationViewModel?.Navigation != NavigationController.CurrentNavigation)
     {
-      CurrentNavigationViewModel = NavigationController.CurrentNavigation switch
+      switch (NavigationController.CurrentNavigation)
       {
-        INavigationNode node when NavigationViewModelProvider.TryResolve(node, out var viewmodel) => viewmodel,
-        NavigationSearch search => NavigationViewModelProvider.Resolve(search),
-        _ => null
-      };
+        case INavigationNode node:
+          {
+            using var lease = NavigationViewModelProvider.Acquire(node);
+            if (lease is not null)
+            {
+              CurrentNavigationViewModel = lease.ViewModel;
+            }
+          }
+          break;
+        case NavigationSearch search:
+          //NavigationViewModelProvider.Resolve(search);
+          CurrentNavigationViewModel = null;
+          break;
+        default:
+          CurrentNavigationViewModel = null;
+          break;
+      }
     }
   }
 

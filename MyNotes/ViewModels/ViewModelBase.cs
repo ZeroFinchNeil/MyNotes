@@ -3,7 +3,7 @@
 namespace MyNotes.ViewModels;
 
 [Debugging.Attributes.ReferenceTracker]
-internal abstract partial class ViewModelBase : ObservableObject, IViewModel, IDisposable
+internal abstract partial class ViewModelBase : ObservableObject, IDisposable
 {
   protected ViewModelBase()
   {

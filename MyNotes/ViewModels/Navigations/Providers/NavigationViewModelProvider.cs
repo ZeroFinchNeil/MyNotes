@@ -1,7 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Concurrent;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Common.Lifetime;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 
@@ -9,74 +10,134 @@ namespace MyNotes.ViewModels.Navigations.Providers;
 
 internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigation, NavigationViewModelBase>
 {
-  private readonly IServiceProvider ServiceProvider = serviceProvider;
-
-  private readonly Dictionary<INavigation, NavigationViewModelBase> ResolvedViewModels = new();
-
-  public NavigationViewModelBase Resolve(INavigation navigation)
-  {
-    if (TryResolve(navigation, out var viewmodel))
+  private readonly ConcurrentDictionary<INavigation, NavigationViewModelCache> ResolveTable = new();
+  private readonly Func<INavigation, NavigationViewModelCache> _cacheFactory = navigation => new
+  (
+    referenceCounterFactory: () => new ReferenceCounter<NavigationViewModelBase>(navigation switch
     {
-      return viewmodel;
-    }
-    
-    NavigationViewModelBase newViewModel = navigation switch
-    {
-      NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(ServiceProvider, navigation),
-      NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootGroupNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserGroupNavigationViewModel>(ServiceProvider, navigation),
-      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserListNavigationViewModel>(ServiceProvider, navigation),
-      NavigationSearch => ActivatorUtilities.CreateInstance<SearchNavigationViewModel>(ServiceProvider, navigation),
+      NavigationCoreNode => ActivatorUtilities.CreateInstance<CoreNavigationViewModel>(serviceProvider, navigation),
+      NavigationSeparator => ActivatorUtilities.CreateInstance<SeparatorNavigationViewModel>(serviceProvider, navigation),
+      NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootGroupNavigationViewModel>(serviceProvider, navigation),
+      NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserGroupNavigationViewModel>(serviceProvider, navigation),
+      NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserListNavigationViewModel>(serviceProvider, navigation),
+      NavigationSearch => ActivatorUtilities.CreateInstance<SearchNavigationViewModel>(serviceProvider, navigation),
       _ => throw new ArgumentException("Invalid navigation")
-    };
+    })
+  );
 
-    ResolvedViewModels[navigation] = newViewModel;
-
-    return newViewModel;
-  }
-
-  public IReadOnlyList<NavigationViewModelBase> Resolve(IEnumerable<INavigation> navigations) => [.. navigations.Select(Resolve)];
-
-  public IReadOnlyList<T> Resolve<T>(IEnumerable<INavigation> navigations) where T : NavigationViewModelBase => [.. navigations.Select(Resolve).OfType<T>()];
-
-  public bool TryResolve(INavigation navigation, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
+  public IViewModelLease<NavigationViewModelBase> Resolve(INavigation navigation)
   {
-    if (ResolvedViewModels.TryGetValue(navigation, out var viewmodel)
-        && !viewmodel.Disposed)
+    var cache = ResolveTable.GetOrAdd(navigation, _cacheFactory.Invoke);
+
+    lock (cache.SyncRoot)
     {
-      viewmodelBase = viewmodel;
-      return true;
-    }
-
-    viewmodelBase = null;
-    return false;
-  }
-
-  public bool TryResolve(NavigationId navigationId, [NotNullWhen(true)] out NavigationViewModelBase? viewmodelBase)
-  {
-    if (ResolvedViewModels.Keys.FirstOrDefault(k => k is INavigationNode n && n.Id == navigationId) is INavigation navigation
-      && ResolvedViewModels.TryGetValue(navigation, out var viewmodel))
-    {
-      viewmodelBase = viewmodel;
-      return true;
-    }
-
-    viewmodelBase = null;
-    return false;
-  }
-
-  public bool Release(INavigation navigation)
-  {
-    if (TryResolve(navigation, out var viewmodel))
-    {
-      if (!viewmodel.Disposed)
+      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
       {
-        viewmodel.Dispose();
+        return CreateLease(navigation, viewmodel, cache);
+      }
+    }
+
+    NavigationViewModelCache newCache = _cacheFactory(navigation);
+
+    lock (newCache.SyncRoot)
+    {
+      ResolveTable.AddOrUpdate(navigation, newCache, (k, v) => v = newCache);
+      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(navigation, viewmodel, newCache) : throw new InvalidOperationException();
+    }
+  }
+
+  private NavigationViewModelLease CreateLease(INavigation navigation, NavigationViewModelBase viewmodel, NavigationViewModelCache cache) => new NavigationViewModelLease()
+  {
+    ViewModel = viewmodel,
+    ReleaseFunc = () => Release(navigation, cache)
+  };
+
+  public IViewModelLease<NavigationViewModelBase>? Acquire(INavigation navigation)
+  {
+    if (ResolveTable.TryGetValue(navigation, out var cache))
+    {
+      lock (cache.SyncRoot)
+      {
+        if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+        {
+          if (!viewmodel.Disposed)
+          {
+            return CreateLease(navigation, viewmodel, cache);
+          }
+          else
+          {
+            ResolveTable.TryRemove(navigation, out _);
+          }
+        }
+      }
+    }
+    return null;
+  }
+
+  public IViewModelLease<NavigationViewModelBase>? Acquire(NavigationId navigationId)
+  {
+    INavigationNode? navigation = null;
+    foreach (var key in ResolveTable.Keys.OfType<INavigationNode>().ToArray())
+    {
+      if (key.Id == navigationId)
+      {
+        navigation = key;
+        break;
+      }
+    }
+    return navigation is not null ? Acquire(navigation) : null;
+  }
+
+  private bool Release(INavigation navigation, NavigationViewModelCache cache)
+  {
+    lock (cache.SyncRoot)
+    {
+      if (cache.ReferenceCounter.ReleaseOrDetach(out var lease))
+      {
+        lease.Dispose();
+        ResolveTable.TryRemove(navigation, out _);
+      }
+      return true;
+    }
+  }
+
+  private sealed class NavigationViewModelLease() : IViewModelLease<NavigationViewModelBase>
+  {
+    public required NavigationViewModelBase ViewModel { get; init; }
+    public Func<bool>? ReleaseFunc { get; init; }
+
+    public bool Disposed { get; private set; }
+
+    private void Dispose(bool disposing)
+    {
+      if (Disposed)
+      {
+        return;
       }
 
-      ResolvedViewModels.Remove(navigation);
+      if (disposing)
+      {
+        if (ReleaseFunc is null || ReleaseFunc.Invoke())
+        {
+          ViewModel.Dispose();
+        }
+      }
+
+      Disposed = true;
     }
-    return false;
+
+    public void Dispose()
+    {
+      Dispose(disposing: true);
+      GC.SuppressFinalize(this);
+    }
+  }
+  private sealed class NavigationViewModelCache(Func<ReferenceCounter<NavigationViewModelBase>> referenceCounterFactory)
+  {
+    public Lock SyncRoot { get; } = new();
+
+    private readonly Lazy<ReferenceCounter<NavigationViewModelBase>> _referenceCounter = new(referenceCounterFactory);
+
+    public ReferenceCounter<NavigationViewModelBase> ReferenceCounter => _referenceCounter.Value;
   }
 }

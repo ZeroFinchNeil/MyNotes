@@ -4,6 +4,7 @@ using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Models.Navigations;
+using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -14,9 +15,13 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class UserListPage : Page
 {
-  private UserListNavigationViewModel? ViewModel;
+  private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
+  private UserListNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel;
+
   private NoteListViewModelProvider? NoteListViewModelProvider;
-  private NoteListViewModel? NoteListViewModel;
+
+  private IAsyncViewModelLease<NoteListViewModel>? NoteListViewModelLease;
+  private NoteListViewModel? NoteListViewModel => NoteListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public UserListPage()
@@ -30,23 +35,15 @@ internal sealed partial class UserListPage : Page
 
   // OnNavigatedTo -> Loaded, OnNavigatedFrom -> Unloaded
 
-  protected override void OnNavigatedTo(NavigationEventArgs e)
+  protected override async void OnNavigatedTo(NavigationEventArgs e)
   {
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
       NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      ViewModel = navigationViewModelProvider.Resolve(navigation) as UserListNavigationViewModel;
-      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
-      NoteListViewModel.ChangePreviewLayout(UserListPage_NotesListGridView);
-    }
-  }
-
-  protected override void OnNavigatedFrom(NavigationEventArgs e)
-  {
-    if (ViewModel?.Navigation is NavigationUserLeafNode navigation)
-    {
-      NoteListViewModelProvider?.Release(navigation);
+      ViewModelLease = navigationViewModelProvider.Resolve(navigation);
+      NoteListViewModelLease = await NoteListViewModelProvider.ResolveAsync(navigation);
+      NoteListViewModel?.ChangePreviewLayout(UserListPage_NotesListGridView);
     }
   }
 
@@ -55,13 +52,12 @@ internal sealed partial class UserListPage : Page
     Bindings.Update();
   }
 
-  private void UserListPage_Unloaded(object sender, RoutedEventArgs e)
+  private async void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
-    Bindings.StopTracking();
-    if (ViewModel is not null)
+    ViewModelLease?.Dispose();
+    if (NoteListViewModelLease is not null)
     {
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      noteListViewModelProvider.Release(ViewModel.Navigation);
+      await NoteListViewModelLease.DisposeAsync();
     }
   }
   #endregion

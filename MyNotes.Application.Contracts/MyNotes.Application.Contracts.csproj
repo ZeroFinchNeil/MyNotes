@@ -20,9 +20,9 @@
     <PRIResource Remove="Query\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotNext" Version="6.5.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.10" />
+    <PackageReference Include="DotNext" Version="6.6.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />

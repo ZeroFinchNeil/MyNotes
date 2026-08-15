@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
+using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -68,21 +69,24 @@ internal sealed partial class NoteItemGridContainer : UserControl
       var navigationController = App.Services.GetRequiredService<NavigationController>();
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
 
-      foreach (var targetVM in navigationViewModelProvider.Resolve<UserListNavigationViewModel>(navigationController.UserLeafNavigations))
+      foreach (var targetNavigation in navigationController.UserLeafNavigations.OfType<NavigationUserLeafNode>())
       {
-        var targetNavigation = targetVM.Navigation;
-        if (targetNavigation.Id == ViewModel.Note.NavigationId)
+        using var lease = navigationViewModelProvider.Acquire(targetNavigation);
+        if (lease?.ViewModel is UserListNavigationViewModel targetVM)
         {
-          continue;
-        }
+          if (targetNavigation.Id == ViewModel.Note.NavigationId)
+          {
+            continue;
+          }
 
-        NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
-        {
-          Text = targetNavigation.Title,
-          Icon = new ImageIcon() { Source = targetVM.IconImage },
-          Command = ViewModel.MoveToListCommand,
-          CommandParameter = targetNavigation.Id
-        });
+          NoteItem_MoveToListMenuFlyoutSubItem.Items.Add(new MenuFlyoutItem
+          {
+            Text = targetNavigation.Title,
+            Icon = new ImageIcon() { Source = targetVM.IconImage },
+            Command = ViewModel.MoveToListCommand,
+            CommandParameter = targetNavigation.Id
+          });
+        }
       }
 
       NoteItem_MoveToListMenuFlyoutSubItem.IsEnabled = NoteItem_MoveToListMenuFlyoutSubItem.Items.Count > 0;

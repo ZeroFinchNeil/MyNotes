@@ -3,6 +3,8 @@
 using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
+using DotNext.Collections.Generic;
+
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
@@ -19,7 +21,9 @@ namespace MyNotes.ViewModels.Navigations;
 internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 {
   public override NavigationUserCompositeNode Navigation { get; }
-  public ObservableCollection<NavigationViewModelBase> ChildNodeViewModels { get; }
+
+  private readonly LeasedNavigationViewModelCollection _childNodeViewModelLeases;
+  public IReadOnlyCollection<NavigationViewModelBase> ChildNodeViewModels => _childNodeViewModelLeases.ViewModels;
 
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
   private readonly NavigationCommandService NavigationCommandService;
@@ -35,7 +39,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
     NavigationCommandService = (NavigationCommandService)commandService;
     ViewStateSettingsService = viewStateSettingsService;
 
-    ChildNodeViewModels = [.. Navigation.ChildNodes.Select(NavigationViewModelProvider.Resolve)];
+    _childNodeViewModelLeases = new(Navigation.ChildNodes.Select(navigation => NavigationViewModelProvider.Resolve(navigation)));
 
     _ = SetIconImage();
 
@@ -58,6 +62,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
     {
       Navigation.PropertyChanged -= Navigation_PropertyChanged;
       Navigation.ChildNodes.CollectionChanged -= ChildNodes_CollectionChanged;
+      _childNodeViewModelLeases.Dispose();
       UnregisterMessenger();
     }
 
@@ -87,32 +92,37 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
       case NotifyCollectionChangedAction.Add:
         if (e.NewItems is IList { Count: > 0 } addedItems && addedItems[0] is INavigation addedItem)
         {
-          ChildNodeViewModels.Insert(e.NewStartingIndex, NavigationViewModelProvider.Resolve(addedItem));
+          _childNodeViewModelLeases.Insert(e.NewStartingIndex, NavigationViewModelProvider.Resolve(addedItem));
         }
         break;
       case NotifyCollectionChangedAction.Remove:
         if (e.OldItems is IList { Count: > 0 } removedItems)
         {
-          NavigationViewModelProvider.Release((INavigation)removedItems[0]!);
-          ChildNodeViewModels.RemoveAt(e.OldStartingIndex);
+          _childNodeViewModelLeases.RemoveAt(e.OldStartingIndex);
         }
         break;
       case NotifyCollectionChangedAction.Replace:
         if (e.OldItems is IList { Count: > 0 } oldItems && e.NewItems is IList { Count: > 0 } replacedItems && replacedItems[0] is INavigation replacedItem
           && e.NewStartingIndex < ChildNodeViewModels.Count)
         {
-          NavigationViewModelProvider.Release((INavigation)oldItems[0]!);
-          ChildNodeViewModels[e.NewStartingIndex] = NavigationViewModelProvider.Resolve(replacedItem);
+          if (ChildNodeViewModels.FirstOrDefault(vm => vm.Navigation == oldItems[0]!) is UserNavigationViewModel oldViewModel)
+          {
+            using var replacedLease = NavigationViewModelProvider.Resolve(replacedItem);
+            if (replacedLease is not null)
+            {
+              _childNodeViewModelLeases.Replace(oldViewModel, replacedLease);
+            }
+          }
         }
         break;
       case NotifyCollectionChangedAction.Move:
         if (e.NewItems is IList { Count: > 0 } && e.OldItems is IList { Count: > 0 } && e.NewStartingIndex < ChildNodeViewModels.Count && e.OldStartingIndex < ChildNodeViewModels.Count)
         {
-          ChildNodeViewModels.Move(e.OldStartingIndex, e.NewStartingIndex);
+          _childNodeViewModelLeases.Move(e.OldStartingIndex, e.NewStartingIndex);
         }
         break;
       case NotifyCollectionChangedAction.Reset:
-        ChildNodeViewModels.Clear();
+        _childNodeViewModelLeases.Clear();
         break;
     }
 

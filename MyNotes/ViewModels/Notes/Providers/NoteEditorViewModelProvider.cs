@@ -1,68 +1,61 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using Microsoft.Extensions.DependencyInjection;
 
-using Microsoft.Extensions.DependencyInjection;
-
-using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory) : IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>
 {
-  private readonly Dictionary<NoteId, NoteEditorViewModelScope> ResolveTable = new();
-
-  NoteEditorViewModel IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.Resolve(NoteModel note) => throw new NotImplementedException();
-
-  public async ValueTask<NoteEditorViewModel> ResolveAsync(NoteModel note, RichEditTextDocument document)
+  public async Task<IAsyncViewModelLease<NoteEditorViewModel>> ResolveAsync(NoteModel note, RichEditTextDocument document)
   {
-    if (TryResolve(note, out var viewmodel))
-    {
-      return viewmodel;
-    }
-
     var scope = ScopeFactory.CreateAsyncScope();
     try
     {
-      NoteEditorViewModel newViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document);
-      ResolveTable[note.Id] = new NoteEditorViewModelScope(newViewModel, scope);
-
-      return newViewModel;
+      return new NoteEditorViewModelLease()
+      {
+        ViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document),
+        ReleaseFunc = async () =>
+        {
+          await scope.DisposeAsync();
+          return true;
+        }
+      };
     }
     catch
     {
-      await scope.DisposeAsync();
       throw;
     }
-  }
-
-  public bool TryResolve(NoteModel note, [NotNullWhen(true)] out NoteEditorViewModel? noteEditorViewModel)
-  {
-    if (ResolveTable.TryGetValue(note.Id, out var viewmodelScope)
-        && !viewmodelScope.ViewModel.Disposed)
+    finally
     {
-      noteEditorViewModel = viewmodelScope.ViewModel;
-      return true;
+      await scope.DisposeAsync();
     }
-
-    noteEditorViewModel = null;
-    return false;
   }
 
-  public async Task<bool> ReleaseAsync(NoteModel note)
+  Task<IAsyncViewModelLease<NoteEditorViewModel>?> IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>.AcquireAsync(NoteModel model) => throw new InvalidOperationException();
+
+  private class NoteEditorViewModelLease : IAsyncViewModelLease<NoteEditorViewModel>
   {
-    if (TryResolve(note, out var viewmodel))
+    public required NoteEditorViewModel ViewModel { get; init; }
+    public Func<Task<bool>>? ReleaseFunc { get; init; }
+
+    private bool _disposeStarted;
+    private async ValueTask DisposeAsyncCore()
     {
-      if (!viewmodel.Disposed)
+      if (Interlocked.Exchange(ref _disposeStarted, true))
       {
-        await viewmodel.DisposeAsync();
-        await ResolveTable[note.Id].Scope.DisposeAsync();
+        return;
       }
 
-      return ResolveTable.Remove(note.Id);
+      if (ReleaseFunc is null || await ReleaseFunc.Invoke())
+      {
+        await ViewModel.DisposeAsync();
+      }
     }
 
-    return false;
+    public async ValueTask DisposeAsync()
+    {
+      await DisposeAsyncCore().ConfigureAwait(false);
+      GC.SuppressFinalize(this);
+    }
   }
-
-  private record NoteEditorViewModelScope(NoteEditorViewModel ViewModel, AsyncServiceScope Scope);
 }

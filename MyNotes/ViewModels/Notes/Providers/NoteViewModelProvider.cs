@@ -12,118 +12,133 @@ namespace MyNotes.ViewModels.Notes.Providers;
 
 internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<NoteModel, NoteViewModel>
 {
-  private readonly ConcurrentDictionary<NoteId, NoteViewModelCache> ResolveTable = new();
-  private readonly Func<NoteModel, NoteViewModelLease> _factory = (noteModel) =>
+  private readonly ConcurrentDictionary<NoteModel, NoteViewModelCache> ResolveTable = new();
+
+  private readonly Func<NoteModel, NoteViewModelCache> _cacheFactory = noteModel => new
+  (
+    referenceCounterFactory: () => new ReferenceCounter<NoteViewModel>(ActivatorUtilities.CreateInstance<NoteViewModel>(serviceProvider, noteModel)),
+    serviceScopeFactory: () => serviceProvider.CreateAsyncScope()
+  );
+
+  public async Task<IAsyncViewModelLease<NoteViewModel>> ResolveAsync(NoteModel noteModel)
   {
-    AsyncServiceScope scope = serviceProvider.CreateAsyncScope();
-    return new NoteViewModelLease(ActivatorUtilities.CreateInstance<NoteViewModel>(scope.ServiceProvider, noteModel), scope);
-  };
+    var cache = ResolveTable.GetOrAdd(noteModel, nav => _cacheFactory(nav));
 
-  public NoteViewModel Resolve(NoteModel noteModel)
-  {
-    ConsoleHelper.WriteLine(true, "{0}: {1}", "Resolve", true);
-
-    var cache = ResolveTable.GetOrAdd(noteModel.Id, noteId => new NoteViewModelCache());
-
-    cache.SemaphoreSlim.Wait();
+    await cache.Semaphore.WaitAsync();
     try
     {
-      cache.ReferenceCounter ??= new(_factory(noteModel));
-      if (cache.ReferenceCounter.TryAcquire(out var viewmodelLease))
+      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
       {
-        return viewmodelLease.ViewModel;
-      }
-
-      NoteViewModelCache newCache = new()
-      {
-        ReferenceCounter = new ReferenceCounter<NoteViewModelLease>(_factory(noteModel))
-      };
-      newCache.SemaphoreSlim.Wait();
-      try
-      {
-        ResolveTable.AddOrUpdate(noteModel.Id, newCache, (k, v) => v = newCache);
-
-        return newCache.ReferenceCounter.TryAcquire(out var newViewModelLease) ? newViewModelLease.ViewModel : throw new InvalidOperationException();
-      }
-      finally
-      {
-        newCache.SemaphoreSlim.Release();
+        return CreateLease(noteModel, viewmodel, cache);
       }
     }
     finally
     {
-      cache.SemaphoreSlim.Release();
+      cache.Semaphore.Release();
     }
+
+    NoteViewModelCache newCache = _cacheFactory(noteModel);
+
+    await newCache.Semaphore.WaitAsync();
+    try
+    {
+      ResolveTable.AddOrUpdate(noteModel, newCache, (k, v) => v = newCache);
+      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(noteModel, viewmodel, newCache) : throw new InvalidOperationException();
+    }
+    finally
+    {
+      newCache.Semaphore.Release();
+    }
+
+    throw new InvalidOperationException();
   }
 
-  public bool TryResolve(NoteModel noteModel, [NotNullWhen(true)] out NoteViewModel? noteViewModel)
+  public async Task<IAsyncViewModelLease<NoteViewModel>?> AcquireAsync(NoteModel noteModel)
   {
-    ConsoleHelper.WriteLine(true, "{0}: {1}", "TryResolve", true);
-
-    NoteId noteId = noteModel.Id;
-    if (ResolveTable.TryGetValue(noteId, out var cache)
-      && cache.ReferenceCounter is not null)
+    if (ResolveTable.TryGetValue(noteModel, out var cache))
     {
-      cache.SemaphoreSlim.Wait();
+      await cache.Semaphore.WaitAsync();
       try
       {
-        if (cache.ReferenceCounter.TryAcquire(out var viewmodelLease, false))
+        if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
         {
-          if (!viewmodelLease.ViewModel.Disposed)
+          if (!viewmodel.Disposed)
           {
-            noteViewModel = viewmodelLease.ViewModel;
-            return true;
+            return CreateLease(noteModel, viewmodel, cache);
           }
           else
           {
-            ResolveTable.TryRemove(noteId, out _);
+            ResolveTable.TryRemove(noteModel, out _);
           }
         }
       }
       finally
       {
-        cache.SemaphoreSlim.Release();
+        cache.Semaphore.Release();
       }
     }
-    noteViewModel = null;
-    return false;
+    return null;
   }
 
-  public async Task<bool> ReleaseAsync(NoteModel noteModel)
+  private NoteViewModelLease CreateLease(NoteModel noteModel, NoteViewModel viewmodel, NoteViewModelCache cache) => new NoteViewModelLease()
   {
-    ConsoleHelper.WriteLine(true, "{0}: {1}", "ReleaseAsync", true);
+    ViewModel = viewmodel,
+    ReleaseFunc = () => ReleaseAsync(noteModel, cache)
+  };
 
-    if (ResolveTable.TryGetValue(noteModel.Id, out var cache))
+  private async Task<bool> ReleaseAsync(NoteModel noteModel, NoteViewModelCache cache)
+  {
+    await cache.Semaphore.WaitAsync();
+    try
     {
-      if (cache.ReferenceCounter is null)
+      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
       {
-        return false;
+        await cache.ServiceScope.DisposeAsync();
+        ResolveTable.TryRemove(noteModel, out _);
       }
-      await cache.SemaphoreSlim.WaitAsync();
-      try
-      {
-        if (cache.ReferenceCounter.ReleaseOrDetach(out var viewmodelLease))
-        {
-          ResolveTable.TryRemove(noteModel.Id, out _);
-          await viewmodelLease.ViewModel.DisposeAsync();
-          await viewmodelLease.ServiceScope.DisposeAsync();
-        }
-        return true;
-      }
-      finally
-      {
-        cache.SemaphoreSlim.Release();
-      }
+      return true;
     }
-    return false;
+    finally
+    {
+      cache.Semaphore.Release();
+    }
   }
 
-  private sealed record NoteViewModelLease(NoteViewModel ViewModel, AsyncServiceScope ServiceScope);
-
-  private class NoteViewModelCache
+  private class NoteViewModelLease : IAsyncViewModelLease<NoteViewModel>
   {
-    public SemaphoreSlim SemaphoreSlim { get; } = new(1, 1);
+    public required NoteViewModel ViewModel { get; init; }
+    public required Func<Task<bool>>? ReleaseFunc { get; init; }
 
-    public ReferenceCounter<NoteViewModelLease>? ReferenceCounter { get; set; }
+    private bool _disposeStarted;
+    private async ValueTask DisposeAsyncCore()
+    {
+      if (Interlocked.Exchange(ref _disposeStarted, true))
+      {
+        return;
+      }
+
+      if (ReleaseFunc is null || await ReleaseFunc.Invoke())
+      {
+        await ViewModel.DisposeAsync();
+      }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+      await DisposeAsyncCore().ConfigureAwait(false);
+      GC.SuppressFinalize(this);
+    }
+  }
+
+  private sealed class NoteViewModelCache(Func<ReferenceCounter<NoteViewModel>> referenceCounterFactory, Func<AsyncServiceScope> serviceScopeFactory)
+  {
+    public SemaphoreSlim Semaphore { get; } = new(1, 1);
+
+    private readonly Lazy<ReferenceCounter<NoteViewModel>> _referenceCounter = new(referenceCounterFactory);
+    private readonly Lazy<AsyncServiceScope> _serviceScope = new(serviceScopeFactory);
+
+    public ReferenceCounter<NoteViewModel> ReferenceCounter => _referenceCounter.Value;
+
+    public AsyncServiceScope ServiceScope => _serviceScope.Value;
   }
 }

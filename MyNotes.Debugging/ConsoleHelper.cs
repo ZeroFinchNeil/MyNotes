@@ -12,7 +12,7 @@ public static class ConsoleHelper
     }
   }
 
-  public static void WriteLine(bool visible, string format, params ReadOnlySpan<object> objects)
+  public static void WriteLine(bool visible, string format, params ReadOnlySpan<object?> objects)
   {
     if (visible)
     {

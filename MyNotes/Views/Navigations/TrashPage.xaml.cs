@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Models.Navigations;
+using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
@@ -12,9 +13,10 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 public sealed partial class TrashPage : Page
 {
-  private CoreNavigationViewModel? ViewModel;
-  private NoteListViewModelProvider? NoteListViewModelProvider;
-  private NoteListViewModel? NoteListViewModel;
+  private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
+  private CoreNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel;
+  private IAsyncViewModelLease<NoteListViewModel>? NoteListViewModelLease;
+  private NoteListViewModel? NoteListViewModel => NoteListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public TrashPage()
@@ -25,26 +27,29 @@ public sealed partial class TrashPage : Page
     this.Unloaded += TrashPage_Unloaded;
   }
 
-  protected override void OnNavigatedTo(NavigationEventArgs e)
+  protected override async void OnNavigatedTo(NavigationEventArgs e)
   {
     if (e.Parameter is NavigationTrash navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      NoteListViewModel = NoteListViewModelProvider.Resolve(navigation);
-      if (navigationViewModelProvider.TryResolve(navigation, out var viewmodel)
-          && viewmodel is CoreNavigationViewModel trashViewModel)
+      ViewModelLease = navigationViewModelProvider.Acquire(navigation);
+
+      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      NoteListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
+
+      if (ViewModel is not null && NoteListViewModel is not null)
       {
-        ViewModel = trashViewModel;
         NoteListViewModel.ChangePreviewLayout(TrashPage_NotesListGridView);
       }
     }
   }
-  protected override void OnNavigatedFrom(NavigationEventArgs e)
+
+  protected override async void OnNavigatedFrom(NavigationEventArgs e)
   {
-    if (ViewModel?.Navigation is NavigationTrash navigation)
+    ViewModelLease?.Dispose();
+    if (NoteListViewModelLease is not null)
     {
-      NoteListViewModelProvider?.Release(navigation);
+      await NoteListViewModelLease.DisposeAsync();
     }
   }
 

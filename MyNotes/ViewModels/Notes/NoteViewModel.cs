@@ -50,9 +50,10 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     SetCommands();
   }
 
+  private bool _disposeStarted;
   private async ValueTask DisposeAsyncCore()
   {
-    if (Disposed)
+    if (Interlocked.Exchange(ref _disposeStarted, true))
     {
       return;
     }

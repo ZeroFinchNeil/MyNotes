@@ -6,7 +6,7 @@
       xmlns:sys="using:System"
       xmlns:local="using:MyNotes.Views.Notes"
       xmlns:navigations="using:MyNotes.Models.Navigations"
-      xmlns:mediavm="using:MyNotes.ViewModels.Media"
+      xmlns:mmv="using:MyNotes.ViewModels.Media"
       xmlns:helpers="using:MyNotes.Common.Helpers"
       xmlns:commands="using:MyNotes.Common.Commands"
       xmlns:converters="using:MyNotes.Common.Converters"
@@ -334,7 +334,7 @@
         </GridView.ItemContainerStyle>
 
         <GridView.ItemTemplate>
-          <DataTemplate x:DataType="mediavm:ImageViewModel">
+          <DataTemplate x:DataType="mmv:ImageViewModel">
             <Image x:Name="NotePage_UserImage"
                    Source="{x:Bind Image}"
                    DataContext="{x:Bind}"

@@ -18,7 +18,7 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
   private int _referenceCount;
   public int ReferenceCount => Volatile.Read(ref _referenceCount);
 
-  public bool TryAcquire([NotNullWhen(true)] out T? reference, bool increaseCount = true)
+  public bool TryAcquire([NotNullWhen(true)] out T? reference)
   {
     lock (_syncRoot)
     {
@@ -39,11 +39,8 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
         throw new InvalidOperationException("Instance is null");
       }
 
-      if (increaseCount)
-      {
-        _referenceCount++;
-        ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Increased", _referenceCount, typeof(T).Name);
-      }
+      _referenceCount++;
+      ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Increased", _referenceCount, typeof(T).Name);
 
       reference = _instance;
       return true;

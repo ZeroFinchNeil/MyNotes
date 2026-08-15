@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
@@ -18,8 +17,10 @@ using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Settings;
+using MyNotes.ViewModels;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
+using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 
@@ -30,52 +31,82 @@ using Windows.System;
 namespace MyNotes.Views.Notes;
 
 [Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NotePage : Page, ITitleBarProvider
+internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposable
 {
-  private readonly NoteViewModelProvider NoteViewModelProvider;
-  private readonly NoteEditorViewModelProvider NoteEditorViewModelProvider;
-  private readonly ImageCollectionViewModelProvider ImageCollectionViewModelProvider;
-
-  private readonly NoteViewModel ViewModel;
-  private readonly NoteEditorViewModel EditorViewModel;
-  private readonly ImageCollectionViewModel ImageCollectionViewModel;
+  private readonly IAsyncViewModelLease<NoteViewModel> ViewModelLease;
+  private NoteViewModel ViewModel => ViewModelLease.ViewModel;
+  private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
+  private NoteEditorViewModel? EditorViewModel => EditorViewModelLease?.ViewModel;
+  private readonly IViewModelLease<ImageCollectionViewModel> ImageCollectionViewModelLease;
+  private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease.ViewModel;
 
   public UIElement TitleBarElement { get; }
 
   #region Object Lifetime Management
-  internal NotePage(NoteModel note)
+  internal NotePage(IAsyncViewModelLease<NoteViewModel> viewmodelLease)
   {
     TrackReference();
     InitializeComponent();
 
+    ViewModelLease = viewmodelLease;
     TitleBarElement = NotePage_TitleBarGrid;
 
-    NoteViewModelProvider = App.Services.GetRequiredService<NoteViewModelProvider>();
-    NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
-    ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-
-    ViewModel = NoteViewModelProvider.Resolve(note);
+    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
 
     // Editor BodyText
     SetEditorText();
 
     // Editor ImagePanel
-    ImageCollectionViewModel = ImageCollectionViewModelProvider.Resolve(note.Id);
+    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(ViewModel.Note.Id);
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
-    ViewModel.IsImagePanelVisible = imageViewModels.Count > 0;
-    imageViewModels.CollectionChanged += ImageViewModels_CollectionChanged;
+    ViewModel.IsImagePanelVisible = imageViewModels?.Count > 0;
 
     var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
     ChangeFlyoutTheme(viewStateSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, ViewStateSettingsDescriptors.AppTheme));
 
-    EditorViewModel = NoteEditorViewModelProvider.ResolveAsync(note, NotePage_TextEditorRichEditBox.Document).Result;
     RegisterMessengers();
 
     _infoBarDismissTimer.Tick += InfoBarDismissTimer_Tick;
 
     this.SizeChanged += NotePage_SizeChanged;
     this.Loaded += NotePage_Loaded;
-    this.Unloaded += NotePage_Unloaded;
+  }
+
+  public async Task InitializeAsync()
+  {
+    var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(ViewModel.Note, NotePage_TextEditorRichEditBox.Document);
+  }
+
+  private bool _disposeStarted;
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore();
+    GC.SuppressFinalize(this);
+  }
+
+  public async ValueTask DisposeAsyncCore()
+  {
+    if (Interlocked.Exchange(ref _disposeStarted, true))
+    {
+      return;
+    }
+
+    Bindings.StopTracking();
+    UnregisterMessengers();
+
+    // 에디터 내용을 저장 후 정리
+    if (EditorViewModelLease is not null)
+    {
+      await EditorViewModelLease.DisposeAsync();
+    }
+
+    ImageCollectionViewModelLease.Dispose();
+
+    // 빈 노트 완전 삭제 로직
+    await ViewModel.DeleteNotePermanentlyWhenEmpty();
+
+    await ViewModelLease.DisposeAsync();
   }
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)
@@ -120,14 +151,8 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
         case ContentDialogResult.Primary:
           if (dialogResponse.Data is NavigationId parentId && parentId != NavigationId.Empty)
           {
-            ViewModel.Note.NavigationId = parentId;
-
-            if (noteListViewModelProvider.TryResolve(parentId, out var noteListViewModel)
-              && noteListViewModel.NoteViewModels is NoteViewModelCollection noteViewModels
-              && !noteViewModels.Contains(ViewModel))
-            {
-              noteViewModels.Add(ViewModel);
-            }
+            //ViewModel.Note.NavigationId = parentId;
+            //WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(ViewModel.Note), AppMessageTokens.AddNoteToListToken(navigationViewModel.Navigation));
           }
           break;
         case ContentDialogResult.None:
@@ -136,26 +161,8 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
       }
     }
 
-    EditorViewModel.ChangeSystemBackdrop();
-    EditorViewModel.ChangeSystemBackdropExtended();
-  }
-
-  private async void NotePage_Unloaded(object sender, RoutedEventArgs e)
-  {
-    // 에디터 내용을 저장 후 정리
-    await NoteEditorViewModelProvider.ReleaseAsync(ViewModel.Note);
-
-    ImageCollectionViewModel.ImageViewModels.CollectionChanged -= ImageViewModels_CollectionChanged;
-
-    ImageCollectionViewModelProvider.Release(ViewModel.Note.Id);
-
-    // 빈 노트 완전 삭제 로직
-    await ViewModel.DeleteNotePermanentlyWhenEmpty();
-
-    NoteViewModelProvider.ReleaseAsync(ViewModel.Note);
-
-    UnregisterMessengers();
-    Bindings.StopTracking();
+    EditorViewModel?.ChangeSystemBackdrop();
+    EditorViewModel?.ChangeSystemBackdropExtended();
   }
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -210,12 +217,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider
 
     if (_sourceIndex != dropIndex && _sourceIndex >= 0 && _sourceIndex < count && dropIndex >= 0 && dropIndex < count)
     {
-      if (await ImageCollectionViewModel.MoveImageAsync(_sourceIndex, dropIndex))
-      {
-        var sourceItem = ImageCollectionViewModel.ImageViewModels[_sourceIndex];
-        ImageCollectionViewModel.ImageViewModels.RemoveAt(_sourceIndex);
-        ImageCollectionViewModel.ImageViewModels.Insert(dropIndex, sourceItem);
-      }
+      await ImageCollectionViewModel.MoveImageAsync(_sourceIndex, dropIndex);
     }
 
     _sourceIndex = -1;
@@ -411,11 +413,6 @@ partial class NotePage
     {
       NotePage_ImagesGridView.Focus(FocusState.Programmatic);
     }
-  }
-
-  private void ImageViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-  {
-    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels.Count > 0;
   }
 
   private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)

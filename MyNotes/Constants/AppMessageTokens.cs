@@ -28,6 +28,9 @@ internal static class AppMessageTokens
   public static MessageToken<INavigationNoteList> IsNoteInListToken(INavigationNoteList navigation) => new() { Key = "IsNoteInListToken", Context = navigation };
 
   // NotePage -> NoteListViewModel
+  public static MessageToken<INavigationNoteList> AddNoteToListToken(INavigationNoteList navigation) => new() { Key = "AddNoteToListToken", Context = navigation };
+
+  // NotePage -> NoteListViewModel
   public static MessageToken<INavigationNoteList> RemoveNoteFromListToken(INavigationNoteList navigation) => new() { Key = "RemoveNoteFromListToken", Context = navigation };
 
   public static MessageToken NavigationCollectionChangedToken { get; } = new() { Key = "NavigationCollectionChanged" };
