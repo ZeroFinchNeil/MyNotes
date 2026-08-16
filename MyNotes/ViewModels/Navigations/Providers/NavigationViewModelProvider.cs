@@ -94,7 +94,6 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     {
       if (cache.ReferenceCounter.ReleaseOrDetach(out var lease))
       {
-        lease.Dispose();
         ResolveTable.TryRemove(navigation, out _);
         return true;
       }
