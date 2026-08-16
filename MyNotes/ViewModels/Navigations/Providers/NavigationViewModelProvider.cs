@@ -10,8 +10,8 @@ namespace MyNotes.ViewModels.Navigations.Providers;
 
 internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigation, NavigationViewModelBase>
 {
-  private readonly ConcurrentDictionary<INavigation, NavigationViewModelCache> ResolveTable = new();
-  private readonly Func<INavigation, NavigationViewModelCache> _cacheFactory = navigation => new
+  private readonly ConcurrentDictionary<INavigation, ViewModelCache> ResolveTable = new();
+  private readonly Func<INavigation, ViewModelCache> _cacheFactory = navigation => new
   (
     referenceCounterFactory: () => new ReferenceCounter<NavigationViewModelBase>(navigation switch
     {
@@ -37,7 +37,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       }
     }
 
-    NavigationViewModelCache newCache = _cacheFactory(navigation);
+    ViewModelCache newCache = _cacheFactory(navigation);
 
     lock (newCache.SyncRoot)
     {
@@ -46,7 +46,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     }
   }
 
-  private NavigationViewModelLease CreateLease(INavigation navigation, NavigationViewModelBase viewmodel, NavigationViewModelCache cache) => new NavigationViewModelLease()
+  private ViewModelLease CreateLease(INavigation navigation, NavigationViewModelBase viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = () => Release(navigation, cache)
@@ -88,7 +88,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     return navigation is not null ? Acquire(navigation) : null;
   }
 
-  private bool Release(INavigation navigation, NavigationViewModelCache cache)
+  private bool Release(INavigation navigation, ViewModelCache cache)
   {
     lock (cache.SyncRoot)
     {
@@ -102,10 +102,10 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     }
   }
 
-  private sealed class NavigationViewModelLease() : IViewModelLease<NavigationViewModelBase>
+  private sealed class ViewModelLease() : IViewModelLease<NavigationViewModelBase>
   {
     public required NavigationViewModelBase ViewModel { get; init; }
-    public Func<bool>? ReleaseFunc { get; init; }
+    public required Func<bool> ReleaseFunc { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -118,7 +118,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
       if (disposing)
       {
-        if (ReleaseFunc is null || ReleaseFunc.Invoke())
+        if (ReleaseFunc.Invoke())
         {
           ViewModel.Dispose();
         }
@@ -133,7 +133,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       GC.SuppressFinalize(this);
     }
   }
-  private sealed class NavigationViewModelCache(Func<ReferenceCounter<NavigationViewModelBase>> referenceCounterFactory)
+  private sealed class ViewModelCache(Func<ReferenceCounter<NavigationViewModelBase>> referenceCounterFactory)
   {
     public Lock SyncRoot { get; } = new();
 

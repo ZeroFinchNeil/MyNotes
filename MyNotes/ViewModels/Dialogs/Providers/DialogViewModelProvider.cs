@@ -14,15 +14,14 @@ internal sealed class DialogViewModelProvider(IServiceProvider serviceProvider) 
       _ => throw new ArgumentException("Invalid DialogType")
     };
 
-    return new DialogViewModelLease() { ViewModel = viewmodel };
+    return new ViewModelLease() { ViewModel = viewmodel };
   }
 
   IViewModelLease<DialogViewModelBase>? IViewModelProvider<DialogType, ReadOnlySpan<object>, DialogViewModelBase>.Acquire(DialogType dialogType) => throw new NotImplementedException();
 
-  private sealed class DialogViewModelLease() : IViewModelLease<DialogViewModelBase>
+  private sealed class ViewModelLease() : IViewModelLease<DialogViewModelBase>
   {
     public required DialogViewModelBase ViewModel { get; init; }
-    public Func<bool>? ReleaseFunc { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -35,10 +34,7 @@ internal sealed class DialogViewModelProvider(IServiceProvider serviceProvider) 
 
       if (disposing)
       {
-        if (ReleaseFunc is null || ReleaseFunc.Invoke())
-        {
-          ViewModel.Dispose();
-        }
+        ViewModel.Dispose();
       }
 
       Disposed = true;

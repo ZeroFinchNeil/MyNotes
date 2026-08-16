@@ -10,13 +10,17 @@ namespace MyNotes.ViewModels.Notes.Providers;
 
 internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<INavigationNoteList, NoteListViewModel>
 {
-  private readonly ConcurrentDictionary<INavigationNoteList, NoteListViewModelCache> ResolveTable = new();
+  private readonly ConcurrentDictionary<INavigationNoteList, ViewModelCache> ResolveTable = new();
 
-  private readonly Func<INavigationNoteList, NoteListViewModelCache> _cacheFactory = navigation => new
-  (
-    referenceCounterFactory: () => new ReferenceCounter<NoteListViewModel>(ActivatorUtilities.CreateInstance<NoteListViewModel>(serviceProvider, navigation)),
-    serviceScopeFactory: () => serviceProvider.CreateAsyncScope()
-  );
+  private readonly Func<INavigationNoteList, ViewModelCache> _cacheFactory = navigation => new ViewModelCache(() =>
+  {
+    AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
+    return new ReferenceCountedViewModelScope
+    (
+      referenceCounter: new ReferenceCounter<NoteListViewModel>(ActivatorUtilities.CreateInstance<NoteListViewModel>(serviceScope.ServiceProvider, navigation)),
+      serviceScope: serviceScope
+    );
+  });
 
   public async Task<IAsyncViewModelLease<NoteListViewModel>> ResolveAsync(INavigationNoteList navigation)
   {
@@ -35,7 +39,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
       cache.Semaphore.Release();
     }
 
-    NoteListViewModelCache newCache = _cacheFactory(navigation);
+    ViewModelCache newCache = _cacheFactory(navigation);
 
     await newCache.Semaphore.WaitAsync();
     try
@@ -91,13 +95,13 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     return null;
   }
 
-  private NoteListViewModelLease CreateLease(INavigationNoteList navigation, NoteListViewModel viewmodel, NoteListViewModelCache cache) => new NoteListViewModelLease()
+  private ViewModelLease CreateLease(INavigationNoteList navigation, NoteListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = () => ReleaseAsync(navigation, cache)
   };
 
-  private async Task<bool> ReleaseAsync(INavigationNoteList navigation, NoteListViewModelCache cache)
+  private async Task<bool> ReleaseAsync(INavigationNoteList navigation, ViewModelCache cache)
   {
     await cache.Semaphore.WaitAsync();
     try
@@ -116,10 +120,10 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private class NoteListViewModelLease : IAsyncViewModelLease<NoteListViewModel>
+  private class ViewModelLease : IAsyncViewModelLease<NoteListViewModel>
   {
     public required NoteListViewModel ViewModel { get; init; }
-    public required Func<Task<bool>>? ReleaseFunc { get; init; }
+    public required Func<Task<bool>> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
     private async ValueTask DisposeAsyncCore()
@@ -129,7 +133,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
         return;
       }
 
-      if (ReleaseFunc is null || await ReleaseFunc.Invoke())
+      if (await ReleaseFunc.Invoke())
       {
         await ViewModel.DisposeAsync();
       }
@@ -142,15 +146,21 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private sealed class NoteListViewModelCache(Func<ReferenceCounter<NoteListViewModel>> referenceCounterFactory, Func<AsyncServiceScope> serviceScopeFactory)
+  private sealed class ViewModelCache(Func<ReferenceCountedViewModelScope> countedScopeFactory)
   {
     public SemaphoreSlim Semaphore { get; } = new(1, 1);
 
-    private readonly Lazy<ReferenceCounter<NoteListViewModel>> _referenceCounter = new(referenceCounterFactory);
-    private readonly Lazy<AsyncServiceScope> _serviceScope = new(serviceScopeFactory);
+    private readonly Lazy<ReferenceCountedViewModelScope> _countedScope = new(countedScopeFactory);
 
-    public ReferenceCounter<NoteListViewModel> ReferenceCounter => _referenceCounter.Value;
+    public ReferenceCounter<NoteListViewModel> ReferenceCounter => _countedScope.Value.ReferenceCounter;
 
-    public AsyncServiceScope ServiceScope => _serviceScope.Value;
+    public AsyncServiceScope ServiceScope => _countedScope.Value.ServiceScope;
+  }
+
+  public sealed class ReferenceCountedViewModelScope(ReferenceCounter<NoteListViewModel> referenceCounter, AsyncServiceScope serviceScope)
+  {
+    public ReferenceCounter<NoteListViewModel> ReferenceCounter { get; } = referenceCounter;
+
+    public AsyncServiceScope ServiceScope { get; } = serviceScope;
   }
 }

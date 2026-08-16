@@ -10,8 +10,8 @@ namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<ImageDescriptor, ImageViewModel>
 {
-  private readonly ConcurrentDictionary<ImageDescriptor, ImageViewModelCache> ResolveTable = new();
-  private readonly Func<ImageDescriptor, ImageViewModelCache> _cacheFactory = imageDescriptor => new
+  private readonly ConcurrentDictionary<ImageDescriptor, ViewModelCache> ResolveTable = new();
+  private readonly Func<ImageDescriptor, ViewModelCache> _cacheFactory = imageDescriptor => new
   (
     referenceCounterFactory: () => new ReferenceCounter<ImageViewModel>(ActivatorUtilities.CreateInstance<ImageViewModel>(serviceProvider, imageDescriptor))
   );
@@ -28,7 +28,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
       }
     }
 
-    ImageViewModelCache newCache = _cacheFactory(imageDescriptor);
+    ViewModelCache newCache = _cacheFactory(imageDescriptor);
 
     lock (newCache.SyncRoot)
     {
@@ -37,7 +37,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     }
   }
 
-  private ImageViewModelLease CreateLease(ImageDescriptor imageDescriptor, ImageViewModel viewmodel, ImageViewModelCache cache) => new ImageViewModelLease()
+  private ViewModelLease CreateLease(ImageDescriptor imageDescriptor, ImageViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = () => Release(imageDescriptor, cache)
@@ -65,7 +65,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     return null;
   }
 
-  private bool Release(ImageDescriptor imageDescriptor, ImageViewModelCache cache)
+  private bool Release(ImageDescriptor imageDescriptor, ViewModelCache cache)
   {
     lock (cache.SyncRoot)
     {
@@ -78,7 +78,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     }
   }
 
-  private sealed class ImageViewModelLease() : IViewModelLease<ImageViewModel>
+  private sealed class ViewModelLease() : IViewModelLease<ImageViewModel>
   {
     public required ImageViewModel ViewModel { get; init; }
     public required Func<bool> ReleaseFunc { get; init; }
@@ -110,7 +110,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     }
   }
 
-  private sealed class ImageViewModelCache(Func<ReferenceCounter<ImageViewModel>> referenceCounterFactory)
+  private sealed class ViewModelCache(Func<ReferenceCounter<ImageViewModel>> referenceCounterFactory)
   {
     public Lock SyncRoot { get; } = new();
 

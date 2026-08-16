@@ -9,8 +9,8 @@ namespace MyNotes.ViewModels.Media.Providers;
 
 internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
 {
-  private readonly ConcurrentDictionary<NoteId, ImageCollectionViewModelCache> ResolveTable = new();
-  private readonly Func<NoteId, ImageCollectionViewModelCache> _cacheFactory = noteId => new
+  private readonly ConcurrentDictionary<NoteId, ViewModelCache> ResolveTable = new();
+  private readonly Func<NoteId, ViewModelCache> _cacheFactory = noteId => new
   (
     referenceCounterFactory: () => new ReferenceCounter<ImageCollectionViewModel>(ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, noteId))
   );
@@ -27,7 +27,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
       }
     }
 
-    ImageCollectionViewModelCache newCache = _cacheFactory(noteId);
+    ViewModelCache newCache = _cacheFactory(noteId);
 
     lock (newCache.SyncRoot)
     {
@@ -36,7 +36,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private ImageCollectionViewModelLease CreateLease(NoteId noteId, ImageCollectionViewModel viewmodel, ImageCollectionViewModelCache cache) => new ImageCollectionViewModelLease()
+  private ViewModelLease CreateLease(NoteId noteId, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = () => Release(noteId, cache)
@@ -64,7 +64,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     return null;
   }
 
-  private bool Release(NoteId noteId, ImageCollectionViewModelCache cache)
+  private bool Release(NoteId noteId, ViewModelCache cache)
   {
     lock (cache.SyncRoot)
     {
@@ -77,10 +77,10 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private sealed class ImageCollectionViewModelLease() : IViewModelLease<ImageCollectionViewModel>
+  private sealed class ViewModelLease() : IViewModelLease<ImageCollectionViewModel>
   {
     public required ImageCollectionViewModel ViewModel { get; init; }
-    public Func<bool>? ReleaseFunc { get; init; }
+    public required Func<bool> ReleaseFunc { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -93,7 +93,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
 
       if (disposing)
       {
-        if (ReleaseFunc is null || ReleaseFunc.Invoke())
+        if (ReleaseFunc.Invoke())
         {
           ViewModel.Dispose();
         }
@@ -109,7 +109,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private sealed class ImageCollectionViewModelCache(Func<ReferenceCounter<ImageCollectionViewModel>> referenceCounterFactory)
+  private sealed class ViewModelCache(Func<ReferenceCounter<ImageCollectionViewModel>> referenceCounterFactory)
   {
     public Lock SyncRoot { get; } = new();
 

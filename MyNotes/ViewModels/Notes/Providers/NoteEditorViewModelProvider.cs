@@ -13,7 +13,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
     var scope = ScopeFactory.CreateAsyncScope();
     try
     {
-      return new NoteEditorViewModelLease()
+      return new ViewModelLease()
       {
         ViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document),
         ReleaseFunc = async () =>
@@ -32,10 +32,10 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
 
   Task<IAsyncViewModelLease<NoteEditorViewModel>?> IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>.AcquireAsync(NoteModel model) => throw new InvalidOperationException();
 
-  private class NoteEditorViewModelLease : IAsyncViewModelLease<NoteEditorViewModel>
+  private class ViewModelLease : IAsyncViewModelLease<NoteEditorViewModel>
   {
     public required NoteEditorViewModel ViewModel { get; init; }
-    public Func<Task<bool>>? ReleaseFunc { get; init; }
+    public required Func<Task<bool>> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
     private async ValueTask DisposeAsyncCore()
@@ -45,7 +45,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
         return;
       }
 
-      if (ReleaseFunc is null || await ReleaseFunc.Invoke())
+      if (await ReleaseFunc.Invoke())
       {
         await ViewModel.DisposeAsync();
       }
