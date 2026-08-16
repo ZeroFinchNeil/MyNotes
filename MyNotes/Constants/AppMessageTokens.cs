@@ -20,6 +20,7 @@ internal static class AppMessageTokens
 
   // NoteViewModel -> NoteListViewModel
   public static MessageToken ChangeNoteIsBookmarkedStateToken { get; } = new() { Key = "ChangeNoteIsBookmarkedState" };
+  public static MessageToken NoteTitleChangedToken { get; } = new() { Key = "NoteTitleChangedToken" };
 
   // NoteEditorViewModel -> NoteViewModel
   public static MessageToken<NoteId> UpdateNotePreviewToken(NoteId id) => new() { Key = "UpdateNotePreview", Context = id };

@@ -70,22 +70,15 @@ public sealed class SortedObservableCollection<T> : ObservableCollection<T>
     {
       return;
     }
+    Inner.RemoveAt(oldIndex);
 
     int newIndex = GetSortedIndex(item);
-    if (oldIndex == newIndex)
-    {
-      return;
-    }
-
-    if (oldIndex < newIndex)
-    {
-      newIndex--;
-    }
-
-    Inner.RemoveAt(oldIndex);
     Inner.Insert(newIndex, item);
 
-    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+    if (oldIndex != newIndex)
+    {
+      OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Move, item, newIndex, oldIndex));
+    }
   }
 
   /// Reconfigures (replaces) the current sorting comparer for the collection,

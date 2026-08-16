@@ -171,7 +171,7 @@
                           Width="240"
                           SnapsTo="Ticks"
                           IsThumbToolTipEnabled="False"
-                          Value="{x:Bind NoteListViewModel.ToDouble(NoteListViewModel.PreviewTileRatio), Mode=TwoWay, BindBack=PreviewTileRatioBindBack}" />
+                          Value="{x:Bind ViewModel.Navigation.PreviewTileRatio, Mode=TwoWay, Converter={StaticResource PreviewTileRatioToSliderValueConverter}}" />
                   <Grid Grid.Row="1">
                     <TextBlock Text="Short"
                                HorizontalAlignment="Left"

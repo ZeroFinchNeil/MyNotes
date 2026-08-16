@@ -18,6 +18,7 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
@@ -148,13 +149,32 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         }
         break;
     }
-
-    //foreach (var noteViewModel in NoteViewModels)
-    //{
-    //  noteViewModel.PropertyChanged += Note_PropertyChanged_WhileActive;
-    //}
-    //NoteViewModels.CollectionChanged += NoteViewModels_CollectionChanged;
   }
+
+  //private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  //{
+  //  if (sender is NoteModel note)
+  //  {
+  //    await using var lease = await NoteViewModelProvider.AcquireAsync(note);
+  //    if (lease is null)
+  //    {
+  //      return;
+  //    }
+  //    var viewmodel = lease.ViewModel;
+  //    switch (e.PropertyName)
+  //    {
+  //      case nameof(NoteModel.Title):
+  //        _noteViewModelLeases.ReorderItem(viewmodel);
+  //        break;
+  //      case nameof(NoteModel.IsBookmarked):
+  //        if (!note.IsBookmarked && Navigation is NavigationBookmarks)
+  //        {
+  //          await _noteViewModelLeases.RemoveAsync(viewmodel);
+  //        }
+  //        break;
+  //    }
+  //  }
+  //}
 
   [ObservableProperty]
   public partial Icon Icon { get; set; }
@@ -331,51 +351,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
       _previewTileRatio = AppSettingsService.Load<PreviewTileRatio, int>(PreviewTileRatioSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileRatio);
     }
   }
-
-  //private async void NoteViewModels_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-  //{
-  //  if (e.OldItems is IList removedItems)
-  //  {
-  //    foreach (var removed in removedItems.OfType<NoteViewModel>())
-  //    {
-  //      removed.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-  //      await NoteViewModelProvider.ReleaseAsync(removed.Note);
-  //    }
-  //  }
-  //  if (e.NewItems is IList addedItems)
-  //  {
-  //    foreach (var added in addedItems.OfType<NoteViewModel>())
-  //    {
-  //      added.Note.PropertyChanged -= Note_PropertyChanged_WhileActive;
-  //      added.Note.PropertyChanged += Note_PropertyChanged_WhileActive;
-  //    }
-  //  }
   //}
-
-  private async void Note_PropertyChanged_WhileActive(object? sender, PropertyChangedEventArgs e)
-  {
-    if (sender is NoteModel note)
-    {
-      await using var lease = await NoteViewModelProvider.AcquireAsync(note);
-      if (lease is null)
-      {
-        return;
-      }
-      var viewmodel = lease.ViewModel;
-      switch (e.PropertyName)
-      {
-        case nameof(NoteModel.Title):
-          _noteViewModelLeases.ReorderItem(viewmodel);
-          break;
-        case nameof(NoteModel.IsBookmarked):
-          if (!note.IsBookmarked && Navigation is NavigationBookmarks)
-          {
-            await _noteViewModelLeases.RemoveAsync(viewmodel);
-          }
-          break;
-      }
-    }
-  }
 
   public static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
   {
@@ -504,6 +480,15 @@ partial class NoteListViewModel
 
   private void RegisterMessengers()
   {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken>(this, AppMessageTokens.NoteTitleChangedToken, (recipient, message) =>
+    {
+      if (NoteViewModels.FirstOrDefault(vm => vm.Note == message.Value) is NoteViewModel viewmodel
+      && NoteSortKey is NoteSortKey.Title)
+      {
+        _noteViewModelLeases.ReorderItem(viewmodel);
+      }
+    });
+
     WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, async (recipient, message) =>
     {
       if (message.Sender is NoteModel targetNote)

@@ -58,6 +58,7 @@
                                  xmlns:enums="using:MyNotes.Application.Contracts.Navigations.Models"
                                  EnumType="enums:PreviewTileRatio" />
   <converters:PreviewTileSizeToSliderValueConverter x:Key="PreviewTileSizeToSliderValueConverter" />
+  <converters:PreviewTileRatioToSliderValueConverter x:Key="PreviewTileRatioToSliderValueConverter" />
 
   <converters:EnumToIntConverter x:Key="StretchToIntConverter"
                                  xmlns:muxm="using:Microsoft.UI.Xaml.Media"

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Models;
+using MyNotes.Common.Layout;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
@@ -47,13 +48,33 @@ internal sealed partial class UserListPage : Page
     }
   }
 
+  private void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (ViewModel is null)
+    {
+      return;
+    }
+    switch (e.PropertyName)
+    {
+      case nameof(NavigationUserLeafNode.PreviewLayoutType):
+      case nameof(NavigationUserLeafNode.PreviewTileSize):
+      case nameof(NavigationUserLeafNode.PreviewTileRatio):
+        ChangePreviewLayout(ViewModel.Navigation.PreviewLayoutType, ViewModel.Navigation.PreviewTileSize, ViewModel.Navigation.PreviewTileRatio);
+        break;
+    }
+  }
+
   private async void UserListPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
+
+    ViewModel?.Navigation.PropertyChanged += Navigation_PropertyChanged;
   }
 
   private async void UserListPage_Unloaded(object sender, RoutedEventArgs e)
   {
+    ViewModel?.Navigation.PropertyChanged -= Navigation_PropertyChanged;
+
     ViewModelLease?.Dispose();
     if (NoteListViewModelLease is not null)
     {
@@ -64,7 +85,6 @@ internal sealed partial class UserListPage : Page
 
   private void UserListPage_MoreButtonMenuFlyout_Opening(object sender, object e)
   {
-
   }
 
   private void UserListPage_NoteSortKeyRadioMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
@@ -93,25 +113,41 @@ internal sealed partial class UserListPage : Page
     }
   }
 
-  // TwoWay Binding BindBack
-  private PreviewLayoutType PreviewLayoutTypeBindBack(int index)
-    => NoteListViewModel?.ToPreviewLayoutType(index, (type) =>
+  public void ChangePreviewLayout(PreviewLayoutType previewLayoutType, PreviewTileSize previewTileSize, PreviewTileRatio previewTileRatio)
+  {
+    var gridView = UserListPage_NotesListGridView;
+    if (previewLayoutType is PreviewLayoutType.Grid)
     {
-      NoteListViewModel.PreviewLayoutType = type;
-      NoteListViewModel.ChangePreviewLayout(UserListPage_NotesListGridView);
-    }) ?? PreviewLayoutType.Grid;
+      gridView.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutGrid"] as ItemsPanelTemplate;
+      gridView.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutGrid"] as DataTemplate;
+    }
+    else if (previewLayoutType is PreviewLayoutType.List)
+    {
+      gridView.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutList"] as ItemsPanelTemplate;
+      gridView.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutList"] as DataTemplate;
+    }
+    ChangePreviewTile(previewLayoutType, previewTileSize, previewTileRatio);
+  }
 
-  private PreviewTileSize PreviewTileSizeBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileSize(index, (size) =>
+  public void ChangePreviewTile(PreviewLayoutType previewLayoutType, PreviewTileSize previewTileSize, PreviewTileRatio previewTileRatio)
   {
-    NoteListViewModel.PreviewTileSize = size;
-    NoteListViewModel.ChangePreviewTile(UserListPage_NotesListGridView);
-  }) ?? PreviewTileSize.Medium;
+    var size = PreviewTileSizeMetrics.GetWidth(previewTileSize);
+    var ratio = PreviewTileRatioMetrics.GetRatio(previewTileRatio);
 
-  private PreviewTileRatio PreviewTileRatioBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileRatio(index, (ratio) =>
-  {
-    NoteListViewModel.PreviewTileRatio = ratio;
-    NoteListViewModel.ChangePreviewTile(UserListPage_NotesListGridView);
-  }) ?? PreviewTileRatio.Square;
+    if (App.Instance.Resources["NoteList_GridViewItemContainerStyle"] is Style defaultStyle)
+    {
+      Style style = new() { TargetType = typeof(GridViewItem), BasedOn = defaultStyle };
+      if (previewLayoutType is PreviewLayoutType.Grid)
+      {
+        style.Setters.Add(new Setter() { Property = FrameworkElement.WidthProperty, Value = size });
+        style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * ratio });
+      }
+      else if (previewLayoutType is PreviewLayoutType.List)
+      {
+        style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * 0.625 });
+      }
+
+      UserListPage_NotesListGridView.ItemContainerStyle = style;
+    }
+  }
 }

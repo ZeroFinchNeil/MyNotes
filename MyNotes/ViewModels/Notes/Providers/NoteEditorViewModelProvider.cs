@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Debugging;
+
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
@@ -23,11 +25,8 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
     }
     catch
     {
-      throw;
-    }
-    finally
-    {
       await scope.DisposeAsync();
+      throw;
     }
   }
 

@@ -1,4 +1,5 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Debugging;
 
 namespace MyNotes.Services.Updates.NoteViewState;
 
@@ -57,6 +58,7 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
 
   private async ValueTask DisposeAsyncCore()
   {
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "NoteViewStateUpdateBatcher Disposed", true);
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
       return;

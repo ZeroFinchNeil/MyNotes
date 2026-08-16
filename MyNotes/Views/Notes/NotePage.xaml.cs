@@ -13,14 +13,12 @@ using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
-using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
-using MyNotes.ViewModels.Navigations.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 

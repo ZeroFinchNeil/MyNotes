@@ -184,6 +184,7 @@ internal sealed class NoteCommandService : ICommandService
     if (updateResult.Status is AppUpdateStatus.Succeeded)
     {
       noteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
+      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.NoteTitleChangedToken);
       await JumpListService.EditJumpListItemAsync(NoteMappers.ToDomain(noteModel));
       return;
     }
