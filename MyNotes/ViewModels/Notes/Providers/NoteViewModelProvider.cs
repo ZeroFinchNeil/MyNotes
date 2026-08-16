@@ -97,12 +97,12 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
         ResolveTable.TryRemove(noteModel, out _);
         return true;
       }
+      return false;
     }
     finally
     {
       cache.Semaphore.Release();
     }
-    return false;
   }
 
   private class NoteViewModelLease : IAsyncViewModelLease<NoteViewModel>

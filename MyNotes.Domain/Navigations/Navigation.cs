@@ -63,12 +63,21 @@ internal sealed class Navigation
     ArgumentOutOfRangeException.ThrowIfNegative(icon, nameof(icon));
   }
 
-  private bool SetProperty<T>(ref T f, T v)
+  private bool SetProperty<T>(ref T propertyField, T newValue)
   {
-    if (f is null || !f.Equals(v))
+    if (propertyField is null || !propertyField.Equals(newValue))
     {
-      f = v;
-      ValidateProperties();
+      T oldValue = propertyField;
+      propertyField = newValue;
+      try
+      {
+        ValidateProperties();
+      }
+      catch
+      {
+        propertyField = oldValue;
+        throw;
+      }
       return true;
     }
 

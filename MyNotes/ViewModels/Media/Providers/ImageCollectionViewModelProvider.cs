@@ -71,8 +71,9 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
       if (cache.ReferenceCounter.ReleaseOrDetach(out _))
       {
         ResolveTable.TryRemove(noteId, out _);
+        return true;
       }
-      return true;
+      return false;
     }
   }
 

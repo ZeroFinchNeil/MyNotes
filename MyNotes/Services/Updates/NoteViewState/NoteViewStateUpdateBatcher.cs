@@ -1,5 +1,4 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Debugging;
 
 namespace MyNotes.Services.Updates.NoteViewState;
 
@@ -23,6 +22,8 @@ internal sealed class NoteViewStateUpdateBatcher : IUpdateBatcher<string, NoteVi
   public void AddOrMerge(string key, NoteViewStatePatchDto patch)
   {
     ArgumentException.ThrowIfNullOrWhiteSpace(key, nameof(key));
+    ObjectDisposedException.ThrowIf(Volatile.Read(ref _disposeStarted), this);
+
     lock (_pendingLock)
     {
       if (!HasPendingPatch)

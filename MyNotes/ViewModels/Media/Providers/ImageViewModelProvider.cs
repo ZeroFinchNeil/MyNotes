@@ -72,8 +72,9 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
       if (cache.ReferenceCounter.ReleaseOrDetach(out _))
       {
         ResolveTable.TryRemove(imageDescriptor, out _);
+        return true;
       }
-      return true;
+      return false;
     }
   }
 

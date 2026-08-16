@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 
@@ -24,15 +23,9 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
     {
       if (_isDetached)
       {
-        Debug.Assert(_instance is null);
-        Debug.Assert(_referenceCount == 0);
-
         reference = null;
         return false;
       }
-
-      Debug.Assert(_instance is not null);
-      Debug.Assert(_referenceCount >= 0);
 
       if (_instance is null)
       {
@@ -56,8 +49,15 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
         throw new InvalidOperationException("Detached");
       }
 
-      Debug.Assert(_instance is not null);
-      Debug.Assert(_referenceCount > 0);
+      if (_instance is null)
+      {
+        throw new InvalidOperationException("Instance is null");
+      }
+
+      if (_referenceCount <= 0)
+      {
+        throw new InvalidOperationException("획득하지 않은 참조를 해제할 수 없습니다.");
+      }
 
       try
       {

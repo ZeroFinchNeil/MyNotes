@@ -6,3 +6,4 @@
 [assembly: InternalsVisibleTo("MyNotes.Domain")]
 [assembly: InternalsVisibleTo("MyNotes.Infrastructure")]
 [assembly: InternalsVisibleTo("MyNotes.Shared")]
+[assembly: InternalsVisibleTo("MyNotes.Tests")]
