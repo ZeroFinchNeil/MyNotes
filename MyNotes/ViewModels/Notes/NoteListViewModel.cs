@@ -20,7 +20,6 @@ using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Notes.Providers;
@@ -30,7 +29,6 @@ namespace MyNotes.ViewModels.Notes;
 internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly AppSettingsService AppSettingsService;
-  private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly NavigationService NavigationService;
   private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
@@ -40,10 +38,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(AppSettingsService appSettingsService, ViewStateSettingsService viewStateSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NoteListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
   {
     AppSettingsService = appSettingsService;
-    ViewStateSettingsService = viewStateSettingsService;
     NavigationService = navigationService;
     NoteService = noteService;
     NoteWindowService = noteWindowService;
@@ -164,7 +161,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
       });
       if (updateResult is AppUpdateStatus.Succeeded)
       {
-
         navigationUserNode.Icon = newValue;
       }
     }
@@ -428,8 +424,8 @@ partial class NoteListViewModel
       {
         if (Navigation is NavigationUserLeafNode leaf)
         {
-          var size = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
-          var position = MainWindowService.GetNewWindowPosition(size) ?? ViewStateSettingsDescriptors.NoteWindowPosition.PointInt32;
+          var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.NoteSize);
+          var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.NoteWindowPosition.PointInt32;
           CreateNoteAppCommand createNoteAppCommand = new()
           {
             NavigationId = leaf.Id,

@@ -3,9 +3,9 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 
-namespace MyNotes.Services.Settings;
+namespace MyNotes.Constants;
 
-internal static class ViewStateSettingsDescriptors
+internal static class AppSettingsDescriptors
 {
   // Settings - Appearance
   public static SettingsDescriptor<ElementTheme> AppTheme { get; } = new()

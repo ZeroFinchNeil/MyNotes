@@ -5,6 +5,7 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
@@ -17,7 +18,6 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Navigations;
@@ -39,7 +39,7 @@ internal sealed class NoteCommandService : ICommandService
   private readonly MainWindowService MainWindowService;
   private readonly DialogService DialogService;
   private readonly JumpListService JumpListService;
-  private readonly ViewStateSettingsService ViewStateSettingsService;
+  private readonly AppSettingsService AppSettingsService;
 
   public NoteCommandService(
     NoteService noteService,
@@ -52,7 +52,7 @@ internal sealed class NoteCommandService : ICommandService
     MainWindowService mainWindowService,
     DialogService dialogService,
     JumpListService jumpListService,
-    ViewStateSettingsService viewStateSettingsService
+    AppSettingsService appSettingsService
     )
   {
     NoteService = noteService;
@@ -65,7 +65,7 @@ internal sealed class NoteCommandService : ICommandService
     MainWindowService = mainWindowService;
     DialogService = dialogService;
     JumpListService = jumpListService;
-    ViewStateSettingsService = viewStateSettingsService;
+    AppSettingsService = appSettingsService;
   }
 
   public Task OpenNoteWindowAsync(NoteModel noteModel) => NoteWindowService.OpenNoteWindow(noteModel);
@@ -136,8 +136,8 @@ internal sealed class NoteCommandService : ICommandService
       using var navigationLease = NavigationViewModelProvider.Acquire(targetNavigationId);
       if (navigationLease?.ViewModel is UserListNavigationViewModel navigationViewModel)
       {
-        var size = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
-        var position = MainWindowService.GetNewWindowPosition(size) ?? ViewStateSettingsDescriptors.NoteWindowPosition.PointInt32;
+        var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.NoteSize);
+        var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.NoteWindowPosition.PointInt32;
 
         CreateNoteAppCommand appCommand = new()
         {

@@ -8,7 +8,6 @@ using MyNotes.Constants;
 using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Notes.Providers;
 using MyNotes.Views.Notes;
@@ -50,7 +49,7 @@ internal sealed partial class NoteWindow : Window
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정
-    var minimumWindowSize = ViewStateSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
+    var minimumWindowSize = AppSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
     var presenter = AppWindow.Presenter as OverlappedPresenter;
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);

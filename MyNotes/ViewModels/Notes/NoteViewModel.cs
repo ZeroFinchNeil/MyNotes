@@ -10,12 +10,13 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Updates;
 
 namespace MyNotes.ViewModels.Notes;
@@ -26,20 +27,20 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   private readonly NavigationCommandService NavigationCommandService;
   private readonly NoteService NoteService;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
-  private readonly ViewStateSettingsService ViewStateSettingsService;
+  private readonly AppSettingsService AppSettingsService;
   private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, ViewStateSettingsService viewStateSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
     NoteService = noteService;
     NoteUpdateCoordinator = updateCoordinator;
-    ViewStateSettingsService = viewStateSettingsService;
+    AppSettingsService = appSettingsService;
     RtfTextConverter = rtfTextConverter;
 
     Note = note;
@@ -120,7 +121,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()
   {
-    if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
+    if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
     {
       DeleteNoteAppCommand appCommand = new()
       {

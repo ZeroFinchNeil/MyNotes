@@ -93,7 +93,7 @@ internal static class NavigationSettingsDescriptors
 
   public static SettingsDescriptor<PreviewTileRatio> TrashPagePreviewTileRatio { get; } = new()
   {
-    Key = "PreviewTileRatio",
+    Key = "TrashPagePreviewTileRatio",
     DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
   };
 }

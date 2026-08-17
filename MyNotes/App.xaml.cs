@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
@@ -15,7 +16,6 @@ using MyNotes.Models.Notes;
 using MyNotes.Services;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Windows;
 
 namespace MyNotes;
@@ -60,7 +60,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
 
     _ = LaunchArgumentsPipeServerStreamAsync();
     var mainWindowService = Services.GetRequiredService<MainWindowService>();
-    var ViewStateSettingsService = Services.GetRequiredService<ViewStateSettingsService>();
+    var appSettingsService = Services.GetRequiredService<AppSettingsService>();
 
     AppActivationArguments appActivationArguments = AppInstance.GetCurrent().GetActivatedEventArgs();
     switch (appActivationArguments.Kind)
@@ -71,7 +71,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
         var noteModelFactory = Services.GetRequiredService<IModelFactory<NoteDto, NoteModel>>();
         var notes = (await noteService.Retrieval.GetOpenNotesAsync()).Select(noteModelFactory.Create).ToList();
 
-        if (notes.Count == 0 || ViewStateSettingsService.Load(ViewStateSettingsDescriptors.IsMainWindowOpen))
+        if (notes.Count == 0 || appSettingsService.Load(AppSettingsDescriptors.IsMainWindowOpen))
         {
           var mainWindow = await mainWindowService.GetOrCreate();
           mainWindow.Activate();

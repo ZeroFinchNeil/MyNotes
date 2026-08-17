@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Common.Messages;
@@ -15,7 +16,6 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Settings;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
@@ -59,8 +59,8 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     var imageViewModels = ImageCollectionViewModel.ImageViewModels;
     ViewModel.IsImagePanelVisible = imageViewModels?.Count > 0;
 
-    var viewStateSettingsService = App.Services.GetRequiredService<ViewStateSettingsService>();
-    ChangeFlyoutTheme(viewStateSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, ViewStateSettingsDescriptors.AppTheme));
+    var appSettingsService = App.Services.GetRequiredService<AppSettingsService>();
+    ChangeFlyoutTheme(appSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme));
 
     RegisterMessengers();
 

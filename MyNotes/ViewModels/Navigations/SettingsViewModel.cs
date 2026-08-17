@@ -18,7 +18,6 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Strings;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -31,47 +30,45 @@ namespace MyNotes.ViewModels;
 internal sealed partial class SettingsViewModel : ViewModelBase
 {
   private readonly AppSettingsService AppSettingsService;
-  private readonly ViewStateSettingsService ViewStateSettingsService;
   private readonly NavigationController NavigationController;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
 
   #region Object Lifetime Management
-  public SettingsViewModel(AppSettingsService appSettingsService, ViewStateSettingsService viewStateSettingsService, NavigationController navigationController, NavigationViewModelProvider navigationViewModelProvider)
+  public SettingsViewModel(AppSettingsService appSettingsService, NavigationController navigationController, NavigationViewModelProvider navigationViewModelProvider)
   {
     AppSettingsService = appSettingsService;
-    ViewStateSettingsService = viewStateSettingsService;
     NavigationController = navigationController;
     NavigationViewModelProvider = navigationViewModelProvider;
 
     // Appearance
-    AppTheme = ViewStateSettingsService.Load<ElementTheme, int>(ElementThemeSettingsCodec.Decode, ViewStateSettingsDescriptors.AppTheme);
-    AppLanguage = ViewStateSettingsService.Load<AppLanguage, string>(AppLanguageSettingsCodec.Decode, ViewStateSettingsDescriptors.AppLanguage);
+    AppTheme = AppSettingsService.Load<ElementTheme, int>(ElementThemeSettingsCodec.Decode, AppSettingsDescriptors.AppTheme);
+    AppLanguage = AppSettingsService.Load<AppLanguage, string>(AppLanguageSettingsCodec.Decode, AppSettingsDescriptors.AppLanguage);
 
     // General
-    InitialPageId = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.InitialPageId);
-    InitialPageType = ViewStateSettingsService.Load<InitialPageType, int>(InitialPageTypeSettingsCodec.Decode, ViewStateSettingsDescriptors.InitialPageType);
+    InitialPageId = AppSettingsService.Load(AppSettingsDescriptors.InitialPageId);
+    InitialPageType = AppSettingsService.Load<InitialPageType, int>(InitialPageTypeSettingsCodec.Decode, AppSettingsDescriptors.InitialPageType);
 
-    ConfirmBeforeDeleting = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.ConfirmBeforeDeleting);
+    ConfirmBeforeDeleting = AppSettingsService.Load(AppSettingsDescriptors.ConfirmBeforeDeleting);
 
     // Note
     NoteBackground = AppSettingsService.Load(NoteSettingsDescriptors.NoteBackground).ToColor();
     NoteBackdrop = AppSettingsService.Load<BackdropKind, int>(BackdropKindSettingsCodec.Decode, NoteSettingsDescriptors.NoteBackdropKind);
 
-    var noteSize = ViewStateSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), ViewStateSettingsDescriptors.NoteSize);
+    var noteSize = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.NoteSize);
     NoteWidth = noteSize.Width;
     NoteHeight = noteSize.Height;
 
-    DeleteEmptyNote = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.DeleteEmptyNote);
+    DeleteEmptyNote = AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote);
 
     // List and Group
-    ShowNoteCount = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.ShowNoteCount);
-    _groupIconBadge = ViewStateSettingsService.Load<GroupIconBadge, int>(GroupIconBadgeSettingsCodec.Decode, ViewStateSettingsDescriptors.GroupIconBadge);
+    ShowNoteCount = AppSettingsService.Load(AppSettingsDescriptors.ShowNoteCount);
+    _groupIconBadge = AppSettingsService.Load<GroupIconBadge, int>(GroupIconBadgeSettingsCodec.Decode, AppSettingsDescriptors.GroupIconBadge);
 
-    AllowCustomNoteSortOrder = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder);
+    AllowCustomNoteSortOrder = AppSettingsService.Load(AppSettingsDescriptors.AllowCustomNoteSortOrder);
     NoteSortKey = AppSettingsService.Load<NoteSortKey, int>(NoteSortKeySettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortKey);
     NoteSortDirection = AppSettingsService.Load<SortDirection, int>(SortDirectionSettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortDirection);
 
-    AllowCustomPreviewLayout = ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout);
+    AllowCustomPreviewLayout = AppSettingsService.Load(AppSettingsDescriptors.AllowCustomPreviewLayout);
     PreviewLayoutType = AppSettingsService.Load<PreviewLayoutType, int>(PreviewLayoutTypeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewLayoutType);
     PreviewTileSize = AppSettingsService.Load<PreviewTileSize, int>(PreviewTileSizeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileSize);
     PreviewTileRatio = AppSettingsService.Load<PreviewTileRatio, int>(PreviewTileRatioSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileRatio);
@@ -105,7 +102,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         ValueChangedMessage<ElementTheme> msg = new(value);
         WeakReferenceMessenger.Default.Send(msg, AppMessageTokens.ChangeAppThemeToken);
-        ViewStateSettingsService.Save(ElementThemeSettingsCodec.Encode, ViewStateSettingsDescriptors.AppTheme, value);
+        AppSettingsService.Save(ElementThemeSettingsCodec.Encode, AppSettingsDescriptors.AppTheme, value);
       }
     }
   }
@@ -122,7 +119,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       {
         string language = value.Language;
 
-        ViewStateSettingsService.Save(AppLanguageSettingsCodec.Encode, ViewStateSettingsDescriptors.AppLanguage, value);
+        AppSettingsService.Save(AppLanguageSettingsCodec.Encode, AppSettingsDescriptors.AppLanguage, value);
 
         try
         {
@@ -151,7 +148,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       if (SetProperty(ref field, value))
       {
         ConsoleHelper.WriteLine(true, "{0}: {1}", "InitialPageId", value);
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.InitialPageId, value);
+        AppSettingsService.Save(AppSettingsDescriptors.InitialPageId, value);
       }
     }
   }
@@ -178,7 +175,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
             SetPreferredInitialPageOptions();
             break;
         }
-        ViewStateSettingsService.Save(InitialPageTypeSettingsCodec.Encode, ViewStateSettingsDescriptors.InitialPageType, value);
+        AppSettingsService.Save(InitialPageTypeSettingsCodec.Encode, AppSettingsDescriptors.InitialPageType, value);
       }
     }
   }
@@ -268,7 +265,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.ConfirmBeforeDeleting, value);
+        AppSettingsService.Save(AppSettingsDescriptors.ConfirmBeforeDeleting, value);
       }
     }
   }
@@ -306,7 +303,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(SizeInt32SettingsCodec.Encode, ViewStateSettingsDescriptors.NoteSize, new SizeInt32(value, NoteHeight));
+        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.NoteSize, new SizeInt32(value, NoteHeight));
       }
     }
   }
@@ -318,7 +315,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(SizeInt32SettingsCodec.Encode, ViewStateSettingsDescriptors.NoteSize, new SizeInt32(NoteWidth, value));
+        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.NoteSize, new SizeInt32(NoteWidth, value));
       }
     }
   }
@@ -330,7 +327,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.DeleteEmptyNote, value);
+        AppSettingsService.Save(AppSettingsDescriptors.DeleteEmptyNote, value);
       }
     }
   }
@@ -344,7 +341,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.ShowNoteCount, value);
+        AppSettingsService.Save(AppSettingsDescriptors.ShowNoteCount, value);
       }
     }
   }
@@ -357,7 +354,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref _groupIconBadge, value))
       {
-        ViewStateSettingsService.Save(GroupIconBadgeSettingsCodec.Encode, ViewStateSettingsDescriptors.GroupIconBadge, value);
+        AppSettingsService.Save(GroupIconBadgeSettingsCodec.Encode, AppSettingsDescriptors.GroupIconBadge, value);
         WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>(value), AppMessageTokens.ChangeNavigationViewModelIconImageToken);
       }
     }
@@ -387,7 +384,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder, value);
+        AppSettingsService.Save(AppSettingsDescriptors.AllowCustomNoteSortOrder, value);
       }
     }
   }
@@ -425,7 +422,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ViewStateSettingsService.Save(ViewStateSettingsDescriptors.AllowCustomPreviewLayout, value);
+        AppSettingsService.Save(AppSettingsDescriptors.AllowCustomPreviewLayout, value);
       }
     }
   }

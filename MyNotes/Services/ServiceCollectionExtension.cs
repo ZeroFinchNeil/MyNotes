@@ -29,7 +29,6 @@ using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
-using MyNotes.Services.Settings;
 using MyNotes.Services.Shell;
 using MyNotes.Services.Updates;
 using MyNotes.Services.Updates.Note;
@@ -94,7 +93,6 @@ internal static class ServiceCollectionExtension
     {
       services.AddSingleton<ISettingsStorage, SettingsStorage>();
       services.AddSingleton<AppSettingsService>();
-      services.AddSingleton<ViewStateSettingsService>();
     }
 
     private void AddNoteServices()

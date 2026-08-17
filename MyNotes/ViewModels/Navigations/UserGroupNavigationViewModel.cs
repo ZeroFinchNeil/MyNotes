@@ -5,13 +5,13 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Commands;
-using MyNotes.Services.Settings;
 using MyNotes.ViewModels.Navigations.Providers;
 
 namespace MyNotes.ViewModels.Navigations;
@@ -25,17 +25,17 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
   private readonly NavigationCommandService NavigationCommandService;
-  private readonly ViewStateSettingsService ViewStateSettingsService;
+  private readonly AppSettingsService AppSettingsService;
 
   #region Object Lifetime Management
-  public UserGroupNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService commandService, ViewStateSettingsService viewStateSettingsService, NavigationUserCompositeNode navigation) : base(navigation)
+  public UserGroupNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService commandService, AppSettingsService appSettingsService, NavigationUserCompositeNode navigation) : base(navigation)
   {
     Navigation = navigation;
 
     // Dependency Injection
     NavigationViewModelProvider = provider;
     NavigationCommandService = (NavigationCommandService)commandService;
-    ViewStateSettingsService = viewStateSettingsService;
+    AppSettingsService = appSettingsService;
 
     _childNodeViewModelLeases = new(Navigation.ChildNodes.Select(navigation => NavigationViewModelProvider.Resolve(navigation)));
 
@@ -80,7 +80,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 
   private async Task SetIconImage()
   {
-    IconImage = await IconHelper.GetIconImage((int)Navigation.Icon, ViewStateSettingsService.Load<GroupIconBadge, int>(GroupIconBadgeSettingsCodec.Decode, ViewStateSettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
+    IconImage = await IconHelper.GetIconImage((int)Navigation.Icon, AppSettingsService.Load<GroupIconBadge, int>(GroupIconBadgeSettingsCodec.Decode, AppSettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
   }
 
   private void ChildNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
