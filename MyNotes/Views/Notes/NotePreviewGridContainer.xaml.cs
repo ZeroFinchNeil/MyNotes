@@ -10,23 +10,23 @@ using MyNotes.ViewModels.Notes;
 namespace MyNotes.Views.Notes;
 
 [Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NoteItemGridContainer : UserControl
+internal sealed partial class NotePreviewGridContainer : UserControl
 {
   #region Object Lifetime Management
-  public NoteItemGridContainer()
+  public NotePreviewGridContainer()
   {
     TrackReference();
     InitializeComponent();
-    this.Loaded += UserListPageNoteItemGridContainer_Loaded;
-    this.Unloaded += UserListPageNoteItemGridContainer_Unloaded;
+    this.Loaded += UserListPageNotePreviewGridContainer_Loaded;
+    this.Unloaded += UserListPageNotePreviewGridContainer_Unloaded;
   }
 
-  private void UserListPageNoteItemGridContainer_Loaded(object sender, RoutedEventArgs e)
+  private void UserListPageNotePreviewGridContainer_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
   }
 
-  private void UserListPageNoteItemGridContainer_Unloaded(object sender, RoutedEventArgs e)
+  private void UserListPageNotePreviewGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
     ConsoleHelper.WriteLine(true, "{0}: {1}", "Container Unloaded", true);
 
@@ -34,7 +34,7 @@ internal sealed partial class NoteItemGridContainer : UserControl
   }
   #endregion  
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NoteItemGridContainer), new PropertyMetadata(null));
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NotePreviewGridContainer), new PropertyMetadata(null));
   public NoteViewModel ViewModel
   {
     get => (NoteViewModel)GetValue(ViewModelProperty);

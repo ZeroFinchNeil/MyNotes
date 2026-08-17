@@ -2,7 +2,6 @@
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Contracts.Persistence;
-using MyNotes.Application.Notes;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Results;

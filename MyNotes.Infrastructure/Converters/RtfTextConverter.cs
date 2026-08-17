@@ -31,7 +31,7 @@ internal class RtfTextConverter : IRtfTextConverter
 
     // 초기화
     _richEditBox.Document.SetText(TextSetOptions.None, string.Empty);
-    
+
     return plainText;
   }
 

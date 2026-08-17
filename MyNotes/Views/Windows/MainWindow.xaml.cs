@@ -3,8 +3,6 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Settings;
-using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;

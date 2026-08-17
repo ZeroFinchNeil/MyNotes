@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Common.Structures;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Navigations;
 using MyNotes.Templates;
@@ -48,10 +47,10 @@ internal sealed partial class UserNavigationViewItem : DraggableNavigationViewIt
       var navigationController = App.Services.GetRequiredService<NavigationController>();
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
 
-      foreach(var targetNavigation in navigationController.UserCompositeNavigations.OfType<NavigationUserCompositeNode>())
+      foreach (var targetNavigation in navigationController.UserCompositeNavigations.OfType<NavigationUserCompositeNode>())
       {
         using var lease = navigationViewModelProvider.Acquire(targetNavigation);
-        if(lease?.ViewModel is UserGroupNavigationViewModel targetViewModel)
+        if (lease?.ViewModel is UserGroupNavigationViewModel targetViewModel)
         {
           if (!targetNavigation.CanBeParentOf(ViewModel.Navigation))
           {

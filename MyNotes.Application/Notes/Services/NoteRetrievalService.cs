@@ -1,7 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Notes.Persistence;
+using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
-using MyNotes.Common.Querying.Conditions;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
 

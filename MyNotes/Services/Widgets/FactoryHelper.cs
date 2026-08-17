@@ -1,9 +1,4 @@
-﻿using System;
-using System.Runtime.InteropServices;
-
-using Microsoft.Windows.Widgets.Providers;
-
-using WinRT;
+﻿using System.Runtime.InteropServices;
 
 namespace MyNotes.Services.Widgets;
 

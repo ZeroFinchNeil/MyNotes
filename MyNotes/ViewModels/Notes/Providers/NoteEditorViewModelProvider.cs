@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Debugging;
-
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;

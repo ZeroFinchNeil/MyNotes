@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace MyNotes.Templates;
+﻿namespace MyNotes.Templates;
 
 public static class IconGroup
 {

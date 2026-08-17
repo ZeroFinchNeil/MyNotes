@@ -16,7 +16,7 @@ internal sealed partial class SelectNoteParentDialogViewModel : DialogViewModelB
   #region Object Lifetime Management
   public SelectNoteParentDialogViewModel(NavigationController navigationController, NavigationViewModelProvider navigationViewModelProvider)
   {
-    foreach(var navigation in navigationController.UserLeafNavigations)
+    foreach (var navigation in navigationController.UserLeafNavigations)
     {
       using var lease = navigationViewModelProvider.Resolve(navigation);
       if (lease.ViewModel is UserListNavigationViewModel targetVM)

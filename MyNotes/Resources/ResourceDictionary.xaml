@@ -57,6 +57,18 @@
   <converters:EnumToIntConverter x:Key="PreviewTileRatioToIntConverter"
                                  xmlns:enums="using:MyNotes.Application.Contracts.Navigations.Models"
                                  EnumType="enums:PreviewTileRatio" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyCreatedMatchConverter"
+                                              TargetMember="Created" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyModifiedMatchConverter"
+                                              TargetMember="Modified" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyTitleMatchConverter"
+                                              TargetMember="Title" />
+
+  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionAscendingMatchConverter"
+                                                TargetMember="Ascending" />
+  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionDescendingMatchConverter"
+                                                TargetMember="Descending" />
+
   <converters:PreviewTileSizeToSliderValueConverter x:Key="PreviewTileSizeToSliderValueConverter" />
   <converters:PreviewTileRatioToSliderValueConverter x:Key="PreviewTileRatioToSliderValueConverter" />
 
@@ -935,14 +947,14 @@
                 x:DataType="notevm:NoteViewModel"
                 xmlns:notevm="using:MyNotes.ViewModels.Notes"
                 xmlns:noteview="using:MyNotes.Views.Notes">
-    <noteview:NoteItemGridContainer ViewModel="{Binding}"
-                                    Margin="6" />
+    <noteview:NotePreviewGridContainer ViewModel="{Binding}"
+                                       Margin="6" />
   </DataTemplate>
   <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutList"
                 x:DataType="notevm:NoteViewModel"
                 xmlns:notevm="using:MyNotes.ViewModels.Notes"
                 xmlns:noteview="using:MyNotes.Views.Notes">
-    <noteview:NoteItemListContainer ViewModel="{Binding}"
-                                    Margin="6" />
+    <noteview:NotePreviewListContainer ViewModel="{Binding}"
+                                       Margin="6" />
   </DataTemplate>
 </ResourceDictionary>

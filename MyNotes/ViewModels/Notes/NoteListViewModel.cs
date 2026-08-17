@@ -6,19 +6,16 @@ using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
-using MyNotes.Application.Navigations;
 using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
-using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
-using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
@@ -59,24 +56,9 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     SetCommands();
     RegisterMessengers();
 
-    LoadSortOrderAndPreviewStyle();
-    _noteViewModelLeases = new(GetComparer(NoteSortKey, NoteSortDirection));
+    //LoadSortOrderAndPreviewStyle();
+    _noteViewModelLeases = new(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
     InitializeTask = InitializeAsync();
-  }
-
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-    {
-      return;
-    }
-
-    if (disposing)
-    {
-
-    }
-
-    base.Dispose(disposing);
   }
 
   bool _disposeStarted;
@@ -88,6 +70,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     }
 
     await _noteViewModelLeases.DisposeAsync();
+    Navigation.PropertyChanged -= Navigation_PropertyChanged;
     UnregisterMessengers();
   }
   public async ValueTask DisposeAsync()
@@ -149,32 +132,20 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         }
         break;
     }
+
+    Navigation.PropertyChanged += Navigation_PropertyChanged;
   }
 
-  //private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-  //{
-  //  if (sender is NoteModel note)
-  //  {
-  //    await using var lease = await NoteViewModelProvider.AcquireAsync(note);
-  //    if (lease is null)
-  //    {
-  //      return;
-  //    }
-  //    var viewmodel = lease.ViewModel;
-  //    switch (e.PropertyName)
-  //    {
-  //      case nameof(NoteModel.Title):
-  //        _noteViewModelLeases.ReorderItem(viewmodel);
-  //        break;
-  //      case nameof(NoteModel.IsBookmarked):
-  //        if (!note.IsBookmarked && Navigation is NavigationBookmarks)
-  //        {
-  //          await _noteViewModelLeases.RemoveAsync(viewmodel);
-  //        }
-  //        break;
-  //    }
-  //  }
-  //}
+  private void Navigation_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    switch (e.PropertyName)
+    {
+      case nameof(INavigationNoteList.NoteSortKey):
+      case nameof(INavigationNoteList.NoteSortDirection):
+        _noteViewModelLeases.Rearrange(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
+        break;
+    }
+  }
 
   [ObservableProperty]
   public partial Icon Icon { get; set; }
@@ -199,121 +170,6 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     }
   }
 
-  private NoteSortKey _noteSortKey;
-  public NoteSortKey NoteSortKey
-  {
-    get => _noteSortKey;
-    set
-    {
-      if (SetProperty(ref _noteSortKey, value))
-      {
-        if (Navigation is NavigationUserLeafNode
-            && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
-        {
-          Navigation.NoteSortKey = value;
-          Navigation.NoteSortDirection = NoteSortDirection;
-        }
-        else
-        {
-          AppSettingsService.Save(NoteSortKeySettingsCodec.Encode, NavigationSettingsDescriptors.NoteSortKey, value);
-        }
-        _noteViewModelLeases.Rearrange(GetComparer(NoteSortKey, NoteSortDirection));
-      }
-    }
-  }
-
-  private SortDirection _noteSortDirection;
-  public SortDirection NoteSortDirection
-  {
-    get => _noteSortDirection;
-    set
-    {
-      if (SetProperty(ref _noteSortDirection, value))
-      {
-        if (Navigation is NavigationUserLeafNode
-            && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
-        {
-          Navigation.NoteSortKey = NoteSortKey;
-          Navigation.NoteSortDirection = value;
-        }
-        else
-        {
-          AppSettingsService.Save(SortDirectionSettingsCodec.Encode, NavigationSettingsDescriptors.NoteSortDirection, value);
-        }
-        _noteViewModelLeases.Rearrange(GetComparer(NoteSortKey, NoteSortDirection));
-      }
-    }
-  }
-
-  private PreviewLayoutType _previewLayoutType;
-  public PreviewLayoutType PreviewLayoutType
-  {
-    get => _previewLayoutType;
-    set
-    {
-      if (SetProperty(ref _previewLayoutType, value))
-      {
-        if (Navigation is NavigationUserLeafNode
-            && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
-        {
-          Navigation.PreviewLayoutType = value;
-          Navigation.PreviewTileSize = PreviewTileSize;
-          Navigation.PreviewTileRatio = PreviewTileRatio;
-        }
-        else
-        {
-          AppSettingsService.Save(PreviewLayoutTypeSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewLayoutType, value);
-        }
-      }
-    }
-  }
-
-  private PreviewTileSize _previewTileSize;
-  public PreviewTileSize PreviewTileSize
-  {
-    get => _previewTileSize;
-    set
-    {
-      if (SetProperty(ref _previewTileSize, value))
-      {
-        if (Navigation is NavigationUserLeafNode
-            && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
-        {
-          Navigation.PreviewLayoutType = PreviewLayoutType;
-          Navigation.PreviewTileSize = value;
-          Navigation.PreviewTileRatio = PreviewTileRatio;
-        }
-        else
-        {
-          AppSettingsService.Save(PreviewTileSizeSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewTileSize, value);
-        }
-      }
-    }
-  }
-
-  private PreviewTileRatio _previewTileRatio;
-  public PreviewTileRatio PreviewTileRatio
-  {
-    get => _previewTileRatio;
-    set
-    {
-      if (SetProperty(ref _previewTileRatio, value))
-      {
-        if (Navigation is NavigationUserLeafNode
-            && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
-        {
-          Navigation.PreviewLayoutType = PreviewLayoutType;
-          Navigation.PreviewTileSize = PreviewTileSize;
-          Navigation.PreviewTileRatio = value;
-        }
-        else
-        {
-          AppSettingsService.Save(PreviewTileRatioSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewTileRatio, value);
-        }
-      }
-    }
-  }
-
   private static Comparer<NoteViewModel> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
   {
     (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<NoteViewModel>.Create((x, y) => x.Note.Modified.CompareTo(y.Note.Modified)),
@@ -325,124 +181,239 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     _ => throw new ArgumentException("Invalid sorting")
   };
 
-  public void LoadSortOrderAndPreviewStyle()
-  {
-    if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
-    {
-      _noteSortKey = Navigation.NoteSortKey;
-      _noteSortDirection = Navigation.NoteSortDirection;
-    }
-    else
-    {
-      _noteSortKey = AppSettingsService.Load<NoteSortKey, int>(NoteSortKeySettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortKey);
-      _noteSortDirection = AppSettingsService.Load<SortDirection, int>(SortDirectionSettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortDirection);
-    }
-
-    if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
-    {
-      _previewLayoutType = Navigation.PreviewLayoutType;
-      _previewTileSize = Navigation.PreviewTileSize;
-      _previewTileRatio = Navigation.PreviewTileRatio;
-    }
-    else
-    {
-      _previewLayoutType = AppSettingsService.Load<PreviewLayoutType, int>(PreviewLayoutTypeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewLayoutType);
-      _previewTileSize = AppSettingsService.Load<PreviewTileSize, int>(PreviewTileSizeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileSize);
-      _previewTileRatio = AppSettingsService.Load<PreviewTileRatio, int>(PreviewTileRatioSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileRatio);
-    }
-  }
+  //private NoteSortKey _noteSortKey;
+  //public NoteSortKey NoteSortKey
+  //{
+  //  get => _noteSortKey;
+  //  set
+  //  {
+  //    if (SetProperty(ref _noteSortKey, value))
+  //    {
+  //      if (Navigation is NavigationUserLeafNode
+  //          && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
+  //      {
+  //        Navigation.NoteSortKey = value;
+  //        Navigation.NoteSortDirection = NoteSortDirection;
+  //      }
+  //      else
+  //      {
+  //        AppSettingsService.Save(NoteSortKeySettingsCodec.Encode, NavigationSettingsDescriptors.NoteSortKey, value);
+  //      }
+  //      _noteViewModelLeases.Rearrange(GetComparer(NoteSortKey, NoteSortDirection));
+  //    }
+  //  }
   //}
 
-  public static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
-  {
-    { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },
-    { PreviewLayoutType.List, (int)PreviewLayoutType.List },
-  };
-  public static IReadOnlyBijectiveMap<PreviewLayoutType, int> PreviewLayoutTypeMap => _previewLayoutTypeMap;
+  //private SortDirection _noteSortDirection;
+  //public SortDirection NoteSortDirection
+  //{
+  //  get => _noteSortDirection;
+  //  set
+  //  {
+  //    if (SetProperty(ref _noteSortDirection, value))
+  //    {
+  //      if (Navigation is NavigationUserLeafNode
+  //          && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
+  //      {
+  //        Navigation.NoteSortKey = NoteSortKey;
+  //        Navigation.NoteSortDirection = value;
+  //      }
+  //      else
+  //      {
+  //        AppSettingsService.Save(SortDirectionSettingsCodec.Encode, NavigationSettingsDescriptors.NoteSortDirection, value);
+  //      }
+  //      _noteViewModelLeases.Rearrange(GetComparer(NoteSortKey, NoteSortDirection));
+  //    }
+  //  }
+  //}
 
-  public static readonly BijectiveMap<PreviewTileSize, double> _previewTileSizeMap = new()
-  {
-    { PreviewTileSize.Smallest, 120 },
-    { PreviewTileSize.Smaller, 160 },
-    { PreviewTileSize.Small, 200 },
-    { PreviewTileSize.Medium, 240 },
-    { PreviewTileSize.Large, 280 },
-    { PreviewTileSize.Larger, 320 },
-    { PreviewTileSize.Largest, 360 },
-  };
-  public static IReadOnlyBijectiveMap<PreviewTileSize, double> PreviewTileSizeMap => _previewTileSizeMap;
+  //private PreviewLayoutType _previewLayoutType;
+  //public PreviewLayoutType PreviewLayoutType
+  //{
+  //  get => _previewLayoutType;
+  //  set
+  //  {
+  //    if (SetProperty(ref _previewLayoutType, value))
+  //    {
+  //      if (Navigation is NavigationUserLeafNode
+  //          && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
+  //      {
+  //        Navigation.PreviewLayoutType = value;
+  //        Navigation.PreviewTileSize = PreviewTileSize;
+  //        Navigation.PreviewTileRatio = PreviewTileRatio;
+  //      }
+  //      else
+  //      {
+  //        AppSettingsService.Save(PreviewLayoutTypeSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewLayoutType, value);
+  //      }
+  //    }
+  //  }
+  //}
 
-  public static readonly BijectiveMap<PreviewTileRatio, double> _previewTileRatioMap = new()
-  {
-    { PreviewTileRatio.Shorter, 0.50 },
-    { PreviewTileRatio.Short, 0.75 },
-    { PreviewTileRatio.Square, 1.00 },
-    { PreviewTileRatio.Tall, 1.25 },
-    { PreviewTileRatio.Taller, 1.50 },
-  };
-  public static IReadOnlyBijectiveMap<PreviewTileRatio, double> PreviewTileRatioMap => _previewTileRatioMap;
+  //private PreviewTileSize _previewTileSize;
+  //public PreviewTileSize PreviewTileSize
+  //{
+  //  get => _previewTileSize;
+  //  set
+  //  {
+  //    if (SetProperty(ref _previewTileSize, value))
+  //    {
+  //      if (Navigation is NavigationUserLeafNode
+  //          && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
+  //      {
+  //        Navigation.PreviewLayoutType = PreviewLayoutType;
+  //        Navigation.PreviewTileSize = value;
+  //        Navigation.PreviewTileRatio = PreviewTileRatio;
+  //      }
+  //      else
+  //      {
+  //        AppSettingsService.Save(PreviewTileSizeSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewTileSize, value);
+  //      }
+  //    }
+  //  }
+  //}
 
-  public int ToInt(PreviewLayoutType type) => PreviewLayoutTypeMap.RightFromLeft(type);
-  public double ToDouble(PreviewTileSize size) => PreviewTileSizeMap.RightFromLeft(size);
-  public double ToDouble(PreviewTileRatio ratio) => PreviewTileRatioMap.RightFromLeft(ratio);
+  //private PreviewTileRatio _previewTileRatio;
+  //public PreviewTileRatio PreviewTileRatio
+  //{
+  //  get => _previewTileRatio;
+  //  set
+  //  {
+  //    if (SetProperty(ref _previewTileRatio, value))
+  //    {
+  //      if (Navigation is NavigationUserLeafNode
+  //          && ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
+  //      {
+  //        Navigation.PreviewLayoutType = PreviewLayoutType;
+  //        Navigation.PreviewTileSize = PreviewTileSize;
+  //        Navigation.PreviewTileRatio = value;
+  //      }
+  //      else
+  //      {
+  //        AppSettingsService.Save(PreviewTileRatioSettingsCodec.Encode, NavigationSettingsDescriptors.PreviewTileRatio, value);
+  //      }
+  //    }
+  //  }
+  //}
 
-  public PreviewLayoutType ToPreviewLayoutType(int index, Action<PreviewLayoutType> action)
-  {
-    var previewLayoutType = PreviewLayoutTypeMap.LeftFromRight(index);
-    action.Invoke(previewLayoutType);
-    return previewLayoutType;
-  }
+  //public void LoadSortOrderAndPreviewStyle()
+  //{
+  //  if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomNoteSortOrder))
+  //  {
+  //    _noteSortKey = Navigation.NoteSortKey;
+  //    _noteSortDirection = Navigation.NoteSortDirection;
+  //  }
+  //  else
+  //  {
+  //    _noteSortKey = AppSettingsService.Load<NoteSortKey, int>(NoteSortKeySettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortKey);
+  //    _noteSortDirection = AppSettingsService.Load<SortDirection, int>(SortDirectionSettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortDirection);
+  //  }
 
-  public PreviewTileSize ToPreviewTileSize(double value, Action<PreviewTileSize> action)
-  {
-    var previewTileSize = PreviewTileSizeMap.LeftFromRight(value);
-    action.Invoke(previewTileSize);
-    return previewTileSize;
-  }
+  //  if (ViewStateSettingsService.Load(ViewStateSettingsDescriptors.AllowCustomPreviewLayout))
+  //  {
+  //    _previewLayoutType = Navigation.PreviewLayoutType;
+  //    _previewTileSize = Navigation.PreviewTileSize;
+  //    _previewTileRatio = Navigation.PreviewTileRatio;
+  //  }
+  //  else
+  //  {
+  //    _previewLayoutType = AppSettingsService.Load<PreviewLayoutType, int>(PreviewLayoutTypeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewLayoutType);
+  //    _previewTileSize = AppSettingsService.Load<PreviewTileSize, int>(PreviewTileSizeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileSize);
+  //    _previewTileRatio = AppSettingsService.Load<PreviewTileRatio, int>(PreviewTileRatioSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileRatio);
+  //  }
+  //}
+  //}
 
-  public PreviewTileRatio ToPreviewTileRatio(double value, Action<PreviewTileRatio> action)
-  {
-    var previewTileRatio = PreviewTileRatioMap.LeftFromRight(value);
-    action.Invoke(previewTileRatio);
-    return previewTileRatio;
-  }
+  //public static readonly BijectiveMap<PreviewLayoutType, int> _previewLayoutTypeMap = new()
+  //{
+  //  { PreviewLayoutType.Grid, (int)PreviewLayoutType.Grid },
+  //  { PreviewLayoutType.List, (int)PreviewLayoutType.List },
+  //};
+  //public static IReadOnlyBijectiveMap<PreviewLayoutType, int> PreviewLayoutTypeMap => _previewLayoutTypeMap;
 
-  public void ChangePreviewLayout(ListViewBase listViewBase)
-  {
-    if (PreviewLayoutType is PreviewLayoutType.Grid)
-    {
-      listViewBase.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutGrid"] as ItemsPanelTemplate;
-      listViewBase.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutGrid"] as DataTemplate;
-    }
-    else if (PreviewLayoutType is PreviewLayoutType.List)
-    {
-      listViewBase.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutList"] as ItemsPanelTemplate;
-      listViewBase.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutList"] as DataTemplate;
-    }
-    ChangePreviewTile(listViewBase);
-  }
+  //public static readonly BijectiveMap<PreviewTileSize, double> _previewTileSizeMap = new()
+  //{
+  //  { PreviewTileSize.Smallest, 120 },
+  //  { PreviewTileSize.Smaller, 160 },
+  //  { PreviewTileSize.Small, 200 },
+  //  { PreviewTileSize.Medium, 240 },
+  //  { PreviewTileSize.Large, 280 },
+  //  { PreviewTileSize.Larger, 320 },
+  //  { PreviewTileSize.Largest, 360 },
+  //};
+  //public static IReadOnlyBijectiveMap<PreviewTileSize, double> PreviewTileSizeMap => _previewTileSizeMap;
 
-  public void ChangePreviewTile(ListViewBase listViewBase)
-  {
-    var size = PreviewTileSizeMap.RightFromLeft(PreviewTileSize);
-    var ratio = PreviewTileRatioMap.RightFromLeft(PreviewTileRatio);
+  //public static readonly BijectiveMap<PreviewTileRatio, double> _previewTileRatioMap = new()
+  //{
+  //  { PreviewTileRatio.Shorter, 0.50 },
+  //  { PreviewTileRatio.Short, 0.75 },
+  //  { PreviewTileRatio.Square, 1.00 },
+  //  { PreviewTileRatio.Tall, 1.25 },
+  //  { PreviewTileRatio.Taller, 1.50 },
+  //};
+  //public static IReadOnlyBijectiveMap<PreviewTileRatio, double> PreviewTileRatioMap => _previewTileRatioMap;
 
-    if (App.Instance.Resources["NoteList_GridViewItemContainerStyle"] is Style defaultStyle)
-    {
-      Style style = new() { TargetType = typeof(GridViewItem), BasedOn = defaultStyle };
-      if (PreviewLayoutType is PreviewLayoutType.Grid)
-      {
-        style.Setters.Add(new Setter() { Property = FrameworkElement.WidthProperty, Value = size });
-        style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * ratio });
-      }
-      else if (PreviewLayoutType is PreviewLayoutType.List)
-      {
-        style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * 0.625 });
-      }
+  //public int ToInt(PreviewLayoutType type) => PreviewLayoutTypeMap.RightFromLeft(type);
+  //public double ToDouble(PreviewTileSize size) => PreviewTileSizeMap.RightFromLeft(size);
+  //public double ToDouble(PreviewTileRatio ratio) => PreviewTileRatioMap.RightFromLeft(ratio);
 
-      listViewBase.ItemContainerStyle = style;
-    }
-  }
+  //public PreviewLayoutType ToPreviewLayoutType(int index, Action<PreviewLayoutType> action)
+  //{
+  //  var previewLayoutType = PreviewLayoutTypeMap.LeftFromRight(index);
+  //  action.Invoke(previewLayoutType);
+  //  return previewLayoutType;
+  //}
+
+  //public PreviewTileSize ToPreviewTileSize(double value, Action<PreviewTileSize> action)
+  //{
+  //  var previewTileSize = PreviewTileSizeMap.LeftFromRight(value);
+  //  action.Invoke(previewTileSize);
+  //  return previewTileSize;
+  //}
+
+  //public PreviewTileRatio ToPreviewTileRatio(double value, Action<PreviewTileRatio> action)
+  //{
+  //  var previewTileRatio = PreviewTileRatioMap.LeftFromRight(value);
+  //  action.Invoke(previewTileRatio);
+  //  return previewTileRatio;
+  //}
+
+  //public void ChangePreviewLayout(ListViewBase listViewBase)
+  //{
+  //  if (PreviewLayoutType is PreviewLayoutType.Grid)
+  //  {
+  //    listViewBase.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutGrid"] as ItemsPanelTemplate;
+  //    listViewBase.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutGrid"] as DataTemplate;
+  //  }
+  //  else if (PreviewLayoutType is PreviewLayoutType.List)
+  //  {
+  //    listViewBase.ItemsPanel = App.Instance.Resources["NoteList_GridViewItemsPanel_LayoutList"] as ItemsPanelTemplate;
+  //    listViewBase.ItemTemplate = App.Instance.Resources["NoteList_GridViewItemTemplate_LayoutList"] as DataTemplate;
+  //  }
+  //  ChangePreviewTile(listViewBase);
+  //}
+
+  //public void ChangePreviewTile(ListViewBase listViewBase)
+  //{
+  //  var size = PreviewTileSizeMap.RightFromLeft(PreviewTileSize);
+  //  var ratio = PreviewTileRatioMap.RightFromLeft(PreviewTileRatio);
+
+  //  if (App.Instance.Resources["NoteList_GridViewItemContainerStyle"] is Style defaultStyle)
+  //  {
+  //    Style style = new() { TargetType = typeof(GridViewItem), BasedOn = defaultStyle };
+  //    if (PreviewLayoutType is PreviewLayoutType.Grid)
+  //    {
+  //      style.Setters.Add(new Setter() { Property = FrameworkElement.WidthProperty, Value = size });
+  //      style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * ratio });
+  //    }
+  //    else if (PreviewLayoutType is PreviewLayoutType.List)
+  //    {
+  //      style.Setters.Add(new Setter() { Property = FrameworkElement.HeightProperty, Value = size * 0.625 });
+  //    }
+
+  //    listViewBase.ItemContainerStyle = style;
+  //  }
+  //}
 }
 
 #region Commands and Messengers
@@ -483,7 +454,7 @@ partial class NoteListViewModel
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken>(this, AppMessageTokens.NoteTitleChangedToken, (recipient, message) =>
     {
       if (NoteViewModels.FirstOrDefault(vm => vm.Note == message.Value) is NoteViewModel viewmodel
-      && NoteSortKey is NoteSortKey.Title)
+      && Navigation.NoteSortKey is NoteSortKey.Title)
       {
         _noteViewModelLeases.ReorderItem(viewmodel);
       }

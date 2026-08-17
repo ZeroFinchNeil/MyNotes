@@ -7,7 +7,7 @@ internal interface IAsyncViewModelProvider<TModel, TViewModel> where TModel : no
   public Task<IAsyncViewModelLease<TViewModel>?> AcquireAsync(TModel model);
 }
 
-internal interface IAsyncViewModelProvider<TModel, TParam, TViewModel> where TModel : notnull where TParam : allows ref struct where TViewModel : ViewModelBase, IAsyncDisposable 
+internal interface IAsyncViewModelProvider<TModel, TParam, TViewModel> where TModel : notnull where TParam : allows ref struct where TViewModel : ViewModelBase, IAsyncDisposable
 {
   public Task<IAsyncViewModelLease<TViewModel>> ResolveAsync(TModel model, TParam parameter);
 

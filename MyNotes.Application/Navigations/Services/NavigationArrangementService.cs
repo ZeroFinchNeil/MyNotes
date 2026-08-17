@@ -1,6 +1,6 @@
-﻿using MyNotes.Application.Commands.Navigations;
-using MyNotes.Application.Contracts.Database.Core;
+﻿using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Navigations.Persistence;
+using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Results;
 
 namespace MyNotes.Application.Navigations.Services;

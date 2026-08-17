@@ -1,7 +1,6 @@
 ﻿using MyNotes.Application.Contracts.Database.Core;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Notes.Persistence;
-using MyNotes.Application.Notes;
 using MyNotes.Application.Notes.Commands;
 using MyNotes.Domain.Notes;
 

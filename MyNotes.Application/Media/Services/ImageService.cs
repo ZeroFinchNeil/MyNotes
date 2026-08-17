@@ -1,7 +1,6 @@
 ﻿using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Media.Persistence;
 using MyNotes.Application.Media.Commands;
-using MyNotes.Application.Media.Results;
 using MyNotes.Domain.Media;
 using MyNotes.Domain.Notes;
 

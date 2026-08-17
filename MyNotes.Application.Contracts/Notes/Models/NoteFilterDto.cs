@@ -2,7 +2,6 @@
 
 using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
-using MyNotes.Common.Querying.Conditions;
 
 namespace MyNotes.Application.Contracts.Notes.Models;
 

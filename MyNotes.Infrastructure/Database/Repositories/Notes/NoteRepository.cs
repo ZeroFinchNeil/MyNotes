@@ -17,7 +17,6 @@ using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Expressions;
-using MyNotes.Common.Querying.Conditions;
 using MyNotes.Common.Structures;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;

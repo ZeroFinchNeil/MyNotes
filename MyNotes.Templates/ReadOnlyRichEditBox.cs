@@ -32,12 +32,16 @@ public sealed partial class ReadOnlyRichEditBox : RichEditBox
   private void RegisterIsEnabledPropertyChangedCallback()
   {
     if (_isEnabledPropertyToken is not null)
+    {
       return;
+    }
 
     _isEnabledPropertyToken = RegisterPropertyChangedCallback(IsEnabledProperty, (d, property) =>
     {
       if ((bool)GetValue(property))
+      {
         throw new ArgumentException("ReadOnlyRichEditBox is read-only. IsEnabled property cannot be set to true.", nameof(IsEnabled));
+      }
 
       SetValue(property, false);
     });

@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace MyNotes.Constants;
+﻿namespace MyNotes.Constants;
 
 public static class AppColors
 {

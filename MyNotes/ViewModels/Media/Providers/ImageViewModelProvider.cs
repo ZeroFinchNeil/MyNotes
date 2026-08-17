@@ -1,10 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Lifetime;
-using MyNotes.Domain.Media;
 using MyNotes.Models.Media;
 namespace MyNotes.ViewModels.Media.Providers;
 

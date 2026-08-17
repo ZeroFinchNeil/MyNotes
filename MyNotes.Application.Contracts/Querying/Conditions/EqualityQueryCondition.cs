@@ -1,7 +1,6 @@
-﻿using MyNotes.Application.Contracts.Querying.Conditions;
-using MyNotes.Application.Contracts.Querying.Models;
+﻿using MyNotes.Application.Contracts.Querying.Models;
 
-namespace MyNotes.Common.Querying.Conditions;
+namespace MyNotes.Application.Contracts.Querying.Conditions;
 
 internal sealed class EqualityQueryCondition<TTarget> : IQueryCondition<TTarget, EqualityMatchType, EqualityQueryCondition<TTarget>> where TTarget : notnull
 {

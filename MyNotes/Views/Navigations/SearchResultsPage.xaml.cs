@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
@@ -37,11 +36,6 @@ internal sealed partial class SearchResultsPage : Page
 
       var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       NoteListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
-
-      if (ViewModel is not null && NoteListViewModel is not null)
-      {
-        NoteListViewModel.ChangePreviewLayout(SearchResultsPage_NotesListGridView);
-      }
     }
   }
 
@@ -64,26 +58,4 @@ internal sealed partial class SearchResultsPage : Page
     Bindings.StopTracking();
   }
   #endregion
-
-  // TwoWay Binding BindBack
-  private PreviewLayoutType PreviewLayoutTypeBindBack(int index)
-    => NoteListViewModel?.ToPreviewLayoutType(index, (type) =>
-    {
-      NoteListViewModel.PreviewLayoutType = type;
-      NoteListViewModel.ChangePreviewLayout(SearchResultsPage_NotesListGridView);
-    }) ?? PreviewLayoutType.Grid;
-
-  private PreviewTileSize PreviewTileSizeBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileSize(index, (size) =>
-  {
-    NoteListViewModel.PreviewTileSize = size;
-    NoteListViewModel.ChangePreviewTile(SearchResultsPage_NotesListGridView);
-  }) ?? PreviewTileSize.Medium;
-
-  private PreviewTileRatio PreviewTileRatioBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileRatio(index, (ratio) =>
-  {
-    NoteListViewModel.PreviewTileRatio = ratio;
-    NoteListViewModel.ChangePreviewTile(SearchResultsPage_NotesListGridView);
-  }) ?? PreviewTileRatio.Square;
 }

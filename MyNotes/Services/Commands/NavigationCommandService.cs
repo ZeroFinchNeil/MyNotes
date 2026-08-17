@@ -1,20 +1,16 @@
 ﻿using DotNext;
 
-using MyNotes.Application.Commands.Navigations;
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Results;
 using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Results;
-using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Mappers;
-using MyNotes.Common.Structures;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Navigations;
 using MyNotes.Services.Windows;
 using MyNotes.Templates;
 

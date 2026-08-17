@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace MyNotes.Common.Helpers;
+﻿namespace MyNotes.Common.Helpers;
 
 public static partial class CollectionHelper
 {

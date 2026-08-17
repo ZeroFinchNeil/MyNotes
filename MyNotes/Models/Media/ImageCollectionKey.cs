@@ -1,4 +1,6 @@
-﻿namespace MyNotes.ViewModels.Media.Providers;
+﻿using MyNotes.ViewModels.Media;
+
+namespace MyNotes.Models.Media;
 
 [Obsolete]
 internal class ImageCollectionKey : IEquatable<ImageCollectionKey>

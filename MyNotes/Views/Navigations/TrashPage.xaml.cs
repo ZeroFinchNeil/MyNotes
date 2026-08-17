@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
@@ -15,6 +14,7 @@ public sealed partial class TrashPage : Page
 {
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
   private CoreNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel;
+  private NavigationTrash? Navigation => ViewModel?.Navigation as NavigationTrash;
   private IAsyncViewModelLease<NoteListViewModel>? NoteListViewModelLease;
   private NoteListViewModel? NoteListViewModel => NoteListViewModelLease?.ViewModel;
 
@@ -36,11 +36,6 @@ public sealed partial class TrashPage : Page
 
       var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
       NoteListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
-
-      if (ViewModel is not null && NoteListViewModel is not null)
-      {
-        NoteListViewModel.ChangePreviewLayout(TrashPage_NotesListGridView);
-      }
     }
   }
 
@@ -63,26 +58,4 @@ public sealed partial class TrashPage : Page
     Bindings.StopTracking();
   }
   #endregion
-
-  // TwoWay Binding BindBack
-  private PreviewLayoutType PreviewLayoutTypeBindBack(int index)
-    => NoteListViewModel?.ToPreviewLayoutType(index, (type) =>
-    {
-      NoteListViewModel.PreviewLayoutType = type;
-      NoteListViewModel.ChangePreviewLayout(TrashPage_NotesListGridView);
-    }) ?? PreviewLayoutType.Grid;
-
-  private PreviewTileSize PreviewTileSizeBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileSize(index, (size) =>
-  {
-    NoteListViewModel.PreviewTileSize = size;
-    NoteListViewModel.ChangePreviewTile(TrashPage_NotesListGridView);
-  }) ?? PreviewTileSize.Medium;
-
-  private PreviewTileRatio PreviewTileRatioBindBack(double index)
-  => NoteListViewModel?.ToPreviewTileRatio(index, (ratio) =>
-  {
-    NoteListViewModel.PreviewTileRatio = ratio;
-    NoteListViewModel.ChangePreviewTile(TrashPage_NotesListGridView);
-  }) ?? PreviewTileRatio.Square;
 }

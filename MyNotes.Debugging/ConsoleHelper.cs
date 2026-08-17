@@ -9,6 +9,7 @@ public static class ConsoleHelper
     if (visible)
     {
       Console.WriteLine();
+      //Debug.WriteLine("");
     }
   }
 
@@ -16,7 +17,9 @@ public static class ConsoleHelper
   {
     if (visible)
     {
-      Console.WriteLine(format, objects);
+      var line = string.Format(format, objects);
+      Console.WriteLine(line);
+      //Debug.WriteLine(line);
     }
   }
 }

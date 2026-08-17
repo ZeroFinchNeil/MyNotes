@@ -3,7 +3,6 @@
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Common.Commands;
-using MyNotes.Common.Structures;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Navigations;

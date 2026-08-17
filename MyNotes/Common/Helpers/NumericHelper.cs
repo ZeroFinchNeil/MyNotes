@@ -1,9 +1,4 @@
-﻿using System;
-
-using Windows.Foundation;
-using Windows.Graphics;
-
-namespace MyNotes.Common.Helpers;
+﻿namespace MyNotes.Common.Helpers;
 
 public static class NumericHelper
 {

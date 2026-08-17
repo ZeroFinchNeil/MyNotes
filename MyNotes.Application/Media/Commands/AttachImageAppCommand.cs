@@ -1,5 +1,4 @@
-﻿using MyNotes.Domain.Media;
-using MyNotes.Domain.Notes;
+﻿using MyNotes.Domain.Notes;
 
 namespace MyNotes.Application.Media.Commands;
 

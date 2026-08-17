@@ -36,4 +36,64 @@ internal static class NavigationSettingsDescriptors
     Key = "PreviewTileRatio",
     DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
   };
+
+  public static SettingsDescriptor<NoteSortKey> BookmarksPageNoteSortKey { get; } = new()
+  {
+    Key = "BookmarksPageNoteSortKey",
+    DefaultValue = Contracts.Notes.Models.NoteSortKey.Created
+  };
+
+  public static SettingsDescriptor<SortDirection> BookmarksPageNoteSortDirection { get; } = new()
+  {
+    Key = "BookmarksPageNoteSortDirection",
+    DefaultValue = SortDirection.Descending
+  };
+
+  public static SettingsDescriptor<PreviewLayoutType> BookmarksPagePreviewLayoutType { get; } = new()
+  {
+    Key = "BookmarksPagePreviewLayoutType",
+    DefaultValue = Contracts.Navigations.Models.PreviewLayoutType.Grid
+  };
+
+  public static SettingsDescriptor<PreviewTileSize> BookmarksPagePreviewTileSize { get; } = new()
+  {
+    Key = "BookmarksPagePreviewTileSize",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileSize.Medium
+  };
+
+  public static SettingsDescriptor<PreviewTileRatio> BookmarksPagePreviewTileRatio { get; } = new()
+  {
+    Key = "BookmarksPagePreviewTileRatio",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
+  };
+
+  public static SettingsDescriptor<NoteSortKey> TrashPageNoteSortKey { get; } = new()
+  {
+    Key = "TrashPageNoteSortKey",
+    DefaultValue = Contracts.Notes.Models.NoteSortKey.Created
+  };
+
+  public static SettingsDescriptor<SortDirection> TrashPageNoteSortDirection { get; } = new()
+  {
+    Key = "TrashPageNoteSortDirection",
+    DefaultValue = SortDirection.Descending
+  };
+
+  public static SettingsDescriptor<PreviewLayoutType> TrashPagePreviewLayoutType { get; } = new()
+  {
+    Key = "TrashPagePreviewLayoutType",
+    DefaultValue = Contracts.Navigations.Models.PreviewLayoutType.Grid
+  };
+
+  public static SettingsDescriptor<PreviewTileSize> TrashPagePreviewTileSize { get; } = new()
+  {
+    Key = "TrashPagePreviewTileSize",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileSize.Medium
+  };
+
+  public static SettingsDescriptor<PreviewTileRatio> TrashPagePreviewTileRatio { get; } = new()
+  {
+    Key = "PreviewTileRatio",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
+  };
 }

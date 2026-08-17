@@ -1,6 +1,4 @@
 ﻿using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Contracts.Settings;
-using MyNotes.Application.Settings;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;

@@ -1,12 +1,4 @@
-﻿using System;
-
-using Microsoft.UI;
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Media;
-
-using Windows.UI;
-
-namespace MyNotes.Common.Helpers;
+﻿namespace MyNotes.Common.Helpers;
 
 public static class ColorHelper
 {

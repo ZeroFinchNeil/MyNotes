@@ -5,7 +5,7 @@ using MyNotes.Common.Layout;
 
 namespace MyNotes.Common.Converters;
 
-internal sealed partial class PreviewTileSizeToSliderValueConverter : DependencyObject, IValueConverter
+internal sealed partial class PreviewTileSizeToSliderValueConverter : IValueConverter
 {
   public object Convert(object value, Type targetType, object parameter, string language) => value is PreviewTileSize previewTileSize
     ? PreviewTileSizeMetrics.GetWidth(previewTileSize)

@@ -4,7 +4,7 @@ using MyNotes.Application.Contracts.Querying.Models;
 
 namespace MyNotes.Models.Navigations;
 
-internal interface INavigationNoteList : INavigation
+internal interface INavigationNoteList : INavigation, INotifyPropertyChanged
 {
   public NoteSortKey NoteSortKey { get; set; }
 

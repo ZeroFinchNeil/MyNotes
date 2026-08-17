@@ -5,7 +5,7 @@ using MyNotes.Common.Layout;
 
 namespace MyNotes.Common.Converters;
 
-internal sealed partial class PreviewTileRatioToSliderValueConverter : DependencyObject, IValueConverter
+internal sealed partial class PreviewTileRatioToSliderValueConverter : IValueConverter
 {
   public object Convert(object value, Type targetType, object parameter, string language) => value is PreviewTileRatio previewTileRatio
     ? PreviewTileRatioMetrics.GetRatio(previewTileRatio)

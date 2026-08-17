@@ -2,7 +2,7 @@
 
 namespace MyNotes.Models.Navigations;
 
-internal interface INavigationNode : INavigation
+internal interface INavigationNode : INavigation, INotifyPropertyChanged
 {
   public NavigationId Id { get; }
   public string Title { get; set; }

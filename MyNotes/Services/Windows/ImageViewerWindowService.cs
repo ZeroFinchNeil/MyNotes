@@ -4,7 +4,6 @@ using Microsoft.UI.Content;
 
 using MyNotes.Domain.Notes;
 using MyNotes.Shell.Contracts.Windowing;
-using MyNotes.ViewModels.Media.Providers;
 using MyNotes.Views.Windows;
 
 using WinRT.Interop;

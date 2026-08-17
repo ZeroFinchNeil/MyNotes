@@ -1,6 +1,4 @@
-﻿using Microsoft.UI.Xaml;
-
-namespace MyNotes.Common.Helpers;
+﻿namespace MyNotes.Common.Helpers;
 
 public static class DataContextHelper
 {

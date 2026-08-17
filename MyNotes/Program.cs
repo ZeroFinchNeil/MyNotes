@@ -1,7 +1,5 @@
 ﻿using System.IO.Pipes;
 
-using Microsoft.Windows.Widgets.Providers;
-
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
 using MyNotes.Services.Widget;

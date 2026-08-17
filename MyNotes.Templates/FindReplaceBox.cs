@@ -270,20 +270,28 @@ public sealed partial class FindReplaceBox : Control
   private void FindNext()
   {
     if (string.IsNullOrEmpty(FindText))
+    {
       return;
+    }
 
     if (IsContextChanged)
+    {
       Find(FindText);
+    }
 
     if (TargetEditor is RichEditBox box)
     {
       int _matchIndex = _matchResults.BinarySearch(box.Document.Selection.StartPosition);
       if (_matchIndex < 0)
+      {
         _matchIndex = ~_matchIndex;
+      }
 
       _matchIndex++;
       if (_matchIndex >= _matchResults.Count)
+      {
         _matchIndex = 0;
+      }
 
       if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
       {
@@ -298,21 +306,29 @@ public sealed partial class FindReplaceBox : Control
   private void FindPrevious()
   {
     if (string.IsNullOrEmpty(FindText))
+    {
       return;
+    }
 
     if (IsContextChanged)
+    {
       Find(FindText);
+    }
 
     if (TargetEditor is RichEditBox box)
     {
       int _matchIndex = _matchResults.BinarySearch(box.Document.Selection.StartPosition);
       if (_matchIndex < 0)
+      {
         _matchIndex = ~_matchIndex;
+      }
 
       _matchIndex--;
 
       if (_matchIndex < 0)
+      {
         _matchIndex = _matchResults.Count - 1;
+      }
 
       if (_matchIndex >= 0 && _matchIndex < _matchResults.Count)
       {
