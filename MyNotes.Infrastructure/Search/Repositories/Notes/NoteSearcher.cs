@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,9 +27,25 @@ internal class NoteSearcher : INoteSearcher
     return await AppSearchContext.WriteNoteIndexAsync(document, cancellationToken);
   }
 
-  public Task<IReadOnlyList<Note>> GetNotesAsync(CancellationToken cancellationToken = default)
+  public async IAsyncEnumerable<NoteSearchHitDto> GetNotesAsync(string searchText, [EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    throw new System.NotImplementedException();
+    var searchResult = await AppSearchContext.SearchNoteIndexAsync(searchText, cancellationToken);
+    if (searchResult is null)
+    {
+      yield break;
+    }
+
+    await foreach(var match in searchResult.Matches)
+    {
+      yield return new NoteSearchHitDto()
+      {
+        NoteId = NoteId.Create(match.NoteId),
+        TitleMatchFrequency = match.TitleMatchFrequency,
+        TitleMatchRanges = match.TitleMatchRanges,
+        BodyMatchFrequency = match.BodyMatchFrequency,
+        BodyMatchRanges = match.BodyMatchRanges
+      };
+    }
   }
 
   public Task DeleteNoteIndexAsync(NoteId noteId, CancellationToken cancellationToken = default) => AppSearchContext.DeleteNoteIndexAsync(noteId.Value, cancellationToken);

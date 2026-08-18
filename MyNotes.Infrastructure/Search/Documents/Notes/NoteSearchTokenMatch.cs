@@ -10,10 +10,10 @@ internal sealed class NoteSearchTokenMatch : IComparable<NoteSearchTokenMatch>
   public required int DocId { get; init; }
 
   public required int TitleMatchFrequency { get; init; }
-  public required ImmutableList<Range> TitleMatchOffsets { get; init; }
+  public required ImmutableList<Range> TitleMatchRanges { get; init; }
 
   public required int BodyMatchFrequency { get; init; }
-  public required ImmutableList<Range> BodyMatchOffsets { get; init; }
+  public required ImmutableList<Range> BodyMatchRanges { get; init; }
 
   public int CompareTo(NoteSearchTokenMatch? other) => other is not null ? other.Score.CompareTo(this.Score) : 1;
 }

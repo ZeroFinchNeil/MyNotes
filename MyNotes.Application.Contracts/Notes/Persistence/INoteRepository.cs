@@ -18,6 +18,8 @@ internal interface INoteRepository
 
   public Task<NoteDto?> GetNoteByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
+  public Task<IReadOnlyCollection<NoteDto>> GetNotesByIdsAsync(IEnumerable<NoteId> noteIds, CancellationToken cancellationToken = default);
+
   public Task<NoteViewStateDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken = default);
 
   public Task<IReadOnlyList<NoteDto>> GetNotesByParentAsync(NavigationId navigationId, bool includeDeleted = false, CancellationToken cancellationToken = default);

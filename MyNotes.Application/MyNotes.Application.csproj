@@ -26,11 +26,5 @@
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Media\Queries\" />
-    <Folder Include="Navigations\Queries\" />
-    <Folder Include="Notes\Queries\" />
-    <Folder Include="Queries\" />
-  </ItemGroup>
   
 </Project>

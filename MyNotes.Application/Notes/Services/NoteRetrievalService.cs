@@ -1,4 +1,6 @@
-﻿using MyNotes.Application.Contracts.Notes.Models;
+﻿using System.Runtime.CompilerServices;
+
+using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
@@ -60,12 +62,38 @@ internal sealed partial class NoteRetrievalService
     return await NoteRepository.FindNotesAsync(noteFilterDto, cancellationToken);
   }
 
-  public async Task<IReadOnlyList<NoteDto>> SearchNotesAsync(NoteFilterDto noteFilterDto, CancellationToken cancellationToken = default)
+  private readonly int _batchSize = 50;
+  public async IAsyncEnumerable<NoteSearchResultDto> SearchNotesAsync(string searchText, [EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    //List<NoteBundleAppResponseDto> noteDtos = new();
-    //NoteSearcher.
-    //return noteDtos.AsReadOnly();
-    return [];
+    Dictionary<NoteId, NoteSearchHitDto> hitBuffer = new(_batchSize);
+    await foreach (var hitDto in NoteSearcher.GetNotesAsync(searchText, cancellationToken))
+    {
+      hitBuffer.Add(hitDto.NoteId, hitDto);
+      if (hitBuffer.Count < _batchSize)
+      {
+        continue;
+      }
+
+      foreach (var noteDto in await NoteRepository.GetNotesByIdsAsync(hitBuffer.Keys, cancellationToken))
+      {
+        if (hitBuffer.TryGetValue(noteDto.Id, out var matchedHit))
+        {
+          yield return new() { NoteDto = noteDto, HitDto = matchedHit };
+        }
+      }
+      hitBuffer.Clear();
+    }
+
+    if (hitBuffer.Count > 0)
+    {
+      foreach (var noteDto in await NoteRepository.GetNotesByIdsAsync(hitBuffer.Keys, cancellationToken))
+      {
+        if (hitBuffer.TryGetValue(noteDto.Id, out var matchedHit))
+        {
+          yield return new() { NoteDto = noteDto, HitDto = matchedHit };
+        }
+      }
+    }
   }
 
   public async Task<IReadOnlyList<NoteDto>> GetOpenNotesAsync(CancellationToken cancellationToken = default)

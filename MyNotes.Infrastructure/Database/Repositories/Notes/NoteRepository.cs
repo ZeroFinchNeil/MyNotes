@@ -62,6 +62,21 @@ internal class NoteRepository : INoteRepository
       .FirstOrDefaultAsync(cancellationToken);
   }
 
+  public async Task<IReadOnlyCollection<NoteDto>> GetNotesByIdsAsync(IEnumerable<NoteId> noteIds, CancellationToken cancellationToken = default)
+  {
+    await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
+    var ids = noteIds.Select(id => id.Value).ToList();
+    return await context.NoteEntities
+      .AsNoTracking()
+      .Where(e => ids.Contains(e.Id))
+      .Join(
+        context.NoteViewStateEntities.AsNoTracking(),
+        outer => outer.Id,
+        inner => inner.Id,
+        (outer, inner) => NoteMappers.ToDto(outer, inner))
+      .ToListAsync(cancellationToken);
+  }
+
   public async Task<NoteViewStateDto?> GetNoteViewStateByIdAsync(NoteId noteId, CancellationToken cancellationToken)
   {
     await using var context = await DbContextFactory.CreateDbContextAsync(cancellationToken);
