@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.UI;
@@ -170,6 +171,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
             case NavigationUserCompositeNode:
               return;
             case NavigationSearch search:
+              ConsoleHelper.WriteLine(true, "{0}: {1}", "Search", true);
               MainPage_NavigationFrame.Navigate(search.PageType, navigation);
               return;
             case INavigationInitialTarget initialTarget:

@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Lifetime;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 

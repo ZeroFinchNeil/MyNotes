@@ -9,6 +9,7 @@ namespace MyNotes.Common.Lifetime;
 public sealed class ReferenceCounter<T>(T instance) where T : class
 {
   private T? _instance = instance;
+  private readonly string? _instanceTypeName = instance.GetType().Name;
 
   private readonly Lock _syncRoot = new();
 
@@ -33,7 +34,7 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
       }
 
       _referenceCount++;
-      ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Increased", _referenceCount, typeof(T).Name);
+      ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Increased", _referenceCount, _instanceTypeName);
 
       reference = _instance;
       return true;
@@ -74,7 +75,7 @@ public sealed class ReferenceCounter<T>(T instance) where T : class
       }
       finally
       {
-        ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Decreased", _referenceCount, typeof(T).Name);
+        ConsoleHelper.WriteLine(true, "{0}: {1} ({2})", "Reference Decreased", _referenceCount, _instanceTypeName);
       }
     }
   }

@@ -78,12 +78,8 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   private void NavigationController_CurrentNavigationChanged(object sender, INavigation? args)
   {
-    //ConsoleHelper.WriteLine(true, "{0}: {1}", "navigation", (args as NavigationUserNode)?.Title);
-    //ConsoleHelper.WriteLine(true, "{0}: {1}", "NavigationController.NavigationBackStack.Count", NavigationController.NavigationBackStack.Count);
-    //ConsoleHelper.WriteLine(true, "{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
     SyncNavigation();
     CanNavigateBack = NavigationController.NavigationBackStack.Count > 0;
-    //ConsoleHelper.WriteLine(true, "{0}: {1}", "CurrentNavigationViewModel", CurrentNavigationViewModel);
   }
 
   public void NavigateTo(INavigation navigation)
@@ -125,8 +121,8 @@ internal sealed partial class MainViewModel : ViewModelBase
       switch (NavigationController.CurrentNavigation)
       {
         case INavigationNode node:
+          using (var lease = NavigationViewModelProvider.Acquire(node))
           {
-            using var lease = NavigationViewModelProvider.Acquire(node);
             if (lease is not null)
             {
               CurrentNavigationViewModel = lease.ViewModel;
@@ -134,8 +130,10 @@ internal sealed partial class MainViewModel : ViewModelBase
           }
           break;
         case NavigationSearch search:
-          //NavigationViewModelProvider.Resolve(search);
-          CurrentNavigationViewModel = null;
+          using (var searchLease = NavigationViewModelProvider.Resolve(search))
+          {
+            CurrentNavigationViewModel = searchLease.ViewModel;
+          }
           break;
         default:
           CurrentNavigationViewModel = null;
