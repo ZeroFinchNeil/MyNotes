@@ -136,8 +136,8 @@ internal sealed class NoteCommandService : ICommandService
       using var navigationLease = NavigationViewModelProvider.Acquire(targetNavigationId);
       if (navigationLease?.ViewModel is UserListNavigationViewModel navigationViewModel)
       {
-        var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.NoteSize);
-        var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.NoteWindowPosition.PointInt32;
+        var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.DefaultNoteSize);
+        var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.DefaultNoteWindowPosition.PointInt32;
 
         CreateNoteAppCommand appCommand = new()
         {

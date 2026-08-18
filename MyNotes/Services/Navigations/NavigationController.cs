@@ -6,6 +6,7 @@ using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Mappers;
+using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
 
 namespace MyNotes.Services.Navigations;

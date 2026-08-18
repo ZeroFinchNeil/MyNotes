@@ -54,7 +54,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     NoteBackground = AppSettingsService.Load(NoteSettingsDescriptors.NoteBackground).ToColor();
     NoteBackdrop = AppSettingsService.Load<BackdropKind, int>(BackdropKindSettingsCodec.Decode, NoteSettingsDescriptors.NoteBackdropKind);
 
-    var noteSize = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.NoteSize);
+    var noteSize = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.DefaultNoteSize);
     NoteWidth = noteSize.Width;
     NoteHeight = noteSize.Height;
 
@@ -303,7 +303,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.NoteSize, new SizeInt32(value, NoteHeight));
+        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.DefaultNoteSize, new SizeInt32(value, NoteHeight));
       }
     }
   }
@@ -315,7 +315,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.NoteSize, new SizeInt32(NoteWidth, value));
+        AppSettingsService.Save(SizeInt32SettingsCodec.Encode, AppSettingsDescriptors.DefaultNoteSize, new SizeInt32(NoteWidth, value));
       }
     }
   }

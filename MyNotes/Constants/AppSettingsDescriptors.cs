@@ -37,17 +37,12 @@ internal static class AppSettingsDescriptors
   };
 
   // Settings - Note
-  public static SettingsDescriptor<SizeInt32> NoteSize { get; } = new()
+  public static SettingsDescriptor<SizeInt32> DefaultNoteSize { get; } = new()
   {
-    Key = "NoteSize",
+    Key = "DefaultNoteSize",
     DefaultValue = new SizeInt32(500, 500)
   };
 
-  public static SettingsDescriptor<PointInt32> NotePosition { get; } = new()
-  {
-    Key = "NotePosition",
-    DefaultValue = new PointInt32(0, 0)
-  };
   public static SettingsDescriptor<bool> DeleteEmptyNote { get; } = new()
   {
     Key = "DeleteEmptyNote",
@@ -79,17 +74,48 @@ internal static class AppSettingsDescriptors
   };
 
   // Windows
-  public static SettingsDescriptor<bool> IsMainWindowOpen { get; } = new("IsMainWindowOpen", true);
-  public static SettingsDescriptor<Size> MainWindowMinimumSize { get; } = new("MainWindowMinimumSize", new(600.0, 600.0));
-  public static SettingsDescriptor<Size> MainWindowSize { get; } = new("MainWindowSize", new(600.0, 800.0));
-  public static SettingsDescriptor<Point> MainWindowPosition { get; } = new("MainWindowPosition", new(0.0, 0.0));
-  public static SettingsDescriptor<string> MainWindowDisplay { get; } = new("MainWindowDisplay", string.Empty);
-  public static SettingsDescriptor<int> WindowBorderMargin { get; } = new("WindowBorderMargin", 20);
+  public static SettingsDescriptor<bool> IsMainWindowOpen { get; } = new()
+  {
+    Key = "IsMainWindowOpen",
+    DefaultValue = true
+  };
+  public static SettingsDescriptor<Size> MainWindowMinimumSize { get; } = new()
+  {
+    Key = "MainWindowMinimumSize",
+    DefaultValue = new(600.0, 600.0)
+  };
+  public static SettingsDescriptor<Size> MainWindowSize { get; } = new()
+  {
+    Key = "MainWindowSize",
+    DefaultValue = new(600.0, 800.0)
+  };
+  public static SettingsDescriptor<Point> MainWindowPosition { get; } = new()
+  {
+    Key = "MainWindowPosition",
+    DefaultValue = new(0.0, 0.0)
+  };
+  public static SettingsDescriptor<string> MainWindowDisplay { get; } = new()
+  {
+    Key = "MainWindowDisplay",
+    DefaultValue = string.Empty
+  };
+  public static SettingsDescriptor<int> WindowBorderMargin { get; } = new()
+  {
+    Key = "WindowBorderMargin",
+    DefaultValue = 20
+  };
 
   // Settings - Note
-  public static SettingsDescriptor<Size> NoteWindowMinimumSize { get; } = new("NoteWindowMinimumSize", new(400.0, 300.0));
+  public static SettingsDescriptor<Size> NoteWindowMinimumSize { get; } = new()
+  {
+    Key = "NoteWindowMinimumSize",
+    DefaultValue = new(400.0, 300.0)
+  };
+  public static SettingsDescriptor<int> NoteBodyUpdateFrequency { get; } = new()
+  {
+    Key = "NoteBodyUpdateFrequency",
+    DefaultValue = 2
+  };
 
-  public static SettingsDescriptor<int> NoteBodyUpdateFrequency { get; } = new("NoteBodyUpdateFrequency", 2);
-
-  public static Point NoteWindowPosition { get; } = new(32.0, 32.0);
+  public static Point DefaultNoteWindowPosition { get; } = new(32.0, 32.0);
 }

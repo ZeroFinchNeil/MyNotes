@@ -96,4 +96,34 @@ internal static class NavigationSettingsDescriptors
     Key = "TrashPagePreviewTileRatio",
     DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
   };
+
+  public static SettingsDescriptor<NoteSortKey> SearchResultsPageNoteSortKey { get; } = new()
+  {
+    Key = "SearchResultsPageNoteSortKey",
+    DefaultValue = Contracts.Notes.Models.NoteSortKey.Created
+  };
+
+  public static SettingsDescriptor<SortDirection> SearchResultsPageNoteSortDirection { get; } = new()
+  {
+    Key = "SearchResultsPageNoteSortDirection",
+    DefaultValue = SortDirection.Descending
+  };
+
+  public static SettingsDescriptor<PreviewLayoutType> SearchResultsPagePreviewLayoutType { get; } = new()
+  {
+    Key = "SearchResultsPagePreviewLayoutType",
+    DefaultValue = Contracts.Navigations.Models.PreviewLayoutType.Grid
+  };
+
+  public static SettingsDescriptor<PreviewTileSize> SearchResultsPagePreviewTileSize { get; } = new()
+  {
+    Key = "SearchResultsPagePreviewTileSize",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileSize.Medium
+  };
+
+  public static SettingsDescriptor<PreviewTileRatio> SearchResultsPagePreviewTileRatio { get; } = new()
+  {
+    Key = "SearchResultsPagePreviewTileRatio",
+    DefaultValue = Contracts.Navigations.Models.PreviewTileRatio.Square
+  };
 }

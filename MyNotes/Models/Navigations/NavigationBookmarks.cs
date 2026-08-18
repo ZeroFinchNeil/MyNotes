@@ -20,18 +20,63 @@ internal sealed partial class NavigationBookmarks : NavigationCoreNode, INavigat
 
   private NavigationBookmarks() : base(typeof(BookmarksPage)) { }
 
-  [ObservableProperty]
-  public partial NoteSortKey NoteSortKey { get; set; }
+  public NoteSortKey NoteSortKey
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial SortDirection NoteSortDirection { get; set; }
+  public SortDirection NoteSortDirection
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewLayoutType PreviewLayoutType { get; set; }
+  public PreviewLayoutType PreviewLayoutType
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewTileSize PreviewTileSize { get; set; }
+  public PreviewTileSize PreviewTileSize
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
-  [ObservableProperty]
-  public partial PreviewTileRatio PreviewTileRatio { get; set; }
+  public PreviewTileRatio PreviewTileRatio
+  {
+    get;
+    set
+    {
+      if (Enum.IsDefined(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 }
