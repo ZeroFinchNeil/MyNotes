@@ -1,5 +1,6 @@
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Common.Layout;
+using MyNotes.Debugging;
 
 namespace MyNotes.Views.Notes;
 
@@ -72,5 +73,11 @@ public sealed partial class NotePreviewGridView : GridView
   public NotePreviewGridView()
   {
     DefaultStyleKey = typeof(GridView);
+  }
+
+  protected override void OnApplyTemplate()
+  {
+    base.OnApplyTemplate();
+    ChangePreviewLayout();
   }
 }

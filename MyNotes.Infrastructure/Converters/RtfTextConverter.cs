@@ -1,4 +1,9 @@
-﻿using Microsoft.UI.Text;
+﻿using System;
+using System.Collections.Generic;
+
+using CommunityToolkit.WinUI.Helpers;
+
+using Microsoft.UI.Text;
 using Microsoft.UI.Xaml.Controls;
 
 using MyNotes.Application.Contracts.Converters;
@@ -22,15 +27,16 @@ internal class RtfTextConverter : IRtfTextConverter
     }
 
     _richEditBox ??= new();
+    var document = _richEditBox.Document;
 
     // 입력 문자열을 RTF로 해석합니다.
-    _richEditBox.Document.SetText(TextSetOptions.FormatRtf, rtfText);
+    document.SetText(TextSetOptions.FormatRtf, rtfText);
 
     // RTF 서식을 제외하고 일반 텍스트만 가져옵니다.
-    _richEditBox.Document.GetText(TextGetOptions.UseCrlf, out string plainText);
+    document.GetText(TextGetOptions.UseLf, out string plainText);
 
     // 초기화
-    _richEditBox.Document.SetText(TextSetOptions.None, string.Empty);
+    document.SetText(TextSetOptions.None, string.Empty);
 
     return plainText;
   }
@@ -44,12 +50,42 @@ internal class RtfTextConverter : IRtfTextConverter
 
     _richEditBox ??= new();
 
-    _richEditBox.Document.SetText(TextSetOptions.FormatRtf, body);
-    _richEditBox.Document.Selection.SetRange(start, end);
-    _richEditBox.Document.Selection.GetText(TextGetOptions.FormatRtf, out var preview);
+    var document = _richEditBox.Document;
+    document.SetText(TextSetOptions.FormatRtf, body);
+    document.Selection.SetRange(start, end);
+    document.Selection.GetText(TextGetOptions.FormatRtf, out var preview);
 
     // 초기화
-    _richEditBox.Document.SetText(TextSetOptions.None, string.Empty);
+    document.SetText(TextSetOptions.None, string.Empty);
+
     return preview;
+  }
+
+  public void Highlight(ref string body, IReadOnlyList<Range> highlightRanges, string highlightColor)
+  {
+    _richEditBox ??= new();
+
+    var document = _richEditBox.Document;
+    document.SetText(TextSetOptions.FormatRtf, body);
+    var color = ColorHelper.ToColor(highlightColor);
+
+    var selection = document.Selection;
+    int storyLength = selection.StoryLength;
+
+    foreach (var range in highlightRanges)
+    {
+      if (range.Start.Value >= storyLength)
+      {
+        continue;
+      }
+      document.Selection.SetRange(0, storyLength);
+      document.Selection.SetRange(range.Start.Value, range.End.Value);
+      document.Selection.CharacterFormat.BackgroundColor = color;
+    }
+
+    document.Selection.SetRange(0, storyLength);
+    document.Selection.GetText(TextGetOptions.FormatRtf, out body);
+    // 초기화
+    document.SetText(TextSetOptions.None, string.Empty);
   }
 }

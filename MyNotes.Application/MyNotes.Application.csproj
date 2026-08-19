@@ -17,7 +17,7 @@
     <PRIResource Remove="Validators\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotNext" Version="6.6.1" />
+    <PackageReference Include="DotNext" Version="6.6.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
   </ItemGroup>
   <ItemGroup>

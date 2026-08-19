@@ -138,7 +138,7 @@
       <!-- Body -->
       <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
                                      Grid.Row="1"
-                                     RtfText="{x:Bind ViewModel.Note.Preview, Mode=OneWay}"
+                                     RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}"
                                      RequestedTheme="Light" />
       <Border x:Name="NoteItem_PreviewCoverBorder"
               Grid.Row="1"

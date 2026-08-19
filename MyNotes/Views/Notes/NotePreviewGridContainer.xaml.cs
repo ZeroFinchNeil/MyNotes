@@ -29,7 +29,6 @@ internal sealed partial class NotePreviewGridContainer : UserControl
   private void UserListPageNotePreviewGridContainer_Unloaded(object sender, RoutedEventArgs e)
   {
     ConsoleHelper.WriteLine(true, "{0}: {1}", "Container Unloaded", true);
-
     Bindings.StopTracking();
   }
   #endregion  
