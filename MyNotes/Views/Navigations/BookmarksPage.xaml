@@ -153,14 +153,7 @@
       <!--#endregion-->
     </Grid>
 
-    <noteviews:NotePreviewGridView Grid.Row="1"
-                                   ItemsSource="{x:Bind NoteListViewModel.NoteViewModels, Mode=OneWay}"
-                                   PreviewLayoutType="{x:Bind Navigation.PreviewLayoutType, Mode=OneWay}"
-                                   PreviewTileSize="{x:Bind Navigation.PreviewTileSize, Mode=OneWay}"
-                                   PreviewTileRatio="{x:Bind Navigation.PreviewTileRatio, Mode=OneWay}"
-                                   SelectionMode="None"
-                                   AllowFocusOnInteraction="False"
-                                   ScrollViewer.VerticalScrollMode="Enabled"
-                                   ScrollViewer.VerticalScrollBarVisibility="Visible" />
+    <noteviews:NotePreviewItemsContainer Grid.Row="1"
+                                         ItemsSource="{x:Bind NoteListViewModel.NoteViewModels, Mode=OneWay}" />
   </Grid>
 </Page>

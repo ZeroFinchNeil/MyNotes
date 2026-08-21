@@ -925,36 +925,4 @@
     <Setter Property="Height"
             Value="32" />
   </Style>
-
-  <Style x:Key="NoteList_GridViewItemContainerStyle"
-         TargetType="GridViewItem"
-         BasedOn="{StaticResource DefaultGridViewItemStyle}">
-    <Setter Property="HorizontalContentAlignment"
-            Value="Stretch" />
-    <Setter Property="VerticalContentAlignment"
-            Value="Stretch" />
-  </Style>
-
-  <ItemsPanelTemplate x:Key="NoteList_GridViewItemsPanel_LayoutGrid">
-    <ItemsWrapGrid Orientation="Horizontal" />
-  </ItemsPanelTemplate>
-
-  <ItemsPanelTemplate x:Key="NoteList_GridViewItemsPanel_LayoutList">
-    <ItemsStackPanel />
-  </ItemsPanelTemplate>
-
-  <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutGrid"
-                x:DataType="notevm:NoteViewModel"
-                xmlns:notevm="using:MyNotes.ViewModels.Notes"
-                xmlns:noteview="using:MyNotes.Views.Notes">
-    <noteview:NotePreviewGridContainer ViewModel="{Binding}"
-                                       Margin="6" />
-  </DataTemplate>
-  <DataTemplate x:Key="NoteList_GridViewItemTemplate_LayoutList"
-                x:DataType="notevm:NoteViewModel"
-                xmlns:notevm="using:MyNotes.ViewModels.Notes"
-                xmlns:noteview="using:MyNotes.Views.Notes">
-    <noteview:NotePreviewListContainer ViewModel="{Binding}"
-                                       Margin="6" />
-  </DataTemplate>
 </ResourceDictionary>

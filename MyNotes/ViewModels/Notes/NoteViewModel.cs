@@ -51,7 +51,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     Note = note;
 
     SetBackgroundImage();
-    Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
+    SetPreview();
     Note.PropertyChanged += Note_PropertyChanged;
     SetCommands();
     RegisterMessengers();
@@ -184,13 +184,19 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   public ObservableCollection<TextRange> HighlighterRanges { get; } = [];
 
   public void HighlightPreview(IReadOnlyList<Range> highlightRange, string color = "#FF03FCD3") => RtfTextConverter.Highlight(ref _preview, highlightRange, color);
-  public void ResetHighlight() => Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
+  public void ResetHighlight() => SetPreview();
 
   private string _preview = string.Empty;
   public string Preview
   {
     get => _preview;
-    set => _preview = value;
+    set => SetProperty(ref _preview, value);
+  }
+
+  private void SetPreview()
+  {
+
+    Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
   }
 
   private readonly int _previewTextMaxLength = 500;
@@ -274,7 +280,7 @@ partial class NoteViewModel
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength));
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => SetPreview());
   }
 
   private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
