@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using System.Timers;
 
 using Lucene.Net.Analysis;
+using Lucene.Net.Analysis.Standard;
+using Lucene.Net.Analysis.TokenAttributes;
 using Lucene.Net.Documents;
 using Lucene.Net.Index;
 using Lucene.Net.QueryParsers.Classic;
@@ -33,12 +36,13 @@ internal sealed class AppSearchContext : IDisposable
   public static readonly LuceneVersion LuceneVersion = LuceneVersion.LUCENE_48;
   public FSDirectory NoteSearchIndexFSDir { get; }
   public SpecialNGramAnalyzer NoteSearchAnalyzer { get; }
+  public StandardAnalyzer StandardAnalyzer { get; } = new(LuceneVersion);
   public IndexWriter NoteSearchWriter { get; }
 
   public static readonly int NoteSearchMinGram = 3;
   public static readonly int NoteSearchMaxGram = 7;
   public static readonly int NoteSearchPageSize = 100;
-  public static readonly FieldType NoteSearchBodyFieldType = new()
+  private static readonly FieldType _noteSearchFieldType = new()
   {
     IsIndexed = true,
     IsStored = false,
@@ -55,6 +59,8 @@ internal sealed class AppSearchContext : IDisposable
     NoteSearchAnalyzer = new SpecialNGramAnalyzer(LuceneVersion, NoteSearchMinGram, NoteSearchMaxGram);
     var indexConfig = new IndexWriterConfig(LuceneVersion, NoteSearchAnalyzer) { OpenMode = OpenMode.CREATE_OR_APPEND };
     NoteSearchWriter = new IndexWriter(NoteSearchIndexFSDir, indexConfig);
+    _noteSearchFieldType.Freeze();
+
     _commitTimer.Elapsed += CommitTimer_Elapsed;
 
     _workerCompletionTask = RunWorker();
@@ -140,19 +146,19 @@ internal sealed class AppSearchContext : IDisposable
   #region Write And Update
   public async Task<bool> WriteNoteIndexAsync(NoteSearchDocument entity, CancellationToken cancellationToken = default)
   {
-    //var doc = new Document()
-    //  {
-    //    new StringField(nameof(NoteSearchEntity.Id), entity.Id.ToString(), Field.Store.YES),
-    //    new Field(nameof(NoteSearchEntity.Title), entity.Title, NoteSearchBodyFieldType),
-    //    new Field(nameof(NoteSearchEntity.Body), entity.Body, NoteSearchBodyFieldType)
-    //  };
-
     var doc = new Document()
-    {
-      new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
-      new TextField(nameof(NoteSearchDocument.Title), entity.Title, Field.Store.NO),
-      new TextField(nameof(NoteSearchDocument.Body), entity.Body, Field.Store.NO)
-    };
+      {
+        new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
+        new Field(nameof(NoteSearchDocument.Title), entity.Title, _noteSearchFieldType),
+        new Field(nameof(NoteSearchDocument.Body), entity.Body, _noteSearchFieldType)
+      };
+
+    //var doc = new Document()
+    //{
+    //  new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
+    //  new TextField(nameof(NoteSearchDocument.Title), entity.Title, Field.Store.NO),
+    //  new TextField(nameof(NoteSearchDocument.Body), entity.Body, Field.Store.NO)
+    //};
 
     Term term = new(nameof(NoteSearchDocument.Id), entity.Id.ToString());
     if (cancellationToken.IsCancellationRequested)
@@ -260,10 +266,11 @@ internal sealed class AppSearchContext : IDisposable
       cancellationToken.ThrowIfCancellationRequested();
       using DirectoryReader indexReader = NoteSearchWriter.GetReader(true);
       IndexSearcher indexSearcher = new(indexReader);
-      MultiFieldQueryParser parser = new(LuceneVersion, [nameof(NoteSearchDocument.Title), nameof(NoteSearchDocument.Body)], NoteSearchAnalyzer) { DefaultOperator = Operator.AND };
+      MultiFieldQueryParser parser = new(LuceneVersion, [nameof(NoteSearchDocument.Title), nameof(NoteSearchDocument.Body)], StandardAnalyzer) { DefaultOperator = Operator.AND };
       var searchQuery = parser.Parse(searchText);
       ConsoleHelper.WriteLine(true, "{0}: {1}", "SearchQuery", searchQuery);
       ScoreDoc? currentDoc = null;
+      var tokens = GetTokens(StandardAnalyzer, searchText);
 
       while (true)
       {
@@ -280,17 +287,18 @@ internal sealed class AppSearchContext : IDisposable
           var docId = scoreDoc.Doc;
           var doc = indexSearcher.Doc(docId);
 
-          //var matches = GetDocPositionAndOffsets(indexReader, docId, tokens);
+          var titleMatches = GetDocPositionAndOffsets(indexReader, docId, nameof(NoteSearchDocument.Title), tokens);
+          var bodyMatches = GetDocPositionAndOffsets(indexReader, docId, nameof(NoteSearchDocument.Body), tokens);
 
           yield return new NoteSearchTokenMatch()
           {
             Score = scoreDoc.Score,
             NoteId = Guid.Parse(doc.Get(nameof(NoteSearchDocument.Id))),
             DocId = docId,
-            TitleMatchFrequency = 0,
-            TitleMatchOffsets = [],
-            BodyMatchFrequency = 0,
-            BodyMatchOffsets = []
+            TitleMatchFrequency = titleMatches.Count,
+            TitleMatchRanges = [.. titleMatches.Values],
+            BodyMatchFrequency = bodyMatches.Count,
+            BodyMatchRanges = [.. bodyMatches.Values]
           };
         }
         currentDoc = scoreDocs.Last();
@@ -302,9 +310,9 @@ internal sealed class AppSearchContext : IDisposable
     }
   }
 
-  private Dictionary<int, Range>? GetDocPositionAndOffsets(IndexReader indexReader, int docId, List<string> tokens)
+  private Dictionary<int, Range> GetDocPositionAndOffsets(IndexReader indexReader, int docId, string field, List<string> tokens)
   {
-    var termsEnum = indexReader.GetTermVector(docId, "body").GetEnumerator();
+    var termsEnum = indexReader.GetTermVector(docId, field).GetEnumerator();
     // TermsEnum: ScoreDoc의 특정 필드에서 발생한 모든 Term 나열
 
     Dictionary<int, Range>? matches = null;
@@ -341,20 +349,20 @@ internal sealed class AppSearchContext : IDisposable
       }
     }
 
-    return matches;
+    return matches is null ? [] : matches;
   }
 
   private static List<string> GetTokens(Analyzer analyzer, string inputText)
   {
     var tokens = new List<string>();
 
-    using var reader = new IO.StringReader(inputText);
+    using var reader = new StringReader(inputText);
     using TokenStream tokenStream = analyzer.GetTokenStream(string.Empty, reader);
 
     tokenStream.Reset();
     while (tokenStream.IncrementToken())
     {
-      var termAttr = tokenStream.GetAttribute<Lucene.Net.Analysis.TokenAttributes.ICharTermAttribute>();
+      var termAttr = tokenStream.GetAttribute<ICharTermAttribute>();
       tokens.Add(termAttr.ToString());
     }
     tokenStream.End();

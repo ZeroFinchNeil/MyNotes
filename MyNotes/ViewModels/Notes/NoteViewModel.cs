@@ -1,8 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Application.Contracts.Converters;
@@ -13,8 +16,10 @@ using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
+using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Updates;
@@ -46,9 +51,10 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     Note = note;
 
     SetBackgroundImage();
-    Note.Preview = RtfTextConverter.GetPreview(Note.Body, 0, 500);
+    SetPreview();
     Note.PropertyChanged += Note_PropertyChanged;
     SetCommands();
+    RegisterMessengers();
   }
 
   private bool _disposeStarted;
@@ -59,6 +65,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
       return;
     }
 
+    UnregisterMessengers();
     Note.PropertyChanged -= Note_PropertyChanged;
     await NoteService.Modification.CommitSearchIndexAsync();
   }
@@ -66,7 +73,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   public async ValueTask DisposeAsync()
   {
     await DisposeAsyncCore().ConfigureAwait(false);
-    //await Task.Delay(2000);
     Dispose(disposing: false);
   }
   #endregion
@@ -172,6 +178,29 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   [ObservableProperty]
   public partial double ImagePanelMaxHeight { get; set; } = 120.0;
   #endregion
+
+  #region Preview and Highligt
+  // View-only Properties
+  public ObservableCollection<TextRange> HighlighterRanges { get; } = [];
+
+  public void HighlightPreview(IReadOnlyList<Range> highlightRange, string color = "#FF03FCD3") => RtfTextConverter.Highlight(ref _preview, highlightRange, color);
+  public void ResetHighlight() => SetPreview();
+
+  private string _preview = string.Empty;
+  public string Preview
+  {
+    get => _preview;
+    set => SetProperty(ref _preview, value);
+  }
+
+  private void SetPreview()
+  {
+
+    Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
+  }
+
+  private readonly int _previewTextMaxLength = 500;
+  #endregion
 }
 
 partial class NoteViewModel
@@ -191,7 +220,7 @@ partial class NoteViewModel
   public string OldTitle { get; set; } = string.Empty;
 
   [MemberNotNull(nameof(OpenWindowCommand), nameof(MinimizeWindowCommand), nameof(CloseWindowCommand), nameof(PinWindowCommand), nameof(MoveToListCommand), nameof(CreateNewNoteCommand), nameof(ViewListCommand), nameof(RenameNoteTitleCommand), nameof(ToggleBookmarkNoteCommand), nameof(RemoveNoteCommand), nameof(AddNoteToJumpListCommand))]
-  public void SetCommands()
+  private void SetCommands()
   {
     OpenWindowCommand = new()
     {
@@ -248,4 +277,11 @@ partial class NoteViewModel
       ExecuteFunc = () => NoteCommandService.AddNoteToJumpList(Note)
     };
   }
+
+  private void RegisterMessengers()
+  {
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => SetPreview());
+  }
+
+  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }

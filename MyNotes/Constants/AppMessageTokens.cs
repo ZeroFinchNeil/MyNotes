@@ -34,5 +34,6 @@ internal static class AppMessageTokens
   // NotePage -> NoteListViewModel
   public static MessageToken<INavigationNoteList> RemoveNoteFromListToken(INavigationNoteList navigation) => new() { Key = "RemoveNoteFromListToken", Context = navigation };
 
+  // UserGroupNavigationViewModel -> SettingsViewModel
   public static MessageToken NavigationCollectionChangedToken { get; } = new() { Key = "NavigationCollectionChanged" };
 }

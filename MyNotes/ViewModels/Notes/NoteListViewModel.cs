@@ -16,6 +16,7 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
@@ -65,6 +66,10 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
       return;
     }
 
+    foreach(var noteViewModel in NoteViewModels)
+    {
+      noteViewModel.ResetHighlight();
+    }
     await _noteViewModelLeases.DisposeAsync();
     Navigation.PropertyChanged -= Navigation_PropertyChanged;
     UnregisterMessengers();
@@ -92,23 +97,13 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
         }
         break;
       case NavigationSearch search:
-        //todo: 검색 조건에 따른 쿼리 구성
-        NoteFilterDto noteFilterDto = new()
+        await foreach (var noteSearchResultDto in NoteService.Retrieval.SearchNotesAsync(search.SearchText))
         {
-          NoteFindFields = NoteFindFields.TitleConditions,
-          TitleConditions = QueryConditionSet<StringQueryCondition>.Create(
-            conditions: [StringQueryCondition.Create(target: search.SearchText, condition: TextMatchType.Contains)])
-        };
-        var searchResultDtos = await NoteService.Retrieval.SearchNotesAsync(noteFilterDto);
-        if (searchResultDtos.Count == 0)
-        {
-          return;
-        }
-
-        foreach (var searchResultDto in searchResultDtos)
-        {
-          NoteModel searchedNote = NoteModelFactory.Create(searchResultDto);
-          await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(searchedNote));
+          var hitDto = noteSearchResultDto.HitDto;
+          NoteModel searchedNote = NoteModelFactory.Create(noteSearchResultDto.NoteDto);
+          var lease = await NoteViewModelProvider.ResolveAsync(searchedNote);
+          await _noteViewModelLeases.AddAsync(lease);
+          lease.ViewModel.HighlightPreview(hitDto.BodyMatchRanges);
         }
         break;
       case NavigationBookmarks bookmarks:

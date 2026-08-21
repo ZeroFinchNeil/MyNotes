@@ -120,11 +120,5 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   [ObservableProperty]
   public required partial bool IsAlwaysOnTop { get; set; }
 
-  // View-only Properties
-  public List<TextRange> HighlighterRanges { get; } = new();
-
-  [ObservableProperty]
-  public partial string Preview { get; set; } = string.Empty;
-
   public int CompareTo(NoteModel? other) => other is null ? 1 : Created.CompareTo(other.Created);
 }

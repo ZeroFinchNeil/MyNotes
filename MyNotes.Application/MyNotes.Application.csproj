@@ -17,7 +17,7 @@
     <PRIResource Remove="Validators\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="DotNext" Version="6.6.1" />
+    <PackageReference Include="DotNext" Version="6.6.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
   </ItemGroup>
   <ItemGroup>
@@ -25,12 +25,6 @@
     <ProjectReference Include="..\MyNotes.Common\MyNotes.Common.csproj" />
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />
     <ProjectReference Include="..\MyNotes.Domain\MyNotes.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Media\Queries\" />
-    <Folder Include="Navigations\Queries\" />
-    <Folder Include="Notes\Queries\" />
-    <Folder Include="Queries\" />
   </ItemGroup>
   
 </Project>

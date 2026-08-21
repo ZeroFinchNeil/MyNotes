@@ -11,7 +11,7 @@ internal interface INoteSearcher
 {
   public Task<bool> WriteNoteIndexAsync(NoteSearchDocumentDto noteSearchDocumentDto, CancellationToken cancellationToken = default);
 
-  public Task<IReadOnlyList<Note>> GetNotesAsync(CancellationToken cancellationToken = default);
+  public IAsyncEnumerable<NoteSearchHitDto> GetNotesAsync(string searchText, CancellationToken cancellationToken = default);
 
   public Task CommitAsync(CancellationToken cancellationToken = default);
 

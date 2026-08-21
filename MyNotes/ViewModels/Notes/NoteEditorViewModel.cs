@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Storage.Pickers;
@@ -763,7 +765,7 @@ partial class NoteEditorViewModel
 
     if (_shouldChangePreview)
     {
-      Note.Preview = RtfTextConverter.GetPreview(Note.Body, 0, PreviewTextMaxLength);
+      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.UpdateNotePreviewToken(Note.Id));
     }
 
     _shouldChangePreview = false;

@@ -9,36 +9,40 @@ using MyNotes.ViewModels.Notes;
 
 namespace MyNotes.Views.Notes;
 
-[Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NotePreviewGridContainer : UserControl
+internal sealed partial class NotePreviewGridItemContainer : UserControl
 {
   #region Object Lifetime Management
-  public NotePreviewGridContainer()
+  public NotePreviewGridItemContainer()
   {
-    TrackReference();
     InitializeComponent();
-    this.Loaded += UserListPageNotePreviewGridContainer_Loaded;
-    this.Unloaded += UserListPageNotePreviewGridContainer_Unloaded;
+    this.Loaded += UserListPageNotePreviewGridItemContainer_Loaded;
+    this.Unloaded += UserListPageNotePreviewGridItemContainer_Unloaded;
   }
 
-  private void UserListPageNotePreviewGridContainer_Loaded(object sender, RoutedEventArgs e)
+  private void UserListPageNotePreviewGridItemContainer_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
   }
 
-  private void UserListPageNotePreviewGridContainer_Unloaded(object sender, RoutedEventArgs e)
+  private void UserListPageNotePreviewGridItemContainer_Unloaded(object sender, RoutedEventArgs e)
   {
     ConsoleHelper.WriteLine(true, "{0}: {1}", "Container Unloaded", true);
-
     Bindings.StopTracking();
   }
   #endregion  
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NotePreviewGridContainer), new PropertyMetadata(null));
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NotePreviewGridItemContainer), new PropertyMetadata(null));
   public NoteViewModel ViewModel
   {
     get => (NoteViewModel)GetValue(ViewModelProperty);
     set => SetValue(ViewModelProperty, value);
+  }
+
+  public static readonly DependencyProperty PreviewRtfProperty = DependencyProperty.Register("PreviewRtf", typeof(string), typeof(NotePreviewGridItemContainer), new PropertyMetadata(null));
+  public string? PreviewRtf
+  {
+    get => (string?)GetValue(PreviewRtfProperty);
+    set => SetValue(PreviewRtfProperty, value);
   }
 
   private void NoteItem_RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
