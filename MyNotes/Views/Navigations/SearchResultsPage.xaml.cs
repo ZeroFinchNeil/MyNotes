@@ -13,9 +13,10 @@ namespace MyNotes.Views.Navigations;
 internal sealed partial class SearchResultsPage : Page
 {
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private SearchNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel;
-  private IAsyncViewModelLease<NoteListViewModel>? NoteListViewModelLease;
-  private NoteListViewModel? NoteListViewModel => NoteListViewModelLease?.ViewModel;
+  private SearchNavigationViewModel ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
+
+  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private NotePreviewListViewModel NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel ?? throw new InvalidOperationException("NotePreviewListViewModelLease가 초기화되지 않음");
 
   #region Object Lifetime Management
   public SearchResultsPage()
@@ -34,17 +35,17 @@ internal sealed partial class SearchResultsPage : Page
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
       ViewModelLease = navigationViewModelProvider.Acquire(navigation);
 
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
-      NoteListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
+      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
+      NotePreviewListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
     }
   }
 
   protected override async void OnNavigatedFrom(NavigationEventArgs e)
   {
     ViewModelLease?.Dispose();
-    if (NoteListViewModelLease is not null)
+    if (NotePreviewListViewModelLease is not null)
     {
-      await NoteListViewModelLease.DisposeAsync();
+      await NotePreviewListViewModelLease.DisposeAsync();
     }
   }
 

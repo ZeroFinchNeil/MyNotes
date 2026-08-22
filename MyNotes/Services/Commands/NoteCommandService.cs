@@ -33,7 +33,6 @@ internal sealed class NoteCommandService : ICommandService
   private readonly NoteWindowService NoteWindowService;
   private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
   private readonly NoteViewModelProvider NoteViewModelProvider;
-  private readonly NoteListViewModelProvider NoteListViewModelProvider;
   private readonly NavigationController NavigationController;
   private readonly NavigationViewModelProvider NavigationViewModelProvider;
   private readonly MainWindowService MainWindowService;
@@ -46,7 +45,6 @@ internal sealed class NoteCommandService : ICommandService
     NoteWindowService noteWindowService,
     IModelFactory<NoteDto, NoteModel> noteModelFactory,
     NoteViewModelProvider noteViewModelProvider,
-    NoteListViewModelProvider noteListViewModelProvider,
     NavigationController navigationController,
     NavigationViewModelProvider navigationViewModelProvider,
     MainWindowService mainWindowService,
@@ -59,7 +57,6 @@ internal sealed class NoteCommandService : ICommandService
     NoteWindowService = noteWindowService;
     NoteModelFactory = noteModelFactory;
     NoteViewModelProvider = noteViewModelProvider;
-    NoteListViewModelProvider = noteListViewModelProvider;
     NavigationController = navigationController;
     NavigationViewModelProvider = navigationViewModelProvider;
     MainWindowService = mainWindowService;

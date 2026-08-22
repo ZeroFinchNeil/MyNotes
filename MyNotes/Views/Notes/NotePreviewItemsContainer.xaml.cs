@@ -1,29 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-
-using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Common.Layout;
-
-using Windows.Foundation;
-using Windows.Foundation.Collections;
+using MyNotes.ViewModels.Notes;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace MyNotes.Views.Notes;
 
-public sealed partial class NotePreviewItemsContainer : UserControl
+internal sealed partial class NotePreviewItemsContainer : UserControl
 {
   public NotePreviewItemsContainer()
   {
@@ -31,12 +15,11 @@ public sealed partial class NotePreviewItemsContainer : UserControl
     ChangePreviewLayout();
   }
 
-
-  public static readonly DependencyProperty ItemsSourceProperty = DependencyProperty.Register("ItemsSource", typeof(object), typeof(NotePreviewItemsContainer), new PropertyMetadata(null));
-  public object? ItemsSource
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NotePreviewListViewModel), typeof(NotePreviewItemsContainer), new PropertyMetadata(null));
+  public NotePreviewListViewModel ViewModel
   {
-    get => (object?)GetValue(ItemsSourceProperty);
-    set => SetValue(ItemsSourceProperty, value);
+    get => (NotePreviewListViewModel)GetValue(ViewModelProperty);
+    set => SetValue(ViewModelProperty, value);
   }
 
   public static readonly DependencyProperty PreviewLayoutTypeProperty = DependencyProperty.Register("PreviewLayoutType", typeof(PreviewLayoutType), typeof(NotePreviewItemsContainer), new PropertyMetadata(PreviewLayoutType.Grid, OnPreviewLayoutPropertyChanged));
@@ -103,3 +86,4 @@ public sealed partial class NotePreviewItemsContainer : UserControl
     }
   }
 }
+

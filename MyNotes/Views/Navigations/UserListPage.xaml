@@ -34,7 +34,7 @@
           <Flyout Placement="Bottom"
                   ShouldConstrainToRootBounds="False">
             <templates:IconPicker x:Name="UpdateUserNodeDialog_IconPicker"
-                                  Icon="{x:Bind NoteListViewModel.Icon, Mode=TwoWay}"
+                                  Icon="{x:Bind NotePreviewListViewModel.Icon, Mode=TwoWay}"
                                   DecodePixelWidth="40"
                                   DecodePixelHeight="40" />
           </Flyout>
@@ -46,7 +46,7 @@
                  Text="{x:Bind ViewModel.Navigation.Title, Mode=OneWay}" />
 
       <templates:SubtleIconButton Grid.Column="2"
-                                  Command="{x:Bind NoteListViewModel.AddNoteCommand}">
+                                  Command="{x:Bind NotePreviewListViewModel.AddNoteCommand}">
         <SymbolIcon Symbol="Add" />
       </templates:SubtleIconButton>
 
@@ -191,6 +191,6 @@
     </Grid>
 
     <noteviews:NotePreviewItemsContainer Grid.Row="1"
-                                         ItemsSource="{x:Bind NoteListViewModel.NoteViewModels, Mode=OneWay}" />
+                                         ViewModel="{x:Bind NotePreviewListViewModel, Mode=OneWay}" />
   </Grid>
 </Page>

@@ -8,7 +8,7 @@ using MyNotes.Models.Navigations;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<INavigationNoteList, NoteListViewModel>
+internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<INavigationNoteList, NotePreviewListViewModel>
 {
   private readonly ConcurrentDictionary<INavigationNoteList, ViewModelCache> ResolveTable = new();
 
@@ -17,12 +17,12 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
     return new ReferenceCountedViewModelScope
     (
-      referenceCounter: new ReferenceCounter<NoteListViewModel>(ActivatorUtilities.CreateInstance<NoteListViewModel>(serviceScope.ServiceProvider, navigation)),
+      referenceCounter: new ReferenceCounter<NotePreviewListViewModel>(ActivatorUtilities.CreateInstance<NotePreviewListViewModel>(serviceScope.ServiceProvider, navigation)),
       serviceScope: serviceScope
     );
   });
 
-  public async Task<IAsyncViewModelLease<NoteListViewModel>> ResolveAsync(
+  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>> ResolveAsync(
     INavigationNoteList navigation)
   {
     while (true)
@@ -49,7 +49,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  public async Task<IAsyncViewModelLease<NoteListViewModel>?> AcquireAsync(INavigationNoteList navigation)
+  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireAsync(INavigationNoteList navigation)
   {
     if (ResolveTable.TryGetValue(navigation, out var cache))
     {
@@ -76,7 +76,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     return null;
   }
 
-  public async Task<IAsyncViewModelLease<NoteListViewModel>?> AcquireAsync(NavigationId navigationId)
+  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireAsync(NavigationId navigationId)
   {
     foreach (var nav in ResolveTable.Keys.ToArray())
     {
@@ -89,7 +89,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     return null;
   }
 
-  private ViewModelLease CreateLease(INavigationNoteList navigation, NoteListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private ViewModelLease CreateLease(INavigationNoteList navigation, NotePreviewListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = async () =>
@@ -111,9 +111,9 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     }
   };
 
-  private class ViewModelLease : IAsyncViewModelLease<NoteListViewModel>
+  private class ViewModelLease : IAsyncViewModelLease<NotePreviewListViewModel>
   {
-    public required NoteListViewModel ViewModel { get; init; }
+    public required NotePreviewListViewModel ViewModel { get; init; }
     public required Func<Task> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
@@ -140,14 +140,14 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
 
     private readonly Lazy<ReferenceCountedViewModelScope> _countedScope = new(countedScopeFactory);
 
-    public ReferenceCounter<NoteListViewModel> ReferenceCounter => _countedScope.Value.ReferenceCounter;
+    public ReferenceCounter<NotePreviewListViewModel> ReferenceCounter => _countedScope.Value.ReferenceCounter;
 
     public AsyncServiceScope ServiceScope => _countedScope.Value.ServiceScope;
   }
 
-  public sealed class ReferenceCountedViewModelScope(ReferenceCounter<NoteListViewModel> referenceCounter, AsyncServiceScope serviceScope)
+  public sealed class ReferenceCountedViewModelScope(ReferenceCounter<NotePreviewListViewModel> referenceCounter, AsyncServiceScope serviceScope)
   {
-    public ReferenceCounter<NoteListViewModel> ReferenceCounter { get; } = referenceCounter;
+    public ReferenceCounter<NotePreviewListViewModel> ReferenceCounter { get; } = referenceCounter;
 
     public AsyncServiceScope ServiceScope { get; } = serviceScope;
   }

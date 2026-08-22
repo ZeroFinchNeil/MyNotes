@@ -33,12 +33,11 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   private readonly NoteService NoteService;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
   private readonly AppSettingsService AppSettingsService;
-  private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
@@ -46,15 +45,12 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     NoteService = noteService;
     NoteUpdateCoordinator = updateCoordinator;
     AppSettingsService = appSettingsService;
-    RtfTextConverter = rtfTextConverter;
 
     Note = note;
 
     SetBackgroundImage();
-    SetPreview();
     Note.PropertyChanged += Note_PropertyChanged;
     SetCommands();
-    RegisterMessengers();
   }
 
   private bool _disposeStarted;
@@ -65,7 +61,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
       return;
     }
 
-    UnregisterMessengers();
     Note.PropertyChanged -= Note_PropertyChanged;
     await NoteService.Modification.CommitSearchIndexAsync();
   }
@@ -127,16 +122,17 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 
   public async Task<bool> DeleteNotePermanentlyWhenEmpty()
   {
-    if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
-    {
-      DeleteNoteAppCommand appCommand = new()
-      {
-        Id = Note.Id,
-        DeleteMode = DeleteMode.Permanent
-      };
-      return await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded;
-    }
+    //if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
+    //{
+    //  DeleteNoteAppCommand appCommand = new()
+    //  {
+    //    Id = Note.Id,
+    //    DeleteMode = DeleteMode.Permanent
+    //  };
+    //  return await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded;
+    //}
 
+    //return false;
     return false;
   }
   #endregion
@@ -177,29 +173,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 
   [ObservableProperty]
   public partial double ImagePanelMaxHeight { get; set; } = 120.0;
-  #endregion
-
-  #region Preview and Highligt
-  // View-only Properties
-  public ObservableCollection<TextRange> HighlighterRanges { get; } = [];
-
-  public void HighlightPreview(IReadOnlyList<Range> highlightRange, string color = "#FF03FCD3") => RtfTextConverter.Highlight(ref _preview, highlightRange, color);
-  public void ResetHighlight() => SetPreview();
-
-  private string _preview = string.Empty;
-  public string Preview
-  {
-    get => _preview;
-    set => SetProperty(ref _preview, value);
-  }
-
-  private void SetPreview()
-  {
-
-    Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
-  }
-
-  private readonly int _previewTextMaxLength = 500;
   #endregion
 }
 
@@ -277,11 +250,4 @@ partial class NoteViewModel
       ExecuteFunc = () => NoteCommandService.AddNoteToJumpList(Note)
     };
   }
-
-  private void RegisterMessengers()
-  {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => SetPreview());
-  }
-
-  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }
