@@ -22,37 +22,31 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
     );
   });
 
-  public async Task<IAsyncViewModelLease<NoteListViewModel>> ResolveAsync(INavigationNoteList navigation)
+  public async Task<IAsyncViewModelLease<NoteListViewModel>> ResolveAsync(
+    INavigationNoteList navigation)
   {
-    var cache = ResolveTable.GetOrAdd(navigation, _cacheFactory.Invoke);
-
-    await cache.Semaphore.WaitAsync();
-    try
+    while (true)
     {
-      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      var cache = ResolveTable.GetOrAdd(navigation, _cacheFactory);
+
+      await cache.Semaphore.WaitAsync();
+      try
       {
-        return CreateLease(navigation, viewmodel, cache);
+        if (ResolveTable.TryGetValue(navigation, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
+        {
+          if (cache.ReferenceCounter.TryAcquire(out var viewModel))
+          {
+            return CreateLease(navigation, viewModel, cache);
+          }
+
+          ResolveTable.TryRemove(navigation, out _);
+        }
+      }
+      finally
+      {
+        cache.Semaphore.Release();
       }
     }
-    finally
-    {
-      cache.Semaphore.Release();
-    }
-
-    ViewModelCache newCache = _cacheFactory(navigation);
-
-    await newCache.Semaphore.WaitAsync();
-    try
-    {
-      ResolveTable.AddOrUpdate(navigation, newCache, (k, v) => v = newCache);
-      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(navigation, viewmodel, newCache) : throw new InvalidOperationException();
-    }
-    finally
-    {
-      newCache.Semaphore.Release();
-    }
-
-    throw new InvalidOperationException();
   }
 
   public async Task<IAsyncViewModelLease<NoteListViewModel>?> AcquireAsync(INavigationNoteList navigation)
@@ -98,32 +92,29 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
   private ViewModelLease CreateLease(INavigationNoteList navigation, NoteListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
-    ReleaseFunc = () => ReleaseAsync(navigation, cache)
-  };
-
-  private async Task<bool> ReleaseAsync(INavigationNoteList navigation, ViewModelCache cache)
-  {
-    await cache.Semaphore.WaitAsync();
-    try
+    ReleaseFunc = async () =>
     {
-      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+      await cache.Semaphore.WaitAsync();
+      try
       {
-        await cache.ServiceScope.DisposeAsync();
-        ResolveTable.TryRemove(navigation, out _);
-        return true;
+        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        {
+          await viewmodel.DisposeAsync();
+          await cache.ServiceScope.DisposeAsync();
+          ResolveTable.TryRemove(navigation, out _);
+        }
       }
-      return false;
+      finally
+      {
+        cache.Semaphore.Release();
+      }
     }
-    finally
-    {
-      cache.Semaphore.Release();
-    }
-  }
+  };
 
   private class ViewModelLease : IAsyncViewModelLease<NoteListViewModel>
   {
     public required NoteListViewModel ViewModel { get; init; }
-    public required Func<Task<bool>> ReleaseFunc { get; init; }
+    public required Func<Task> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
     private async ValueTask DisposeAsyncCore()
@@ -133,10 +124,7 @@ internal sealed class NoteListViewModelProvider(IServiceProvider serviceProvider
         return;
       }
 
-      if (await ReleaseFunc.Invoke())
-      {
-        await ViewModel.DisposeAsync();
-      }
+      await ReleaseFunc();
     }
 
     public async ValueTask DisposeAsync()

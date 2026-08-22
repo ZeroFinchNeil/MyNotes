@@ -16,29 +16,39 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
 
   public IViewModelLease<ImageViewModel> Resolve(ImageDescriptor imageDescriptor)
   {
-    var cache = ResolveTable.GetOrAdd(imageDescriptor, _cacheFactory.Invoke);
-
-    lock (cache.SyncRoot)
+    while (true)
     {
-      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      var cache = ResolveTable.GetOrAdd(imageDescriptor, _cacheFactory.Invoke);
+
+      lock (cache.SyncRoot)
       {
-        return CreateLease(imageDescriptor, viewmodel, cache);
+        if (ResolveTable.TryGetValue(imageDescriptor, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
+        {
+          if (cache.ReferenceCounter.TryAcquire(out var viewModel))
+          {
+            return CreateLease(imageDescriptor, viewModel, cache);
+          }
+
+          ResolveTable.TryRemove(imageDescriptor, out _);
+        }
       }
-    }
-
-    ViewModelCache newCache = _cacheFactory(imageDescriptor);
-
-    lock (newCache.SyncRoot)
-    {
-      ResolveTable.AddOrUpdate(imageDescriptor, newCache, (k, v) => v = newCache);
-      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(imageDescriptor, viewmodel, newCache) : throw new InvalidOperationException();
     }
   }
 
   private ViewModelLease CreateLease(ImageDescriptor imageDescriptor, ImageViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
-    ReleaseFunc = () => Release(imageDescriptor, cache)
+    ReleaseAction = () =>
+    {
+      lock (cache.SyncRoot)
+      {
+        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        {
+          viewmodel.Dispose();
+          ResolveTable.TryRemove(imageDescriptor, out _);
+        }
+      }
+    }
   };
 
   public IViewModelLease<ImageViewModel>? Acquire(ImageDescriptor imageDescriptor)
@@ -63,23 +73,10 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     return null;
   }
 
-  private bool Release(ImageDescriptor imageDescriptor, ViewModelCache cache)
-  {
-    lock (cache.SyncRoot)
-    {
-      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
-      {
-        ResolveTable.TryRemove(imageDescriptor, out _);
-        return true;
-      }
-      return false;
-    }
-  }
-
   private sealed class ViewModelLease() : IViewModelLease<ImageViewModel>
   {
     public required ImageViewModel ViewModel { get; init; }
-    public required Func<bool> ReleaseFunc { get; init; }
+    public required Action ReleaseAction { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -92,10 +89,7 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
 
       if (disposing)
       {
-        if (ReleaseFunc.Invoke())
-        {
-          ViewModel.Dispose();
-        }
+        ReleaseAction.Invoke();
       }
 
       Disposed = true;

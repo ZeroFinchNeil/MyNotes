@@ -17,29 +17,39 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
 
   public IViewModelLease<ImageCollectionViewModel> Resolve(NoteId noteId)
   {
-    var cache = ResolveTable.GetOrAdd(noteId, _cacheFactory.Invoke);
-
-    lock (cache.SyncRoot)
+    while (true)
     {
-      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      var cache = ResolveTable.GetOrAdd(noteId, _cacheFactory.Invoke);
+
+      lock (cache.SyncRoot)
       {
-        return CreateLease(noteId, viewmodel, cache);
+        if (ResolveTable.TryGetValue(noteId, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
+        {
+          if (cache.ReferenceCounter.TryAcquire(out var viewModel))
+          {
+            return CreateLease(noteId, viewModel, cache);
+          }
+
+          ResolveTable.TryRemove(noteId, out _);
+        }
       }
-    }
-
-    ViewModelCache newCache = _cacheFactory(noteId);
-
-    lock (newCache.SyncRoot)
-    {
-      ResolveTable.AddOrUpdate(noteId, newCache, (k, v) => v = newCache);
-      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(noteId, viewmodel, newCache) : throw new InvalidOperationException();
     }
   }
 
   private ViewModelLease CreateLease(NoteId noteId, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
-    ReleaseFunc = () => Release(noteId, cache)
+    ReleaseAction = () =>
+    {
+      lock (cache.SyncRoot)
+      {
+        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        {
+          viewmodel.Dispose();
+          ResolveTable.TryRemove(noteId, out _);
+        }
+      }
+    }
   };
 
   public IViewModelLease<ImageCollectionViewModel>? Acquire(NoteId noteId)
@@ -64,23 +74,10 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     return null;
   }
 
-  private bool Release(NoteId noteId, ViewModelCache cache)
-  {
-    lock (cache.SyncRoot)
-    {
-      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
-      {
-        ResolveTable.TryRemove(noteId, out _);
-        return true;
-      }
-      return false;
-    }
-  }
-
   private sealed class ViewModelLease() : IViewModelLease<ImageCollectionViewModel>
   {
     public required ImageCollectionViewModel ViewModel { get; init; }
-    public required Func<bool> ReleaseFunc { get; init; }
+    public required Action ReleaseAction { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -93,10 +90,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
 
       if (disposing)
       {
-        if (ReleaseFunc.Invoke())
-        {
-          ViewModel.Dispose();
-        }
+        ReleaseAction.Invoke();
       }
 
       Disposed = true;

@@ -4,25 +4,28 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory) : IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory, NoteViewModelProvider NoteViewModelProvider) : IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>
 {
   public async Task<IAsyncViewModelLease<NoteEditorViewModel>> ResolveAsync(NoteModel note, RichEditTextDocument document)
   {
+    var noteViewModelLease = await NoteViewModelProvider.ResolveAsync(note);
     var scope = ScopeFactory.CreateAsyncScope();
     try
     {
+      var viewmodel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, noteViewModelLease, document);
       return new ViewModelLease()
       {
-        ViewModel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, note, document),
+        ViewModel = viewmodel,
         ReleaseFunc = async () =>
         {
+          await viewmodel.DisposeAsync();
           await scope.DisposeAsync();
-          return true;
         }
       };
     }
     catch
     {
+      await noteViewModelLease.DisposeAsync();
       await scope.DisposeAsync();
       throw;
     }
@@ -33,7 +36,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
   private class ViewModelLease : IAsyncViewModelLease<NoteEditorViewModel>
   {
     public required NoteEditorViewModel ViewModel { get; init; }
-    public required Func<Task<bool>> ReleaseFunc { get; init; }
+    public required Func<Task> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
     private async ValueTask DisposeAsyncCore()
@@ -43,10 +46,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
         return;
       }
 
-      if (await ReleaseFunc.Invoke())
-      {
-        await ViewModel.DisposeAsync();
-      }
+      await ReleaseFunc.Invoke();
     }
 
     public async ValueTask DisposeAsync()

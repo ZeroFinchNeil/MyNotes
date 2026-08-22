@@ -14,6 +14,7 @@ using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
+using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
 using MyNotes.ViewModels;
@@ -31,36 +32,29 @@ namespace MyNotes.Views.Notes;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposable
 {
-  private readonly IAsyncViewModelLease<NoteViewModel> ViewModelLease;
-  private NoteViewModel ViewModel => ViewModelLease.ViewModel;
+  public NoteModel Note;
   private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
-  private NoteEditorViewModel? EditorViewModel => EditorViewModelLease?.ViewModel;
+  private NoteEditorViewModel EditorViewModel => EditorViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
+  private NoteViewModel ViewModel => EditorViewModel.NoteViewModel;
   private readonly IViewModelLease<ImageCollectionViewModel> ImageCollectionViewModelLease;
   private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease.ViewModel;
 
   public UIElement TitleBarElement { get; }
 
   #region Object Lifetime Management
-  internal NotePage(IAsyncViewModelLease<NoteViewModel> viewmodelLease)
+  public NotePage(NoteModel note)
   {
     TrackReference();
     InitializeComponent();
-
-    ViewModelLease = viewmodelLease;
     TitleBarElement = NotePage_TitleBarGrid;
 
-    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-
-    // Editor BodyText
-    SetEditorText();
-
-    // Editor ImagePanel
-    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(ViewModel.Note.Id);
-    var imageViewModels = ImageCollectionViewModel.ImageViewModels;
-    ViewModel.IsImagePanelVisible = imageViewModels?.Count > 0;
+    Note = note;
 
     var appSettingsService = App.Services.GetRequiredService<AppSettingsService>();
     ChangeFlyoutTheme(appSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme));
+
+    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
+    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(Note.Id);
 
     RegisterMessengers();
 
@@ -73,7 +67,17 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   public async Task InitializeAsync()
   {
     var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
-    EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(ViewModel.Note, NotePage_TextEditorRichEditBox.Document);
+    EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(Note, NotePage_TextEditorRichEditBox.Document);
+
+    // Editor BodyText
+    var rtfText = Note.Body;
+    if (!string.IsNullOrEmpty(rtfText))
+    {
+      NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, Note.Body);
+    }
+
+    // Editor ImagePanel
+    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels?.Count > 0;
   }
 
   private bool _disposeStarted;
@@ -102,9 +106,10 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     ImageCollectionViewModelLease.Dispose();
 
     // 빈 노트 완전 삭제 로직
-    await ViewModel.DeleteNotePermanentlyWhenEmpty();
-
-    await ViewModelLease.DisposeAsync();
+    if (ViewModel is not null)
+    {
+      await ViewModel.DeleteNotePermanentlyWhenEmpty();
+    }
   }
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)
@@ -116,8 +121,8 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     appWindow.Closing += AppWindow_Closing;
     appWindow.Changed += AppWindow_Changed;
 
-    ViewModel.Note.IsWindowOpen = true;
-    (appWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = ViewModel.Note.IsAlwaysOnTop;
+    Note.IsWindowOpen = true;
+    (appWindow.Presenter as OverlappedPresenter)?.IsAlwaysOnTop = Note.IsAlwaysOnTop;
 
     _newWndProcCallback = (handle, msg, wParam, lParam) =>
     {
@@ -138,7 +143,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     _newWndProc = Marshal.GetFunctionPointerForDelegate(_newWndProcCallback);
     _oldWndProc = NativeMethods.SetWindowLongPtr(hWnd, GWLP_WNDPROC, _newWndProc);
 
-    if (ViewModel.Note.NavigationId == NavigationId.Empty)
+    if (Note.NavigationId == NavigationId.Empty)
     {
       var dialogService = App.Services.GetRequiredService<DialogService>();
       var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
@@ -149,18 +154,18 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
         case ContentDialogResult.Primary:
           if (dialogResponse.Data is NavigationId parentId && parentId != NavigationId.Empty)
           {
-            //ViewModel.Note.NavigationId = parentId;
-            //WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(ViewModel.Note), AppMessageTokens.AddNoteToListToken(navigationViewModel.Navigation));
+            //Note.NavigationId = parentId;
+            //WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(Note), AppMessageTokens.AddNoteToListToken(navigationViewModel.Navigation));
           }
           break;
         case ContentDialogResult.None:
-          ViewModel.CloseWindowCommand.Execute(ViewModel.Note);
+          ViewModel.CloseWindowCommand.Execute(Note);
           break;
       }
     }
 
-    EditorViewModel?.ChangeSystemBackdrop();
-    EditorViewModel?.ChangeSystemBackdropExtended();
+    EditorViewModel.ChangeSystemBackdrop();
+    EditorViewModel.ChangeSystemBackdropExtended();
   }
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -170,7 +175,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     if (_isManualClose)
     {
-      ViewModel.Note.IsWindowOpen = false;
+      Note.IsWindowOpen = false;
     }
 
     IntPtr hWnd = Win32Interop.GetWindowFromWindowId(sender.Id);
@@ -215,7 +220,10 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     if (_sourceIndex != dropIndex && _sourceIndex >= 0 && _sourceIndex < count && dropIndex >= 0 && dropIndex < count)
     {
-      await ImageCollectionViewModel.MoveImageAsync(_sourceIndex, dropIndex);
+      if (ImageCollectionViewModel is not null)
+      {
+        await ImageCollectionViewModel.MoveImageAsync(_sourceIndex, dropIndex);
+      }
     }
 
     _sourceIndex = -1;
@@ -260,16 +268,6 @@ partial class NotePage
     }
   }
 
-  // 본문
-  private void SetEditorText()
-  {
-    var rtfText = ViewModel.Note.Body;
-    if (!string.IsNullOrEmpty(rtfText))
-    {
-      NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, ViewModel.Note.Body);
-    }
-  }
-
   private void ChangeFlyoutTheme(ElementTheme theme)
   {
     switch (theme)
@@ -309,7 +307,7 @@ partial class NotePage
       if (sender.Presenter is OverlappedPresenter presenter
         && presenter.State is OverlappedPresenterState.Restored)
       {
-        ViewModel.Note.Size = sender.Size;
+        Note.Size = sender.Size;
       }
     }
     else if (args.DidPositionChange)
@@ -317,7 +315,7 @@ partial class NotePage
       if (sender.Presenter is OverlappedPresenter presenter
         && presenter.State is OverlappedPresenterState.Restored)
       {
-        ViewModel.Note.Position = sender.Position;
+        Note.Position = sender.Position;
       }
     }
   }
@@ -336,7 +334,7 @@ partial class NotePage
 
       if (fileType is not null)
       {
-        string suggestedFileName = ViewModel.Note.Title;
+        string suggestedFileName = Note.Title;
         foreach (var ch in System.IO.Path.GetInvalidFileNameChars())
         {
           suggestedFileName = suggestedFileName.Replace(ch, '_');
@@ -417,7 +415,7 @@ partial class NotePage
   {
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
-      ImageCollectionViewModel.ShowImageCommand?.Execute(imageViewModel);
+      ImageCollectionViewModel.ShowImageCommand.Execute(imageViewModel);
     }
   }
 
@@ -425,7 +423,7 @@ partial class NotePage
   {
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
-      imageViewModel.SaveImageCommand?.Execute(element.XamlRoot.ContentIslandEnvironment.AppWindowId);
+      imageViewModel.SaveImageCommand.Execute(element.XamlRoot.ContentIslandEnvironment.AppWindowId);
     }
   }
 
@@ -433,7 +431,7 @@ partial class NotePage
   {
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
-      ImageCollectionViewModel.DeleteImageCommand?.Execute(imageViewModel);
+      ImageCollectionViewModel.DeleteImageCommand.Execute(imageViewModel);
     }
   }
 
@@ -441,7 +439,7 @@ partial class NotePage
   {
     if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
     {
-      ImageCollectionViewModel.ShowImageCommand?.Execute(imageViewModel);
+      ImageCollectionViewModel.ShowImageCommand.Execute(imageViewModel);
     }
   }
 }
@@ -478,7 +476,7 @@ partial class NotePage
 
   private void NotePage_TitleRenameTextBox_LostFocus(object sender, RoutedEventArgs e)
   {
-    ViewModel.OldTitle = ViewModel.Note.Title;
+    ViewModel.OldTitle = Note.Title;
 
     if (VisualStateManager.GoToState(this, "TitleBarTitleNormal", false))
     {
@@ -536,7 +534,7 @@ partial class NotePage
       void InfoBarDismissTimer_Tick_WhenAutoClosed(object? sender, object e)
       {
         _infoBarDismissTimer.Tick -= InfoBarDismissTimer_Tick_WhenAutoClosed;
-        actionAfterAutoClosed?.Invoke();
+        actionAfterAutoClosed.Invoke();
       }
       if (actionAfterAutoClosed is not null)
       {
@@ -556,11 +554,14 @@ partial class NotePage
   private async void NotePage_SaveKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
   {
     args.Handled = true;
-    await EditorViewModel.UpdateNoteBodyAsync();
-    NotePage_InfoBar.Title = "Saved";
-    NotePage_InfoBar.ActionButton = null;
-    NotePage_InfoBar.Severity = InfoBarSeverity.Success;
-    OpenInfoBar(TimeSpan.FromSeconds(2));
+    if (EditorViewModel is not null)
+    {
+      await EditorViewModel.UpdateNoteBodyAsync();
+      NotePage_InfoBar.Title = "Saved";
+      NotePage_InfoBar.ActionButton = null;
+      NotePage_InfoBar.Severity = InfoBarSeverity.Success;
+      OpenInfoBar(TimeSpan.FromSeconds(2));
+    }
   }
 
   private void NotePage_FindKeyboardAccelerator_Invoked(KeyboardAccelerator sender, KeyboardAcceleratorInvokedEventArgs args)
@@ -603,7 +604,7 @@ partial class NotePage
   {
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, AppMessageTokens.ChangeAppThemeToken, new((recipient, message) => ChangeFlyoutTheme(message.Value)));
 
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowPresenterState>, MessageToken<NoteId>>(this, AppMessageTokens.NoteWindowActivationChangedToken(ViewModel.Note.Id), new((recipient, message) =>
+    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowPresenterState>, MessageToken<NoteId>>(this, AppMessageTokens.NoteWindowActivationChangedToken(Note.Id), new((recipient, message) =>
     {
       WindowPresenterState state = message.Value;
       WindowActivationState windowState = state.WindowActivationState;

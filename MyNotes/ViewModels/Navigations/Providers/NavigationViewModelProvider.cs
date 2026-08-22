@@ -28,29 +28,39 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
   public IViewModelLease<NavigationViewModelBase> Resolve(INavigation navigation)
   {
-    var cache = ResolveTable.GetOrAdd(navigation, _cacheFactory.Invoke);
-
-    lock (cache.SyncRoot)
+    while (true)
     {
-      if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
+      var cache = ResolveTable.GetOrAdd(navigation, _cacheFactory);
+
+      lock (cache.SyncRoot)
       {
-        return CreateLease(navigation, viewmodel, cache);
+        if (ResolveTable.TryGetValue(navigation, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
+        {
+          if (cache.ReferenceCounter.TryAcquire(out var viewModel))
+          {
+            return CreateLease(navigation, viewModel, cache);
+          }
+
+          ResolveTable.TryRemove(navigation, out _);
+        }
       }
-    }
-
-    ViewModelCache newCache = _cacheFactory(navigation);
-
-    lock (newCache.SyncRoot)
-    {
-      ResolveTable.AddOrUpdate(navigation, newCache, (k, v) => v = newCache);
-      return newCache.ReferenceCounter.TryAcquire(out var viewmodel) ? CreateLease(navigation, viewmodel, newCache) : throw new InvalidOperationException();
     }
   }
 
   private ViewModelLease CreateLease(INavigation navigation, NavigationViewModelBase viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
-    ReleaseFunc = () => Release(navigation, cache)
+    ReleaseAction = () =>
+    {
+      lock (cache.SyncRoot)
+      {
+        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        {
+          viewmodel.Dispose();
+          ResolveTable.TryRemove(navigation, out _);
+        }
+      }
+    }
   };
 
   public IViewModelLease<NavigationViewModelBase>? Acquire(INavigation navigation)
@@ -89,23 +99,10 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
     return navigation is not null ? Acquire(navigation) : null;
   }
 
-  private bool Release(INavigation navigation, ViewModelCache cache)
-  {
-    lock (cache.SyncRoot)
-    {
-      if (cache.ReferenceCounter.ReleaseOrDetach(out _))
-      {
-        ResolveTable.TryRemove(navigation, out _);
-        return true;
-      }
-      return false;
-    }
-  }
-
   private sealed class ViewModelLease() : IViewModelLease<NavigationViewModelBase>
   {
     public required NavigationViewModelBase ViewModel { get; init; }
-    public required Func<bool> ReleaseFunc { get; init; }
+    public required Action ReleaseAction { get; init; }
 
     public bool Disposed { get; private set; }
 
@@ -118,10 +115,7 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
 
       if (disposing)
       {
-        if (ReleaseFunc.Invoke())
-        {
-          ViewModel.Dispose();
-        }
+        ReleaseAction.Invoke();
       }
 
       Disposed = true;

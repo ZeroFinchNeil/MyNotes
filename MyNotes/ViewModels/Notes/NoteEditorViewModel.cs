@@ -29,18 +29,20 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateCoordinator;
   private readonly NoteWindowService NoteWindowService;
   private readonly IRtfTextConverter RtfTextConverter;
-  private readonly NoteModel Note;
+  private readonly IAsyncViewModelLease<NoteViewModel> NoteViewModelLease;
+  public NoteViewModel NoteViewModel => NoteViewModelLease.ViewModel;
+  private NoteModel Note => NoteViewModel.Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, NoteModel note, RichEditTextDocument document)
+  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
   {
     NoteUpdateCoordinator = noteUpdateCoordinator;
     ViewStateUpdateCoordinator = viewStateUpdateCoordinator;
     NoteWindowService = noteWindowService;
     RtfTextConverter = rtfTextConverter;
 
-    Note = note;
+    NoteViewModelLease = noteViewModelLease;
     Document = document;
     Note.PropertyChanged += Note_PropertyChanged;
     _bodyEditorBatchTimer.Tick += BodyEditorBatchTimer_Tick;
@@ -74,6 +76,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
     _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
     await UpdateNoteBodyAsync();
+    await NoteViewModelLease.DisposeAsync();
   }
 
   public async ValueTask DisposeAsync()

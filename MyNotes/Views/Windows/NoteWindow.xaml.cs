@@ -40,7 +40,7 @@ internal sealed partial class NoteWindow : Window
     NoteId = note.Id;
     NoteWindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
 
-    InitializationTask = InitializeAsync(provider, note);
+    InitializationTask = InitializeAsync(note);
 
     // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -63,9 +63,9 @@ internal sealed partial class NoteWindow : Window
     this.Closed += NoteWindow_Closed;
   }
 
-  private async Task InitializeAsync(NoteViewModelProvider provider, NoteModel noteModel)
+  private async Task InitializeAsync(NoteModel noteModel)
   {
-    _pageContent = new NotePage(await provider.ResolveAsync(noteModel));
+    _pageContent = new NotePage(noteModel);
     await _pageContent.InitializeAsync();
     this.Content = _pageContent;
     this.SetTitleBar(_pageContent.TitleBarElement);
