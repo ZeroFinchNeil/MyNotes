@@ -239,5 +239,21 @@ internal sealed class NoteCommandService : ICommandService
     }
   }
 
+  public async Task DeleteNoteManuallyAsync(NoteModel noteModel)
+  {
+    DeleteNoteAppCommand appCommand = new()
+    {
+      Id = noteModel.Id,
+      DeleteMode = DeleteMode.Permanent
+    };
+    if (await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded)
+    {
+      if (NavigationController.CurrentNavigation is INavigationNoteList navigation)
+      {
+        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+      }
+    }
+  }
+
   public Task AddNoteToJumpList(NoteModel noteModel) => JumpListService.AddToJumpListAsync(NoteMappers.ToDomain(noteModel));
 }

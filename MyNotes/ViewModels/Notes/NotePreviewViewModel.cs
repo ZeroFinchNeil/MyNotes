@@ -25,6 +25,9 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
 
     RtfTextConverter = rtfTextConverter;
     _preview = GetPreview();
+    RegisterMessengers();
+    // TODO: 노트 본문 변경 시 일반 미리보기는 다시 계산하고,
+    // 검색 미리보기는 검색 결과와 강조 범위를 함께 재계산할 수 있도록 갱신 흐름을 구현할 것.
   }
 
   protected bool _disposeStarted;

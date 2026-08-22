@@ -34,7 +34,7 @@
                                           Margin="6" />
     </DataTemplate>
   </UserControl.Resources>
-  
+
   <GridView x:Name="PreviewGridView"
             ItemsSource="{x:Bind ViewModel.NotePreviewViewModels, Mode=OneWay}"
             SelectionMode="None"

@@ -19,7 +19,6 @@ using Lucene.Net.Store;
 using Lucene.Net.Util;
 
 using MyNotes.Common.Operations;
-using MyNotes.Debugging;
 using MyNotes.Infrastructure.Search.Analyzers;
 using MyNotes.Infrastructure.Search.Constants;
 using MyNotes.Infrastructure.Search.Documents.Notes;
@@ -153,13 +152,6 @@ internal sealed class AppSearchContext : IDisposable
         new Field(nameof(NoteSearchDocument.Body), entity.Body, _noteSearchFieldType)
       };
 
-    //var doc = new Document()
-    //{
-    //  new StringField(nameof(NoteSearchDocument.Id), entity.Id.ToString(), Field.Store.YES),
-    //  new TextField(nameof(NoteSearchDocument.Title), entity.Title, Field.Store.NO),
-    //  new TextField(nameof(NoteSearchDocument.Body), entity.Body, Field.Store.NO)
-    //};
-
     Term term = new(nameof(NoteSearchDocument.Id), entity.Id.ToString());
     if (cancellationToken.IsCancellationRequested)
     {
@@ -268,7 +260,7 @@ internal sealed class AppSearchContext : IDisposable
       IndexSearcher indexSearcher = new(indexReader);
       MultiFieldQueryParser parser = new(LuceneVersion, [nameof(NoteSearchDocument.Title), nameof(NoteSearchDocument.Body)], StandardAnalyzer) { DefaultOperator = Operator.AND };
       var searchQuery = parser.Parse(searchText);
-      ConsoleHelper.WriteLine(true, "{0}: {1}", "SearchQuery", searchQuery);
+
       ScoreDoc? currentDoc = null;
       var tokens = GetTokens(StandardAnalyzer, searchText);
 
@@ -312,44 +304,57 @@ internal sealed class AppSearchContext : IDisposable
 
   private Dictionary<int, Range> GetDocPositionAndOffsets(IndexReader indexReader, int docId, string field, List<string> tokens)
   {
-    var termsEnum = indexReader.GetTermVector(docId, field).GetEnumerator();
-    // TermsEnum: ScoreDoc의 특정 필드에서 발생한 모든 Term 나열
-
-    Dictionary<int, Range>? matches = null;
-    foreach (string token in tokens)
+    try
     {
-      if (termsEnum.SeekExact(new BytesRef(token)))
+      var terms = indexReader.GetTermVector(docId, field);
+      if (terms is null)
       {
-        var docsEnum = termsEnum.DocsAndPositions(null, null);
+        return [];
+      }
 
-        if (docsEnum is null)
+      var termsEnumerator = terms.GetEnumerator();
+      // termsEnumerator: ScoreDoc의 특정 필드에서 발생한 모든 Term 나열
+
+      Dictionary<int, Range>? matches = null;
+      foreach (string token in tokens)
+      {
+        if (termsEnumerator.SeekExact(new BytesRef(token)))
+        {
+          var docsEnum = termsEnumerator.DocsAndPositions(null, null);
+
+          if (docsEnum is null)
+          {
+            matches = null;
+            break;
+          }
+
+          Dictionary<int, Range> currentMatches = new();
+
+          while (docsEnum.NextDoc() != DocIdSetIterator.NO_MORE_DOCS)
+          {
+            for (int i = 0; i < docsEnum.Freq; i++)
+            {
+              currentMatches.TryAdd(docsEnum.NextPosition(), new Range(docsEnum.StartOffset, docsEnum.EndOffset));
+            }
+          }
+
+          matches = matches is null
+            ? currentMatches
+            : matches.Where(match => currentMatches.ContainsKey(match.Key)).ToDictionary();
+        }
+        else
         {
           matches = null;
           break;
         }
-
-        Dictionary<int, Range> currentMatches = new();
-
-        while (docsEnum.NextDoc() != DocIdSetIterator.NO_MORE_DOCS)
-        {
-          for (int i = 0; i < docsEnum.Freq; i++)
-          {
-            currentMatches.TryAdd(docsEnum.NextPosition(), new Range(docsEnum.StartOffset, docsEnum.EndOffset));
-          }
-        }
-
-        matches = matches is null
-          ? currentMatches
-          : matches.Where(match => currentMatches.ContainsKey(match.Key)).ToDictionary();
       }
-      else
-      {
-        matches = null;
-        break;
-      }
+
+      return matches is null ? [] : matches;
     }
-
-    return matches is null ? [] : matches;
+    catch
+    {
+      return [];
+    }
   }
 
   private static List<string> GetTokens(Analyzer analyzer, string inputText)
@@ -366,27 +371,6 @@ internal sealed class AppSearchContext : IDisposable
       tokens.Add(termAttr.ToString());
     }
     tokenStream.End();
-    return tokens;
-  }
-
-  private static List<string> GetTokens(string word, int maxGram)
-  {
-    word = word.ToLowerInvariant();
-    int length = word.Length;
-
-    List<string> tokens = new();
-    if (length <= maxGram)
-    {
-      tokens.Add(word);
-    }
-    else
-    {
-      for (int index = 0; index <= length - maxGram; index++)
-      {
-        tokens.Add(word[index..(index + maxGram)]);
-      }
-    }
-
     return tokens;
   }
   #endregion

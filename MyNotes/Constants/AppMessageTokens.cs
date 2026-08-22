@@ -18,7 +18,7 @@ internal static class AppMessageTokens
   // SettingsViewModel -> UserNavigationViewModel(s)
   public static MessageToken ChangeNavigationViewModelIconImageToken { get; } = new() { Key = "ChangeNavigationViewModelIconImage" };
 
-  // NoteViewModel -> NoteListViewModel
+  // NoteViewModel -> NotePreviewListViewModel
   public static MessageToken ChangeNoteIsBookmarkedStateToken { get; } = new() { Key = "ChangeNoteIsBookmarkedState" };
   public static MessageToken NoteTitleChangedToken { get; } = new() { Key = "NoteTitleChangedToken" };
 

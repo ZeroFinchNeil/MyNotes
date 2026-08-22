@@ -1,11 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Application.Contracts.Converters;
@@ -16,10 +13,8 @@ using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
-using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Updates;
@@ -33,11 +28,12 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
   private readonly NoteService NoteService;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
   private readonly AppSettingsService AppSettingsService;
+  private readonly IRtfTextConverter RtfTextConverter;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
@@ -45,6 +41,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     NoteService = noteService;
     NoteUpdateCoordinator = updateCoordinator;
     AppSettingsService = appSettingsService;
+    RtfTextConverter = rtfTextConverter;
 
     Note = note;
 
@@ -120,20 +117,12 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     }
   }
 
-  public async Task<bool> DeleteNotePermanentlyWhenEmpty()
+  public async Task DeleteNotePermanentlyWhenEmpty()
   {
-    //if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
-    //{
-    //  DeleteNoteAppCommand appCommand = new()
-    //  {
-    //    Id = Note.Id,
-    //    DeleteMode = DeleteMode.Permanent
-    //  };
-    //  return await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded;
-    //}
-
-    //return false;
-    return false;
+    if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
+    {
+      await NoteCommandService.DeleteNoteManuallyAsync(Note);
+    }
   }
   #endregion
 
