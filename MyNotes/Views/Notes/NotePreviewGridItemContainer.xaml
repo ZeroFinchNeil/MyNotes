@@ -61,7 +61,7 @@
                                                    IsChecked="{x:Bind ViewModel.Note.IsBookmarked, Mode=OneWay}"
                                                    Visibility="Collapsed"
                                                    Style="{StaticResource AlternateIconToggleButtonStyle_32x16}"
-                                                   Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}" />
+                                                   Command="{x:Bind NoteViewModel.ToggleBookmarkNoteCommand}" />
 
         <!-- Title -->
         <TextBlock Grid.Column="1"
@@ -74,7 +74,7 @@
                    Style="{StaticResource BodyStrongTextBlockStyle}">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind NoteViewModel.OpenWindowCommand}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
         </TextBlock>
@@ -102,7 +102,7 @@
                                 Icon="{ui:FontIcon Glyph=&#xE8AD;}"
                                 Width="60"
                                 Height="48"
-                                Command="{x:Bind ViewModel.OpenWindowCommand}" />
+                                Command="{x:Bind NoteViewModel.OpenWindowCommand}" />
                   <AppBarButton Label="Share"
                                 Icon="Share"
                                 Width="60"
@@ -111,7 +111,7 @@
                                 Icon="Delete"
                                 Width="60"
                                 Height="48"
-                                Command="{x:Bind ViewModel.RemoveNoteCommand}" />
+                                Command="{x:Bind NoteViewModel.RemoveNoteCommand}" />
                 </StackPanel>
               </templates:MenuFlyoutElementContainer>
 
@@ -126,7 +126,7 @@
                               Icon="{ui:FontIcon Glyph=&#xE932;}" />
               <MenuFlyoutItem Text="Add to jump list"
                               Icon="Add"
-                              Command="{x:Bind ViewModel.AddNoteToJumpListCommand}" />
+                              Command="{x:Bind NoteViewModel.AddNoteToJumpListCommand}" />
               <MenuFlyoutSeparator />
               <MenuFlyoutItem Text="About"
                               Icon="{ui:FontIcon Glyph=&#xE946;}" />
@@ -138,14 +138,14 @@
       <!-- Body -->
       <templates:ReadOnlyRichEditBox x:Name="NoteItem_PreviewRichEditBox"
                                      Grid.Row="1"
-                                     RtfText="{x:Bind PreviewRtf, Mode=OneWay}"
+                                     RtfText="{x:Bind ViewModel.Preview, Mode=OneWay}"
                                      RequestedTheme="Light" />
       <Border x:Name="NoteItem_PreviewCoverBorder"
               Grid.Row="1"
               Background="Transparent">
         <interactivity:Interaction.Behaviors>
           <interactivity:EventTriggerBehavior EventName="DoubleTapped">
-            <interactivity:InvokeCommandAction Command="{x:Bind ViewModel.OpenWindowCommand}" />
+            <interactivity:InvokeCommandAction Command="{x:Bind NoteViewModel.OpenWindowCommand}" />
           </interactivity:EventTriggerBehavior>
         </interactivity:Interaction.Behaviors>
       </Border>

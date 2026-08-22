@@ -146,7 +146,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     if (Note.NavigationId == NavigationId.Empty)
     {
       var dialogService = App.Services.GetRequiredService<DialogService>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
       var dialogResponse = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
       var contentDialogResult = dialogResponse.Result;
       switch (contentDialogResult)

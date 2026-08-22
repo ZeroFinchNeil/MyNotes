@@ -22,23 +22,21 @@
     </ItemsPanelTemplate>
 
     <DataTemplate x:Key="GridViewItemTemplate_LayoutGrid"
-                  x:DataType="notevm:NoteViewModel"
+                  x:DataType="notevm:NotePreviewViewModel"
                   xmlns:notevm="using:MyNotes.ViewModels.Notes">
       <local:NotePreviewGridItemContainer ViewModel="{x:Bind Mode=OneWay}"
-                                          PreviewRtf="{x:Bind Preview, Mode=OneWay}"
                                           Margin="6" />
     </DataTemplate>
     <DataTemplate x:Key="GridViewItemTemplate_LayoutList"
-                  x:DataType="notevm:NoteViewModel"
+                  x:DataType="notevm:NotePreviewViewModel"
                   xmlns:notevm="using:MyNotes.ViewModels.Notes">
       <local:NotePreviewListItemContainer ViewModel="{x:Bind Mode=OneWay}"
-                                          PreviewRtf="{x:Bind Preview, Mode=OneWay}"
                                           Margin="6" />
     </DataTemplate>
   </UserControl.Resources>
-  
+
   <GridView x:Name="PreviewGridView"
-            ItemsSource="{x:Bind ItemsSource, Mode=OneWay}"
+            ItemsSource="{x:Bind ViewModel.NotePreviewViewModels, Mode=OneWay}"
             SelectionMode="None"
             AllowFocusOnInteraction="False"
             ScrollViewer.VerticalScrollMode="Enabled"

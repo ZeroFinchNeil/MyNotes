@@ -15,10 +15,8 @@ internal sealed partial class UserListPage : Page
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
   private UserListNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel;
 
-  private NoteListViewModelProvider? NoteListViewModelProvider;
-
-  private IAsyncViewModelLease<NoteListViewModel>? NoteListViewModelLease;
-  private NoteListViewModel? NoteListViewModel => NoteListViewModelLease?.ViewModel;
+  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public UserListPage()
@@ -37,18 +35,18 @@ internal sealed partial class UserListPage : Page
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      NoteListViewModelProvider = App.Services.GetRequiredService<NoteListViewModelProvider>();
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
       ViewModelLease = navigationViewModelProvider.Resolve(navigation);
-      NoteListViewModelLease = await NoteListViewModelProvider.ResolveAsync(navigation);
+      NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(navigation);
     }
   }
 
   protected override async void OnNavigatedFrom(NavigationEventArgs e)
   {
     ViewModelLease?.Dispose();
-    if (NoteListViewModelLease is not null)
+    if (NotePreviewListViewModelLease is not null)
     {
-      await NoteListViewModelLease.DisposeAsync();
+      await NotePreviewListViewModelLease.DisposeAsync();
     }
   }
 

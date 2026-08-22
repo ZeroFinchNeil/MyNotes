@@ -31,19 +31,14 @@ internal sealed partial class NotePreviewGridItemContainer : UserControl
   }
   #endregion  
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NotePreviewGridItemContainer), new PropertyMetadata(null));
-  public NoteViewModel ViewModel
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NotePreviewViewModel), typeof(NotePreviewGridItemContainer), new PropertyMetadata(null));
+  public NotePreviewViewModel ViewModel
   {
-    get => (NoteViewModel)GetValue(ViewModelProperty);
+    get => (NotePreviewViewModel)GetValue(ViewModelProperty);
     set => SetValue(ViewModelProperty, value);
   }
 
-  public static readonly DependencyProperty PreviewRtfProperty = DependencyProperty.Register("PreviewRtf", typeof(string), typeof(NotePreviewGridItemContainer), new PropertyMetadata(null));
-  public string? PreviewRtf
-  {
-    get => (string?)GetValue(PreviewRtfProperty);
-    set => SetValue(PreviewRtfProperty, value);
-  }
+  private NoteViewModel? NoteViewModel => ViewModel?.NoteViewModel;
 
   private void NoteItem_RootGrid_PointerEntered(object sender, PointerRoutedEventArgs e)
   {
@@ -87,7 +82,7 @@ internal sealed partial class NotePreviewGridItemContainer : UserControl
           {
             Text = targetNavigation.Title,
             Icon = new ImageIcon() { Source = targetVM.IconImage },
-            Command = ViewModel.MoveToListCommand,
+            Command = NoteViewModel?.MoveToListCommand,
             CommandParameter = targetNavigation.Id
           });
         }

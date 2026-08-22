@@ -165,7 +165,8 @@ internal static class ServiceCollectionExtension
 
       services.AddSingleton<NoteViewModelProvider>();
       services.AddSingleton<NoteEditorViewModelProvider>();
-      services.AddSingleton<NoteListViewModelProvider>();
+      services.AddSingleton<NotePreviewViewModelProvider>();
+      services.AddSingleton<NotePreviewListViewModelProvider>();
 
       services.AddSingleton<ImageViewModelProvider>();
       services.AddSingleton<ImageCollectionViewModelProvider>();

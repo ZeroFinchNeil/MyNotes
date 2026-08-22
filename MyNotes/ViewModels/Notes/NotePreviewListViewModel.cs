@@ -27,7 +27,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NotePreviewListViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly NavigationService NavigationService;
@@ -35,11 +35,11 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
   private readonly NoteWindowService NoteWindowService;
   private readonly MainWindowService MainWindowService;
   private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
-  private readonly NoteViewModelProvider NoteViewModelProvider;
+  private readonly NotePreviewViewModelProvider NotePreviewViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NoteListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NoteViewModelProvider noteViewModelProvider, INavigationNoteList navigation)
+  public NotePreviewListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NotePreviewViewModelProvider notePreviewViewModelProvider, INavigationNoteList navigation)
   {
     AppSettingsService = appSettingsService;
     NavigationService = navigationService;
@@ -47,14 +47,14 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     NoteWindowService = noteWindowService;
     MainWindowService = mainWindowService;
     NoteModelFactory = noteModelFactory;
-    NoteViewModelProvider = noteViewModelProvider;
+    NotePreviewViewModelProvider = notePreviewViewModelProvider;
 
     Navigation = navigation;
 
     SetCommands();
     RegisterMessengers();
 
-    _noteViewModelLeases = new(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
+    _notePreviewViewModelLeases = new(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
     InitializeTask = InitializeAsync();
   }
 
@@ -66,11 +66,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
       return;
     }
 
-    foreach(var noteViewModel in NoteViewModels)
-    {
-      noteViewModel.ResetHighlight();
-    }
-    await _noteViewModelLeases.DisposeAsync();
+    await _notePreviewViewModelLeases.DisposeAsync();
     Navigation.PropertyChanged -= Navigation_PropertyChanged;
     UnregisterMessengers();
   }
@@ -81,45 +77,45 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
   }
   #endregion
 
-  private readonly LeasedNoteViewModelCollection _noteViewModelLeases;
-  public IReadOnlyList<NoteViewModel> NoteViewModels => _noteViewModelLeases.ViewModels;
+  private readonly LeasedNotePreviewViewModelCollection _notePreviewViewModelLeases;
+  public IReadOnlyList<NotePreviewViewModel> NotePreviewViewModels => _notePreviewViewModelLeases.ViewModels;
 
   public Task InitializeTask { get; }
   public async Task InitializeAsync()
   {
     switch (Navigation)
     {
-      case NavigationUserLeafNode leaf:
-        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leaf.Id, false)).Select(NoteModelFactory.Create);
+      case NavigationUserLeafNode leafNavigation:
+        var leafNotes = (await NoteService.Retrieval.GetNotesByParentAsync(leafNavigation.Id, false)).Select(NoteModelFactory.Create);
         foreach (var note in leafNotes)
         {
-          await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(note));
+          await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(note, leafNavigation));
         }
         break;
-      case NavigationSearch search:
-        await foreach (var noteSearchResultDto in NoteService.Retrieval.SearchNotesAsync(search.SearchText))
+      case NavigationSearch searchNavigation:
+        await foreach (var noteSearchResultDto in NoteService.Retrieval.SearchNotesAsync(searchNavigation.SearchText))
         {
           var hitDto = noteSearchResultDto.HitDto;
           NoteModel searchedNote = NoteModelFactory.Create(noteSearchResultDto.NoteDto);
-          var lease = await NoteViewModelProvider.ResolveAsync(searchedNote);
-          await _noteViewModelLeases.AddAsync(lease);
-          lease.ViewModel.HighlightPreview(hitDto.BodyMatchRanges);
+          var lease = await NotePreviewViewModelProvider.ResolveAsync(searchedNote, searchNavigation);
+          await _notePreviewViewModelLeases.AddAsync(lease);
+          (lease.ViewModel as NoteSearchPreviewViewModel)?.HighlightPreview(hitDto.BodyMatchRanges);
         }
         break;
-      case NavigationBookmarks bookmarks:
+      case NavigationBookmarks bookmarksNavigation:
         var bookmarkResultDtos = await NoteService.Retrieval.GetBookmarkedNotesAsync();
         foreach (var bookmarkResultDto in bookmarkResultDtos)
         {
           NoteModel bookmarkedNote = NoteModelFactory.Create(bookmarkResultDto);
-          await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(bookmarkedNote));
+          await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(bookmarkedNote, bookmarksNavigation));
         }
         break;
-      case NavigationTrash trash:
+      case NavigationTrash trashNavigation:
         var trashResultDtos = await NoteService.Retrieval.GetTrashedNotesAsync();
         foreach (var trashResultDto in trashResultDtos)
         {
           NoteModel trashedNote = NoteModelFactory.Create(trashResultDto);
-          await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(trashedNote));
+          await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(trashedNote, trashNavigation));
         }
         break;
     }
@@ -133,7 +129,7 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     {
       case nameof(INavigationNoteList.NoteSortKey):
       case nameof(INavigationNoteList.NoteSortDirection):
-        _noteViewModelLeases.Rearrange(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
+        _notePreviewViewModelLeases.Rearrange(GetComparer(Navigation.NoteSortKey, Navigation.NoteSortDirection));
         break;
     }
   }
@@ -160,20 +156,20 @@ internal sealed partial class NoteListViewModel : ViewModelBase, IAsyncDisposabl
     }
   }
 
-  private static Comparer<NoteViewModel> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
+  private static Comparer<NotePreviewViewModel> GetComparer(NoteSortKey noteSortKey, SortDirection sortDirection) => (noteSortKey, sortDirection) switch
   {
-    (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<NoteViewModel>.Create((x, y) => x.Note.Modified.CompareTo(y.Note.Modified)),
-    (NoteSortKey.Modified, SortDirection.Descending) => Comparer<NoteViewModel>.Create((x, y) => y.Note.Modified.CompareTo(x.Note.Modified)),
-    (NoteSortKey.Created, SortDirection.Ascending) => Comparer<NoteViewModel>.Create((x, y) => x.Note.Created.CompareTo(y.Note.Created)),
-    (NoteSortKey.Created, SortDirection.Descending) => Comparer<NoteViewModel>.Create((x, y) => y.Note.Created.CompareTo(x.Note.Created)),
-    (NoteSortKey.Title, SortDirection.Ascending) => Comparer<NoteViewModel>.Create((x, y) => x.Note.Title.CompareTo(y.Note.Title)),
-    (NoteSortKey.Title, SortDirection.Descending) => Comparer<NoteViewModel>.Create((x, y) => y.Note.Title.CompareTo(x.Note.Title)),
+    (NoteSortKey.Modified, SortDirection.Ascending) => Comparer<NotePreviewViewModel>.Create((x, y) => x.Note.Modified.CompareTo(y.Note.Modified)),
+    (NoteSortKey.Modified, SortDirection.Descending) => Comparer<NotePreviewViewModel>.Create((x, y) => y.Note.Modified.CompareTo(x.Note.Modified)),
+    (NoteSortKey.Created, SortDirection.Ascending) => Comparer<NotePreviewViewModel>.Create((x, y) => x.Note.Created.CompareTo(y.Note.Created)),
+    (NoteSortKey.Created, SortDirection.Descending) => Comparer<NotePreviewViewModel>.Create((x, y) => y.Note.Created.CompareTo(x.Note.Created)),
+    (NoteSortKey.Title, SortDirection.Ascending) => Comparer<NotePreviewViewModel>.Create((x, y) => x.Note.Title.CompareTo(y.Note.Title)),
+    (NoteSortKey.Title, SortDirection.Descending) => Comparer<NotePreviewViewModel>.Create((x, y) => y.Note.Title.CompareTo(x.Note.Title)),
     _ => throw new ArgumentException("Invalid sorting")
   };
 }
 
 #region Commands and Messengers
-partial class NoteListViewModel
+partial class NotePreviewListViewModel
 {
   public AsyncCommand? AddNoteCommand { get; private set; }
 
@@ -182,13 +178,13 @@ partial class NoteListViewModel
     AddNoteCommand = new(
       executeFunc: async () =>
       {
-        if (Navigation is NavigationUserLeafNode leaf)
+        if (Navigation is NavigationUserLeafNode leafNavigation)
         {
           var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.DefaultNoteSize);
           var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.DefaultNoteWindowPosition.PointInt32;
           CreateNoteAppCommand createNoteAppCommand = new()
           {
-            NavigationId = leaf.Id,
+            NavigationId = leafNavigation.Id,
             Size = size,
             Position = position
           };
@@ -199,7 +195,7 @@ partial class NoteListViewModel
           }
 
           NoteModel noteModel = NoteModelFactory.Create(bundleDto);
-          await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(noteModel));
+          await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(noteModel, leafNavigation));
           await NoteWindowService.OpenNoteWindow(noteModel);
         }
       });
@@ -209,10 +205,10 @@ partial class NoteListViewModel
   {
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken>(this, AppMessageTokens.NoteTitleChangedToken, (recipient, message) =>
     {
-      if (NoteViewModels.FirstOrDefault(vm => vm.Note == message.Value) is NoteViewModel viewmodel
+      if (NotePreviewViewModels.FirstOrDefault(vm => vm.Note == message.Value) is NotePreviewViewModel viewmodel
       && Navigation.NoteSortKey is NoteSortKey.Title)
       {
-        _noteViewModelLeases.ReorderItem(viewmodel);
+        _notePreviewViewModelLeases.ReorderItem(viewmodel);
       }
     });
 
@@ -222,20 +218,20 @@ partial class NoteListViewModel
       {
         switch (Navigation)
         {
-          case NavigationBookmarks:
-            var noteViewModel = NoteViewModels.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
+          case NavigationBookmarks bookmarksNavigation:
+            var noteViewModel = NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
             if (message.NewValue)
             {
               if (noteViewModel is null)
               {
-                await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(targetNote));
+                await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(targetNote, bookmarksNavigation));
               }
             }
             else
             {
               if (noteViewModel is not null)
               {
-                await _noteViewModelLeases.RemoveAsync(noteViewModel);
+                await _notePreviewViewModelLeases.RemoveAsync(noteViewModel);
               }
             }
             break;
@@ -245,21 +241,21 @@ partial class NoteListViewModel
 
     WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NoteId, bool>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.IsNoteInListToken(Navigation), (recipient, message) =>
     {
-      message.Reply(NoteViewModels.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
+      message.Reply(NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
     });
 
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.AddNoteToListToken(Navigation), async (recipient, message) =>
     {
       NoteModel note = message.Value;
-      await _noteViewModelLeases.AddAsync(await NoteViewModelProvider.ResolveAsync(note));
+      await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(note, Navigation));
     });
 
     WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.RemoveNoteFromListToken(Navigation), async (recipient, message) =>
     {
       NoteModel note = message.Value;
-      if (NoteViewModels.FirstOrDefault(vm => vm.Note == note) is NoteViewModel viewmodel)
+      if (NotePreviewViewModels.FirstOrDefault(vm => vm.Note == note) is NotePreviewViewModel viewmodel)
       {
-        await _noteViewModelLeases.RemoveAsync(viewmodel);
+        await _notePreviewViewModelLeases.RemoveAsync(viewmodel);
       }
     });
   }

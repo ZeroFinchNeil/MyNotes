@@ -24,17 +24,12 @@ internal sealed partial class NotePreviewListItemContainer : UserControl
   }
   #endregion
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NoteViewModel), typeof(NotePreviewListItemContainer), new PropertyMetadata(null));
-  public NoteViewModel ViewModel
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NotePreviewViewModel), typeof(NotePreviewListItemContainer), new PropertyMetadata(null));
+  public NotePreviewViewModel ViewModel
   {
-    get => (NoteViewModel)GetValue(ViewModelProperty);
+    get => (NotePreviewViewModel)GetValue(ViewModelProperty);
     set => SetValue(ViewModelProperty, value);
   }
 
-  public static readonly DependencyProperty PreviewRtfProperty = DependencyProperty.Register("PreviewRtf", typeof(string), typeof(NotePreviewListItemContainer), new PropertyMetadata(null));
-  public string? PreviewRtf
-  {
-    get => (string?)GetValue(PreviewRtfProperty);
-    set => SetValue(PreviewRtfProperty, value);
-  }
+  private NoteViewModel? NoteViewModel => ViewModel?.NoteViewModel;
 }

@@ -28,19 +28,17 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateCoordinator;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateCoordinator;
   private readonly NoteWindowService NoteWindowService;
-  private readonly IRtfTextConverter RtfTextConverter;
   private readonly IAsyncViewModelLease<NoteViewModel> NoteViewModelLease;
   public NoteViewModel NoteViewModel => NoteViewModelLease.ViewModel;
   private NoteModel Note => NoteViewModel.Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IRtfTextConverter rtfTextConverter, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
+  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
   {
     NoteUpdateCoordinator = noteUpdateCoordinator;
     ViewStateUpdateCoordinator = viewStateUpdateCoordinator;
     NoteWindowService = noteWindowService;
-    RtfTextConverter = rtfTextConverter;
 
     NoteViewModelLease = noteViewModelLease;
     Document = document;

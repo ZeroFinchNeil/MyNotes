@@ -1,11 +1,8 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.UI.Xaml.Documents;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Application.Contracts.Converters;
@@ -16,10 +13,8 @@ using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
-using MyNotes.Domain.Notes;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Updates;
@@ -51,10 +46,8 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     Note = note;
 
     SetBackgroundImage();
-    SetPreview();
     Note.PropertyChanged += Note_PropertyChanged;
     SetCommands();
-    RegisterMessengers();
   }
 
   private bool _disposeStarted;
@@ -65,7 +58,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
       return;
     }
 
-    UnregisterMessengers();
     Note.PropertyChanged -= Note_PropertyChanged;
     await NoteService.Modification.CommitSearchIndexAsync();
   }
@@ -125,19 +117,12 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     }
   }
 
-  public async Task<bool> DeleteNotePermanentlyWhenEmpty()
+  public async Task DeleteNotePermanentlyWhenEmpty()
   {
     if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
     {
-      DeleteNoteAppCommand appCommand = new()
-      {
-        Id = Note.Id,
-        DeleteMode = DeleteMode.Permanent
-      };
-      return await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded;
+      await NoteCommandService.DeleteNoteManuallyAsync(Note);
     }
-
-    return false;
   }
   #endregion
 
@@ -177,29 +162,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 
   [ObservableProperty]
   public partial double ImagePanelMaxHeight { get; set; } = 120.0;
-  #endregion
-
-  #region Preview and Highligt
-  // View-only Properties
-  public ObservableCollection<TextRange> HighlighterRanges { get; } = [];
-
-  public void HighlightPreview(IReadOnlyList<Range> highlightRange, string color = "#FF03FCD3") => RtfTextConverter.Highlight(ref _preview, highlightRange, color);
-  public void ResetHighlight() => SetPreview();
-
-  private string _preview = string.Empty;
-  public string Preview
-  {
-    get => _preview;
-    set => SetProperty(ref _preview, value);
-  }
-
-  private void SetPreview()
-  {
-
-    Preview = RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
-  }
-
-  private readonly int _previewTextMaxLength = 500;
   #endregion
 }
 
@@ -277,11 +239,4 @@ partial class NoteViewModel
       ExecuteFunc = () => NoteCommandService.AddNoteToJumpList(Note)
     };
   }
-
-  private void RegisterMessengers()
-  {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => SetPreview());
-  }
-
-  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }
