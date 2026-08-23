@@ -20,17 +20,15 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
   private readonly ImageService ImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
-  private readonly NoteWindowService NoteWindowService;
   private readonly ImageViewerWindowService ImageViewerWindowService;
 
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, NoteWindowService noteWindowService, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
+  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
   {
     ImageService = imageService;
     ImageViewModelProvider = imageViewModelProvider;
-    NoteWindowService = noteWindowService;
     ImageViewerWindowService = imageViewerWindowService;
 
     NoteId = noteId;
@@ -60,13 +58,17 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     var imageDtos = await ImageService.GetImagesByNoteIdAsync(NoteId);
     _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i))));
+    HasImages = ImageViewModels.Count > 0;
   }
 
   private LeasedImageViewModelCollection? _imageViewModelLeases;
-  public IReadOnlyList<ImageViewModel>? ImageViewModels => _imageViewModelLeases?.ViewModels;
+  public IReadOnlyList<ImageViewModel> ImageViewModels => _imageViewModelLeases?.ViewModels ?? throw new InvalidOperationException("객체가 초기화되지 않음");
 
   [ObservableProperty]
   public partial ImageViewModel? SelectedImage { get; set; }
+
+  [ObservableProperty]
+  public partial bool HasImages { get; set; }
 
   public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
   {
@@ -136,6 +138,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
             ConsoleHelper.WriteLine(true, "{0}: {1}", "File Exception", e.Message);
           }
         }
+
+        HasImages = ImageViewModels.Count > 0;
       }
     };
 
@@ -148,7 +152,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
         if (ImageViewModels is not null && ImageViewModels.Contains(imageViewModel))
         {
           SelectedImage = imageViewModel;
-
         }
       }
     };
@@ -161,6 +164,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
         {
           _imageViewModelLeases?.Remove(imageViewModel);
         }
+
+        HasImages = ImageViewModels.Count > 0;
       }
     };
   }

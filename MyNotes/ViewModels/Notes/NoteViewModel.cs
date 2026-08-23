@@ -158,9 +158,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 
   #region Body Images
   [ObservableProperty]
-  public partial bool IsImagePanelVisible { get; set; }
-
-  [ObservableProperty]
   public partial double ImagePanelMaxHeight { get; set; } = 120.0;
   #endregion
 }

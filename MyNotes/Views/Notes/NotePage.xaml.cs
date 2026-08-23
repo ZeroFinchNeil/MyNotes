@@ -68,16 +68,6 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   {
     var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
     EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(Note, NotePage_TextEditorRichEditBox.Document);
-
-    // Editor BodyText
-    var rtfText = Note.Body;
-    if (!string.IsNullOrEmpty(rtfText))
-    {
-      NotePage_TextEditorRichEditBox.Document.SetText(TextSetOptions.FormatRtf, Note.Body);
-    }
-
-    // Editor ImagePanel
-    ViewModel.IsImagePanelVisible = ImageCollectionViewModel.ImageViewModels?.Count > 0;
   }
 
   private bool _disposeStarted;
@@ -232,11 +222,6 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   private void NotePage_ImagesGridView_DragOver(object sender, DragEventArgs e)
   {
     e.AcceptedOperation = DataPackageOperation.Move;
-  }
-
-  private void NotePage_InsertImagesButton_Click(object sender, RoutedEventArgs e)
-  {
-    ImageCollectionViewModel.InsertImageCommand.Execute(this.XamlRoot.ContentIslandEnvironment.AppWindowId);
   }
 }
 

@@ -204,7 +204,7 @@
             <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
                                            Icon="{ctw:FontIcon Glyph=&#xE8B9;}"
                                            IsChecked="{x:Bind ViewModel.Note.ShowImagePanel, Mode=TwoWay}"
-                                           Visibility="{x:Bind ViewModel.IsImagePanelVisible, Mode=OneWay}">
+                                           Visibility="{x:Bind ImageCollectionViewModel.HasImages, Mode=OneWay}">
               <tmpls:AlternateMenuFlyoutItem.CheckedIcon>
                 <IconSourceElement IconSource="{StaticResource ImageMultipleOffPathIconSource}" />
               </tmpls:AlternateMenuFlyoutItem.CheckedIcon>
@@ -298,7 +298,7 @@
 
     <!--#region Images -->
     <Grid Grid.Row="1"
-          Visibility="{x:Bind VisibleWhenAll(ViewModel.IsImagePanelVisible, ViewModel.Note.ShowImagePanel), Mode=OneWay}"
+          Visibility="{x:Bind VisibleWhenAll(ImageCollectionViewModel.HasImages, ViewModel.Note.ShowImagePanel), Mode=OneWay}"
           Padding="6,0">
       <GridView x:Name="NotePage_ImagesGridView"
                 Grid.Row="0"
@@ -937,7 +937,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind IsBackdropPropertySliderEnabled(ViewModel.Note.BackdropKind), Mode=OneWay}" />
+                                                IsEnabled="{x:Bind IsBackdropPropertySliderEnabled(ViewModel.Note.BackdropKind), Mode=OneWay}" 
+                                                Command="{x:Bind EditorViewModel.ChangeBackdropTintOpacityToDefaultCommand}"/>
                       </Grid>
 
                       <Grid RowSpacing="4"
@@ -976,7 +977,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind IsBackdropPropertySliderEnabled(ViewModel.Note.BackdropKind), Mode=OneWay}" />
+                                                IsEnabled="{x:Bind IsBackdropPropertySliderEnabled(ViewModel.Note.BackdropKind), Mode=OneWay}" 
+                                                Command="{x:Bind EditorViewModel.ChangeBackdropLuminosityOpacityToDefaultCommand}"/>
                       </Grid>
                     </StackPanel>
                   </ctwc:Case>
@@ -1061,7 +1063,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
+                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" 
+                                                Command="{x:Bind EditorViewModel.ChangeBackgroundImageOpacityToDefaultCommand}"/>
                       </Grid>
 
                       <Grid RowSpacing="4"
@@ -1099,7 +1102,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" />
+                                                IsEnabled="{x:Bind ViewModel.Note.ShowBackgroundImage, Mode=OneWay}" 
+                                                Command="{x:Bind EditorViewModel.ChangeBackgroundImageBlurToDefaultCommand}"/>
                       </Grid>
                       <Grid>
                         <Grid.ColumnDefinitions>
@@ -1134,7 +1138,8 @@
         <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
                                 x:Uid="/NotePage/InsertImagesButton"
                                 Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Click="NotePage_InsertImagesButton_Click" />
+                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}"
+                                CommandParameter="{x:Bind XamlRoot.ContentIslandEnvironment.AppWindowId}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

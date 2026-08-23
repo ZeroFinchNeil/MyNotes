@@ -309,10 +309,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
   }
   #endregion
 
-  private async void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    await App.Instance.OpenDebugWindow();
-  }
+  private void MainPage_OpenDebugWindowMenuFlyoutItem_Click(object sender, RoutedEventArgs e) => App.Instance.OpenDebugWindow();
 }
 
 #region Messengers

@@ -89,13 +89,6 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
       default:
         break;
     }
-
-#if DEBUG
-    if (Debugger.IsAttached)
-    {
-      _ = OpenDebugWindow();
-    }
-#endif
   }
 
   private bool _disposeStarted;
@@ -150,11 +143,7 @@ public sealed partial class App : Microsoft.UI.Xaml.Application, IAsyncDisposabl
     loggingService.Write(ex);
   }
 
-  public async Task OpenDebugWindow()
-  {
-    await Task.Delay(1000);
-    new Views.Windows.DebugWindow().Activate();
-  }
+  public void OpenDebugWindow() => new Views.Windows.DebugWindow().Activate();
 
   private async Task LaunchArgumentsPipeServerStreamAsync()
   {

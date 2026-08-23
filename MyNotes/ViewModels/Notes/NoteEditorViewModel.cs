@@ -7,9 +7,9 @@ using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.Application.Contracts.Converters;
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes;
 using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Results;
 using MyNotes.Common.Collections;
@@ -42,6 +42,14 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
     NoteViewModelLease = noteViewModelLease;
     Document = document;
+
+    // Editor BodyText
+    var rtfText = Note.Body;
+    if (!string.IsNullOrEmpty(rtfText))
+    {
+      Document.SetText(TextSetOptions.FormatRtf, rtfText);
+    }
+
     Note.PropertyChanged += Note_PropertyChanged;
     _bodyEditorBatchTimer.Tick += BodyEditorBatchTimer_Tick;
     _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
@@ -107,7 +115,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     // 뷰에 반영(TwoWay 바인딩 시) 
     switch (e.PropertyName)
     {
-      case nameof(Note.BackgroundColor):  // * Debouncing
+      case nameof(Note.BackgroundColor):
         SelectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
         ChangeSystemBackdropExtended();
         var updateResult = await UpdateAsync(nameof(NoteModel.BackgroundColor));
@@ -120,10 +128,10 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
           Note.ShowBackgroundImage = false;
         }
         break;
-      case nameof(Note.BackdropTintOpacity): // * Debouncing
+      case nameof(Note.BackdropTintOpacity):
         ChangeSystemBackdropExtended();
         break;
-      case nameof(Note.BackdropLuminosityOpacity): // * Debouncing
+      case nameof(Note.BackdropLuminosityOpacity):
         ChangeSystemBackdropExtended();
         break;
     }
@@ -739,6 +747,11 @@ partial class NoteEditorViewModel
   public Command ChangeSelectionHighlightColorToAutomaticCommand { get; private set; }
   public Command EnterEditModeCommand { get; private set; }
   public AsyncCommand BrowseBackgroundImageCommand { get; private set; }
+  public Command ChangeBackdropTintOpacityToDefaultCommand { get; private set; }
+  public Command ChangeBackdropLuminosityOpacityToDefaultCommand { get; private set; }
+  public Command ChangeBackgroundImageOpacityToDefaultCommand { get; private set; }
+
+  public Command ChangeBackgroundImageBlurToDefaultCommand { get; private set; }
 
   private int _previousSelectionIndex = 0;
   private int _currentSelectionIndex = 0;
@@ -772,7 +785,7 @@ partial class NoteEditorViewModel
     _shouldChangePreview = false;
   }
 
-  [MemberNotNull(nameof(UpdateSelectionCommand), nameof(UpdateTextChangingCommand), nameof(UpdateTextChangedCommand), nameof(DecreaseSelectionFontSizeCommand), nameof(IncreaseSelectionFontSizeCommand), nameof(ChangeSelectionFontColorCommand), nameof(ChangeSelectionHighlightColorCommand), nameof(ChangeSelectionHighlightColorToAutomaticCommand), nameof(EnterEditModeCommand), nameof(BrowseBackgroundImageCommand))]
+  [MemberNotNull(nameof(UpdateSelectionCommand), nameof(UpdateTextChangingCommand), nameof(UpdateTextChangedCommand), nameof(DecreaseSelectionFontSizeCommand), nameof(IncreaseSelectionFontSizeCommand), nameof(ChangeSelectionFontColorCommand), nameof(ChangeSelectionHighlightColorCommand), nameof(ChangeSelectionHighlightColorToAutomaticCommand), nameof(EnterEditModeCommand), nameof(BrowseBackgroundImageCommand), nameof(ChangeBackdropTintOpacityToDefaultCommand), nameof(ChangeBackdropLuminosityOpacityToDefaultCommand), nameof(ChangeBackgroundImageOpacityToDefaultCommand), nameof(ChangeBackgroundImageBlurToDefaultCommand))]
   private void SetCommands()
   {
     UpdateSelectionCommand = new()
@@ -879,9 +892,30 @@ partial class NoteEditorViewModel
           if (pickFileResult is not null)
           {
             Note.BackgroundImagePath = pickFileResult.Path;
+            await UpdateAsync(nameof(NoteModel.BackgroundImagePath));
           }
         }
       }
+    };
+
+    ChangeBackdropTintOpacityToDefaultCommand = new()
+    {
+      ExecuteAction = () => Note.BackdropTintOpacity = NoteSettingsDescriptors.NoteBackdropTintOpacity
+    };
+
+    ChangeBackdropLuminosityOpacityToDefaultCommand = new()
+    {
+      ExecuteAction = () => Note.BackdropLuminosityOpacity = NoteSettingsDescriptors.NoteBackdropLuminosityOpacity
+    };
+
+    ChangeBackgroundImageOpacityToDefaultCommand = new()
+    {
+      ExecuteAction = () => Note.BackgroundImageOpacity = NoteSettingsDescriptors.NoteBackgroundImageOpacity
+    };
+
+    ChangeBackgroundImageBlurToDefaultCommand = new()
+    {
+      ExecuteAction = () => Note.BackgroundImageBlur = NoteSettingsDescriptors.NoteBackgroundImageBlur
     };
   }
 }
