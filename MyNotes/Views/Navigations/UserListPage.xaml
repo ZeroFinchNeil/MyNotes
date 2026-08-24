@@ -43,7 +43,7 @@
 
       <TextBlock Grid.Column="1"
                  Style="{StaticResource TitleTextBlockStyle}"
-                 Text="{x:Bind ViewModel.Navigation.Title, Mode=OneWay}" />
+                 Text="{x:Bind Navigation.Title, Mode=OneWay}" />
 
       <templates:SubtleIconButton Grid.Column="2"
                                   Command="{x:Bind NotePreviewListViewModel.AddNoteCommand}">
@@ -68,20 +68,20 @@
                                Icon="Sort">
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Modified"
-                                   IsChecked="{x:Bind ViewModel.Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyModifiedMatchConverter}}" />
+                                   IsChecked="{x:Bind Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyModifiedMatchConverter}}" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Created"
-                                   IsChecked="{x:Bind ViewModel.Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyCreatedMatchConverter}}" />
+                                   IsChecked="{x:Bind Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyCreatedMatchConverter}}" />
               <RadioMenuFlyoutItem GroupName="NoteSortKey"
                                    Text="Title"
-                                   IsChecked="{x:Bind ViewModel.Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyTitleMatchConverter}}" />
+                                   IsChecked="{x:Bind Navigation.NoteSortKey, Mode=TwoWay, Converter={StaticResource NoteSortKeyTitleMatchConverter}}" />
               <MenuFlyoutSeparator />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Ascending"
-                                   IsChecked="{x:Bind ViewModel.Navigation.NoteSortDirection, Mode=TwoWay, Converter={StaticResource SortDirectionAscendingMatchConverter}}" />
+                                   IsChecked="{x:Bind Navigation.NoteSortDirection, Mode=TwoWay, Converter={StaticResource SortDirectionAscendingMatchConverter}}" />
               <RadioMenuFlyoutItem GroupName="NoteSortDirection"
                                    Text="Descending"
-                                   IsChecked="{x:Bind ViewModel.Navigation.NoteSortDirection, Mode=TwoWay, Converter={StaticResource SortDirectionDescendingMatchConverter}}" />
+                                   IsChecked="{x:Bind Navigation.NoteSortDirection, Mode=TwoWay, Converter={StaticResource SortDirectionDescendingMatchConverter}}" />
             </MenuFlyoutSubItem>
 
             <!-- GridView Style -->
@@ -93,7 +93,7 @@
                 <RadioButtons Header="Layout"
                               HeaderTemplate="{StaticResource ControlTextHeaderTemplate}"
                               MaxColumns="2"
-                              SelectedIndex="{x:Bind ViewModel.Navigation.PreviewLayoutType, Mode=TwoWay, Converter={StaticResource PreviewLayoutTypeToIntConverter}}">
+                              SelectedIndex="{x:Bind Navigation.PreviewLayoutType, Mode=TwoWay, Converter={StaticResource PreviewLayoutTypeToIntConverter}}">
                   <RadioButton GroupName="Layout"
                                Tag="{StaticResource PreviewLayoutTypeGrid}"
                                Content="Grid" />
@@ -123,7 +123,7 @@
                           Width="240"
                           SnapsTo="Ticks"
                           IsThumbToolTipEnabled="False"
-                          Value="{x:Bind ViewModel.Navigation.PreviewTileSize, Mode=TwoWay, Converter={StaticResource PreviewTileSizeToSliderValueConverter}}" />
+                          Value="{x:Bind Navigation.PreviewTileSize, Mode=TwoWay, Converter={StaticResource PreviewTileSizeToSliderValueConverter}}" />
                   <Grid Grid.Row="1">
                     <TextBlock Text="Small"
                                HorizontalAlignment="Left"
@@ -140,7 +140,7 @@
 
               <!--Style: View Ratio-->
               <templates:MenuFlyoutElementContainer Padding="8"
-                                                    Visibility="{x:Bind helpers:ObjectHelper.VisibleWhenEquals(ViewModel.Navigation.PreviewLayoutType, navmodels:PreviewLayoutType.Grid), Mode=OneWay}">
+                                                    Visibility="{x:Bind helpers:ObjectHelper.VisibleWhenEquals(Navigation.PreviewLayoutType, navmodels:PreviewLayoutType.Grid), Mode=OneWay}">
                 <Grid>
                   <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -157,7 +157,7 @@
                           Width="240"
                           SnapsTo="Ticks"
                           IsThumbToolTipEnabled="False"
-                          Value="{x:Bind ViewModel.Navigation.PreviewTileRatio, Mode=TwoWay, Converter={StaticResource PreviewTileRatioToSliderValueConverter}}" />
+                          Value="{x:Bind Navigation.PreviewTileRatio, Mode=TwoWay, Converter={StaticResource PreviewTileRatioToSliderValueConverter}}" />
                   <Grid Grid.Row="1">
                     <TextBlock Text="Short"
                                HorizontalAlignment="Left"
@@ -191,6 +191,9 @@
     </Grid>
 
     <noteviews:NotePreviewItemsContainer Grid.Row="1"
-                                         ViewModel="{x:Bind NotePreviewListViewModel, Mode=OneWay}" />
+                                         ViewModel="{x:Bind NotePreviewListViewModel, Mode=OneWay}" 
+                                         PreviewLayoutType="{x:Bind Navigation.PreviewLayoutType, Mode=OneWay}"
+                                         PreviewTileSize="{x:Bind Navigation.PreviewTileSize, Mode=OneWay}"
+                                         PreviewTileRatio="{x:Bind Navigation.PreviewTileRatio, Mode=OneWay}" />
   </Grid>
 </Page>

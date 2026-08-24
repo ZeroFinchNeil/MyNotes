@@ -13,7 +13,8 @@ namespace MyNotes.Views.Navigations;
 internal sealed partial class UserListPage : Page
 {
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private UserListNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel;
+  private UserListNavigationViewModel ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
+  private NavigationUserLeafNode Navigation => ViewModel.Navigation as NavigationUserLeafNode ?? throw new InvalidOperationException("Navigation 타입이 일치하지 않음");
 
   private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
   private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;

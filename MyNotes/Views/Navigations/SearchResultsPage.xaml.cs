@@ -15,6 +15,8 @@ internal sealed partial class SearchResultsPage : Page
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
   private SearchNavigationViewModel ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
 
+  private NavigationSearch Navigation => ViewModel.Navigation as NavigationSearch ?? throw new InvalidOperationException("Navigation 타입이 일치하지 않음");
+
   private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
   private NotePreviewListViewModel NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel ?? throw new InvalidOperationException("NotePreviewListViewModelLease가 초기화되지 않음");
 

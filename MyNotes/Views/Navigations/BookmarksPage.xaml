@@ -154,6 +154,9 @@
     </Grid>
 
     <noteviews:NotePreviewItemsContainer Grid.Row="1"
-                                         ViewModel="{x:Bind NotePreviewListViewModel, Mode=OneWay}" />
+                                         ViewModel="{x:Bind NotePreviewListViewModel, Mode=OneWay}"
+                                         PreviewLayoutType="{x:Bind Navigation.PreviewLayoutType, Mode=OneWay}"
+                                         PreviewTileSize="{x:Bind Navigation.PreviewTileSize, Mode=OneWay}"
+                                         PreviewTileRatio="{x:Bind Navigation.PreviewTileRatio, Mode=OneWay}" />
   </Grid>
 </Page>

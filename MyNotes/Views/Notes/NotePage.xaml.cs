@@ -32,7 +32,7 @@ namespace MyNotes.Views.Notes;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposable
 {
-  public NoteModel Note;
+  private NoteModel Note { get; }
   private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
   private NoteEditorViewModel EditorViewModel => EditorViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
   private NoteViewModel ViewModel => EditorViewModel.NoteViewModel;
@@ -87,6 +87,12 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     Bindings.StopTracking();
     UnregisterMessengers();
 
+    // 빈 노트 완전 삭제 로직
+    if (ViewModel is not null)
+    {
+      await ViewModel.DeleteNotePermanentlyWhenEmpty();
+    }
+
     // 에디터 내용을 저장 후 정리
     if (EditorViewModelLease is not null)
     {
@@ -95,11 +101,6 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     ImageCollectionViewModelLease.Dispose();
 
-    // 빈 노트 완전 삭제 로직
-    if (ViewModel is not null)
-    {
-      await ViewModel.DeleteNotePermanentlyWhenEmpty();
-    }
   }
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)

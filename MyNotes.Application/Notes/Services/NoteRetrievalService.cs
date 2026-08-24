@@ -65,20 +65,22 @@ internal sealed partial class NoteRetrievalService
   private readonly int _batchSize = 50;
   public async IAsyncEnumerable<NoteSearchResultDto> SearchNotesAsync(string searchText, [EnumeratorCancellation] CancellationToken cancellationToken = default)
   {
-    Dictionary<NoteId, NoteSearchHitDto> hitBuffer = new(_batchSize);
-    await foreach (var hitDto in NoteSearcher.GetNotesAsync(searchText, cancellationToken))
+    List<NoteSearchHitDto> hitBuffer = new(_batchSize);
+    await foreach (var hitSearchDto in NoteSearcher.GetNotesAsync(searchText, cancellationToken))
     {
-      hitBuffer.Add(hitDto.NoteId, hitDto);
+      hitBuffer.Add(hitSearchDto);
       if (hitBuffer.Count < _batchSize)
       {
         continue;
       }
 
-      foreach (var noteDto in await NoteRepository.GetNotesByIdsAsync(hitBuffer.Keys, cancellationToken))
+      var hitNoteDtos = (await NoteRepository.GetNotesByIdsAsync(hitBuffer.Select(buffer => buffer.NoteId), cancellationToken))
+        .ToDictionary(noteDto => noteDto.Id);
+      foreach (var buffer in hitBuffer)
       {
-        if (hitBuffer.TryGetValue(noteDto.Id, out var matchedHit))
+        if (hitNoteDtos.TryGetValue(buffer.NoteId, out var noteDto))
         {
-          yield return new() { NoteDto = noteDto, HitDto = matchedHit };
+          yield return new() { NoteDto = noteDto, HitDto = buffer };
         }
       }
       hitBuffer.Clear();
@@ -86,11 +88,13 @@ internal sealed partial class NoteRetrievalService
 
     if (hitBuffer.Count > 0)
     {
-      foreach (var noteDto in await NoteRepository.GetNotesByIdsAsync(hitBuffer.Keys, cancellationToken))
+      var hitNoteDtos = (await NoteRepository.GetNotesByIdsAsync(hitBuffer.Select(buffer => buffer.NoteId), cancellationToken))
+        .ToDictionary(noteDto => noteDto.Id);
+      foreach (var buffer in hitBuffer)
       {
-        if (hitBuffer.TryGetValue(noteDto.Id, out var matchedHit))
+        if (hitNoteDtos.TryGetValue(buffer.NoteId, out var noteDto))
         {
-          yield return new() { NoteDto = noteDto, HitDto = matchedHit };
+          yield return new() { NoteDto = noteDto, HitDto = buffer };
         }
       }
     }
