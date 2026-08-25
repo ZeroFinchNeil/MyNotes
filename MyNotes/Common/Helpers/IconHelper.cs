@@ -1,6 +1,6 @@
 ﻿using Microsoft.UI.Xaml.Media.Imaging;
 
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Preferences;
 
 using Windows.Graphics.Imaging;
 using Windows.Storage.Streams;

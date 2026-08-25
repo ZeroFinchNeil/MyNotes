@@ -10,6 +10,7 @@ using MyNotes.Common.Helpers;
 using MyNotes.Common.Mappers;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Windows;
 using MyNotes.Templates;

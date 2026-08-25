@@ -3,9 +3,8 @@
 using MyNotes.Domain.Navigations;
 using MyNotes.Strings;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.User;
 
-[Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NavigationUserRootNode : NavigationUserCompositeNode
 {
   public static NavigationUserRootNode Instance { get; } = new();

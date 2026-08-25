@@ -2,7 +2,7 @@
 
 using MyNotes.Domain.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.Core;
 
 [Debugging.Attributes.ReferenceTracker]
 internal abstract partial class NavigationCoreNode : ObservableObject, INavigationNode

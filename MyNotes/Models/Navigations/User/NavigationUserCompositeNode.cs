@@ -4,7 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.User;
 
 internal partial class NavigationUserCompositeNode : NavigationUserNode
 {

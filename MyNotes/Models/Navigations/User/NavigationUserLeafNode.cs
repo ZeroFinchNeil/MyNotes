@@ -1,29 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-
-using MyNotes.Application.Contracts.Navigations.Models;
+﻿using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.User;
 
-[Debugging.Attributes.ReferenceTracker]
-internal sealed partial class NavigationSearch : ObservableObject, INavigationNoteList
+internal sealed partial class NavigationUserLeafNode : NavigationUserNode, INavigationNoteListNode, INavigationInitialTarget
 {
-  public NavigationSearch()
-  {
-    TrackReference();
-  }
+  public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
 
-  [ObservableProperty]
-  public required partial string Title { get; set; }
-
-  [ObservableProperty]
-  public required partial string SearchText { get; set; }
-
-  public Type PageType { get; } = typeof(SearchResultsPage);
-
-  public NoteSortKey NoteSortKey
+  public required NoteSortKey NoteSortKey
   {
     get;
     set
@@ -35,7 +21,7 @@ internal sealed partial class NavigationSearch : ObservableObject, INavigationNo
     }
   }
 
-  public SortDirection NoteSortDirection
+  public required SortDirection NoteSortDirection
   {
     get;
     set
@@ -47,7 +33,7 @@ internal sealed partial class NavigationSearch : ObservableObject, INavigationNo
     }
   }
 
-  public PreviewLayoutType PreviewLayoutType
+  public required PreviewLayoutType PreviewLayoutType
   {
     get;
     set
@@ -59,7 +45,7 @@ internal sealed partial class NavigationSearch : ObservableObject, INavigationNo
     }
   }
 
-  public PreviewTileSize PreviewTileSize
+  public required PreviewTileSize PreviewTileSize
   {
     get;
     set
@@ -71,7 +57,7 @@ internal sealed partial class NavigationSearch : ObservableObject, INavigationNo
     }
   }
 
-  public PreviewTileRatio PreviewTileRatio
+  public required PreviewTileRatio PreviewTileRatio
   {
     get;
     set

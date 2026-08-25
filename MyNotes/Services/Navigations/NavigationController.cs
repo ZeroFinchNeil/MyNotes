@@ -8,6 +8,8 @@ using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Mappers;
 using MyNotes.Debugging;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Core;
+using MyNotes.Models.Navigations.User;
 
 namespace MyNotes.Services.Navigations;
 

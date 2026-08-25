@@ -4,6 +4,7 @@ using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 
 namespace MyNotes.ViewModels.Navigations;
 

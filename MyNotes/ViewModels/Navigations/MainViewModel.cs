@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Common.Commands;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Core;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;

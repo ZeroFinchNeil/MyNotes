@@ -85,11 +85,11 @@
                                  EnumType="muxm:AlignmentY" />
 
   <converters:EnumToIntConverter x:Key="GroupIconBadgeToIntConverter"
-                                 xmlns:enums="using:MyNotes.Models.Navigations"
+                                 xmlns:enums="using:MyNotes.Models.Navigations.Preferences"
                                  EnumType="enums:GroupIconBadge" />
 
   <converters:EnumToIntConverter x:Key="InitialPageTypeToIntConverter"
-                                 xmlns:enums="using:MyNotes.Models.Navigations"
+                                 xmlns:enums="using:MyNotes.Models.Navigations.Preferences"
                                  EnumType="enums:InitialPageType" />
 
   <converters:EnumToIntConverter x:Key="ElementThemeToIntConverter"

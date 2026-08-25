@@ -170,8 +170,8 @@
                                      Header="Initial page"
                                      Description="Initial page"
                                      HeaderIcon="{ui:FontIcon Glyph=&#xE72A;}"
-                                     IsExpanded="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, mmn:InitialPageType.Preferred), Mode=OneWay}"
-                                     xmlns:mmn="using:MyNotes.Models.Navigations">
+                                     IsExpanded="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, nav:InitialPageType.Preferred), Mode=OneWay}"
+                                     xmlns:nav="using:MyNotes.Models.Navigations.Preferences">
             <ComboBox SelectedIndex="{x:Bind ViewModel.InitialPageType, Mode=TwoWay, Converter={StaticResource InitialPageTypeToIntConverter}}"
                       MinWidth="160">
               <ComboBoxItem x:Uid="/SettingsPage/General_HomePageComboBoxItem"
@@ -202,7 +202,7 @@
               </controls:SettingsCard>
               <controls:SettingsCard Header="Select a preferred page."
                                      HeaderIcon="Add"
-                                     IsEnabled="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, mmn:InitialPageType.Preferred), Mode=OneWay}">
+                                     IsEnabled="{x:Bind helpers:ObjectHelper.IsEqual(ViewModel.InitialPageType, nav:InitialPageType.Preferred), Mode=OneWay}">
                 <ComboBox ItemsSource="{x:Bind ViewModel.InitialPageOptions}"
                           SelectedItem="{x:Bind ViewModel.SelectedInitialPageOption, Mode=TwoWay}"
                           MinWidth="160">

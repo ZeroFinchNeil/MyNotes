@@ -27,44 +27,19 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Services.Commands;
 
-internal sealed class NoteCommandService : ICommandService
+internal sealed class NoteCommandService
+  (NoteService NoteService,
+  NoteWindowService NoteWindowService,
+  IModelFactory<NoteDto, NoteModel> NoteModelFactory,
+  NoteViewModelProvider NoteViewModelProvider,
+  NavigationViewModelProvider NavigationViewModelProvider,
+  NotePreviewListViewModelProvider NotePreviewListViewModelProvider,
+  MainWindowService MainWindowService,
+  DialogService DialogService,
+  JumpListService JumpListService,
+  AppSettingsService AppSettingsService)
+  : ICommandService
 {
-  private readonly NoteService NoteService;
-  private readonly NoteWindowService NoteWindowService;
-  private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
-  private readonly NoteViewModelProvider NoteViewModelProvider;
-  private readonly NavigationController NavigationController;
-  private readonly NavigationViewModelProvider NavigationViewModelProvider;
-  private readonly MainWindowService MainWindowService;
-  private readonly DialogService DialogService;
-  private readonly JumpListService JumpListService;
-  private readonly AppSettingsService AppSettingsService;
-
-  public NoteCommandService(
-    NoteService noteService,
-    NoteWindowService noteWindowService,
-    IModelFactory<NoteDto, NoteModel> noteModelFactory,
-    NoteViewModelProvider noteViewModelProvider,
-    NavigationController navigationController,
-    NavigationViewModelProvider navigationViewModelProvider,
-    MainWindowService mainWindowService,
-    DialogService dialogService,
-    JumpListService jumpListService,
-    AppSettingsService appSettingsService
-    )
-  {
-    NoteService = noteService;
-    NoteWindowService = noteWindowService;
-    NoteModelFactory = noteModelFactory;
-    NoteViewModelProvider = noteViewModelProvider;
-    NavigationController = navigationController;
-    NavigationViewModelProvider = navigationViewModelProvider;
-    MainWindowService = mainWindowService;
-    DialogService = dialogService;
-    JumpListService = jumpListService;
-    AppSettingsService = appSettingsService;
-  }
-
   public Task OpenNoteWindowAsync(NoteModel noteModel) => NoteWindowService.OpenNoteWindow(noteModel);
 
   public void MinimizeNoteWindow(NoteId noteId)
@@ -121,7 +96,11 @@ internal sealed class NoteCommandService : ICommandService
       if (navigationLease?.ViewModel is UserListNavigationViewModel sourceViewModel)
       {
         sourceNoteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(sourceNoteModel), AppMessageTokens.RemoveNoteFromListToken(sourceViewModel.Navigation));
+        await using var previewListLease = await NotePreviewListViewModelProvider.AcquireByIdAsync(oldNavigationId);
+        if (previewListLease is not null)
+        {
+          await previewListLease.ViewModel.RemoveNoteFromListAsync(sourceNoteModel.Id);
+        }
       }
     }
   }
@@ -210,7 +189,7 @@ internal sealed class NoteCommandService : ICommandService
     }
   }
 
-  public async Task RemoveNoteAsync(NoteModel noteModel)
+  public async Task ConfirmAndDeleteNoteAsync(NoteModel noteModel)
   {
     if (MainWindowService.TryGetCurrentWindow(out var mainWindow)
       && mainWindow.Content.XamlRoot is XamlRoot xamlRoot)
@@ -219,22 +198,28 @@ internal sealed class NoteCommandService : ICommandService
       var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Note", noteModel.Title, preferredDeleteMode);
       if (dialogResponse.Result == ContentDialogResult.Primary)
       {
-        DeleteNoteAppCommand deleteCommand = new()
-        {
-          Id = noteModel.Id,
-          DeleteMode = dialogResponse.Data
-        };
+        await DeleteNoteAsync(noteModel, dialogResponse.Data);
+      }
+    }
+  }
 
-        var deleteResult = await NoteService.Modification.DeleteNoteAsync(deleteCommand);
-        if (deleteResult is AppUpdateStatus.Succeeded)
-        {
-          noteModel.IsDeleted = true;
+  public async Task DeleteNoteAsync(NoteModel noteModel, DeleteMode deleteMode)
+  {
+    DeleteNoteAppCommand deleteCommand = new()
+    {
+      Id = noteModel.Id,
+      DeleteMode = deleteMode
+    };
 
-          if (NavigationController.CurrentNavigation is INavigationNoteList navigation)
-          {
-            WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
-          }
-        }
+    var deleteResult = await NoteService.Modification.DeleteNoteAsync(deleteCommand);
+    if (deleteResult is AppUpdateStatus.Succeeded)
+    {
+      noteModel.IsDeleted = true;
+
+      await using var previewListLease = await NotePreviewListViewModelProvider.AcquireByIdAsync(noteModel.NavigationId);
+      if (previewListLease is not null)
+      {
+        await previewListLease.ViewModel.RemoveNoteFromListAsync(noteModel.Id);
       }
     }
   }
@@ -248,9 +233,10 @@ internal sealed class NoteCommandService : ICommandService
     };
     if (await NoteService.Modification.DeleteNoteAsync(appCommand) is AppUpdateStatus.Succeeded)
     {
-      if (NavigationController.CurrentNavigation is INavigationNoteList navigation)
+      await using var previewListLease = await NotePreviewListViewModelProvider.AcquireByIdAsync(noteModel.NavigationId);
+      if (previewListLease is not null)
       {
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.RemoveNoteFromListToken(navigation));
+        await previewListLease.ViewModel.RemoveNoteFromListAsync(noteModel.Id);
       }
     }
   }

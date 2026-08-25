@@ -5,7 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using MyNotes.Domain.Navigations;
 using MyNotes.Templates;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.User;
 
 [Debugging.Attributes.ReferenceTracker]
 internal abstract partial class NavigationUserNode : ObservableObject, INavigationNode

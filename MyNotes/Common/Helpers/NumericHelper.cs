@@ -32,6 +32,8 @@ public static class NumericHelper
 
   public static string Round(double num, int digits) => Math.Round(num, digits).ToString();
 
+  public static string GetPercentage(double x, double y) => ((int)Math.Round(x / y * 100, 0)).ToString();
+
   // Extensions
   // 확장 메서드 및 확장 멤버(정적/인스턴스 모두 가능) 정의
   extension(Size size)

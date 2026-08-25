@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Settings.Services;
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
 using MyNotes.ViewModels.Navigations.Providers;
 

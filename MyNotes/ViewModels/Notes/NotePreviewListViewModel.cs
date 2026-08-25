@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Contracts.Querying.Conditions;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Application.Navigations.Commands;
 using MyNotes.Application.Navigations.Services;
@@ -16,10 +15,11 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
-using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Core;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Windows;
 using MyNotes.Templates;
@@ -166,6 +166,14 @@ internal sealed partial class NotePreviewListViewModel : ViewModelBase, IAsyncDi
     (NoteSortKey.Title, SortDirection.Descending) => Comparer<NotePreviewViewModel>.Create((x, y) => y.Note.Title.CompareTo(x.Note.Title)),
     _ => throw new ArgumentException("Invalid sorting")
   };
+
+  public async Task RemoveNoteFromListAsync(NoteId noteId)
+  {
+    if (NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == noteId) is NotePreviewViewModel viewmodel)
+    {
+      await _notePreviewViewModelLeases.RemoveAsync(viewmodel);
+    }
+  }
 }
 
 #region Commands and Messengers
@@ -248,15 +256,6 @@ partial class NotePreviewListViewModel
     {
       NoteModel note = message.Value;
       await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(note, Navigation));
-    });
-
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.RemoveNoteFromListToken(Navigation), async (recipient, message) =>
-    {
-      NoteModel note = message.Value;
-      if (NotePreviewViewModels.FirstOrDefault(vm => vm.Note == note) is NotePreviewViewModel viewmodel)
-      {
-        await _notePreviewViewModelLeases.RemoveAsync(viewmodel);
-      }
     });
   }
 

@@ -1,6 +1,6 @@
 ﻿using MyNotes.Common.Structures;
 using MyNotes.Domain.Navigations;
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.UI;
 
 namespace MyNotes.Constants;
@@ -23,7 +23,7 @@ internal static class AppSettingsDescriptors
   public static SettingsDescriptor<InitialPageType> InitialPageType { get; } = new()
   {
     Key = "InitialPageType",
-    DefaultValue = Models.Navigations.InitialPageType.Home
+    DefaultValue = Models.Navigations.Preferences.InitialPageType.Home
   };
   public static SettingsDescriptor<Guid> InitialPageId { get; } = new()
   {
@@ -58,7 +58,7 @@ internal static class AppSettingsDescriptors
   public static SettingsDescriptor<GroupIconBadge> GroupIconBadge { get; } = new()
   {
     Key = "GroupIconBadge",
-    DefaultValue = Models.Navigations.GroupIconBadge.Folder
+    DefaultValue = Models.Navigations.Preferences.GroupIconBadge.Folder
   };
 
   public static SettingsDescriptor<bool> AllowCustomNoteSortOrder { get; } = new()

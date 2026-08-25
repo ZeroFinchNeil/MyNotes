@@ -11,6 +11,8 @@ using MyNotes.Common.Helpers;
 using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Preferences;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
 using MyNotes.ViewModels.Navigations.Providers;
 

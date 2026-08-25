@@ -15,7 +15,7 @@ using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.UI;
 using MyNotes.Services.Navigations;
 using MyNotes.Strings;

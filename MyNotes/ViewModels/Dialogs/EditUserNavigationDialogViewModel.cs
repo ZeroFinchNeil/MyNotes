@@ -3,7 +3,7 @@
 using MyNotes.Application.Contracts.Settings;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Templates;
 
 namespace MyNotes.ViewModels.Dialogs;

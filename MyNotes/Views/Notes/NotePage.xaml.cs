@@ -35,7 +35,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   private NoteModel Note { get; }
   private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
   private NoteEditorViewModel EditorViewModel => EditorViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
-  private NoteViewModel ViewModel => EditorViewModel.NoteViewModel;
+  private NoteViewModel NoteViewModel => EditorViewModel.NoteViewModel;
   private readonly IViewModelLease<ImageCollectionViewModel> ImageCollectionViewModelLease;
   private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease.ViewModel;
 
@@ -88,9 +88,9 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     UnregisterMessengers();
 
     // 빈 노트 완전 삭제 로직
-    if (ViewModel is not null)
+    if (NoteViewModel is not null)
     {
-      await ViewModel.DeleteNotePermanentlyWhenEmpty();
+      await EditorViewModel.DeleteNotePermanentlyWhenEmpty();
     }
 
     // 에디터 내용을 저장 후 정리
@@ -150,7 +150,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
           }
           break;
         case ContentDialogResult.None:
-          ViewModel.CloseWindowCommand.Execute(Note);
+          NoteViewModel.CloseWindowCommand.Execute(Note);
           break;
       }
     }
@@ -277,7 +277,7 @@ partial class NotePage
     {
       NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
     }
-    ViewModel.ImagePanelMaxHeight = Math.Min(this.ActualHeight * 0.5, 512 * this.XamlRoot.RasterizationScale);
+    NoteViewModel.ImagePanelMaxHeight = Math.Min(this.ActualHeight * 0.5, 512 * this.XamlRoot.RasterizationScale);
   }
 
   private IntPtr _oldWndProc = IntPtr.Zero;
@@ -462,7 +462,7 @@ partial class NotePage
 
   private void NotePage_TitleRenameTextBox_LostFocus(object sender, RoutedEventArgs e)
   {
-    ViewModel.OldTitle = Note.Title;
+    NoteViewModel.OldTitle = Note.Title;
 
     if (VisualStateManager.GoToState(this, "TitleBarTitleNormal", false))
     {

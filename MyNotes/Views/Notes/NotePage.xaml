@@ -95,7 +95,7 @@
           Visibility="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}">
       <Rectangle>
         <Rectangle.Fill>
-          <ImageBrush ImageSource="{x:Bind ViewModel.BackgroundImage, Mode=OneWay}"
+          <ImageBrush ImageSource="{x:Bind NoteViewModel.BackgroundImage, Mode=OneWay}"
                       Stretch="{x:Bind Note.BackgroundImageStretch, Mode=OneWay}"
                       Opacity="{x:Bind Note.BackgroundImageOpacity, Mode=OneWay}"
                       AlignmentX="{x:Bind EditorViewModel.BackgroundImageAlignmentX, Mode=OneWay}"
@@ -134,7 +134,7 @@
                                              x:Uid="/NotePage/PinButton"
                                              Grid.Column="0"
                                              IsChecked="{x:Bind Note.IsAlwaysOnTop, Mode=TwoWay}"
-                                             Command="{x:Bind ViewModel.PinWindowCommand}">
+                                             Command="{x:Bind NoteViewModel.PinWindowCommand}">
         <tmpls:AlternateSubtleIconToggleButton.Icon>
           <FontIcon Glyph="&#xE718;" />
         </tmpls:AlternateSubtleIconToggleButton.Icon>
@@ -181,12 +181,12 @@
             <!-- New Note -->
             <MenuFlyoutItem x:Uid="/NotePage/NewNoteMenuFlyoutItem"
                             Icon="Add"
-                            Command="{x:Bind ViewModel.CreateNewNoteCommand}" />
+                            Command="{x:Bind NoteViewModel.CreateNewNoteCommand}" />
 
             <!-- View List -->
             <MenuFlyoutItem x:Uid="/NotePage/ViewListMenuFlyoutItem"
                             Icon="{ctw:FontIcon Glyph=&#xE71D;}"
-                            Command="{x:Bind ViewModel.ViewListCommand}" />
+                            Command="{x:Bind NoteViewModel.ViewListCommand}" />
 
             <MenuFlyoutSeparator />
 
@@ -199,7 +199,7 @@
                                            Icon="Favorite"
                                            CheckedIcon="UnFavorite"
                                            IsChecked="{x:Bind Note.IsBookmarked, Mode=OneWay}"
-                                           Command="{x:Bind ViewModel.ToggleBookmarkNoteCommand}" />
+                                           Command="{x:Bind NoteViewModel.ToggleBookmarkNoteCommand}" />
 
             <!-- Show Images -->
             <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
@@ -268,7 +268,7 @@
                LostFocus="NotePage_TitleRenameTextBox_LostFocus">
         <mxi:Interaction.Behaviors>
           <mxi:EventTriggerBehavior EventName="LostFocus">
-            <mxi:InvokeCommandAction Command="{x:Bind ViewModel.RenameNoteTitleCommand}" />
+            <mxi:InvokeCommandAction Command="{x:Bind NoteViewModel.RenameNoteTitleCommand}" />
           </mxi:EventTriggerBehavior>
         </mxi:Interaction.Behaviors>
       </TextBox>
@@ -279,7 +279,7 @@
                               x:Uid="/NotePage/MinimizeButton"
                               Grid.Column="3"
                               Content="{ctw:FontIcon Glyph=&#xE738;}"
-                              Command="{x:Bind ViewModel.MinimizeWindowCommand}">
+                              Command="{x:Bind NoteViewModel.MinimizeWindowCommand}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
@@ -288,7 +288,7 @@
                               x:Uid="/NotePage/CloseButton"
                               Grid.Column="4"
                               Content="{ctw:FontIcon Glyph=&#xE711;}"
-                              Command="{x:Bind ViewModel.CloseWindowCommand}">
+                              Command="{x:Bind NoteViewModel.CloseWindowCommand}">
         <tmpls:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
         </tmpls:SubtleIconButton.RenderTransform>
@@ -314,7 +314,7 @@
                 ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                 Height="{x:Bind Note.ImagePanelHeight, Mode=TwoWay}"
                 MinHeight="120"
-                MaxHeight="{x:Bind ViewModel.ImagePanelMaxHeight, Mode=OneWay}"
+                MaxHeight="{x:Bind NoteViewModel.ImagePanelMaxHeight, Mode=OneWay}"
                 Padding="0,6"
                 Margin="0,0,0,6"
                 DragItemsStarting="NotePage_ImagesGridView_DragItemsStarting"
@@ -346,7 +346,7 @@
                                   Icon="NewWindow"
                                   Text="Show"
                                   Click="NotePage_ShowImageMenuFlyoutItem_Click" />
-                  <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem" 
+                  <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem"
                                   Icon="SaveLocal"
                                   Text="Save local"
                                   Click="NotePage_SaveImageMenuFlyoutItem_Click" />
@@ -437,7 +437,7 @@
                            TintColor="{ThemeResource SubtleFillColorSecondary}"
                            FallbackColor="{ThemeResource SubtleFillColorSecondary}" />
       </ScrollViewer.Background>-->
-      
+
       <ScrollViewer.RenderTransform>
         <TranslateTransform x:Name="NotePage_CommandBarScrollViewer_TranslateTransform" />
       </ScrollViewer.RenderTransform>
@@ -809,20 +809,20 @@
                 <TextBlock x:Uid="/NotePage/BackgroundFlyoutHeaderTextBlock"
                            Style="{StaticResource BodyStrongTextBlockStyle}"
                            Margin="0,0,0,12" />
-                <ctwc:Segmented x:Name="NotePage_BackgroundSegmented"
+                <ctwc:Segmented x:Name="NotePage_BackgroundFlyoutSegmented"
                                 HorizontalAlignment="Stretch"
                                 SelectedIndex="0">
-                  <ctwc:SegmentedItem Icon="{ctw:FontIcon Glyph=&#xE790;}"
-                                      Content="Color"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/BackgroundFlyoutColorSegmentedItem"
+                                      Icon="{ctw:FontIcon Glyph=&#xE790;}"
                                       HorizontalAlignment="Stretch" />
-                  <ctwc:SegmentedItem Icon="{ctw:FontIcon Glyph=&#xE794;}"
-                                      Content="Effect"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/BackgroundFlyoutEffectSegmentedItem"
+                                      Icon="{ctw:FontIcon Glyph=&#xE794;}"
                                       HorizontalAlignment="Stretch" />
-                  <ctwc:SegmentedItem Icon="{ctw:FontIcon Glyph=&#xE91B;}"
-                                      Content="Image"
+                  <ctwc:SegmentedItem x:Uid="/NotePage/BackgroundFlyoutImageSegmentedItem"
+                                      Icon="{ctw:FontIcon Glyph=&#xE91B;}"
                                       HorizontalAlignment="Stretch" />
                 </ctwc:Segmented>
-                <ctwc:SwitchPresenter Value="{x:Bind NotePage_BackgroundSegmented.SelectedIndex, Mode=OneWay}">
+                <ctwc:SwitchPresenter Value="{x:Bind NotePage_BackgroundFlyoutSegmented.SelectedIndex, Mode=OneWay}">
                   <!-- Background Color -->
                   <ctwc:Case>
                     <ctwc:Case.Value>
@@ -833,11 +833,11 @@
                                    HorizontalAlignment="Center"
                                    SelectedItem="{x:Bind NotePage_BackgroundColorPaletteSelectorBarItem}">
                         <SelectorBarItem x:Name="NotePage_BackgroundColorPaletteSelectorBarItem"
-                                         Icon="{ctw:FontIcon Glyph=&#xE790;}"
-                                         Text="Palette" />
+                                         x:Uid="/NotePage/BackgroundColorPaletteSelectorBarItem"
+                                         Icon="{ctw:FontIcon Glyph=&#xE790;}" />
                         <SelectorBarItem x:Name="NotePage_BackgroundColorPickerSelectorBarItem"
-                                         Icon="{ctw:FontIcon Glyph=&#xEF3C;}"
-                                         Text="Picker" />
+                                         x:Uid="/NotePage/BackgroundColorPickerSelectorBarItem"
+                                         Icon="{ctw:FontIcon Glyph=&#xEF3C;}" />
                       </SelectorBar>
 
                       <ctwc:SwitchPresenter Value="{x:Bind NotePage_BackgroundColorSelectorBar.SelectedItem, Mode=OneWay}">
@@ -889,7 +889,6 @@
                                 Padding="0,12">
                       <RadioButtons x:Name="NotePage_BackdropRadioButtons"
                                     x:Uid="/NotePage/BackdropRadioButtons"
-                                    Header="Backdrop kind"
                                     SelectedIndex="{x:Bind Note.BackdropKind, Mode=TwoWay, Converter={StaticResource BackdropKindToIntConverter}}"
                                     MaxColumns="3">
                         <RadioButton x:Uid="/NotePage/BackdropNoneRadioButton"
@@ -914,10 +913,10 @@
                           <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0"
+                        <TextBlock x:Uid="/NotePage/BackdropTintOpacityHeaderTextBlock"
+                                   Grid.Row="0"
                                    Grid.Column="0"
-                                   Grid.ColumnSpan="3"
-                                   Text="Tint opacity" />
+                                   Grid.ColumnSpan="3" />
 
                         <TextBlock Grid.Row="1"
                                    Grid.Column="0"
@@ -938,8 +937,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}" 
-                                                Command="{x:Bind EditorViewModel.ChangeBackdropTintOpacityToDefaultCommand}"/>
+                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}"
+                                                Command="{x:Bind EditorViewModel.ChangeBackdropTintOpacityToDefaultCommand}" />
                       </Grid>
 
                       <Grid RowSpacing="4"
@@ -954,10 +953,10 @@
                           <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Row="0"
+                        <TextBlock x:Uid="/NotePage/BackdropLuminosityOpacityHeaderTextBlock"
+                                   Grid.Row="0"
                                    Grid.Column="0"
-                                   Grid.ColumnSpan="3"
-                                   Text="Luminosity opacity" />
+                                   Grid.ColumnSpan="3" />
 
                         <TextBlock Grid.Row="1"
                                    Grid.Column="0"
@@ -978,8 +977,8 @@
                                                 Grid.Column="2"
                                                 Content="{ctw:FontIcon Glyph=&#xE72C;}"
                                                 Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}" 
-                                                Command="{x:Bind EditorViewModel.ChangeBackdropLuminosityOpacityToDefaultCommand}"/>
+                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}"
+                                                Command="{x:Bind EditorViewModel.ChangeBackdropLuminosityOpacityToDefaultCommand}" />
                       </Grid>
                     </StackPanel>
                   </ctwc:Case>
@@ -990,138 +989,159 @@
                       <x:Int32>2</x:Int32>
                     </ctwc:Case.Value>
                     <StackPanel Spacing="12">
-                      <CheckBox Content="Show background image"
-                                IsChecked="{x:Bind Note.ShowBackgroundImage, Mode=TwoWay}"
-                                Margin="0,8,0,0" />
+                      <ToggleButton x:Name="NotePage_ShowBackdroundImageToggleButton"
+                                    x:Uid="/NotePage/ShowBackdroundImageToggleButton"
+                                    IsChecked="{x:Bind Note.ShowBackgroundImage, Mode=TwoWay}"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="0,12,0,0" />
 
-                      <RadioButtons Header="Stretch"
-                                    MaxColumns="4"
-                                    IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}"
-                                    SelectedIndex="{x:Bind Note.BackgroundImageStretch, Mode=TwoWay, Converter={StaticResource StretchToIntConverter}}">
-                        <RadioButton Content="None" />
-                        <RadioButton Content="Fill" />
-                        <RadioButton Content="Uniform" />
-                        <RadioButton Content="UniformToFill" />
-                      </RadioButtons>
+                      <ContentControl IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}">
+                        <StackPanel Spacing="12">
+                          <RadioButtons x:Uid="/NotePage/BackgroundImageStretchRadioButtons"
+                                        MaxColumns="4"
+                                        SelectedIndex="{x:Bind Note.BackgroundImageStretch, Mode=TwoWay, Converter={StaticResource StretchToIntConverter}}">
+                            <RadioButton x:Uid="/NotePage/BackgroundImageStretchNoneRadioButton"
+                                         MinWidth="160" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageStretchFillRadioButton"
+                                         MinWidth="160" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageStretchUniformRadioButton"
+                                         MinWidth="160" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageStretchUniformToFillRadioButton"
+                                         MinWidth="160" />
+                          </RadioButtons>
 
-                      <RadioButtons Header="Alignment X"
-                                    IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}"
-                                    SelectedIndex="{x:Bind EditorViewModel.BackgroundImageAlignmentX, Mode=TwoWay, Converter={StaticResource AlignmentXToIntConverter}}"
-                                    MaxColumns="3">
-                        <RadioButton Content="Left"
-                                     MinWidth="100" />
-                        <RadioButton Content="Center"
-                                     MinWidth="100" />
-                        <RadioButton Content="Right"
-                                     MinWidth="100" />
-                      </RadioButtons>
+                          <NavigationViewItemSeparator />
 
-                      <RadioButtons Header="Alignment Y"
-                                    IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}"
-                                    SelectedIndex="{x:Bind EditorViewModel.BackgroundImageAlignmentY, Mode=TwoWay, Converter={StaticResource AlignmentYToIntConverter}}"
-                                    MaxColumns="3">
-                        <RadioButton Content="Top"
-                                     MinWidth="100" />
-                        <RadioButton Content="Center"
-                                     MinWidth="100" />
-                        <RadioButton Content="Bottom"
-                                     MinWidth="100" />
-                      </RadioButtons>
+                          <RadioButtons x:Uid="/NotePage/BackgroundImageAlignmentXRadioButtons"
+                                        SelectedIndex="{x:Bind EditorViewModel.BackgroundImageAlignmentX, Mode=TwoWay, Converter={StaticResource AlignmentXToIntConverter}}"
+                                        MaxColumns="3">
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentXLeftRadioButton"
+                                         MinWidth="100" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentXCenterRadioButton"
+                                         MinWidth="100" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentXRightRadioButton"
+                                         MinWidth="100" />
+                          </RadioButtons>
 
-                      <Grid RowSpacing="4"
-                            ColumnSpacing="8">
-                        <Grid.RowDefinitions>
-                          <RowDefinition Height="Auto" />
-                          <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="Auto" />
-                          <ColumnDefinition />
-                          <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                          <RadioButtons x:Uid="/NotePage/BackgroundImageAlignmentYRadioButtons"
+                                        SelectedIndex="{x:Bind EditorViewModel.BackgroundImageAlignmentY, Mode=TwoWay, Converter={StaticResource AlignmentYToIntConverter}}"
+                                        MaxColumns="3">
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentYTopRadioButton"
+                                         MinWidth="100" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentYCenterRadioButton"
+                                         MinWidth="100" />
+                            <RadioButton x:Uid="/NotePage/BackgroundImageAlignmentYBottomRadioButton"
+                                         MinWidth="100" />
+                          </RadioButtons>
 
-                        <TextBlock Grid.Row="0"
-                                   Grid.Column="0"
-                                   Grid.ColumnSpan="3"
-                                   Text="Opacity" />
+                          <NavigationViewItemSeparator />
 
-                        <TextBlock Grid.Row="1"
-                                   Grid.Column="0"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Center"
-                                   Width="32"
-                                   Text="{x:Bind helpers:NumericHelper.Round(Note.BackgroundImageOpacity, 2), Mode=OneWay}" />
-                        <Slider Grid.Row="1"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Minimum="0"
-                                Maximum="1"
-                                StepFrequency="0.01"
-                                IsThumbToolTipEnabled="False"
-                                Value="{x:Bind Note.BackgroundImageOpacity, Mode=TwoWay}"
-                                IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}" />
-                        <tmpls:SubtleIconButton Grid.Row="1"
-                                                Grid.Column="2"
-                                                Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}" 
-                                                Command="{x:Bind EditorViewModel.ChangeBackgroundImageOpacityToDefaultCommand}"/>
-                      </Grid>
+                          <Grid RowSpacing="4"
+                                ColumnSpacing="8">
+                            <Grid.RowDefinitions>
+                              <RowDefinition Height="Auto" />
+                              <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto" />
+                              <ColumnDefinition />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                      <Grid RowSpacing="4"
-                            ColumnSpacing="8">
-                        <Grid.RowDefinitions>
-                          <RowDefinition Height="Auto" />
-                          <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition Width="Auto" />
-                          <ColumnDefinition />
-                          <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageOpacityTextBlock"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="3" />
 
-                        <TextBlock Grid.Row="0"
-                                   Grid.Column="0"
-                                   Grid.ColumnSpan="3"
-                                   Text="Blur" />
+                            <tmpls:TextContentControl Grid.Row="1"
+                                                      Grid.Column="0"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalContentAlignment="Center"
+                                                      Width="32"
+                                                      Text="{x:Bind helpers:NumericHelper.GetPercentage(Note.BackgroundImageOpacity, 1.0), Mode=OneWay}" />
+                            <Slider Grid.Row="1"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Minimum="0"
+                                    Maximum="1"
+                                    StepFrequency="0.01"
+                                    IsThumbToolTipEnabled="False"
+                                    Value="{x:Bind Note.BackgroundImageOpacity, Mode=TwoWay}" />
+                            <tmpls:SubtleIconButton Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                    Command="{x:Bind EditorViewModel.ChangeBackgroundImageOpacityToDefaultCommand}" />
+                          </Grid>
 
-                        <TextBlock Grid.Row="1"
-                                   Grid.Column="0"
-                                   VerticalAlignment="Center"
-                                   TextAlignment="Center"
-                                   Width="32"
-                                   Text="{x:Bind helpers:NumericHelper.Round(Note.BackgroundImageBlur, 2), Mode=OneWay}" />
-                        <Slider Grid.Row="1"
-                                Grid.Column="1"
-                                VerticalAlignment="Center"
-                                Minimum="0"
-                                Maximum="100"
-                                IsThumbToolTipEnabled="False"
-                                Value="{x:Bind Note.BackgroundImageBlur, Mode=TwoWay}"
-                                IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}" />
-                        <tmpls:SubtleIconButton Grid.Row="1"
-                                                Grid.Column="2"
-                                                Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind Note.ShowBackgroundImage, Mode=OneWay}" 
-                                                Command="{x:Bind EditorViewModel.ChangeBackgroundImageBlurToDefaultCommand}"/>
-                      </Grid>
-                      <Grid>
-                        <Grid.ColumnDefinitions>
-                          <ColumnDefinition />
-                          <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
+                          <Grid RowSpacing="4"
+                                ColumnSpacing="8">
+                            <Grid.RowDefinitions>
+                              <RowDefinition Height="Auto" />
+                              <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="Auto" />
+                              <ColumnDefinition />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
 
-                        <TextBlock Grid.Column="0"
-                                   Text="{x:Bind Note.BackgroundImagePath, Mode=OneWay}"
-                                   TextTrimming="CharacterEllipsis"
-                                   VerticalAlignment="Center"
-                                   IsTextSelectionEnabled="True"
-                                   ToolTipService.ToolTip="{x:Bind Note.BackgroundImagePath, Mode=OneWay}" />
-                        <Button Grid.Column="1"
-                                Content="Browse"
-                                Command="{x:Bind EditorViewModel.BrowseBackgroundImageCommand}" />
-                      </Grid>
+                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageBlurTextBlock"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="3" />
+
+                            <tmpls:TextContentControl Grid.Row="1"
+                                                      Grid.Column="0"
+                                                      VerticalAlignment="Center"
+                                                      HorizontalContentAlignment="Center"
+                                                      Width="32"
+                                                      Text="{x:Bind helpers:NumericHelper.Round(Note.BackgroundImageBlur, 2), Mode=OneWay}" />
+                            <Slider Grid.Row="1"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Minimum="0"
+                                    Maximum="100"
+                                    IsThumbToolTipEnabled="False"
+                                    Value="{x:Bind Note.BackgroundImageBlur, Mode=TwoWay}" />
+                            <tmpls:SubtleIconButton Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                    Command="{x:Bind EditorViewModel.ChangeBackgroundImageBlurToDefaultCommand}" />
+                          </Grid>
+
+                          <NavigationViewItemSeparator />
+
+                          <Grid RowSpacing="4" ColumnSpacing="8">
+                            <Grid.RowDefinitions>
+                              <RowDefinition Height="Auto" />
+                              <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                              <ColumnDefinition />
+                              <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageSelectionTextBlock"
+                                                      Grid.Row="0"
+                                                      Grid.Column="0"
+                                                      Grid.ColumnSpan="2" />
+                            <tmpls:TextContentControl Grid.Row="1"
+                                                      Grid.Column="0"
+                                                      Text="{x:Bind helpers:StringHelper.GetFileName(Note.BackgroundImagePath), Mode=OneWay}"
+                                                      TextTrimming="CharacterEllipsis"
+                                                      VerticalAlignment="Center"
+                                                      IsTextSelectionEnabled="True"
+                                                      ToolTipService.ToolTip="{x:Bind Note.BackgroundImagePath, Mode=OneWay}" />
+                            <Button x:Uid="/NotePage/BackgroundImageBrowseButton"
+                                    Grid.Row="1"
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Command="{x:Bind EditorViewModel.BrowseBackgroundImageCommand}" />
+                          </Grid>
+                        </StackPanel>
+                      </ContentControl>
                     </StackPanel>
                   </ctwc:Case>
                 </ctwc:SwitchPresenter>

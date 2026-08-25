@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Core;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -12,13 +12,13 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 public sealed partial class TrashPage : Page
 {
+  private NavigationTrash? Navigation;
+
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private CoreNavigationViewModel ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
-
-  private NavigationTrash Navigation => ViewModel.Navigation as NavigationTrash ?? throw new InvalidOperationException("Navigation 타입이 일치하지 않음");
-
   private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
-  private NotePreviewListViewModel NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel ?? throw new InvalidOperationException("NotePreviewListViewModelLease가 초기화되지 않음");
+
+  private CoreNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel;
+  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public TrashPage()
@@ -33,11 +33,12 @@ public sealed partial class TrashPage : Page
   {
     if (e.Parameter is NavigationTrash navigation)
     {
+      Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      ViewModelLease = navigationViewModelProvider.Acquire(navigation);
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
 
-      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
-      NotePreviewListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
+      ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
+      NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);
     }
   }
 

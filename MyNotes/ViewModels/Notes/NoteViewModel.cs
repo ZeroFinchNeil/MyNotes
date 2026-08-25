@@ -2,18 +2,17 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml.Media.Imaging;
 
 using MyNotes.Application.Contracts.Converters;
 using MyNotes.Application.Contracts.Notes.Models;
-using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
-using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
-using MyNotes.Common.Enums.Modes;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
@@ -25,27 +24,24 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteCommandService NoteCommandService;
   private readonly NavigationCommandService NavigationCommandService;
-  private readonly NoteService NoteService;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> NoteUpdateCoordinator;
-  private readonly AppSettingsService AppSettingsService;
-  private readonly IRtfTextConverter RtfTextConverter;
+  private readonly IMemoryCache MemoryCache;
 
   public NoteModel Note { get; }
 
   #region Object Lifetime Management
-  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, NoteService noteService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, AppSettingsService appSettingsService, IRtfTextConverter rtfTextConverter, NoteModel note)
+  public NoteViewModel([FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, IUpdateCoordinator<string, NoteViewStatePatchDto> updateCoordinator, IMemoryCache memoryCache, NoteModel note)
   {
     // DI
     NoteCommandService = (NoteCommandService)noteCommandService;
     NavigationCommandService = (NavigationCommandService)navigationCommandService;
-    NoteService = noteService;
     NoteUpdateCoordinator = updateCoordinator;
-    AppSettingsService = appSettingsService;
-    RtfTextConverter = rtfTextConverter;
+    MemoryCache = memoryCache;
 
     Note = note;
 
-    SetBackgroundImage();
+    BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
+
     Note.PropertyChanged += Note_PropertyChanged;
     SetCommands();
   }
@@ -59,7 +55,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     }
 
     Note.PropertyChanged -= Note_PropertyChanged;
-    await NoteService.Modification.CommitSearchIndexAsync();
   }
 
   public async ValueTask DisposeAsync()
@@ -104,30 +99,30 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
         if (Note.ShowBackgroundImage)
         {
           Note.BackdropKind = BackdropKind.None;
-          SetBackgroundImage();
+          BackgroundImage = MemoryCache.TryGetValue(_backgroundImageMemoryCacheKey, out BitmapImage? cachedImage)
+            ? cachedImage
+            : GetBackgroundImage(Note.BackgroundImagePath);
         }
         else
         {
-          BackgroundImage = null;
+          if (BackgroundImage is not null)
+          {
+            MemoryCache.Set(_backgroundImageMemoryCacheKey, BackgroundImage, new MemoryCacheEntryOptions() { AbsoluteExpirationRelativeToNow = _backgroundImageMemoryCacheRetentionTime });
+            BackgroundImage = null;
+          }
         }
         break;
       case nameof(Note.BackgroundImagePath):
-        SetBackgroundImage();
+        BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
         break;
-    }
-  }
-
-  public async Task DeleteNotePermanentlyWhenEmpty()
-  {
-    if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote) && string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(RtfTextConverter.ToPlainText(Note.Body)))
-    {
-      await NoteCommandService.DeleteNoteManuallyAsync(Note);
     }
   }
   #endregion
 
   #region Background Image
 
+  private readonly object _backgroundImageMemoryCacheKey = new();
+  private readonly TimeSpan _backgroundImageMemoryCacheRetentionTime = TimeSpan.FromSeconds(5);
   [ObservableProperty]
   public partial BitmapImage? BackgroundImage { get; set; }
 
@@ -148,12 +143,10 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
       return image;
     }
     catch (Exception)
-    { }
-
-    return null;
+    {
+      return null;
+    }
   }
-
-  private void SetBackgroundImage() => BackgroundImage = Note.ShowBackgroundImage ? GetBackgroundImage(Note.BackgroundImagePath) : null;
   #endregion
 
   #region Body Images
@@ -228,7 +221,7 @@ partial class NoteViewModel
 
     RemoveNoteCommand = new()
     {
-      ExecuteFunc = () => NoteCommandService.RemoveNoteAsync(Note)
+      ExecuteFunc = () => NoteCommandService.ConfirmAndDeleteNoteAsync(Note)
     };
 
     AddNoteToJumpListCommand = new()

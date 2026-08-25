@@ -3930,4 +3930,45 @@
     </Setter>
   </Style>
   <!--#endregion -->
+
+  <Style TargetType="local:TextContentControl">
+    <Setter Property="Foreground"
+            Value="{ThemeResource TextFillColorPrimary}" />
+    <Setter Property="VerticalContentAlignment"
+            Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment"
+            Value="Left" />
+    <Setter Property="Template">
+      <Setter.Value>
+        <ControlTemplate TargetType="local:TextContentControl">
+          <Border Margin="{TemplateBinding Padding}">
+            <TextBlock x:Name="ContentTextBlock" 
+                       Text="{TemplateBinding Text}"
+                       Foreground="{TemplateBinding Foreground}"
+                       FontWeight="{TemplateBinding FontWeight}"
+                       FontSize="{TemplateBinding FontSize}"
+                       FontStretch="{TemplateBinding FontStretch}"
+                       FontStyle="{TemplateBinding FontStyle}"
+                       TextWrapping="{TemplateBinding TextWrapping}"
+                       TextTrimming="{TemplateBinding TextTrimming}"
+                       IsTextSelectionEnabled="{TemplateBinding IsTextSelectionEnabled}"
+                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+
+            <VisualStateManager.VisualStateGroups>
+              <VisualStateGroup x:Name="EnabledStates">
+                <VisualState x:Name="Enabled" />
+                <VisualState x:Name="Disabled">
+                  <VisualState.Setters>
+                    <Setter Target="ContentTextBlock.Foreground"
+                            Value="{ThemeResource TextFillColorDisabled}" />
+                  </VisualState.Setters>
+                </VisualState>
+              </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
+          </Border>
+        </ControlTemplate>
+      </Setter.Value>
+    </Setter>
+  </Style>
 </ResourceDictionary>

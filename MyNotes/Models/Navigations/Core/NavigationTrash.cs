@@ -1,15 +1,13 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-
-using MyNotes.Application.Contracts.Navigations.Models;
+﻿using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Domain.Navigations;
 using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.Core;
 
-internal sealed partial class NavigationTrash : NavigationCoreNode, INavigationNoteList
+internal sealed partial class NavigationTrash : NavigationCoreNode, INavigationNoteListNode
 {
   public static NavigationTrash Instance => field ??= new()
   {

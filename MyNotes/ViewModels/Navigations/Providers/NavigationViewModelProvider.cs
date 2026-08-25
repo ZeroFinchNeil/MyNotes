@@ -3,9 +3,10 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Lifetime;
-using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.Core;
+using MyNotes.Models.Navigations.User;
 
 namespace MyNotes.ViewModels.Navigations.Providers;
 

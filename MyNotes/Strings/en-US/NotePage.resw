@@ -249,4 +249,82 @@
   <data name="EnterEditModeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>Switch to edit mode</value>
   </data>
+  <data name="BackgroundFlyoutColorSegmentedItem.Content" xml:space="preserve">
+    <value>Color</value>
+  </data>
+  <data name="BackgroundFlyoutEffectSegmentedItem.Content" xml:space="preserve">
+    <value>Effect</value>
+  </data>
+  <data name="BackgroundFlyoutImageSegmentedItem.Content" xml:space="preserve">
+    <value>Image</value>
+  </data>
+  <data name="BackgroundColorPaletteSelectorBarItem.Text" xml:space="preserve">
+    <value>Palette</value>
+  </data>
+  <data name="BackgroundColorPickerSelectorBarItem.Text" xml:space="preserve">
+    <value>Picker</value>
+  </data>
+  <data name="BackdropRadioButtons.Header" xml:space="preserve">
+    <value>Backdrop</value>
+  </data>
+  <data name="BackdropTintOpacityHeaderTextBlock.Text" xml:space="preserve">
+    <value>Tint layer opacity</value>
+  </data>
+  <data name="BackdropLuminosityOpacityHeaderTextBlock.Text" xml:space="preserve">
+    <value>Luminosity layer opacity</value>
+  </data>
+  <data name="ShowBackdroundImageToggleButton.Content" xml:space="preserve">
+    <value>Show background image</value>
+  </data>
+  <data name="BackgroundImageStretchRadioButtons.Header" xml:space="preserve">
+    <value>Fit mode</value>
+  </data>
+  <data name="BackgroundImageStretchNoneRadioButton.Content" xml:space="preserve">
+    <value>Original size</value>
+  </data>
+  <data name="BackgroundImageStretchFillRadioButton.Content" xml:space="preserve">
+    <value>Stretch to fill</value>
+  </data>
+  <data name="BackgroundImageStretchUniformRadioButton.Content" xml:space="preserve">
+    <value>Fit Proportionally</value>
+  </data>
+  <data name="BackgroundImageStretchUniformToFillRadioButton.Content" xml:space="preserve">
+    <value>Fill and Crop</value>
+  </data>
+  <data name="BackgroundImageAlignmentXRadioButtons.Header" xml:space="preserve">
+    <value>Horizontal position</value>
+  </data>
+  <data name="BackgroundImageAlignmentYRadioButtons.Header" xml:space="preserve">
+    <value>Vertical position</value>
+  </data>
+  <data name="BackgroundImageAlignmentXLeftRadioButton.Content" xml:space="preserve">
+    <value>Left</value>
+  </data>
+  <data name="BackgroundImageAlignmentXCenterRadioButton.Content" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="BackgroundImageAlignmentXRightRadioButton.Content" xml:space="preserve">
+    <value>Right</value>
+  </data>
+  <data name="BackgroundImageAlignmentYTopRadioButton.Content" xml:space="preserve">
+    <value>Top</value>
+  </data>
+  <data name="BackgroundImageAlignmentYCenterRadioButton.Content" xml:space="preserve">
+    <value>Center</value>
+  </data>
+  <data name="BackgroundImageAlignmentYBottomRadioButton.Content" xml:space="preserve">
+    <value>Bottom</value>
+  </data>
+  <data name="BackgroundImageOpacityTextBlock.Text" xml:space="preserve">
+    <value>Opacity</value>
+  </data>
+  <data name="BackgroundImageBlurTextBlock.Text" xml:space="preserve">
+    <value>Blur</value>
+  </data>
+  <data name="BackgroundImageBrowseButton.Content" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="BackgroundImageSelectionTextBlock.Text" xml:space="preserve">
+    <value>Select background image</value>
+  </data>
 </root>

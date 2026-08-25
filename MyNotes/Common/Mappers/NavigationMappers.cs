@@ -1,6 +1,7 @@
 ﻿using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Templates;
 
 namespace MyNotes.Common.Mappers;

@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Navigations;
 using MyNotes.ViewModels.Navigations.Providers;
@@ -12,11 +12,12 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class UserListPage : Page
 {
-  private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private UserListNavigationViewModel ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
-  private NavigationUserLeafNode Navigation => ViewModel.Navigation as NavigationUserLeafNode ?? throw new InvalidOperationException("Navigation 타입이 일치하지 않음");
+  private NavigationUserLeafNode? Navigation;
 
+  private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
   private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+
+  private UserListNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel;
   private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
@@ -35,10 +36,12 @@ internal sealed partial class UserListPage : Page
   {
     if (e.Parameter is NavigationUserLeafNode navigation)
     {
+      Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
       var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
-      ViewModelLease = navigationViewModelProvider.Resolve(navigation);
-      NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(navigation);
+
+      ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
+      NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);
     }
   }
 

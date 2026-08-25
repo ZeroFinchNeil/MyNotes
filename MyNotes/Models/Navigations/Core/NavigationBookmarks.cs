@@ -1,15 +1,24 @@
 ﻿using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Querying.Models;
+using MyNotes.Domain.Navigations;
+using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.Core;
 
-internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationNoteList, INavigationInitialTarget
+internal sealed partial class NavigationBookmarks : NavigationCoreNode, INavigationNoteListNode, INavigationInitialTarget
 {
-  public NavigationUserLeafNode() : base(typeof(UserListPage)) { }
+  public static NavigationBookmarks Instance => field ??= new()
+  {
+    Id = NavigationId.Bookmarks,
+    Icon = new IconSourceElement() { IconSource = new SymbolIconSource() { Symbol = Symbol.Favorite } },
+    Title = LocalizedStrings.NavigationBookmarksTitle,
+  };
 
-  public required NoteSortKey NoteSortKey
+  private NavigationBookmarks() : base(typeof(BookmarksPage)) { }
+
+  public NoteSortKey NoteSortKey
   {
     get;
     set
@@ -21,7 +30,7 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
     }
   }
 
-  public required SortDirection NoteSortDirection
+  public SortDirection NoteSortDirection
   {
     get;
     set
@@ -33,7 +42,7 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
     }
   }
 
-  public required PreviewLayoutType PreviewLayoutType
+  public PreviewLayoutType PreviewLayoutType
   {
     get;
     set
@@ -45,7 +54,7 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
     }
   }
 
-  public required PreviewTileSize PreviewTileSize
+  public PreviewTileSize PreviewTileSize
   {
     get;
     set
@@ -57,7 +66,7 @@ internal partial class NavigationUserLeafNode : NavigationUserNode, INavigationN
     }
   }
 
-  public required PreviewTileRatio PreviewTileRatio
+  public PreviewTileRatio PreviewTileRatio
   {
     get;
     set

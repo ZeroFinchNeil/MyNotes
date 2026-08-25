@@ -43,4 +43,6 @@ public static class StringHelper
 
     return word;
   }
+
+  public static string GetFileName(string path) => Path.GetFileName(path);
 }

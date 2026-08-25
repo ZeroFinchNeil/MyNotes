@@ -22,8 +22,7 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     );
   });
 
-  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>> ResolveAsync(
-    INavigationNoteList navigation)
+  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>> ResolveAsync(INavigationNoteList navigation)
   {
     while (true)
     {
@@ -76,7 +75,7 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     return null;
   }
 
-  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireAsync(NavigationId navigationId)
+  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireByIdAsync(NavigationId navigationId)
   {
     foreach (var nav in ResolveTable.Keys.ToArray())
     {

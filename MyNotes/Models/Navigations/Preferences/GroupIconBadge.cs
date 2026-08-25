@@ -1,4 +1,4 @@
-﻿namespace MyNotes.Models.Navigations;
+﻿namespace MyNotes.Models.Navigations.Preferences;
 
 public enum GroupIconBadge
 {

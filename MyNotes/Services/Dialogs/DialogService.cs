@@ -1,6 +1,6 @@
 ﻿using MyNotes.Common.Enums.Modes;
 using MyNotes.Domain.Navigations;
-using MyNotes.Models.Navigations;
+using MyNotes.Models.Navigations.User;
 using MyNotes.Models.UI;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Dialogs;

@@ -1,4 +1,4 @@
-﻿using MyNotes.Models.Navigations;
+﻿using MyNotes.Models.Navigations.Core;
 
 namespace MyNotes.ViewModels.Navigations;
 

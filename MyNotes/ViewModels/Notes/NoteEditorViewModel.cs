@@ -5,18 +5,24 @@ using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Helpers;
 
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes;
+using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Results;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
+using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Collections;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
 using MyNotes.Models.Notes;
+using MyNotes.Services.Commands;
 using MyNotes.Services.Updates;
 using MyNotes.Services.Windows;
 using MyNotes.Templates.Media;
@@ -27,18 +33,25 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 {
   private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateCoordinator;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateCoordinator;
+  private readonly NoteService NoteService;
   private readonly NoteWindowService NoteWindowService;
+  private readonly NoteCommandService NoteCommandService;
+  private readonly AppSettingsService AppSettingsService;
+
   private readonly IAsyncViewModelLease<NoteViewModel> NoteViewModelLease;
   public NoteViewModel NoteViewModel => NoteViewModelLease.ViewModel;
   private NoteModel Note => NoteViewModel.Note;
   private readonly RichEditTextDocument Document;
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteWindowService noteWindowService, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
+  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteService noteService, NoteWindowService noteWindowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, AppSettingsService appSettingsService, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
   {
     NoteUpdateCoordinator = noteUpdateCoordinator;
     ViewStateUpdateCoordinator = viewStateUpdateCoordinator;
+    NoteService = noteService;
     NoteWindowService = noteWindowService;
+    NoteCommandService = (NoteCommandService)noteCommandService;
+    AppSettingsService = appSettingsService;
 
     NoteViewModelLease = noteViewModelLease;
     Document = document;
@@ -82,6 +95,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
 
     _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
     await UpdateNoteBodyAsync();
+    await NoteService.Modification.CommitSearchIndexAsync();
     await NoteViewModelLease.DisposeAsync();
   }
 
@@ -140,6 +154,18 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   private async Task<UpdateNoteResult> UpdateAsync(string propertyName) => NotePatchDescriptors.TryGetValue(propertyName, out var notePatchDescriptor)
     ? await NoteUpdateCoordinator.Submit(notePatchDescriptor.Key, notePatchDescriptor.CreatePatch(Note), notePatchDescriptor.BatchMode)
     : new UpdateNoteResult() { Status = AppUpdateStatus.Failed };
+
+  public async Task DeleteNotePermanentlyWhenEmpty()
+  {
+    if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote))
+    {
+      Document.GetText(TextGetOptions.UseLf, out string bodyPlainText);
+      if (string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(bodyPlainText))
+      {
+        await NoteCommandService.DeleteNoteAsync(Note, DeleteMode.Permanent);
+      }
+    }
+  }
 
   #region Background
   public IReadOnlyList<SolidColorBrush> PaletteBackgroundColors { get; } = [.. AppColors.DefaultPaletteColors.Select(c => new SolidColorBrush(c.ToColor()))];

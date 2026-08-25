@@ -4,9 +4,9 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.Core;
 
-internal sealed class NavigationSettings : NavigationCoreNode
+internal sealed partial class NavigationSettings : NavigationCoreNode
 {
   public static NavigationSettings Instance => field ??= new()
   {

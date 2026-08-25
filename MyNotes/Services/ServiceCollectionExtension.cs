@@ -79,6 +79,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton(typeof(IUpdateDispatcher<>), typeof(UpdateDispatcher<>));
       services.AddSingleton(typeof(IUpdateDispatcher<,>), typeof(UpdateDispatcher<,>));
 
+      services.AddMemoryCache();
     }
 
     private void AddWindowServices()

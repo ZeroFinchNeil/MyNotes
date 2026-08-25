@@ -2,7 +2,7 @@
 using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
-namespace MyNotes.Models.Navigations;
+namespace MyNotes.Models.Navigations.Core;
 
 internal sealed partial class NavigationHome : NavigationCoreNode, INavigationInitialTarget
 {

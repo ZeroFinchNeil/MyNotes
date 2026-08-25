@@ -12,13 +12,12 @@ namespace MyNotes.Views.Navigations;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class SearchResultsPage : Page
 {
+  private NavigationSearch? Navigation;
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private SearchNavigationViewModel ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel ?? throw new InvalidOperationException("NavigationViewModelLease 초기화되지 않음");
-
-  private NavigationSearch Navigation => ViewModel.Navigation as NavigationSearch ?? throw new InvalidOperationException("Navigation 타입이 일치하지 않음");
-
   private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
-  private NotePreviewListViewModel NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel ?? throw new InvalidOperationException("NotePreviewListViewModelLease가 초기화되지 않음");
+
+  private SearchNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel;
+  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public SearchResultsPage()
@@ -34,11 +33,12 @@ internal sealed partial class SearchResultsPage : Page
   {
     if (e.Parameter is NavigationSearch navigation)
     {
+      Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      ViewModelLease = navigationViewModelProvider.Acquire(navigation);
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
 
-      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
-      NotePreviewListViewModelLease = await noteListViewModelProvider.ResolveAsync(navigation);
+      ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
+      NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);
     }
   }
 
