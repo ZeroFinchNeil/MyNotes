@@ -142,7 +142,7 @@
     <value>목록</value>
   </data>
   <data name="NavigationUserRootNode_DisplayName" xml:space="preserve">
-    <value>[최상위 그룹]</value>
+    <value>노트 보관함</value>
   </data>
   <data name="NoteSortKey_Modified" xml:space="preserve">
     <value>수정 시간</value>

@@ -7,6 +7,8 @@ using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
+using MyNotes.Debugging;
+
 using MyNotes.Infrastructure.Database.Constants;
 using MyNotes.Infrastructure.Database.Entities.Media;
 using MyNotes.Infrastructure.Database.Entities.Navigations;

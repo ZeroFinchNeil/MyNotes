@@ -5,30 +5,82 @@
     <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <RootNamespace>MyNotes</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
-    <Platforms>x86;x64;ARM64;AnyCPU</Platforms>
+    <Platforms>x86;x64;ARM64</Platforms>
     <RuntimeIdentifiers>win-x86;win-x64;win-arm64</RuntimeIdentifiers>
+    <PublishProfile>win-$(Platform).pubxml</PublishProfile>
     <UseWinUI>true</UseWinUI>
     <WinUISDKReferences>false</WinUISDKReferences>
+    <EnableMsixTooling>true</EnableMsixTooling>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <Configurations>Debug;Release;Debug-Unpackaged;Unpackaged</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Views\Dialogs\SelectNoteParentDialog.xaml" />
-    <None Remove="Views\Media\ImageViewerPage.xaml" />
-    <None Remove="Views\Navigations\BookmarksPage.xaml" />
-    <None Remove="Views\Navigations\TrashPage.xaml" />
-    <None Remove="Views\Notes\NotePreviewItemsContainer.xaml" />
-    <None Remove="Views\Windows\ImageViewerWindow.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="AppIcon.ico" />
+    <Content Remove="Assets\Icons\App\LargeTile.scale-100.png" />
+    <Content Remove="Assets\Icons\App\LargeTile.scale-125.png" />
+    <Content Remove="Assets\Icons\App\LargeTile.scale-150.png" />
+    <Content Remove="Assets\Icons\App\LargeTile.scale-200.png" />
+    <Content Remove="Assets\Icons\App\LargeTile.scale-400.png" />
+    <Content Remove="Assets\Icons\App\SmallTile.scale-100.png" />
+    <Content Remove="Assets\Icons\App\SmallTile.scale-125.png" />
+    <Content Remove="Assets\Icons\App\SmallTile.scale-150.png" />
+    <Content Remove="Assets\Icons\App\SmallTile.scale-200.png" />
+    <Content Remove="Assets\Icons\App\SmallTile.scale-400.png" />
+    <Content Remove="Assets\Icons\App\SplashScreen.scale-100.png" />
+    <Content Remove="Assets\Icons\App\SplashScreen.scale-125.png" />
+    <Content Remove="Assets\Icons\App\SplashScreen.scale-150.png" />
+    <Content Remove="Assets\Icons\App\SplashScreen.scale-200.png" />
+    <Content Remove="Assets\Icons\App\SplashScreen.scale-400.png" />
+    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-100.png" />
+    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-125.png" />
+    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-150.png" />
+    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-200.png" />
+    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-400.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-16.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-24.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-256.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-32.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-48.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-16.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-24.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-256.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-32.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-48.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-100.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-125.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-150.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-200.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-400.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-16.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-24.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-256.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-32.png" />
+    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-48.png" />
+    <Content Remove="Assets\Icons\App\StoreLogo.scale-100.png" />
+    <Content Remove="Assets\Icons\App\StoreLogo.scale-125.png" />
+    <Content Remove="Assets\Icons\App\StoreLogo.scale-150.png" />
+    <Content Remove="Assets\Icons\App\StoreLogo.scale-200.png" />
+    <Content Remove="Assets\Icons\App\StoreLogo.scale-400.png" />
+    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-100.png" />
+    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-125.png" />
+    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-150.png" />
+    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-200.png" />
+    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-400.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
+  <!--
+    Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
+    Tools extension to be activated for this project even if the Windows App SDK Nuget
+    package has not yet been restored.
+  -->
+  <ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <ProjectCapability Include="Msix" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.2.251219" />
@@ -43,10 +95,10 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
     <PackageReference Include="Microsoft.VisualStudio.VsixColorCompiler" Version="17.11.35325.10" />
-    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2526" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
     <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.4.0" />
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\MyNotes.Analyzer\MyNotes.Analyzer.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\MyNotes.Application\MyNotes.Application.csproj" />
@@ -58,53 +110,22 @@
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Page Update="Views\Windows\ImageViewerWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
+  <!--
+    Defining the "HasPackageAndPublishMenuAddedByProject" property here allows the Solution
+    Explorer "Package and Publish" context menu entry to be enabled for this project even if
+    the Windows App SDK Nuget package has not yet been restored.
+  -->
+  <PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+    <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+  </PropertyGroup>
 
-  <ItemGroup>
-    <Page Update="Views\Dialogs\SelectNoteParentDialog.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Navigations\TrashPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Navigations\BookmarksPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Media\ImageViewerPage.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Services\Notes\" />
-    <Folder Include="Services\Settings\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Page Update="Views\Notes\NotePreviewItemsContainer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-
-    <!-- Publish Properties -->
+  <!-- Publish Properties -->
   <PropertyGroup>
     <PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
     <PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
     <PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
-    <ApplicationIcon>AppIcon.ico</ApplicationIcon>
+    <PackageCertificateThumbprint>AF16AD655049B89E51B19B2082828EA87406E7EF</PackageCertificateThumbprint>
+    <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
   </PropertyGroup>
 </Project>

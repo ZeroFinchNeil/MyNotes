@@ -8,9 +8,10 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <IsRoslynComponent>true</IsRoslynComponent>
-    <Platforms>x64;AnyCPU;x86;ARM64</Platforms>
+    <Platforms>x64;x86;AnyCPU</Platforms>
     <SignAssembly>False</SignAssembly>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Configurations>Debug;Release;Debug-Unpackaged;Unpackaged</Configurations>
   </PropertyGroup>
 
   <ItemGroup>

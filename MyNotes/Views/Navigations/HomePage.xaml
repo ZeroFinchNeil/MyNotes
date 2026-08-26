@@ -4,21 +4,116 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="using:MyNotes.Views.Navigations"
       xmlns:animatedvisuals="using:Microsoft.UI.Xaml.Controls.AnimatedVisuals"
-      xmlns:templates="using:MyNotes.Templates">
+      xmlns:templates="using:MyNotes.Templates"
+      xmlns:ctw="using:CommunityToolkit.WinUI">
 
-  <StackPanel>
-    <TextBlock Text="Home Page" />
-    <templates:SubtleIconButton >
-      <templates:SubtleIconButton.Content>
-        <ImageIcon Source="{x:Bind HomePage_HeaderIconPicker.IconImage, Mode=OneWay}"/>
-      </templates:SubtleIconButton.Content>
-      <templates:SubtleIconButton.Flyout>
-        <Flyout Placement="BottomEdgeAlignedLeft">
-          <templates:IconPicker x:Name="HomePage_HeaderIconPicker" 
-                                DecodePixelWidth="40"
-                                DecodePixelHeight="40"/>
-        </Flyout>
-      </templates:SubtleIconButton.Flyout>
-    </templates:SubtleIconButton>
-  </StackPanel>
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="64" />
+      <RowDefinition />
+    </Grid.RowDefinitions>
+
+    <Border Grid.Row="0"
+            Padding="24,12">
+
+      <TextBlock Style="{StaticResource TitleTextBlockStyle}"
+                 VerticalAlignment="Center"
+                 Text="{x:Bind Navigation.Title, Mode=OneWay}" />
+    </Border>
+
+    <ScrollViewer x:Name="HomePage_ScrollViewer"
+                  Grid.Row="1"
+                  Padding="24,12,24,0">
+      <StackPanel>
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="LightYellow" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Green" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Blue" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Red" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Yellow" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Green" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Blue" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Red" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Yellow" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Green" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Blue" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="Red" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+        <Rectangle Width="120"
+                   Height="120"
+                   Fill="#10FFFFFF" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <Grid Grid.Row="1"
+          Padding="24,12"
+          RowSpacing="8"
+          ColumnSpacing="4"
+          VerticalAlignment="Bottom"
+          MinHeight="89"
+          MaxHeight="240">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <Border Grid.Column="0"
+              Background="{ThemeResource AcrylicBackgroundFillColorDefaultBrush}"
+              CornerRadius="{ThemeResource ControlCornerRadius}">
+        <TextBox PlaceholderText="Quick memo"
+                 AcceptsReturn="True" />
+      </Border>
+      <templates:SubtleIconButton Grid.Column="1"
+                                  Content="{ctw:SymbolIcon Symbol=Forward}"
+                                  Background="{ThemeResource SubtleFillColorTertiaryBrush}"/>
+    </Grid>
+  </Grid>
 </Page>
