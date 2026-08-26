@@ -50,7 +50,7 @@
       <Extensions>
         <com:Extension Category="windows.comServer">
           <com:ComServer>
-            <com:ExeServer Executable="MyNotes\MyNotes.exe"
+            <com:ExeServer Executable="MyNotes.exe"
                            DisplayName="MyNotes">
               <com:Class Id="A5423B36-2D5C-45CA-9268-71B560D7269A"
                          DisplayName="MyNotes" />
@@ -66,7 +66,7 @@
             <uap3:Properties>
               <WidgetProvider>
                 <ProviderIcons>
-                  <Icon Path="Images\StoreLogo.png" />
+                  <Icon Path="Assets\StoreLogo.png" />
                 </ProviderIcons>
 
                 <Activation>
@@ -95,10 +95,10 @@
                     </Capabilities>
                     <ThemeResources>
                       <Icons>
-                        <Icon Path="Images\StoreLogo.png" />
+                        <Icon Path="Assets\StoreLogo.png" />
                       </Icons>
                       <Screenshots>
-                        <Screenshot Path="Images\StoreLogo.scale-400.png"
+                        <Screenshot Path="Assets\StoreLogo.scale-400.png"
                                     DisplayAltText="For accessibility" />
                       </Screenshots>
                       <!-- DarkMode and LightMode are optional -->
