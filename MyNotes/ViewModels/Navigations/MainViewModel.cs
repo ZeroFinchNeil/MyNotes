@@ -12,7 +12,8 @@ using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Navigations;
 using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.ViewModels;
 
@@ -129,12 +130,6 @@ internal sealed partial class MainViewModel : ViewModelBase
             {
               CurrentNavigationViewModel = lease.ViewModel;
             }
-          }
-          break;
-        case NavigationSearch search:
-          using (var searchLease = NavigationViewModelProvider.Resolve(search))
-          {
-            CurrentNavigationViewModel = searchLease.ViewModel;
           }
           break;
         default:

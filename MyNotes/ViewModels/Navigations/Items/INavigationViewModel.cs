@@ -1,6 +1,6 @@
 ﻿using MyNotes.Models.Navigations;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
 interface INavigationViewModel
 {

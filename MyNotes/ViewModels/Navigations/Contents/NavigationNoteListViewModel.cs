@@ -23,11 +23,12 @@ using MyNotes.Models.Navigations.User;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Windows;
 using MyNotes.Templates;
+using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 
-namespace MyNotes.ViewModels.Notes;
+namespace MyNotes.ViewModels.Navigations.Contents;
 
-internal sealed partial class NotePreviewListViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly NavigationService NavigationService;
@@ -39,7 +40,7 @@ internal sealed partial class NotePreviewListViewModel : ViewModelBase, IAsyncDi
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NotePreviewListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NotePreviewViewModelProvider notePreviewViewModelProvider, INavigationNoteList navigation)
+  public NavigationNoteListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NotePreviewViewModelProvider notePreviewViewModelProvider, INavigationNoteList navigation)
   {
     AppSettingsService = appSettingsService;
     NavigationService = navigationService;
@@ -174,11 +175,8 @@ internal sealed partial class NotePreviewListViewModel : ViewModelBase, IAsyncDi
       await _notePreviewViewModelLeases.RemoveAsync(viewmodel);
     }
   }
-}
 
-#region Commands and Messengers
-partial class NotePreviewListViewModel
-{
+  #region Commands and Messengers
   public AsyncCommand? AddNoteCommand { get; private set; }
 
   private void SetCommands()
@@ -260,5 +258,5 @@ partial class NotePreviewListViewModel
   }
 
   private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
+  #endregion
 }
-#endregion

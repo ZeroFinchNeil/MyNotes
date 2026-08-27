@@ -6,9 +6,9 @@ using MyNotes.Common.Lifetime;
 using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 
-namespace MyNotes.ViewModels.Notes.Providers;
+namespace MyNotes.ViewModels.Navigations.Contents.Providers;
 
-internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<INavigationNoteList, NotePreviewListViewModel>
+internal sealed class NavigationNoteListViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<INavigationNoteList, NavigationNoteListViewModel>
 {
   private readonly ConcurrentDictionary<INavigationNoteList, ViewModelCache> ResolveTable = new();
 
@@ -17,12 +17,12 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     AsyncServiceScope serviceScope = serviceProvider.CreateAsyncScope();
     return new ReferenceCountedViewModelScope
     (
-      referenceCounter: new ReferenceCounter<NotePreviewListViewModel>(ActivatorUtilities.CreateInstance<NotePreviewListViewModel>(serviceScope.ServiceProvider, navigation)),
+      referenceCounter: new ReferenceCounter<NavigationNoteListViewModel>(ActivatorUtilities.CreateInstance<NavigationNoteListViewModel>(serviceScope.ServiceProvider, navigation)),
       serviceScope: serviceScope
     );
   });
 
-  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>> ResolveAsync(INavigationNoteList navigation)
+  public async Task<IAsyncViewModelLease<NavigationNoteListViewModel>> ResolveAsync(INavigationNoteList navigation)
   {
     while (true)
     {
@@ -48,7 +48,7 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     }
   }
 
-  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireAsync(INavigationNoteList navigation)
+  public async Task<IAsyncViewModelLease<NavigationNoteListViewModel>?> AcquireAsync(INavigationNoteList navigation)
   {
     if (ResolveTable.TryGetValue(navigation, out var cache))
     {
@@ -75,7 +75,7 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     return null;
   }
 
-  public async Task<IAsyncViewModelLease<NotePreviewListViewModel>?> AcquireByIdAsync(NavigationId navigationId)
+  public async Task<IAsyncViewModelLease<NavigationNoteListViewModel>?> AcquireByIdAsync(NavigationId navigationId)
   {
     foreach (var nav in ResolveTable.Keys.ToArray())
     {
@@ -88,7 +88,7 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     return null;
   }
 
-  private ViewModelLease CreateLease(INavigationNoteList navigation, NotePreviewListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private ViewModelLease CreateLease(INavigationNoteList navigation, NavigationNoteListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseFunc = async () =>
@@ -110,9 +110,9 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
     }
   };
 
-  private class ViewModelLease : IAsyncViewModelLease<NotePreviewListViewModel>
+  private class ViewModelLease : IAsyncViewModelLease<NavigationNoteListViewModel>
   {
-    public required NotePreviewListViewModel ViewModel { get; init; }
+    public required NavigationNoteListViewModel ViewModel { get; init; }
     public required Func<Task> ReleaseFunc { get; init; }
 
     private bool _disposeStarted;
@@ -139,14 +139,14 @@ internal sealed class NotePreviewListViewModelProvider(IServiceProvider serviceP
 
     private readonly Lazy<ReferenceCountedViewModelScope> _countedScope = new(countedScopeFactory);
 
-    public ReferenceCounter<NotePreviewListViewModel> ReferenceCounter => _countedScope.Value.ReferenceCounter;
+    public ReferenceCounter<NavigationNoteListViewModel> ReferenceCounter => _countedScope.Value.ReferenceCounter;
 
     public AsyncServiceScope ServiceScope => _countedScope.Value.ServiceScope;
   }
 
-  public sealed class ReferenceCountedViewModelScope(ReferenceCounter<NotePreviewListViewModel> referenceCounter, AsyncServiceScope serviceScope)
+  public sealed class ReferenceCountedViewModelScope(ReferenceCounter<NavigationNoteListViewModel> referenceCounter, AsyncServiceScope serviceScope)
   {
-    public ReferenceCounter<NotePreviewListViewModel> ReferenceCounter { get; } = referenceCounter;
+    public ReferenceCounter<NavigationNoteListViewModel> ReferenceCounter { get; } = referenceCounter;
 
     public AsyncServiceScope ServiceScope { get; } = serviceScope;
   }

@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
 using MyNotes.Services.Navigations;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.ViewModels.Dialogs;
 

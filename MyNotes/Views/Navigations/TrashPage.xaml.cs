@@ -2,10 +2,11 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations.Core;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Contents;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 using MyNotes.ViewModels.Notes;
-using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Views.Navigations;
 
@@ -15,10 +16,10 @@ public sealed partial class TrashPage : Page
   private NavigationTrash? Navigation;
 
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private IAsyncViewModelLease<NavigationNoteListViewModel>? NotePreviewListViewModelLease;
 
   private CoreNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel;
-  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
+  private NavigationNoteListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public TrashPage()
@@ -35,7 +36,7 @@ public sealed partial class TrashPage : Page
     {
       Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NavigationNoteListViewModelProvider>();
 
       ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
       NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);

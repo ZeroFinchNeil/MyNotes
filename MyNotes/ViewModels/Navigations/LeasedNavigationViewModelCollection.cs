@@ -1,4 +1,6 @@
-﻿namespace MyNotes.ViewModels.Navigations;
+﻿using MyNotes.ViewModels.Navigations.Items;
+
+namespace MyNotes.ViewModels.Navigations;
 
 internal sealed class LeasedNavigationViewModelCollection : LeasedViewModelCollection<NavigationViewModelBase, ObservableCollection<NavigationViewModelBase>>
 {

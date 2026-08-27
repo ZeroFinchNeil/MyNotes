@@ -3,11 +3,11 @@
 using MyNotes.Application.Settings.Services;
 using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
-internal sealed class UserRootGroupNavigationViewModel : UserGroupNavigationViewModel
+internal sealed partial class UserRootGroupNavigationViewModel : UserGroupNavigationViewModel
 {
   #region Object Lifetime Management
   public UserRootGroupNavigationViewModel(NavigationViewModelProvider provider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService, AppSettingsService appSettingsService, NavigationUserRootNode navigation)

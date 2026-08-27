@@ -13,7 +13,7 @@ using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
 internal sealed partial class UserListNavigationViewModel : UserNavigationViewModel
 {

@@ -14,7 +14,7 @@ using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.Navigations.User;
 using MyNotes.Models.UI;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
+using MyNotes.ViewModels.Navigations.Items;
 
 using Windows.ApplicationModel.DataTransfer;
 
@@ -161,7 +161,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
   }
 
   private bool _preventNavigation = false;
-
+  //todo: NavigationViewModel의 PropertyChanged에 페이지 내비게이션 의존하지 않고 페이지 이동 구현(NavigationSearch가 더이상 NavigationViewModelBase로부터 얻을 수 없으므로)
   private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
     switch (e.PropertyName)
@@ -370,17 +370,4 @@ internal sealed partial class MainPageNavigationViewDataTemplateSelector : DataT
       _ => null
     };
   }
-
-  //protected override DataTemplate? SelectTemplateCore(object item)
-  //{
-  //  return (item as LeasedNavigationViewModelItem)?.ViewModel switch
-  //  {
-  //    CoreNavigationViewModel => CoreNavigationTemplate,
-  //    SeparatorNavigationViewModel => SeparatorNavigationTemplate,
-  //    UserRootGroupNavigationViewModel => UserRootGroupNavigationTemplate,
-  //    UserGroupNavigationViewModel => UserGroupNavigationTemplate,
-  //    UserListNavigationViewModel => UserListNavigationTemplate,
-  //    _ => throw new InvalidOperationException()
-  //  } ?? throw new InvalidOperationException();
-  //}
 }

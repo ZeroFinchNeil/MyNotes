@@ -38,7 +38,8 @@ using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Dialogs.Providers;
 using MyNotes.ViewModels.Media.Providers;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.Services;
@@ -167,7 +168,7 @@ internal static class ServiceCollectionExtension
       services.AddSingleton<NoteViewModelProvider>();
       services.AddSingleton<NoteEditorViewModelProvider>();
       services.AddSingleton<NotePreviewViewModelProvider>();
-      services.AddSingleton<NotePreviewListViewModelProvider>();
+      services.AddSingleton<NavigationNoteListViewModelProvider>();
 
       services.AddSingleton<ImageViewModelProvider>();
       services.AddSingleton<ImageCollectionViewModelProvider>();

@@ -4,7 +4,8 @@ using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Navigations;
 using MyNotes.Templates;
 using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.Views.Navigations;
 

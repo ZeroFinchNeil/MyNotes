@@ -5,8 +5,9 @@ using Microsoft.UI.Xaml.Media.Imaging;
 using MyNotes.Common.Commands;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.User;
+using MyNotes.ViewModels.Navigations.Items;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
 internal abstract partial class UserNavigationViewModel : NavigationViewModelBase
 {

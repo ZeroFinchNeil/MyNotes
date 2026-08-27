@@ -7,8 +7,9 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Core;
 using MyNotes.Models.Navigations.User;
+using MyNotes.ViewModels.Navigations.Contents;
 
-namespace MyNotes.ViewModels.Navigations.Providers;
+namespace MyNotes.ViewModels.Navigations.Items.Providers;
 
 internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<INavigation, NavigationViewModelBase>
 {
@@ -22,7 +23,6 @@ internal sealed class NavigationViewModelProvider(IServiceProvider serviceProvid
       NavigationUserRootNode => ActivatorUtilities.CreateInstance<UserRootGroupNavigationViewModel>(serviceProvider, navigation),
       NavigationUserCompositeNode => ActivatorUtilities.CreateInstance<UserGroupNavigationViewModel>(serviceProvider, navigation),
       NavigationUserLeafNode => ActivatorUtilities.CreateInstance<UserListNavigationViewModel>(serviceProvider, navigation),
-      NavigationSearch => ActivatorUtilities.CreateInstance<SearchNavigationViewModel>(serviceProvider, navigation),
       _ => throw new ArgumentException("Invalid navigation")
     })
   );

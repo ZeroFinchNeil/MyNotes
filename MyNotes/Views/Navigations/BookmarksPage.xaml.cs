@@ -1,12 +1,11 @@
 using Microsoft.Extensions.DependencyInjection;
 
-using MyNotes.Debugging;
 using MyNotes.Models.Navigations.Core;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
-using MyNotes.ViewModels.Notes;
-using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.ViewModels.Navigations.Contents;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.Views.Navigations;
 
@@ -16,10 +15,10 @@ public sealed partial class BookmarksPage : Page
   private NavigationBookmarks? Navigation;
 
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private IAsyncViewModelLease<NavigationNoteListViewModel>? NotePreviewListViewModelLease;
 
   private CoreNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as CoreNavigationViewModel;
-  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
+  private NavigationNoteListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public BookmarksPage()
@@ -36,7 +35,7 @@ public sealed partial class BookmarksPage : Page
     {
       Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
+      var noteListViewModelProvider = App.Services.GetRequiredService<NavigationNoteListViewModelProvider>();
 
       ViewModelLease = navigationViewModelProvider.Acquire(Navigation);
       NotePreviewListViewModelLease = await noteListViewModelProvider.ResolveAsync(Navigation);

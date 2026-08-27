@@ -2,10 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations.User;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
-using MyNotes.ViewModels.Notes;
-using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.ViewModels.Navigations.Contents;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.Views.Navigations;
 
@@ -15,10 +15,10 @@ internal sealed partial class UserListPage : Page
   private NavigationUserLeafNode? Navigation;
 
   private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private IAsyncViewModelLease<NavigationNoteListViewModel>? NotePreviewListViewModelLease;
 
   private UserListNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as UserListNavigationViewModel;
-  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
+  private NavigationNoteListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public UserListPage()
@@ -38,7 +38,7 @@ internal sealed partial class UserListPage : Page
     {
       Navigation = navigation;
       var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NavigationNoteListViewModelProvider>();
 
       ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
       NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);

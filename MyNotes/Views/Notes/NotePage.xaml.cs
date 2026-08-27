@@ -20,6 +20,7 @@ using MyNotes.Services.Dialogs;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Media;
 using MyNotes.ViewModels.Media.Providers;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 
@@ -137,7 +138,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     if (Note.NavigationId == NavigationId.Empty)
     {
       var dialogService = App.Services.GetRequiredService<DialogService>();
-      var noteListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
+      var noteListViewModelProvider = App.Services.GetRequiredService<NavigationNoteListViewModelProvider>();
       var dialogResponse = await dialogService.ShowSelectNoteParentDialogAsync(XamlRoot);
       var contentDialogResult = dialogResponse.Result;
       switch (contentDialogResult)

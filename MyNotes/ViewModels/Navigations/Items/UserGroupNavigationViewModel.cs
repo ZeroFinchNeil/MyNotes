@@ -14,9 +14,9 @@ using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
 internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 {

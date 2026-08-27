@@ -1,5 +1,6 @@
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Common.Layout;
+using MyNotes.ViewModels.Navigations.Contents;
 using MyNotes.ViewModels.Notes;
 
 // To learn more about WinUI, the WinUI project structure,
@@ -15,10 +16,10 @@ internal sealed partial class NotePreviewItemsContainer : UserControl
     ChangePreviewLayout();
   }
 
-  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NotePreviewListViewModel), typeof(NotePreviewItemsContainer), new PropertyMetadata(null));
-  public NotePreviewListViewModel ViewModel
+  public static readonly DependencyProperty ViewModelProperty = DependencyProperty.Register("ViewModel", typeof(NavigationNoteListViewModel), typeof(NotePreviewItemsContainer), new PropertyMetadata(null));
+  public NavigationNoteListViewModel ViewModel
   {
-    get => (NotePreviewListViewModel)GetValue(ViewModelProperty);
+    get => (NavigationNoteListViewModel)GetValue(ViewModelProperty);
     set => SetValue(ViewModelProperty, value);
   }
 

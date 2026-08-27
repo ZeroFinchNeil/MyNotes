@@ -19,14 +19,15 @@ using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.UI;
 using MyNotes.Services.Navigations;
 using MyNotes.Strings;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 using Windows.ApplicationModel;
 using Windows.System.UserProfile;
 
 namespace MyNotes.ViewModels;
 
+#pragma warning disable CA1822
 internal sealed partial class SettingsViewModel : ViewModelBase
 {
   private readonly AppSettingsService AppSettingsService;
@@ -500,7 +501,6 @@ internal sealed partial class SettingsViewModel : ViewModelBase
   }
   #endregion
 
-#pragma warning disable CA1822
   // StartupTask
   public async Task<bool> GetStartupTaskState()
   {
@@ -523,7 +523,6 @@ internal sealed partial class SettingsViewModel : ViewModelBase
         return await GetStartupTaskState();
     }
   }
-#pragma warning restore CA1822
 
   private void RegisterMessengers()
   {
@@ -552,3 +551,4 @@ internal static class SizeInt32SettingsCodec
 
   public static SizeInt32 Decode(Size output) => new((int)output.Width, (int)output.Height);
 }
+#pragma warning restore CA1822

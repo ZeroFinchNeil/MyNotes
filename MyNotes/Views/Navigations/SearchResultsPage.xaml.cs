@@ -2,10 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Models.Navigations;
 using MyNotes.ViewModels;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
-using MyNotes.ViewModels.Notes;
-using MyNotes.ViewModels.Notes.Providers;
+using MyNotes.ViewModels.Navigations.Contents;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 
 namespace MyNotes.Views.Navigations;
 
@@ -13,11 +13,9 @@ namespace MyNotes.Views.Navigations;
 internal sealed partial class SearchResultsPage : Page
 {
   private NavigationSearch? Navigation;
-  private IViewModelLease<NavigationViewModelBase>? ViewModelLease;
-  private IAsyncViewModelLease<NotePreviewListViewModel>? NotePreviewListViewModelLease;
+  private IAsyncViewModelLease<NavigationNoteListViewModel>? NotePreviewListViewModelLease;
 
-  private SearchNavigationViewModel? ViewModel => ViewModelLease?.ViewModel as SearchNavigationViewModel;
-  private NotePreviewListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
+  private NavigationNoteListViewModel? NotePreviewListViewModel => NotePreviewListViewModelLease?.ViewModel;
 
   #region Object Lifetime Management
   public SearchResultsPage()
@@ -34,17 +32,14 @@ internal sealed partial class SearchResultsPage : Page
     if (e.Parameter is NavigationSearch navigation)
     {
       Navigation = navigation;
-      var navigationViewModelProvider = App.Services.GetRequiredService<NavigationViewModelProvider>();
-      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NotePreviewListViewModelProvider>();
 
-      ViewModelLease = navigationViewModelProvider.Resolve(Navigation);
+      var notePreviewListViewModelProvider = App.Services.GetRequiredService<NavigationNoteListViewModelProvider>();
       NotePreviewListViewModelLease = await notePreviewListViewModelProvider.ResolveAsync(Navigation);
     }
   }
 
   protected override async void OnNavigatedFrom(NavigationEventArgs e)
   {
-    ViewModelLease?.Dispose();
     if (NotePreviewListViewModelLease is not null)
     {
       await NotePreviewListViewModelLease.DisposeAsync();

@@ -20,8 +20,9 @@ using MyNotes.Services.Dialogs;
 using MyNotes.Services.Navigations;
 using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
-using MyNotes.ViewModels.Navigations;
-using MyNotes.ViewModels.Navigations.Providers;
+using MyNotes.ViewModels.Navigations.Contents.Providers;
+using MyNotes.ViewModels.Navigations.Items;
+using MyNotes.ViewModels.Navigations.Items.Providers;
 using MyNotes.ViewModels.Notes;
 using MyNotes.ViewModels.Notes.Providers;
 
@@ -33,7 +34,7 @@ internal sealed class NoteCommandService
   IModelFactory<NoteDto, NoteModel> NoteModelFactory,
   NoteViewModelProvider NoteViewModelProvider,
   NavigationViewModelProvider NavigationViewModelProvider,
-  NotePreviewListViewModelProvider NotePreviewListViewModelProvider,
+  NavigationNoteListViewModelProvider NotePreviewListViewModelProvider,
   MainWindowService MainWindowService,
   DialogService DialogService,
   JumpListService JumpListService,

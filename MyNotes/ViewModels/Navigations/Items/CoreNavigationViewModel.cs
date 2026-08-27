@@ -1,6 +1,6 @@
 ﻿using MyNotes.Models.Navigations.Core;
 
-namespace MyNotes.ViewModels.Navigations;
+namespace MyNotes.ViewModels.Navigations.Items;
 
 internal sealed partial class CoreNavigationViewModel : NavigationViewModelBase
 {
