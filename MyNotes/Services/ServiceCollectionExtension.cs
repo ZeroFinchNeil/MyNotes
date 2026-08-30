@@ -7,7 +7,6 @@ using MyNotes.Application.Contracts.Navigations.Persistence;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Contracts.Notes.Persistence;
 using MyNotes.Application.Contracts.Settings;
-using MyNotes.Application.Media.Services;
 using MyNotes.Application.Navigations.Services;
 using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Notes.Services;
@@ -15,7 +14,6 @@ using MyNotes.Application.Settings.Services;
 using MyNotes.Domain.Notes;
 using MyNotes.Infrastructure.Converters;
 using MyNotes.Infrastructure.Database.Core;
-using MyNotes.Infrastructure.Database.Repositories.Media;
 using MyNotes.Infrastructure.Database.Repositories.Navigations;
 using MyNotes.Infrastructure.Database.Repositories.Notes;
 using MyNotes.Infrastructure.Logging;
@@ -142,9 +140,9 @@ internal static class ServiceCollectionExtension
 
     private void AddMediaServices()
     {
-      services.AddSingleton<IImageRepository, ImageRepository>();
+      services.AddSingleton<INoteImageRepository, NoteImageRepository>();
       services.AddSingleton<IImageFileStorage, ImageFileStorage>();
-      services.AddSingleton<ImageService>();
+      services.AddSingleton<NoteImageService>();
     }
 
     private void AddCommandServices()

@@ -1,8 +1,8 @@
 ﻿using MyNotes.Domain.Notes;
 
-namespace MyNotes.Application.Media.Commands;
+namespace MyNotes.Application.Notes.Commands;
 
-internal sealed record AttachImageAppCommand
+internal sealed record AttachNoteImageAppCommand
 {
   public required NoteId NoteId { get; init; }
 

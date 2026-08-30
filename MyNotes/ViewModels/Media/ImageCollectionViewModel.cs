@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.ComponentModel;
 
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.Application.Media.Commands;
-using MyNotes.Application.Media.Services;
+using MyNotes.Application.Notes.Commands;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Mappers;
 using MyNotes.Constants;
@@ -19,7 +19,7 @@ namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  private readonly ImageService ImageService;
+  private readonly NoteImageService NoteImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
   private readonly ImageViewerWindowService ImageViewerWindowService;
 
@@ -28,9 +28,9 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey key)
+  public ImageCollectionViewModel(NoteImageService noteImageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey key)
   {
-    ImageService = imageService;
+    NoteImageService = noteImageService;
     ImageViewModelProvider = imageViewModelProvider;
     ImageViewerWindowService = imageViewerWindowService;
 
@@ -60,8 +60,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   public Task InitializationTask { get; }
   private async Task InitializeAsync()
   {
-    var imageDtos = await ImageService.GetImagesByNoteIdAsync(NoteId);
-    _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(ImageMapper.ToModel(i))));
+    var imageDtos = await NoteImageService.GetImagesByNoteIdAsync(NoteId);
+    _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(NoteImageMapper.ToModel(i))));
     HasImages = ImageViewModels.Count > 0;
   }
 
@@ -86,7 +86,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
       return false;
     }
 
-    await ImageService.MoveImageAsync(new MoveImageAppCommand()
+    await NoteImageService.MoveImageAsync(new MoveNoteImageAppCommand()
     {
       SourceId = ImageViewModels[sourceIndex].ImageDescriptor.Id,
       TargetId = ImageViewModels[targetIndex].ImageDescriptor.Id
@@ -128,13 +128,13 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
           try
           {
             // 원본 이미지 파일 가져오기
-            var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
+            var imageDto = await NoteImageService.AttachImageAsync(new AttachNoteImageAppCommand()
             {
               NoteId = NoteId.Create(CollectionKey.Value),
               OriginalFilePath = pickFileResult.Path
             });
 
-            var imageDescriptor = ImageMapper.ToModel(imageDto);
+            var imageDescriptor = NoteImageMapper.ToModel(imageDto);
             _imageViewModelLeases?.Add(ImageViewModelProvider.Resolve(imageDescriptor));
           }
           catch (Exception e)
@@ -151,7 +151,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     {
       ExecuteFunc = async (imageViewModel) =>
       {
-        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(NoteId);
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(imageViewModel.CollectionKey);
         imageViewerWindow.Activate();
         if (ImageViewModels is not null && ImageViewModels.Contains(imageViewModel))
         {
@@ -170,11 +170,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
         }
 
         HasImages = ImageViewModels.Count > 0;
-
-        if(!HasImages)
-        {
-
-        }
       }
     };
   }

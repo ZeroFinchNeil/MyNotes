@@ -1,9 +1,7 @@
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Constants;
-using MyNotes.Domain.Notes;
-using MyNotes.Messaging;
+using MyNotes.Models.Media;
 using MyNotes.Strings;
 using MyNotes.Views.Media;
 
@@ -14,7 +12,7 @@ internal sealed partial class ImageViewerWindow : Window
 {
   #region Object Lifetime Management
 
-  public ImageViewerWindow(NoteId noteId)
+  public ImageViewerWindow(ImageCollectionKey collectionKey)
   {
     TrackReference();
     InitializeComponent();
@@ -27,7 +25,7 @@ internal sealed partial class ImageViewerWindow : Window
     AppWindow.SetIcon(AppStrings.AppIconPath);
     AppWindow.SetTaskbarIcon(AppStrings.AppIconPath);
 
-    this.Content = new ImageViewerPage(noteId);
+    this.Content = new ImageViewerPage(collectionKey);
 
     RegisterMessengers();
     this.Closed += ImageViewerWindow_Closed;

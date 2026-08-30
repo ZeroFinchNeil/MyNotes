@@ -3,8 +3,8 @@
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 
-using MyNotes.Application.Contracts.Media.Models;
-using MyNotes.Application.Media.Services;
+using MyNotes.Application.Contracts.Notes.Models;
+using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Models.Media;
 using MyNotes.Strings;
@@ -16,19 +16,21 @@ namespace MyNotes.ViewModels.Media;
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
-  private readonly ImageService ImageService;
+  private readonly NoteImageService NoteImageService;
   private readonly ImageCollectionViewModelProvider ImageCollectionViewModelProvider;
 
   public ImageDescriptor ImageDescriptor { get; }
+
+  public ImageCollectionKey CollectionKey => ImageDescriptor.CollectionKey;
 
   public BitmapImage? Image { get; }
 
   public bool Failed { get; private set; } = false;
 
   #region Object Lifetime Management
-  public ImageViewModel(ImageService imageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageDescriptor imageDescriptor)
+  public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageDescriptor imageDescriptor)
   {
-    ImageService = imageService;
+    NoteImageService = noteImageService;
     ImageCollectionViewModelProvider = imageCollectionViewModelProvider;
     ImageDescriptor = imageDescriptor;
 
@@ -68,7 +70,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
   {
     if (!Failed)
     {
-      await ImageService.DeleteImageAsync(ImageDescriptor.Id);
+      await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
       return true;
     }
 
@@ -103,7 +105,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        using var lease = ImageCollectionViewModelProvider.Acquire(ImageDescriptor.ParentKey);
+        using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
         if (lease is not null)
         {
           await lease.ViewModel.ShowImageCommand.ExecuteAsync(this);
@@ -127,7 +129,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
         PickFileResult pickFileResult = await savePicker.PickSaveFileAsync();
         if (pickFileResult is not null)
         {
-          if (await ImageService.GetImageAsync(ImageDescriptor.Id) is ImageDto imageDto)
+          if (await NoteImageService.GetImageAsync(ImageDescriptor.Id) is NoteImageDto imageDto)
           {
             StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(pickFileResult.Path));
             StorageFile localFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalFilePath);
@@ -141,7 +143,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        using var lease = ImageCollectionViewModelProvider.Acquire(ImageDescriptor.ParentKey);
+        using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
         if (lease is not null)
         {
           await lease.ViewModel.DeleteImageCommand.ExecuteAsync(this);

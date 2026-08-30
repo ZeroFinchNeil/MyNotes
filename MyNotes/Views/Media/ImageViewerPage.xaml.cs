@@ -15,16 +15,16 @@ internal sealed partial class ImageViewerPage : Page
 
   private readonly IViewModelLease<ImageCollectionViewModel> _viewmodelLease;
   private ImageCollectionViewModel ViewModel => _viewmodelLease.ViewModel;
-  public NoteId NoteId { get; }
+  public ImageCollectionKey CollectionKey { get; }
 
-  public ImageViewerPage(NoteId noteId)
+  public ImageViewerPage(ImageCollectionKey collectionKey)
   {
     TrackReference();
     InitializeComponent();
 
-    NoteId = noteId;
+    CollectionKey = collectionKey;
     viewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    _viewmodelLease = viewModelProvider.Resolve(new ImageCollectionKey() { Value = noteId.Value });
+    _viewmodelLease = viewModelProvider.Resolve(CollectionKey);
 
     this.Unloaded += ImageViewerPage_Unloaded;
   }

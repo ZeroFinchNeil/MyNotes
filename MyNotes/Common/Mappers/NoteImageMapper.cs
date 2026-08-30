@@ -1,16 +1,16 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using MyNotes.Application.Contracts.Media.Models;
+using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Models.Media;
 
 namespace MyNotes.Common.Mappers;
 
-internal static class ImageMapper
+internal static class NoteImageMapper
 {
-  public static ImageDescriptor ToModel(ImageDto imageDto) => new()
+  public static ImageDescriptor ToModel(NoteImageDto imageDto) => new()
   {
     Id = imageDto.Id,
-    ParentKey = new ImageCollectionKey() { Value = imageDto.NoteId.Value },
+    CollectionKey = new ImageCollectionKey(imageDto.NoteId.Value),
     OriginalFileName = imageDto.OriginalFileName,
     StoredExtension = imageDto.StoredExtension
   };

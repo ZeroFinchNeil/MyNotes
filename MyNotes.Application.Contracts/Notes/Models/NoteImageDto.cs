@@ -1,9 +1,9 @@
 ﻿using MyNotes.Domain.Media;
 using MyNotes.Domain.Notes;
 
-namespace MyNotes.Application.Contracts.Media.Models;
+namespace MyNotes.Application.Contracts.Notes.Models;
 
-internal sealed record ImageDto
+internal sealed record NoteImageDto
 {
   public required ImageId Id { get; init; }
 

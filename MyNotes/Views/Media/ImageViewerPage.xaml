@@ -4,7 +4,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:tmpls="using:MyNotes.Templates"
       xmlns:ctw="using:CommunityToolkit.WinUI"
-      xmlns:vmm="using:MyNotes.ViewModels.Media">
+      xmlns:vmm="using:MyNotes.ViewModels.Media"
+      xmlns:helpers="using:MyNotes.Common.Helpers">
 
   <Grid>
     <Grid.RowDefinitions>
@@ -17,24 +18,25 @@
                               Height="48">
         <tmpls:SubtleIconButton.Flyout>
           <MenuFlyout Placement="BottomEdgeAlignedLeft">
-            <MenuFlyoutItem x:Name="ImageViewerPage_OpenWithMenuFlyoutItem" Icon="NewWindow"
+            <MenuFlyoutItem x:Name="ImageViewerPage_OpenWithMenuFlyoutItem"
+                            Icon="NewWindow"
                             Text="Open with..."
-                            Click="ImageViewerPage_OpenWithMenuFlyoutItem_Click"/>
+                            Click="ImageViewerPage_OpenWithMenuFlyoutItem_Click" />
             <MenuFlyoutItem x:Name="ImageViewerPage_SaveLocalMenuFlyoutItem"
                             Icon="SaveLocal"
                             Text="Save local"
-                            Click="ImageViewerPage_SaveLocalMenuFlyoutItem_Click"/>
+                            Click="ImageViewerPage_SaveLocalMenuFlyoutItem_Click" />
             <MenuFlyoutSeparator />
             <MenuFlyoutItem x:Name="ImageViewerPage_DeleteImageMenuFlyoutItem"
                             Icon="Delete"
                             Text="Delete"
                             Command="{x:Bind ViewModel.DeleteImageCommand}"
-                            CommandParameter="{x:Bind ViewModel.SelectedImage}"/>
+                            CommandParameter="{x:Bind ViewModel.SelectedImage, Mode=OneWay}" />
           </MenuFlyout>
         </tmpls:SubtleIconButton.Flyout>
       </tmpls:SubtleIconButton>
     </StackPanel>
-    
+
     <FlipView Grid.Row="1"
               ItemsSource="{x:Bind ViewModel.ImageViewModels}"
               SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
@@ -58,5 +60,12 @@
         </DataTemplate>
       </FlipView.ItemTemplate>
     </FlipView>
+
+    <TextBlock Grid.Row="1"
+               Text="No image"
+               HorizontalAlignment="Center"
+               VerticalAlignment="Center"
+               Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(ViewModel.HasImages), Mode=OneWay}"
+               Style="{StaticResource HeaderTextBlockStyle}" />
   </Grid>
 </Page>

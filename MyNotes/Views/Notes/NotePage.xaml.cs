@@ -1,7 +1,6 @@
 using System.Runtime.InteropServices;
 
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Windows.Storage.Pickers;
@@ -57,7 +56,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     ChangeFlyoutTheme(appSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme));
 
     var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(new ImageCollectionKey() { Value = Note.Id.Value });
+    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(new ImageCollectionKey(Note.Id.Value));
 
     RegisterMessengers();
 

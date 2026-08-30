@@ -1,8 +1,8 @@
 ﻿using MyNotes.Domain.Media;
 
-namespace MyNotes.Application.Media.Commands;
+namespace MyNotes.Application.Notes.Commands;
 
-internal sealed record MoveImageAppCommand
+internal sealed record MoveNoteImageAppCommand
 {
   public required ImageId SourceId { get; init; }
 

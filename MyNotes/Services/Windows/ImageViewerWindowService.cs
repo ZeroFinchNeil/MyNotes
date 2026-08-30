@@ -3,6 +3,7 @@
 using Microsoft.UI.Content;
 
 using MyNotes.Domain.Notes;
+using MyNotes.Models.Media;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;
 
@@ -13,21 +14,21 @@ namespace MyNotes.Services.Windows;
 internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
 {
   private readonly INativeWindowing NativeWindowing;
-  private KeyValuePair<NoteId, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
+  private KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>? _imageViewerWindowPair;
 
   public ImageViewerWindowService(INativeWindowing nativeWindowing)
   {
     NativeWindowing = nativeWindowing;
   }
 
-  public async Task<ImageViewerWindow> GetOrCreate(NoteId key)
+  public async Task<ImageViewerWindow> GetOrCreate(ImageCollectionKey collectionKey)
   {
     if (_imageViewerWindowPair is not null)
     {
       var pair = _imageViewerWindowPair.Value;
       if (pair.Value.TryGetTarget(out var imageViewerWindow))
       {
-        if (pair.Key == key && !imageViewerWindow.IsClosed)
+        if (pair.Key == collectionKey && !imageViewerWindow.IsClosed)
         {
           return imageViewerWindow;
         }
@@ -38,8 +39,8 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
       }
     }
 
-    ImageViewerWindow newWindow = new(key);
-    _imageViewerWindowPair = new KeyValuePair<NoteId, WeakReference<ImageViewerWindow>>(key, new(newWindow));
+    ImageViewerWindow newWindow = new(collectionKey);
+    _imageViewerWindowPair = new KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>(collectionKey, new(newWindow));
     return newWindow;
   }
 

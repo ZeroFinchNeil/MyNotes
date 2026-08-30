@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace MyNotes.Infrastructure.Database.Entities.Media;
+namespace MyNotes.Infrastructure.Database.Entities.Notes;
 
-internal sealed class ImageEntity : IDatabaseEntity<ImageEntity>
+internal sealed class NoteImageEntity : IDatabaseEntity<NoteImageEntity>
 {
   [Key, Required]
   public required Guid Id { get; init; }
@@ -20,8 +20,8 @@ internal sealed class ImageEntity : IDatabaseEntity<ImageEntity>
   [Required]
   public required int Position { get; set; }
 
-  public bool Equals(ImageEntity? other) => other is not null && other.Id == Id;
+  public bool Equals(NoteImageEntity? other) => other is not null && other.Id == Id;
 
-  public override bool Equals(object? obj) => this.Equals(obj as ImageEntity);
+  public override bool Equals(object? obj) => this.Equals(obj as NoteImageEntity);
   public override int GetHashCode() => Id.GetHashCode();
 }

@@ -1,15 +1,15 @@
-﻿using MyNotes.Application.Contracts.Media.Models;
+﻿using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Debugging.Attributes;
 using MyNotes.Domain.Media;
 using MyNotes.Domain.Notes;
-using MyNotes.Infrastructure.Database.Entities.Media;
+using MyNotes.Infrastructure.Database.Entities.Notes;
 
 namespace MyNotes.Infrastructure.Mappers;
 
 [AssemblyLocal]
-internal static class ImageMappers
+internal static class NoteImageMappers
 {
-  public static ImageEntity ToEntity(ImageDto imageDto, int position) => new()
+  public static NoteImageEntity ToEntity(NoteImageDto imageDto, int position) => new()
   {
     Id = imageDto.Id.Value,
     NoteId = imageDto.NoteId.Value,
@@ -18,7 +18,7 @@ internal static class ImageMappers
     Position = position
   };
 
-  public static ImageDto ToDto(ImageEntity imageEntity) => new()
+  public static NoteImageDto ToDto(NoteImageEntity imageEntity) => new()
   {
     Id = ImageId.Create(imageEntity.Id),
     NoteId = NoteId.Create(imageEntity.NoteId),
@@ -27,10 +27,10 @@ internal static class ImageMappers
   };
 }
 
-internal static class ImageMappersExtensions
+internal static class NoteImageMappersExtensions
 {
-  extension(ImageEntity entity)
+  extension(NoteImageEntity entity)
   {
-    public ImageDto ToDto() => ImageMappers.ToDto(entity);
+    public NoteImageDto ToDto() => NoteImageMappers.ToDto(entity);
   }
 }
