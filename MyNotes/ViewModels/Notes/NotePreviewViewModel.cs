@@ -2,9 +2,10 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Converters;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes;
@@ -58,7 +59,7 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken<NoteId>>(this, AppMessageTokens.UpdateNotePreviewToken(Note.Id), (recipient, message) => Preview = GetPreview());
+    WeakReferenceMessenger.Default.Register<NotePreviewViewModel, NotePreviewUpdateRequestedMessage, MessageToken<NoteId>>(this, MessageToken<NoteId>.Create(Note.Id), static (recipient, message) => recipient.Preview = recipient.GetPreview());
   }
 
   private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);

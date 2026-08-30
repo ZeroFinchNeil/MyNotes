@@ -39,7 +39,14 @@ internal sealed partial class MainViewModel : ViewModelBase
   public ReadOnlyObservableCollection<NavigationViewModelBase> MenuItems { get; }
 
   [ObservableProperty]
-  public partial NavigationViewModelBase? CurrentNavigationViewModel { get; set; }
+  public partial NavigationViewModelBase? SelectedNavigationViewModel { get; set; }
+  partial void OnSelectedNavigationViewModelChanged(NavigationViewModelBase? value)
+  {
+    if (value is not null)
+    {
+      NavigationController.NavigateTo(value.Navigation);
+    }
+  }
 
   #region Object Lifetime Management
   public MainViewModel(NavigationController navigationController, NavigationViewModelProvider navigationViewModelProvider, [FromKeyedServices(CommandServiceType.Navigation)] ICommandService navigationCommandService)
@@ -78,6 +85,12 @@ internal sealed partial class MainViewModel : ViewModelBase
     base.Dispose(disposing);
   }
   #endregion
+
+  public event TypedEventHandler<object, INavigation?>? CurrentNavigationChanged
+  {
+    add => NavigationController.CurrentNavigationChanged += value;
+    remove => NavigationController.CurrentNavigationChanged -= value;
+  }
 
   private void NavigationController_CurrentNavigationChanged(object sender, INavigation? args)
   {
@@ -119,7 +132,7 @@ internal sealed partial class MainViewModel : ViewModelBase
 
   public void SyncNavigation()
   {
-    if (CurrentNavigationViewModel?.Navigation != NavigationController.CurrentNavigation)
+    if (SelectedNavigationViewModel?.Navigation != NavigationController.CurrentNavigation)
     {
       switch (NavigationController.CurrentNavigation)
       {
@@ -128,12 +141,12 @@ internal sealed partial class MainViewModel : ViewModelBase
           {
             if (lease is not null)
             {
-              CurrentNavigationViewModel = lease.ViewModel;
+              SelectedNavigationViewModel = lease.ViewModel;
             }
           }
           break;
         default:
-          CurrentNavigationViewModel = null;
+          SelectedNavigationViewModel = null;
           break;
       }
     }

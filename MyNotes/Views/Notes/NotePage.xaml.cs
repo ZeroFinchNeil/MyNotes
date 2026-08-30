@@ -10,10 +10,12 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
+using MyNotes.Models.Media;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Dialogs;
@@ -55,7 +57,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     ChangeFlyoutTheme(appSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme));
 
     var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(Note.Id);
+    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(new ImageCollectionKey() { Value = Note.Id.Value });
 
     RegisterMessengers();
 
@@ -63,6 +65,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     this.SizeChanged += NotePage_SizeChanged;
     this.Loaded += NotePage_Loaded;
+    this.Unloaded += NotePage_Unloaded;
   }
 
   public async Task InitializeAsync()
@@ -158,6 +161,11 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     EditorViewModel.ChangeSystemBackdrop();
     EditorViewModel.ChangeSystemBackdropExtended();
+  }
+
+  private void NotePage_Unloaded(object sender, RoutedEventArgs e)
+  {
+    Bindings.StopTracking();
   }
 
   private void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
@@ -388,47 +396,6 @@ partial class NotePage
   private SolidColorBrush GetBackgroundBrush(BackdropKind backdropKind, Color color) => backdropKind is BackdropKind.None ? new(color) : _transparentBrush;
 
   private Visibility VisibleWhenAll(bool v1, bool v2) => v1 && v2 ? Visibility.Visible : Visibility.Collapsed;
-
-  private void NotePage_ImagesContentSizer_PointerPressed(object sender, PointerRoutedEventArgs e)
-  {
-    if (FocusManager.GetFocusedElement(XamlRoot) is FrameworkElement focusedElement
-        && focusedElement == NotePage_TextEditorRichEditBox)
-    {
-      NotePage_ImagesGridView.Focus(FocusState.Programmatic);
-    }
-  }
-
-  private void NotePage_ShowImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
-    {
-      ImageCollectionViewModel.ShowImageCommand.Execute(imageViewModel);
-    }
-  }
-
-  private void NotePage_SaveImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
-    {
-      imageViewModel.SaveImageCommand.Execute(element.XamlRoot.ContentIslandEnvironment.AppWindowId);
-    }
-  }
-
-  private void NotePage_DeleteImageMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
-    {
-      ImageCollectionViewModel.DeleteImageCommand.Execute(imageViewModel);
-    }
-  }
-
-  private void NotePage_UserImage_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && element.DataContext is ImageViewModel imageViewModel)
-    {
-      ImageCollectionViewModel.ShowImageCommand.Execute(imageViewModel);
-    }
-  }
 }
 
 partial class NotePage
@@ -589,31 +556,31 @@ partial class NotePage
 {
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, AppMessageTokens.ChangeAppThemeToken, new((recipient, message) => ChangeFlyoutTheme(message.Value)));
+    WeakReferenceMessenger.Default.Register<NotePage, AppThemeChangedMessage>(this, static (recipient, message) => recipient.ChangeFlyoutTheme(message.Value));
 
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowPresenterState>, MessageToken<NoteId>>(this, AppMessageTokens.NoteWindowActivationChangedToken(Note.Id), new((recipient, message) =>
+    WeakReferenceMessenger.Default.Register<NotePage, NoteWindowActivationChangedMessage, MessageToken<NoteId>>(this, MessageToken<NoteId>.Create(Note.Id), static (recipient, message) =>
     {
       WindowPresenterState state = message.Value;
       WindowActivationState windowState = state.WindowActivationState;
       OverlappedPresenterState presenterState = state.OverlappedPresenterState;
 
-      NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
+      recipient.NotePage_TitleBarGrid.Focus(FocusState.Programmatic);
       if (windowState is WindowActivationState.Deactivated)
       {
         if (presenterState is OverlappedPresenterState.Maximized)
         {
-          VisualStateManager.GoToState(this, "WindowDeactivatedMaximized", false);
+          VisualStateManager.GoToState(recipient, "WindowDeactivatedMaximized", false);
         }
         else
         {
-          VisualStateManager.GoToState(this, "WindowDeactivated", false);
+          VisualStateManager.GoToState(recipient, "WindowDeactivated", false);
         }
       }
       else
       {
-        VisualStateManager.GoToState(this, "WindowActivated", false);
+        VisualStateManager.GoToState(recipient, "WindowActivated", false);
       }
-    }));
+    });
   }
 
   private void UnregisterMessengers()

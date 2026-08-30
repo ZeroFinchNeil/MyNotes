@@ -20,26 +20,11 @@ internal sealed partial class DebugWindow : Window
 
   private void DebugWindow_GCButton_Click(object sender, RoutedEventArgs e) => ExecuteGC();
 
-  private static readonly List<ConsoleColor> _consoleColors = new()
-  {
-    ConsoleColor.Red,
-    ConsoleColor.Green,
-    ConsoleColor.Blue,
-  };
-  private static int _colorCount = 0;
-
   private static void PrintSeparator()
   {
     ConsoleHelper.WriteLine(true);
     ConsoleHelper.WriteLine(true, "-------------------------------------------------------------------------------");
     ConsoleHelper.WriteLine(true);
-  }
-
-  private static void PrintPadding(ConsoleColor paddingColor)
-  {
-    Console.BackgroundColor = paddingColor;
-    ConsoleHelper.WriteLine(true, " ");
-    Console.BackgroundColor = ConsoleColor.White;
   }
 
   private static void ExecuteGC()
@@ -155,100 +140,6 @@ internal sealed partial class DebugWindow : Window
     {
       mainWindow.Activate();
     }
-  }
-
-  private async void DebugWindow_ClearDatabaseButton_Click(object sender, RoutedEventArgs e)
-  {
-#if false
-    ContentDialog dialog = new()
-    {
-      XamlRoot = this.Content.XamlRoot,
-      Title = "Clear Database",
-      Content = "Clear Database",
-      PrimaryButtonText = "Yes",
-      CloseButtonText = "Cancel",
-      DefaultButton = ContentDialogButton.Close
-    };
-    if (await dialog.ShowAsync() is ContentDialogResult.Primary)
-    {
-      var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-      await using var context = await factory.CreateDbContextAsync();
-      await context.Database.EnsureDeletedAsync();
-    }
-#endif
-    throw new NotImplementedException();
-
-  }
-
-  private async void DebugWindow_CreateDatabaseButton_Click(object sender, RoutedEventArgs e)
-  {
-#if false
-    ContentDialog dialog = new()
-    {
-      XamlRoot = this.Content.XamlRoot,
-      Title = "Create Database",
-      Content = "Create Database",
-      PrimaryButtonText = "Yes",
-      CloseButtonText = "Cancel",
-      DefaultButton = ContentDialogButton.Close
-    };
-    if (await dialog.ShowAsync() is ContentDialogResult.Primary)
-    {
-      var factory = App.Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
-      await using var context = await factory.CreateDbContextAsync();
-      await context.Database.EnsureCreatedAsync();
-    }
-#endif
-    throw new NotImplementedException();
-
-  }
-
-  private void DebugWindow_TrackFocusedElementToggleButton_Click(object sender, RoutedEventArgs e)
-  {
-    FocusManager.GotFocus -= FocusManager_GotFocus;
-    DebugWindow_FocusedElementTextBlock.Text = string.Empty;
-
-    if (DebugWindow_TrackFocusedElementToggleButton.IsChecked is bool boolValue && boolValue)
-    {
-      FocusManager.GotFocus += FocusManager_GotFocus;
-    }
-  }
-
-  private async void FocusManager_GotFocus(object? sender, FocusManagerGotFocusEventArgs e)
-  {
-#if false
-    StringBuilder sb = new();
-    var mainWindowService = App.Services.GetRequiredService<MainWindowService>();
-    if (mainWindowService.TryGetCurrentWindow(out var mainWindow)
-      && FocusTracker.GetFocusedElement(mainWindow.Content.XamlRoot) is FrameworkElement mainWindowElement)
-    {
-      sb.AppendLine($"Main: [{mainWindowElement.GetType().Name}] {mainWindowElement.Name}");
-    }
-
-    if (mainWindowService.TryGetCurrentImageViewerWindow(out var imageWindow)
-      && FocusTracker.GetFocusedElement(imageWindow.Content.XamlRoot) is FrameworkElement imageWindowElement)
-    {
-      sb.AppendLine($"ImageViewer: [{imageWindowElement.GetType().Name}] {imageWindowElement.Name}");
-    }
-
-    foreach (var wr in mainWindowService.NoteWindowTable.Values)
-    {
-      if (wr.TryGetTarget(out var noteWindow))
-      {
-        if (FocusTracker.GetFocusedElement(noteWindow.Content.XamlRoot) is FrameworkElement noteWindowElement)
-        {
-          sb.AppendLine($"Note: [{noteWindowElement.GetType().Name}] {noteWindowElement.Name}");
-        }
-      }
-    }
-
-    DebugWindow_FocusedElementTextBlock.Text = sb.ToString();
-
-    DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.DarkGray);
-    await Task.Delay(500);
-    DebugWindow_FocusedElementBorder.BorderBrush = new SolidColorBrush(Colors.Transparent);
-#endif
-    throw new NotImplementedException();
   }
 
   private void DebugWindow_AlwaysOnTopToggleButton_Click(object sender, RoutedEventArgs e)

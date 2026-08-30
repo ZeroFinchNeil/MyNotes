@@ -8,7 +8,13 @@ internal partial class ImageDescriptor
 {
   public required ImageId Id { get; init; }
 
-  public string FilePath => System.IO.Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderName, Id.Name);
+  public required ImageCollectionKey ParentKey { get; init; }
+
+  public string LocalFilePath => Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderName, Path.ChangeExtension(Id.Name, StoredExtension));
+
+  public required string OriginalFileName { get; init; }
+
+  public required string StoredExtension { get; init; }
 
   public ImageDescriptor() { TrackReference(); }
 }

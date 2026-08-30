@@ -1,88 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ResourceDictionary x:Class="MyNotes.Resources.ResourceDictionary"
+<ResourceDictionary x:Class="MyNotes.Resources.AppResources"
                     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="using:MyNotes.Resources"
                     xmlns:templates="using:MyNotes.Templates"
-                    xmlns:querying="using:MyNotes.Application.Contracts.Querying.Models"
-                    xmlns:notes="using:MyNotes.Application.Contracts.Notes.Models"
-                    xmlns:navigations="using:MyNotes.Application.Contracts.Navigations.Models"
                     xmlns:converters="using:MyNotes.Common.Converters">
   <ResourceDictionary.MergedDictionaries>
     <ResourceDictionary Source="ms-appx:///MyNotes.Templates/Themes/Generic.xaml" />
+    <ResourceDictionary Source="ms-appx:///Resources/NoteResources.xaml" />
+    <ResourceDictionary Source="ms-appx:///Resources/NavigationResources.xaml" />
   </ResourceDictionary.MergedDictionaries>
 
   <x:Boolean x:Key="BooleanTrue">True</x:Boolean>
   <x:Boolean x:Key="BooleanFalse">False</x:Boolean>
-
-  <notes:NoteSortKey x:Key="NoteSortKeyModified">Modified</notes:NoteSortKey>
-  <notes:NoteSortKey x:Key="NoteSortKeyCreated">Created</notes:NoteSortKey>
-  <notes:NoteSortKey x:Key="NoteSortKeyTitle">Title</notes:NoteSortKey>
-
-  <querying:SortDirection x:Key="SortDirectionAscending">Ascending</querying:SortDirection>
-  <querying:SortDirection x:Key="SortDirectionDescending">Descending</querying:SortDirection>
-
-  <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeGrid">Grid</navigations:PreviewLayoutType>
-  <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeList">List</navigations:PreviewLayoutType>
-
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmallest">Smallest</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmaller">Smaller</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmall">Small</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeMedium">Medium</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeLarge">Large</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeLarger">Larger</navigations:PreviewTileSize>
-  <navigations:PreviewTileSize x:Key="PreviewTileSizeLargest">Largest</navigations:PreviewTileSize>
-
-  <navigations:PreviewTileRatio x:Key="PreviewTileRatioShorter">Shorter</navigations:PreviewTileRatio>
-  <navigations:PreviewTileRatio x:Key="PreviewTileRatioShort">Short</navigations:PreviewTileRatio>
-  <navigations:PreviewTileRatio x:Key="PreviewTileRatioSquare">Square</navigations:PreviewTileRatio>
-  <navigations:PreviewTileRatio x:Key="PreviewTileRatioTall">Tall</navigations:PreviewTileRatio>
-  <navigations:PreviewTileRatio x:Key="PreviewTileRatioTaller">Taller</navigations:PreviewTileRatio>
-
-  <converters:EnumToIntConverter x:Key="BackdropKindToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Notes.Models"
-                                 EnumType="enums:BackdropKind" />
-  <converters:EnumToIntConverter x:Key="NoteSortKeyToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Notes.Models"
-                                 EnumType="enums:NoteSortKey" />
-  <converters:EnumToIntConverter x:Key="SortDirectionToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Querying.Models"
-                                 EnumType="enums:SortDirection" />
-  <converters:EnumToIntConverter x:Key="PreviewLayoutTypeToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Navigations.Models"
-                                 EnumType="enums:PreviewLayoutType" />
-  <converters:EnumToIntConverter x:Key="PreviewTileSizeToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Navigations.Models"
-                                 EnumType="enums:PreviewTileSize" />
-  <converters:EnumToIntConverter x:Key="PreviewTileRatioToIntConverter"
-                                 xmlns:enums="using:MyNotes.Application.Contracts.Navigations.Models"
-                                 EnumType="enums:PreviewTileRatio" />
-  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyCreatedMatchConverter"
-                                              TargetMember="Created" />
-  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyModifiedMatchConverter"
-                                              TargetMember="Modified" />
-  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyTitleMatchConverter"
-                                              TargetMember="Title" />
-
-  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionAscendingMatchConverter"
-                                                TargetMember="Ascending" />
-  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionDescendingMatchConverter"
-                                                TargetMember="Descending" />
-
-  <converters:PreviewTileSizeToSliderValueConverter x:Key="PreviewTileSizeToSliderValueConverter" />
-  <converters:PreviewTileRatioToSliderValueConverter x:Key="PreviewTileRatioToSliderValueConverter" />
-
-  <converters:EnumToIntConverter x:Key="StretchToIntConverter"
-                                 xmlns:muxm="using:Microsoft.UI.Xaml.Media"
-                                 EnumType="muxm:Stretch" />
-
-  <converters:EnumToIntConverter x:Key="AlignmentXToIntConverter"
-                                 xmlns:muxm="using:Microsoft.UI.Xaml.Media"
-                                 EnumType="muxm:AlignmentX" />
-
-  <converters:EnumToIntConverter x:Key="AlignmentYToIntConverter"
-                                 xmlns:muxm="using:Microsoft.UI.Xaml.Media"
-                                 EnumType="muxm:AlignmentY" />
 
   <converters:EnumToIntConverter x:Key="GroupIconBadgeToIntConverter"
                                  xmlns:enums="using:MyNotes.Models.Navigations.Preferences"

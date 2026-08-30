@@ -14,59 +14,11 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
-    <Configurations>Debug;Release;Debug-Unpackaged;Unpackaged</Configurations>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <Content Remove="Assets\Icons\App\LargeTile.scale-100.png" />
-    <Content Remove="Assets\Icons\App\LargeTile.scale-125.png" />
-    <Content Remove="Assets\Icons\App\LargeTile.scale-150.png" />
-    <Content Remove="Assets\Icons\App\LargeTile.scale-200.png" />
-    <Content Remove="Assets\Icons\App\LargeTile.scale-400.png" />
-    <Content Remove="Assets\Icons\App\SmallTile.scale-100.png" />
-    <Content Remove="Assets\Icons\App\SmallTile.scale-125.png" />
-    <Content Remove="Assets\Icons\App\SmallTile.scale-150.png" />
-    <Content Remove="Assets\Icons\App\SmallTile.scale-200.png" />
-    <Content Remove="Assets\Icons\App\SmallTile.scale-400.png" />
-    <Content Remove="Assets\Icons\App\SplashScreen.scale-100.png" />
-    <Content Remove="Assets\Icons\App\SplashScreen.scale-125.png" />
-    <Content Remove="Assets\Icons\App\SplashScreen.scale-150.png" />
-    <Content Remove="Assets\Icons\App\SplashScreen.scale-200.png" />
-    <Content Remove="Assets\Icons\App\SplashScreen.scale-400.png" />
-    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-100.png" />
-    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-125.png" />
-    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-150.png" />
-    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-200.png" />
-    <Content Remove="Assets\Icons\App\Square150x150Logo.scale-400.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-16.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-24.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-256.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-32.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-lightunplated_targetsize-48.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-16.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-24.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-256.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-32.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.altform-unplated_targetsize-48.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-100.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-125.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-150.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-200.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.scale-400.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-16.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-24.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-256.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-32.png" />
-    <Content Remove="Assets\Icons\App\Square44x44Logo.targetsize-48.png" />
-    <Content Remove="Assets\Icons\App\StoreLogo.scale-100.png" />
-    <Content Remove="Assets\Icons\App\StoreLogo.scale-125.png" />
-    <Content Remove="Assets\Icons\App\StoreLogo.scale-150.png" />
-    <Content Remove="Assets\Icons\App\StoreLogo.scale-200.png" />
-    <Content Remove="Assets\Icons\App\StoreLogo.scale-400.png" />
-    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-100.png" />
-    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-125.png" />
-    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-150.png" />
-    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-200.png" />
-    <Content Remove="Assets\Icons\App\Wide310x150Logo.scale-400.png" />
+    <None Remove="Resources\NavigationResources.xaml" />
+    <None Remove="Resources\NoteResources.xaml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -88,10 +40,11 @@
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.Sizers" Version="8.2.251219" />
+    <PackageReference Include="CommunityToolkit.WinUI.DeveloperTools" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Extensions" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Helpers" Version="8.2.251219" />
     <PackageReference Include="CommunityToolkit.WinUI.Media" Version="8.2.251219" />
-    <PackageReference Include="DotNext" Version="6.6.2" />
+    <PackageReference Include="DotNext" Version="6.6.5" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="10.0.11" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
     <PackageReference Include="Microsoft.VisualStudio.VsixColorCompiler" Version="17.11.35325.10" />
@@ -108,6 +61,18 @@
     <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
     <ProjectReference Include="..\MyNotes.Presentation.Contracts\MyNotes.Presentation.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Page Update="Resources\NavigationResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Page Update="Resources\NoteResources.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
   <!--
@@ -127,5 +92,6 @@
     <PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
     <PackageCertificateThumbprint>AF16AD655049B89E51B19B2082828EA87406E7EF</PackageCertificateThumbprint>
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 </Project>

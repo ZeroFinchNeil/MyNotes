@@ -1,11 +1,12 @@
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Notes;
 using MyNotes.Models.UI;
 using MyNotes.Services.Windows;
@@ -32,6 +33,10 @@ internal sealed partial class NoteWindow : Window
     TrackReference();
     InitializeComponent();
     this.ExtendsContentIntoTitleBar = true;
+
+    // 아이콘 설정
+    AppWindow.SetIcon(AppStrings.AppIconPath);
+    AppWindow.SetTaskbarIcon(AppStrings.AppIconPath);
 
     var provider = App.Services.GetRequiredService<NoteViewModelProvider>();
     NoteWindowService = App.Services.GetRequiredService<NoteWindowService>();
@@ -95,7 +100,7 @@ internal sealed partial class NoteWindow : Window
     if (AppWindow.Presenter is OverlappedPresenter presenter)
     {
       WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };
-      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowPresenterState>(state), AppMessageTokens.NoteWindowActivationChangedToken(NoteId));
+      WeakReferenceMessenger.Default.Send(new NoteWindowActivationChangedMessage(state), MessageToken<NoteId>.Create(NoteId));
     }
   }
 }

@@ -38,12 +38,6 @@
                   Content="Separator"
                   MinWidth="200"
                   Click="DebugWindow_SeparatorButton_Click" />
-
-          <ToggleButton x:Name="DebugWindow_TrackFocusedElementToggleButton"
-                        HorizontalAlignment="Center"
-                        Content="Track Focused Element"
-                        MinWidth="200"
-                        Click="DebugWindow_TrackFocusedElementToggleButton_Click" />
           <MenuFlyoutSeparator />
 
           <Button x:Name="DebugWindow_GCButton"
@@ -59,23 +53,21 @@
                   Style="{StaticResource AccentButtonStyle}" />
 
           <MenuFlyoutSeparator />
-          <Button x:Name="DebugWindow_ClearDatabaseButton"
-                  HorizontalAlignment="Center"
-                  Content="Clear DB"
-                  MinWidth="200"
-                  Click="DebugWindow_ClearDatabaseButton_Click" />
-          <Button x:Name="DebugWindow_CreateDatabaseButton"
-                  HorizontalAlignment="Center"
-                  Content="Create DB"
-                  MinWidth="200"
-                  Click="DebugWindow_CreateDatabaseButton_Click" />
-
-          <MenuFlyoutSeparator />
           <ToggleButton x:Name="DebugWindow_AlwaysOnTopToggleButton"
                         HorizontalAlignment="Center"
                         Content="Always on top"
                         MinWidth="200"
                         Click="DebugWindow_AlwaysOnTopToggleButton_Click" />
+          
+          <MenuFlyoutSeparator />
+
+          <ToggleButton x:Name="DebugWindow_TrackFocusedElementToggleButton"
+                        HorizontalAlignment="Center"
+                        Content="Track Focused Element"
+                        MinWidth="200" />
+          
+          <developerTools:FocusTracker IsActive="{Binding ElementName=DebugWindow_TrackFocusedElementToggleButton, Path=IsChecked}"
+                                       xmlns:developerTools="using:CommunityToolkit.WinUI.DeveloperTools" />
         </StackPanel>
       </ScrollViewer>
 

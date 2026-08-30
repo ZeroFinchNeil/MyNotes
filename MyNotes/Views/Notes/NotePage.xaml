@@ -6,7 +6,7 @@
       xmlns:sys="using:System"
       xmlns:local="using:MyNotes.Views.Notes"
       xmlns:navigations="using:MyNotes.Models.Navigations"
-      xmlns:mmv="using:MyNotes.ViewModels.Media"
+      xmlns:mvm="using:MyNotes.ViewModels.Media"
       xmlns:helpers="using:MyNotes.Common.Helpers"
       xmlns:commands="using:MyNotes.Common.Commands"
       xmlns:converters="using:MyNotes.Common.Converters"
@@ -335,29 +335,32 @@
         </GridView.ItemContainerStyle>
 
         <GridView.ItemTemplate>
-          <DataTemplate x:DataType="mmv:ImageViewModel">
-            <Image x:Name="NotePage_UserImage"
-                   Source="{x:Bind Image}"
-                   DataContext="{x:Bind}"
-                   DoubleTapped="NotePage_UserImage_DoubleTapped">
+          <DataTemplate x:DataType="mvm:ImageViewModel">
+            <Image Source="{x:Bind Image}"
+                   DataContext="{x:Bind}">
+              <mxi:Interaction.Behaviors>
+                <mxi:EventTriggerBehavior EventName="DoubleTapped">
+                  <mxi:InvokeCommandAction Command="{x:Bind ShowImageCommand}" />
+                </mxi:EventTriggerBehavior>
+              </mxi:Interaction.Behaviors>
               <Image.ContextFlyout>
                 <MenuFlyout>
-                  <MenuFlyoutItem x:Name="NotePage_ShowImageMenuFlyoutItem"
-                                  Icon="NewWindow"
+                  <MenuFlyoutItem Icon="NewWindow"
                                   Text="Show"
-                                  Click="NotePage_ShowImageMenuFlyoutItem_Click" />
+                                  Command="{x:Bind ShowImageCommand}" />
                   <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem"
                                   Icon="SaveLocal"
                                   Text="Save local"
-                                  Click="NotePage_SaveImageMenuFlyoutItem_Click" />
+                                  Command="{x:Bind SaveImageCommand}"
+                                  CommandParameter="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=XamlRoot.ContentIslandEnvironment.AppWindowId}" />
                   <MenuFlyoutSeparator />
-                  <MenuFlyoutItem x:Name="NotePage_DeleteImageMenuFlyoutItem"
-                                  Icon="Delete"
+                  <MenuFlyoutItem Icon="Delete"
                                   Text="Delete"
-                                  Click="NotePage_DeleteImageMenuFlyoutItem_Click" />
+                                  Command="{x:Bind DeleteImageCommand}" />
                 </MenuFlyout>
               </Image.ContextFlyout>
             </Image>
+
           </DataTemplate>
         </GridView.ItemTemplate>
       </GridView>
@@ -367,7 +370,9 @@
                          Orientation="Horizontal"
                          VerticalAlignment="Bottom"
                          Cursor="Arrow"
-                         PointerPressed="NotePage_ImagesContentSizer_PointerPressed" />
+                         IsTabStop="True"
+                         AllowFocusOnInteraction="True"
+                         UseSystemFocusVisuals="True" />
     </Grid>
     <!--#endregion -->
 
@@ -1113,7 +1118,8 @@
 
                           <NavigationViewItemSeparator />
 
-                          <Grid RowSpacing="4" ColumnSpacing="8">
+                          <Grid RowSpacing="4"
+                                ColumnSpacing="8">
                             <Grid.RowDefinitions>
                               <RowDefinition Height="Auto" />
                               <RowDefinition Height="Auto" />

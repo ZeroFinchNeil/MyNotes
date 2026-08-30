@@ -81,8 +81,8 @@
                  Margin="8,0" />
 
       <TextBlock x:Name="MainPage_TitleTextBlock"
+                 x:Uid="/MainPage/TitleTextBlock"
                  Grid.Column="4"
-                 Text="MyNotes"
                  Padding="8,0"
                  VerticalAlignment="Center"
                  Foreground="{ThemeResource WindowCaptionForeground}" />
@@ -119,7 +119,7 @@
                     IsPaneOpen="{x:Bind ViewModel.IsNavigationPaneOpen, Mode=OneWay}"
                     MenuItemsSource="{x:Bind ViewModel.MenuItems}"
                     FooterMenuItemsSource="{x:Bind ViewModel.FooterMenuItems}"
-                    SelectedItem="{x:Bind ViewModel.CurrentNavigationViewModel, Mode=TwoWay}">
+                    SelectedItem="{x:Bind ViewModel.SelectedNavigationViewModel, Mode=TwoWay}">
       <NavigationView.Resources>
         <SolidColorBrush x:Key="NavigationViewContentBackground"
                          Color="{ThemeResource ControlFillColorTransparent}" />

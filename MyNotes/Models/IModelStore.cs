@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Models;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace MyNotes.Models;
 
 internal interface IModelStore<TKey, TModel> where TKey : notnull where TModel : class
 {
@@ -6,5 +8,5 @@ internal interface IModelStore<TKey, TModel> where TKey : notnull where TModel :
 
   public TModel AddOrUpdate(TKey key, Func<TKey, TModel> factory, Action<TModel> updater);
 
-  public bool TryGet(TKey key, out TModel? model);
+  public bool TryGet(TKey key, [NotNullWhen(true)] out TModel? model);
 }

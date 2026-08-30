@@ -8,6 +8,7 @@ using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
+using MyNotes.Strings;
 using MyNotes.Views.Navigations;
 
 namespace MyNotes.Views.Windows;
@@ -32,10 +33,11 @@ internal sealed partial class MainWindow : Window
     InitializeComponent();
     AppSettingsService = App.Services.GetRequiredService<AppSettingsService>();
 
+    // 타이틀 및 아이콘 설정
     this.ExtendsContentIntoTitleBar = true;
-
-    // 아이콘 설정
-    AppWindow.SetIcon("Assets/AppIcon.ico");
+    AppWindow.Title = LocalizedStrings.MainWindowTitle;
+    AppWindow.SetIcon(AppStrings.AppIconPath);
+    AppWindow.SetTaskbarIcon(AppStrings.AppIconPath);
 
     // DPI 스케일 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -179,6 +181,6 @@ internal sealed partial class MainWindow : Window
 
   private void MainWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
-    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<WindowActivationState>(args.WindowActivationState), AppMessageTokens.MainWindowActivationChangedToken);
+    (this.Content as MainPage)?.SetRegionsForCustomTitleBarOnActivationState(args.WindowActivationState);
   }
 }

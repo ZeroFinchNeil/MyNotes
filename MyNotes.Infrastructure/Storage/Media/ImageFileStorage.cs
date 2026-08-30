@@ -20,14 +20,19 @@ internal sealed class ImageFileStorage : IImageFileStorage
     var copiedFile = await originalFile.CopyAsync(folder, fileName, NameCollisionOption.ReplaceExisting);
   }
 
-  public async Task DeleteImage(string fileName, CancellationToken cancellationToken = default)
+  public async Task DeleteImage(string fileNameWithoutExtension, CancellationToken cancellationToken = default)
   {
     try
     {
       if (await ApplicationData.Current.LocalFolder.CreateFolderAsync(_imageFolderName, CreationCollisionOption.OpenIfExists) is StorageFolder folder)
       {
-        var file = await folder.GetFileAsync(fileName);
-        await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+        foreach (var file in await folder.GetFilesAsync())
+        {
+          if (Path.GetFileNameWithoutExtension(file.Name).Equals(fileNameWithoutExtension, StringComparison.OrdinalIgnoreCase))
+          {
+            await file.DeleteAsync(StorageDeleteOption.PermanentDelete);
+          }
+        }
       }
     }
     catch (FileNotFoundException)

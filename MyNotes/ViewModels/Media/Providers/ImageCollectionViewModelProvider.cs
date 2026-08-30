@@ -3,40 +3,40 @@
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Lifetime;
-using MyNotes.Domain.Notes;
+using MyNotes.Models.Media;
 
 namespace MyNotes.ViewModels.Media.Providers;
 
-internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<NoteId, ImageCollectionViewModel>
+internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<ImageCollectionKey, ImageCollectionViewModel>
 {
-  private readonly ConcurrentDictionary<NoteId, ViewModelCache> ResolveTable = new();
-  private readonly Func<NoteId, ViewModelCache> _cacheFactory = noteId => new
+  private readonly ConcurrentDictionary<ImageCollectionKey, ViewModelCache> ResolveTable = new();
+  private readonly Func<ImageCollectionKey, ViewModelCache> _cacheFactory = key => new
   (
-    referenceCounterFactory: () => new ReferenceCounter<ImageCollectionViewModel>(ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, noteId))
+    referenceCounterFactory: () => new ReferenceCounter<ImageCollectionViewModel>(ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, key))
   );
 
-  public IViewModelLease<ImageCollectionViewModel> Resolve(NoteId noteId)
+  public IViewModelLease<ImageCollectionViewModel> Resolve(ImageCollectionKey key)
   {
     while (true)
     {
-      var cache = ResolveTable.GetOrAdd(noteId, _cacheFactory.Invoke);
+      var cache = ResolveTable.GetOrAdd(key, _cacheFactory.Invoke);
 
       lock (cache.SyncRoot)
       {
-        if (ResolveTable.TryGetValue(noteId, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
+        if (ResolveTable.TryGetValue(key, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
         {
           if (cache.ReferenceCounter.TryAcquire(out var viewModel))
           {
-            return CreateLease(noteId, viewModel, cache);
+            return CreateLease(key, viewModel, cache);
           }
 
-          ResolveTable.TryRemove(noteId, out _);
+          ResolveTable.TryRemove(key, out _);
         }
       }
     }
   }
 
-  private ViewModelLease CreateLease(NoteId noteId, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private ViewModelLease CreateLease(ImageCollectionKey key, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
     ReleaseAction = () =>
@@ -46,15 +46,15 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
         if (cache.ReferenceCounter.ReleaseOrDetach(out _))
         {
           viewmodel.Dispose();
-          ResolveTable.TryRemove(noteId, out _);
+          ResolveTable.TryRemove(key, out _);
         }
       }
     }
   };
 
-  public IViewModelLease<ImageCollectionViewModel>? Acquire(NoteId noteId)
+  public IViewModelLease<ImageCollectionViewModel>? Acquire(ImageCollectionKey key)
   {
-    if (ResolveTable.TryGetValue(noteId, out var cache))
+    if (ResolveTable.TryGetValue(key, out var cache))
     {
       lock (cache.SyncRoot)
       {
@@ -62,11 +62,11 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
         {
           if (!viewmodel.Disposed)
           {
-            return CreateLease(noteId, viewmodel, cache);
+            return CreateLease(key, viewmodel, cache);
           }
           else
           {
-            ResolveTable.TryRemove(noteId, out _);
+            ResolveTable.TryRemove(key, out _);
           }
         }
       }

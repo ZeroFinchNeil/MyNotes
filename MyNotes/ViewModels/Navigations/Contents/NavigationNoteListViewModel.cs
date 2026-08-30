@@ -13,9 +13,11 @@ using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Core;
@@ -36,11 +38,12 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
   private readonly NoteWindowService NoteWindowService;
   private readonly MainWindowService MainWindowService;
   private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
+  private readonly IModelStore<NoteId, NoteModel> NoteModelStore;
   private readonly NotePreviewViewModelProvider NotePreviewViewModelProvider;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
-  public NavigationNoteListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, NotePreviewViewModelProvider notePreviewViewModelProvider, INavigationNoteList navigation)
+  public NavigationNoteListViewModel(AppSettingsService appSettingsService, NavigationService navigationService, NoteService noteService, NoteWindowService noteWindowService, MainWindowService mainWindowService, IModelFactory<NoteDto, NoteModel> noteModelFactory, IModelStore<NoteId, NoteModel> noteModelStore, NotePreviewViewModelProvider notePreviewViewModelProvider, INavigationNoteList navigation)
   {
     AppSettingsService = appSettingsService;
     NavigationService = navigationService;
@@ -48,6 +51,7 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
     NoteWindowService = noteWindowService;
     MainWindowService = mainWindowService;
     NoteModelFactory = noteModelFactory;
+    NoteModelStore = noteModelStore;
     NotePreviewViewModelProvider = notePreviewViewModelProvider;
 
     Navigation = navigation;
@@ -209,35 +213,36 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken>(this, AppMessageTokens.NoteTitleChangedToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<NavigationNoteListViewModel, NoteTitleChangedMessage, MessageToken<Type>>(this, MessageToken<Type>.Create(typeof(INavigationNoteList)), static (recipient, message) =>
     {
-      if (NotePreviewViewModels.FirstOrDefault(vm => vm.Note == message.Value) is NotePreviewViewModel viewmodel
-      && Navigation.NoteSortKey is NoteSortKey.Title)
+      if (message.Sender is NoteModel note
+          && recipient.NotePreviewViewModels.FirstOrDefault(vm => vm.Note == note) is NotePreviewViewModel viewmodel
+          && recipient.Navigation.NoteSortKey is NoteSortKey.Title)
       {
-        _notePreviewViewModelLeases.ReorderItem(viewmodel);
+        recipient._notePreviewViewModelLeases.ReorderItem(viewmodel);
       }
     });
 
-    WeakReferenceMessenger.Default.Register<PropertyChangedMessage<bool>, MessageToken>(this, AppMessageTokens.ChangeNoteIsBookmarkedStateToken, async (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<NavigationNoteListViewModel, NoteBookmarkedChangedMessage, MessageToken<Type>>(this, MessageToken<Type>.Create(typeof(INavigationNoteList)), async static (recipient, message) =>
     {
-      if (message.Sender is NoteModel targetNote)
+      if (message.Sender is NoteModel note)
       {
-        switch (Navigation)
+        switch (recipient.Navigation)
         {
           case NavigationBookmarks bookmarksNavigation:
-            var noteViewModel = NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == targetNote.Id);
+            var noteViewModel = recipient.NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == note.Id);
             if (message.NewValue)
             {
               if (noteViewModel is null)
               {
-                await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(targetNote, bookmarksNavigation));
+                await recipient._notePreviewViewModelLeases.AddAsync(await recipient.NotePreviewViewModelProvider.ResolveAsync(note, bookmarksNavigation));
               }
             }
             else
             {
               if (noteViewModel is not null)
               {
-                await _notePreviewViewModelLeases.RemoveAsync(noteViewModel);
+                await recipient._notePreviewViewModelLeases.RemoveAsync(noteViewModel);
               }
             }
             break;
@@ -245,16 +250,16 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
       }
     });
 
-    WeakReferenceMessenger.Default.Register<ExtendedRequestMessage<NoteId, bool>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.IsNoteInListToken(Navigation), (recipient, message) =>
+    if (Navigation is NavigationUserLeafNode userNavigation)
     {
-      message.Reply(NotePreviewViewModels.FirstOrDefault(vm => vm.Note.Id == message.Request) is not null);
-    });
-
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<NoteModel>, MessageToken<INavigationNoteList>>(this, AppMessageTokens.AddNoteToListToken(Navigation), async (recipient, message) =>
-    {
-      NoteModel note = message.Value;
-      await _notePreviewViewModelLeases.AddAsync(await NotePreviewViewModelProvider.ResolveAsync(note, Navigation));
-    });
+      WeakReferenceMessenger.Default.Register<NavigationNoteListViewModel, NoteAdditionRequestedMessage, MessageToken<NavigationId>>(this, MessageToken<NavigationId>.Create(userNavigation.Id), async static (recipient, message) =>
+      {
+        if (recipient.NoteModelStore.TryGet(message.NoteId, out var note))
+        {
+          await recipient._notePreviewViewModelLeases.AddAsync(await recipient.NotePreviewViewModelProvider.ResolveAsync(note, recipient.Navigation));
+        }
+      });
+    }
   }
 
   private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);

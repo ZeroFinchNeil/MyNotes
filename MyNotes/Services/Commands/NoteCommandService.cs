@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Commands;
@@ -13,11 +12,12 @@ using MyNotes.Common.Mappers;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
 using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Dialogs;
-using MyNotes.Services.Navigations;
 using MyNotes.Services.Shell;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Navigations.Contents.Providers;
@@ -129,7 +129,7 @@ internal sealed class NoteCommandService
           await using var noteViewModelLease = await NoteViewModelProvider.ResolveAsync(newNoteModel);
           NoteViewModel newNoteViewModel = noteViewModelLease.ViewModel;
           await NoteWindowService.OpenNoteWindow(newNoteModel);
-          WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(newNoteModel), AppMessageTokens.AddNoteToListToken(navigationViewModel.Navigation));
+          WeakReferenceMessenger.Default.Send(new NoteAdditionRequestedMessage(newNoteModel.Id), MessageToken<NavigationId>.Create(navigationViewModel.Navigation.Id));
         }
       }
     }
@@ -161,7 +161,7 @@ internal sealed class NoteCommandService
     if (updateResult.Status is AppUpdateStatus.Succeeded)
     {
       noteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
-      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<NoteModel>(noteModel), AppMessageTokens.NoteTitleChangedToken);
+      WeakReferenceMessenger.Default.Send(new NoteTitleChangedMessage(noteModel, nameof(NoteModel.Title), oldTitle, newTitle), MessageToken<Type>.Create(typeof(INavigationNoteList)));
       await JumpListService.EditJumpListItemAsync(NoteMappers.ToDomain(noteModel));
       return;
     }
@@ -185,7 +185,7 @@ internal sealed class NoteCommandService
     if (updateResult.Status is AppUpdateStatus.Succeeded)
     {
       noteModel.IsBookmarked = newState;
-      WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<bool>(noteModel, nameof(NoteModel.IsBookmarked), oldState, newState), AppMessageTokens.ChangeNoteIsBookmarkedStateToken);
+      WeakReferenceMessenger.Default.Send(new NoteBookmarkedChangedMessage(noteModel, nameof(NoteModel.IsBookmarked), oldState, newState), MessageToken<Type>.Create(typeof(INavigationNoteList)));
       noteModel.Modified = updateResult.Modified ?? throw new InvalidOperationException();
     }
   }

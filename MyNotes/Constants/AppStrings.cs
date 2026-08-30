@@ -5,6 +5,8 @@ public static class AppStrings
   public const string AppDisplayName = "MyNotes";
   public static string PackageFamilyName => Windows.ApplicationModel.Package.Current.Id.FamilyName;
 
+  public const string AppIconPath = "Assets/AppIcon.ico";
+
   public const string AppInstanceKey = "MyNotes";
 
   public const string WidgetProvider_COM_CLSID = "A5423B36-2D5C-45CA-9268-71B560D7269A";

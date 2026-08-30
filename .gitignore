@@ -365,12 +365,9 @@ FodyWeavers.xsd
 # Windows System File
 desktop.ini
 Thumbs.db
-/favorites.json
-/MyNotes/Debugging/etc
-/MyNotes.Debugging/etc
-/MyNotes.snk
-/Security
-/AGENTS.md
-/.etc
-/.todo.md
-/MyNotes.Tests/*/
+
+# Other files
+AGENTS.md
+.etc
+MyNotes.Tests/*/
+makepri.ps1

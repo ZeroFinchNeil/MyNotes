@@ -4,10 +4,11 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Helpers;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Core;
 using MyNotes.Models.Navigations.Preferences;
@@ -65,7 +66,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
   private async void MainPage_Loaded(object sender, RoutedEventArgs e)
   {
     Bindings.Update();
-    ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+    ViewModel.CurrentNavigationChanged += ViewModel_CurrentNavigationChanged;
     ViewModel.NavigateTo(_initialNavigationId);
   }
 
@@ -83,7 +84,7 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
     });
 
     // 이벤트 핸들러 해제
-    ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+    ViewModel.CurrentNavigationChanged -= ViewModel_CurrentNavigationChanged;
 
     // 타이머 해제
     ReleaseDraggableNavigationTimer();
@@ -145,6 +146,26 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
       _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, [BackButtonRect, PaneToggleButtonRect, SearchBoxRect]);
     }
   }
+
+  public void SetRegionsForCustomTitleBarOnActivationState(WindowActivationState activationState)
+  {
+    if (activationState == WindowActivationState.Deactivated)
+    {
+      if (this.XamlRoot is XamlRoot xamlRoot)
+      {
+        var appWindowId = xamlRoot.ContentIslandEnvironment.AppWindowId;
+        var appWindow = AppWindow.GetFromWindowId(appWindowId);
+        var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
+        _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
+      }
+      VisualStateManager.GoToState(this, nameof(WindowDeactivated), false);
+    }
+    else
+    {
+      SetRegionsForCustomTitleBar();
+      VisualStateManager.GoToState(this, nameof(WindowActivated), false);
+    }
+  }
   #endregion
 
   private void MainPage_BackButton_Click(object sender, RoutedEventArgs e)
@@ -162,42 +183,34 @@ internal sealed partial class MainPage : Page, ITitleBarProvider
 
   private bool _preventNavigation = false;
   //todo: NavigationViewModel의 PropertyChanged에 페이지 내비게이션 의존하지 않고 페이지 이동 구현(NavigationSearch가 더이상 NavigationViewModelBase로부터 얻을 수 없으므로)
-  private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+  private void ViewModel_CurrentNavigationChanged(object sender, INavigation? navigation)
   {
-    switch (e.PropertyName)
+    switch (navigation)
     {
-      case nameof(MainViewModel.CurrentNavigationViewModel):
-        if (ViewModel.CurrentNavigationViewModel is NavigationViewModelBase { Navigation: INavigation navigation })
+      case NavigationUserCompositeNode:
+        return;
+      case NavigationSearch search:
+        ConsoleHelper.WriteLine(true, "{0}: {1}", "Search", true);
+        MainPage_NavigationFrame.Navigate(search.PageType, navigation);
+        return;
+      case INavigationInitialTarget initialTarget:
+        MainPage_NavigationFrame.Navigate(initialTarget.PageType, navigation);
+        if (initialTarget is NavigationHome or NavigationBookmarks or NavigationUserLeafNode
+            && SettingsViewModel.InitialPageType is InitialPageType.LastOpened)
         {
-          switch (navigation)
-          {
-            case NavigationUserCompositeNode:
-              return;
-            case NavigationSearch search:
-              ConsoleHelper.WriteLine(true, "{0}: {1}", "Search", true);
-              MainPage_NavigationFrame.Navigate(search.PageType, navigation);
-              return;
-            case INavigationInitialTarget initialTarget:
-              MainPage_NavigationFrame.Navigate(initialTarget.PageType, navigation);
-              if (initialTarget is NavigationHome or NavigationBookmarks or NavigationUserLeafNode
-                  && SettingsViewModel.InitialPageType is InitialPageType.LastOpened)
-              {
-                SettingsViewModel.InitialPageId = initialTarget.Id.Value;
-              }
-              break;
-            case INavigationNode node:
-              MainPage_NavigationFrame.Navigate(node.PageType, navigation);
-              break;
-            default:
-              return;
-          }
-
-          if (!_preventNavigation)
-          {
-            ViewModel.NavigateTo(navigation);
-          }
+          SettingsViewModel.InitialPageId = initialTarget.Id.Value;
         }
         break;
+      case INavigationNode node:
+        MainPage_NavigationFrame.Navigate(node.PageType, navigation);
+        break;
+      default:
+        return;
+    }
+
+    if (!_preventNavigation)
+    {
+      ViewModel.NavigateTo(navigation);
     }
   }
 
@@ -320,27 +333,7 @@ internal sealed partial class MainPage : Page
 {
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<ElementTheme>, MessageToken>(this, AppMessageTokens.ChangeAppThemeToken, new((recipient, message) => SetAppTheme(message.Value)));
-
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<WindowActivationState>, MessageToken>(this, AppMessageTokens.MainWindowActivationChangedToken, new((recipient, message) =>
-    {
-      if (message.Value == WindowActivationState.Deactivated)
-      {
-        if (this.XamlRoot is XamlRoot xamlRoot)
-        {
-          var appWindowId = xamlRoot.ContentIslandEnvironment.AppWindowId;
-          var appWindow = AppWindow.GetFromWindowId(appWindowId);
-          var _inputNonClientPointerSource = InputNonClientPointerSource.GetForWindowId(appWindow.Id);
-          _inputNonClientPointerSource.SetRegionRects(NonClientRegionKind.Passthrough, null);
-        }
-        VisualStateManager.GoToState(this, "WindowDeactivated", false);
-      }
-      else
-      {
-        SetRegionsForCustomTitleBar();
-        VisualStateManager.GoToState(this, "WindowActivated", false);
-      }
-    }));
+    WeakReferenceMessenger.Default.Register<MainPage, AppThemeChangedMessage>(this, static (recipient, message) => recipient.SetAppTheme(message.Value));
   }
 
   private void UnregisterMessengers()

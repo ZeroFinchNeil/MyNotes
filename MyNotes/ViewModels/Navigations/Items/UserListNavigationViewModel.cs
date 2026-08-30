@@ -7,8 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Messaging;
 using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.Navigations.User;
 using MyNotes.Services.Commands;
@@ -33,8 +33,6 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
     Navigation.PropertyChanged += Navigation_PropertyChanged;
 
     SetCommands();
-    // Messengers
-    RegisterMessenger();
   }
 
   protected override void Dispose(bool disposing)
@@ -47,7 +45,6 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
     if (disposing)
     {
       Navigation.PropertyChanged -= Navigation_PropertyChanged;
-      UnregisterMessenger();
     }
 
     base.Dispose(disposing);
@@ -106,15 +103,5 @@ internal sealed partial class UserListNavigationViewModel : UserNavigationViewMo
       ExecuteFunc = () => NavigationCommandService.SetAsStartPageAsync(Navigation),
       CanExecuteFunc = () => true
     };
-  }
-
-  private void RegisterMessenger()
-  {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, AppMessageTokens.ChangeNavigationViewModelIconImageToken, (recipient, message) => SetIconImage());
-  }
-
-  private void UnregisterMessenger()
-  {
-    WeakReferenceMessenger.Default.UnregisterAll(this);
   }
 }

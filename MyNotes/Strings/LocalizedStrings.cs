@@ -10,6 +10,11 @@ internal class LocalizedStrings
   public static ResourceLoader UpdateUserNavigationDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("UpdateUserNavigationDialog");
   public static ResourceLoader ConfirmDeleteDialogResourceLoader { get; } = ResourceLoader.GetForViewIndependentUse("ConfirmDeleteDialog");
 
+  public static string MainWindowTitle => DefaultResourceLoader.GetString("MainWindowTitle");
+
+  public static string ImageViewerWindowTitle => DefaultResourceLoader.GetString("ImageViewerWindowTitle");
+  public static string FileSavePickerOriginalFileFormat => DefaultResourceLoader.GetString("FileSavePickerOriginalFileFormat");
+
   public static string NavigationHomeTitle => DefaultResourceLoader.GetString("NavigationHome_Title");
   public static string NavigationBookmarksTitle => DefaultResourceLoader.GetString("NavigationBookmarks_Title");
   public static string NavigationTrashTitle => DefaultResourceLoader.GetString("NavigationTrash_Title");

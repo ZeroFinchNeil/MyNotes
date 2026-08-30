@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ResourceDictionary x:Class="MyNotes.Resources.NavigationResources"
+                    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="using:MyNotes.Resources"
+                    xmlns:navigations="using:MyNotes.Application.Contracts.Navigations.Models"
+                    xmlns:querying="using:MyNotes.Application.Contracts.Querying.Models"
+                    xmlns:notes="using:MyNotes.Application.Contracts.Notes.Models"
+                    xmlns:converters="using:MyNotes.Common.Converters">
+
+  <notes:NoteSortKey x:Key="NoteSortKeyModified">Modified</notes:NoteSortKey>
+  <notes:NoteSortKey x:Key="NoteSortKeyCreated">Created</notes:NoteSortKey>
+  <notes:NoteSortKey x:Key="NoteSortKeyTitle">Title</notes:NoteSortKey>
+
+  <querying:SortDirection x:Key="SortDirectionAscending">Ascending</querying:SortDirection>
+  <querying:SortDirection x:Key="SortDirectionDescending">Descending</querying:SortDirection>
+
+  <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeGrid">Grid</navigations:PreviewLayoutType>
+  <navigations:PreviewLayoutType x:Key="PreviewLayoutTypeList">List</navigations:PreviewLayoutType>
+
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmallest">Smallest</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmaller">Smaller</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeSmall">Small</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeMedium">Medium</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeLarge">Large</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeLarger">Larger</navigations:PreviewTileSize>
+  <navigations:PreviewTileSize x:Key="PreviewTileSizeLargest">Largest</navigations:PreviewTileSize>
+
+  <navigations:PreviewTileRatio x:Key="PreviewTileRatioShorter">Shorter</navigations:PreviewTileRatio>
+  <navigations:PreviewTileRatio x:Key="PreviewTileRatioShort">Short</navigations:PreviewTileRatio>
+  <navigations:PreviewTileRatio x:Key="PreviewTileRatioSquare">Square</navigations:PreviewTileRatio>
+  <navigations:PreviewTileRatio x:Key="PreviewTileRatioTall">Tall</navigations:PreviewTileRatio>
+  <navigations:PreviewTileRatio x:Key="PreviewTileRatioTaller">Taller</navigations:PreviewTileRatio>
+
+  <converters:EnumToIntConverter x:Key="NoteSortKeyToIntConverter"
+                                 EnumType="notes:NoteSortKey" />
+  <converters:EnumToIntConverter x:Key="SortDirectionToIntConverter"
+                                 EnumType="querying:SortDirection" />
+  <converters:EnumToIntConverter x:Key="PreviewLayoutTypeToIntConverter"
+                                 EnumType="navigations:PreviewLayoutType" />
+  <converters:EnumToIntConverter x:Key="PreviewTileSizeToIntConverter"
+                                 EnumType="navigations:PreviewTileSize" />
+  <converters:EnumToIntConverter x:Key="PreviewTileRatioToIntConverter"
+                                 EnumType="navigations:PreviewTileRatio" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyCreatedMatchConverter"
+                                              TargetMember="Created" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyModifiedMatchConverter"
+                                              TargetMember="Modified" />
+  <converters:NoteSortKeyMemberMatchConverter x:Key="NoteSortKeyTitleMatchConverter"
+                                              TargetMember="Title" />
+
+  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionAscendingMatchConverter"
+                                                TargetMember="Ascending" />
+  <converters:SortDirectionMemberMatchConverter x:Key="SortDirectionDescendingMatchConverter"
+                                                TargetMember="Descending" />
+
+  <converters:PreviewTileSizeToSliderValueConverter x:Key="PreviewTileSizeToSliderValueConverter" />
+  <converters:PreviewTileRatioToSliderValueConverter x:Key="PreviewTileRatioToSliderValueConverter" />
+
+</ResourceDictionary>

@@ -50,7 +50,7 @@ public sealed partial class AsyncCommand : ICommand
 
   public async void Execute(object? parameter = null) => await ExecuteAsync(parameter);
 
-  private async Task ExecuteAsync(object? parameter)
+  public async Task ExecuteAsync(object? parameter = null)
   {
     if (!CanExecute(parameter))
     {
@@ -122,7 +122,7 @@ public sealed partial class AsyncCommand<T> : ICommand
     await ExecuteAsync(value);
   }
 
-  private async Task ExecuteAsync(T parameter)
+  public async Task ExecuteAsync(T parameter)
   {
     if (!CanExecute(parameter))
     {

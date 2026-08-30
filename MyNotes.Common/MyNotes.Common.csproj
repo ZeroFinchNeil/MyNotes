@@ -10,7 +10,7 @@
     <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="DotNext" Version="6.6.2" />
+    <PackageReference Include="DotNext" Version="6.6.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\MyNotes.Debugging\MyNotes.Debugging.csproj" />

@@ -162,4 +162,7 @@
   <data name="NavigationUserNode_SetAsStartPageMenuFlyoutItem.Text" xml:space="preserve">
     <value>Set as start page</value>
   </data>
+  <data name="TitleTextBlock.Text" xml:space="preserve">
+    <value>MyNotes</value>
+  </data>
 </root>

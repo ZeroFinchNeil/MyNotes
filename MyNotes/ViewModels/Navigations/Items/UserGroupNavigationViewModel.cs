@@ -8,8 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.Navigations.User;
@@ -122,7 +123,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
         break;
     }
 
-    WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.NavigationCollectionChangedToken);
+    WeakReferenceMessenger.Default.Send(new NavigationTreeChangedMessage());
   }
 
   public void ForEachDescendant(Action<NavigationViewModelBase> action, bool containsSelf = true)
@@ -220,7 +221,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 
   private void RegisterMessenger()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<GroupIconBadge>, MessageToken>(this, AppMessageTokens.ChangeNavigationViewModelIconImageToken, async (recipient, message) => await SetIconImage());
+    WeakReferenceMessenger.Default.Register<UserGroupNavigationViewModel, NavigationGroupIconBadgeChangedMessage>(this, async static (recipient, message) => await recipient.SetIconImage());
   }
 
   private void UnregisterMessenger()

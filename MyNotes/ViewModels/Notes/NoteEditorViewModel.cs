@@ -2,7 +2,6 @@
 
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 using CommunityToolkit.WinUI.Helpers;
 
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +10,6 @@ using Microsoft.Windows.Storage.Pickers;
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes;
-using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
@@ -21,6 +19,9 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
+using MyNotes.Domain.Notes;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Notes;
 using MyNotes.Services.Commands;
 using MyNotes.Services.Updates;
@@ -805,7 +806,7 @@ partial class NoteEditorViewModel
 
     if (_shouldChangePreview)
     {
-      WeakReferenceMessenger.Default.Send(new ValueChangedMessage<bool>(true), AppMessageTokens.UpdateNotePreviewToken(Note.Id));
+      WeakReferenceMessenger.Default.Send(new NotePreviewUpdateRequestedMessage(Note.Id), MessageToken<NoteId>.Create(Note.Id));
     }
 
     _shouldChangePreview = false;

@@ -1,6 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Messaging.Messages;
 
-namespace MyNotes.Common.Messages;
+namespace MyNotes.Messaging;
 
 public class ExtendedRequestMessage<TRequest, UResponse> : RequestMessage<UResponse>
 {

@@ -11,6 +11,7 @@ using MyNotes.Common.Mappers;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
+using MyNotes.Models.Media;
 using MyNotes.Services.Windows;
 using MyNotes.ViewModels.Media.Providers;
 
@@ -22,16 +23,19 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private readonly ImageViewModelProvider ImageViewModelProvider;
   private readonly ImageViewerWindowService ImageViewerWindowService;
 
+  private ImageCollectionKey CollectionKey { get; }
+
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, NoteId noteId)
+  public ImageCollectionViewModel(ImageService imageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey key)
   {
     ImageService = imageService;
     ImageViewModelProvider = imageViewModelProvider;
     ImageViewerWindowService = imageViewerWindowService;
 
-    NoteId = noteId;
+    CollectionKey = key;
+    NoteId = NoteId.Create(CollectionKey.Value);
 
     InitializationTask = InitializeAsync();
     SetCommands();
@@ -98,8 +102,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
   public AsyncCommand<Microsoft.UI.WindowId> InsertImageCommand { get; private set; }
 
-  public Command<ImageViewModel> ShowImageCommand { get; private set; }
-  public Command<ImageViewModel> DeleteImageCommand { get; private set; }
+  public AsyncCommand<ImageViewModel> ShowImageCommand { get; private set; }
+  public AsyncCommand<ImageViewModel> DeleteImageCommand { get; private set; }
 
   [MemberNotNull(nameof(InsertImageCommand), nameof(ShowImageCommand), nameof(DeleteImageCommand))]
   private void SetCommands()
@@ -126,7 +130,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
             // 원본 이미지 파일 가져오기
             var imageDto = await ImageService.AttachImageAsync(new AttachImageAppCommand()
             {
-              NoteId = NoteId,
+              NoteId = NoteId.Create(CollectionKey.Value),
               OriginalFilePath = pickFileResult.Path
             });
 
@@ -145,7 +149,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     ShowImageCommand = new()
     {
-      ExecuteAction = async (imageViewModel) =>
+      ExecuteFunc = async (imageViewModel) =>
       {
         var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(NoteId);
         imageViewerWindow.Activate();
@@ -158,7 +162,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     DeleteImageCommand = new()
     {
-      ExecuteAction = async (imageViewModel) =>
+      ExecuteFunc = async (imageViewModel) =>
       {
         if (await imageViewModel.DeleteImageAsync())
         {
@@ -166,6 +170,11 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
         }
 
         HasImages = ImageViewModels.Count > 0;
+
+        if(!HasImages)
+        {
+
+        }
       }
     };
   }

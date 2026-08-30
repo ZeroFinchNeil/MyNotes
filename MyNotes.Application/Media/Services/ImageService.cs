@@ -1,4 +1,6 @@
-﻿using MyNotes.Application.Contracts.Media.Models;
+﻿using System.IO;
+
+using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Media.Persistence;
 using MyNotes.Application.Media.Commands;
 using MyNotes.Domain.Media;
@@ -23,11 +25,11 @@ internal sealed class ImageService
     {
       Id = await ImageRepository.GenerateUniqueImageIdAsync(cancellationToken),
       NoteId = appCommand.NoteId,
-      OriginalFileName = System.IO.Path.GetFileNameWithoutExtension(appCommand.OriginalFilePath),
-      StoredExtension = System.IO.Path.GetExtension(appCommand.OriginalFilePath)
+      OriginalFileName = Path.GetFileNameWithoutExtension(appCommand.OriginalFilePath),
+      StoredExtension = Path.GetExtension(appCommand.OriginalFilePath)
     };
     await ImageRepository.AttachImageAsync(imageDto, cancellationToken);
-    await ImageFileStorage.SaveImage(appCommand.OriginalFilePath, imageDto.Id.Name, cancellationToken);
+    await ImageFileStorage.SaveImage(appCommand.OriginalFilePath, Path.ChangeExtension(imageDto.Id.Name, imageDto.StoredExtension), cancellationToken);
 
     return imageDto;
   }

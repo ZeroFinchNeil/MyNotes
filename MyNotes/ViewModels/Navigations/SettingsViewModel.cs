@@ -11,10 +11,11 @@ using MyNotes.Application.Contracts.Querying.Models;
 using MyNotes.Application.Navigations;
 using MyNotes.Application.Notes;
 using MyNotes.Application.Settings.Services;
-using MyNotes.Common.Messages;
 using MyNotes.Constants;
 using MyNotes.Debugging;
 using MyNotes.Domain.Navigations;
+using MyNotes.Messaging;
+using MyNotes.Messaging.Messages;
 using MyNotes.Models.Navigations.Preferences;
 using MyNotes.Models.UI;
 using MyNotes.Services.Navigations;
@@ -101,8 +102,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
     {
       if (SetProperty(ref field, value))
       {
-        ValueChangedMessage<ElementTheme> msg = new(value);
-        WeakReferenceMessenger.Default.Send(msg, AppMessageTokens.ChangeAppThemeToken);
+        WeakReferenceMessenger.Default.Send(new AppThemeChangedMessage(value));
         AppSettingsService.Save(ElementThemeSettingsCodec.Encode, AppSettingsDescriptors.AppTheme, value);
       }
     }
@@ -356,7 +356,7 @@ internal sealed partial class SettingsViewModel : ViewModelBase
       if (SetProperty(ref _groupIconBadge, value))
       {
         AppSettingsService.Save(GroupIconBadgeSettingsCodec.Encode, AppSettingsDescriptors.GroupIconBadge, value);
-        WeakReferenceMessenger.Default.Send(new ValueChangedMessage<GroupIconBadge>(value), AppMessageTokens.ChangeNavigationViewModelIconImageToken);
+        WeakReferenceMessenger.Default.Send(new NavigationGroupIconBadgeChangedMessage(value));
       }
     }
   }
@@ -526,11 +526,11 @@ internal sealed partial class SettingsViewModel : ViewModelBase
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<ValueChangedMessage<bool>, MessageToken>(this, AppMessageTokens.NavigationCollectionChangedToken, (recipient, message) =>
+    WeakReferenceMessenger.Default.Register<SettingsViewModel, NavigationTreeChangedMessage>(this, static (recipient, message) =>
     {
-      if (InitialPageType == InitialPageType.Preferred)
+      if (recipient.InitialPageType == InitialPageType.Preferred)
       {
-        SetPreferredInitialPageOptions();
+        recipient.SetPreferredInitialPageOptions();
       }
     });
   }

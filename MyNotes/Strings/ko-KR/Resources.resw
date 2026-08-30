@@ -210,4 +210,13 @@
   <data name="JumpList_Settings" xml:space="preserve">
     <value>설정</value>
   </data>
+  <data name="ImageViewerWindowTitle" xml:space="preserve">
+    <value>이미지 뷰어</value>
+  </data>
+  <data name="MainWindowTitle" xml:space="preserve">
+    <value>MyNotes</value>
+  </data>
+  <data name="FileSavePickerOriginalFileFormat" xml:space="preserve">
+    <value>원본 파일 형식</value>
+  </data>
 </root>

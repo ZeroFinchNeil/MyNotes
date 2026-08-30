@@ -162,4 +162,7 @@
   <data name="NavigationUserNode_SetAsStartPageMenuFlyoutItem.Text" xml:space="preserve">
     <value>시작 페이지로 설정</value>
   </data>
+  <data name="TitleTextBlock.Text" xml:space="preserve">
+    <value>MyNotes</value>
+  </data>
 </root>
