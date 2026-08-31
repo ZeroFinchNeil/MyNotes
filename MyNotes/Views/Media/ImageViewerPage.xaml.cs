@@ -33,20 +33,4 @@ internal sealed partial class ImageViewerPage : Page
   {
     _viewmodelLease.Dispose();
   }
-
-  private async void ImageViewerPage_SaveLocalMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && ViewModel.SelectedImage is ImageViewModel imageViewModel)
-    {
-      await imageViewModel.SaveImageCommand.ExecuteAsync(element.XamlRoot.ContentIslandEnvironment.AppWindowId);
-    }
-  }
-
-  private async void ImageViewerPage_OpenWithMenuFlyoutItem_Click(object sender, RoutedEventArgs e)
-  {
-    if (sender is FrameworkElement element && ViewModel.SelectedImage is ImageViewModel imageViewModel)
-    {
-      await imageViewModel.OpenWithCommand.ExecuteAsync();
-    }
-  }
 }

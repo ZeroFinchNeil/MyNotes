@@ -10,7 +10,11 @@ internal partial class ImageDescriptor
 
   public required ImageCollectionKey CollectionKey { get; init; }
 
-  public string LocalFilePath => Path.Combine(ApplicationData.Current.LocalFolder.Path, AppStrings.ImageFolderName, Path.ChangeExtension(Id.Name, StoredExtension));
+  public static string LocalImageFolderPath => AppStrings.ImageFolderPath;
+
+  public string LocalImageFileName => Path.ChangeExtension(Id.Name, StoredExtension);
+
+  public string LocalImageFilePath => Path.Combine(LocalImageFolderPath, LocalImageFileName);
 
   public required string OriginalFileName { get; init; }
 

@@ -27,21 +27,14 @@ internal sealed partial class ImageViewerWindow : Window
 
     this.Content = new ImageViewerPage(collectionKey);
 
-    RegisterMessengers();
     this.Closed += ImageViewerWindow_Closed;
   }
   public bool IsClosed { get; private set; }
 
   private void ImageViewerWindow_Closed(object sender, WindowEventArgs args)
   {
+    this.Closed -= ImageViewerWindow_Closed;
     IsClosed = true;
-    UnregisterMessengers();
   }
   #endregion
-
-  private void RegisterMessengers()
-  {
-  }
-
-  private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);
 }

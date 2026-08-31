@@ -4,6 +4,7 @@ public static class AppStrings
 {
   public const string AppDisplayName = "MyNotes";
   public static string PackageFamilyName => Windows.ApplicationModel.Package.Current.Id.FamilyName;
+  public static readonly string LocalFolderPath = ApplicationData.Current.LocalFolder.Path;
 
   public const string AppIconPath = "Assets/AppIcon.ico";
 
@@ -20,9 +21,10 @@ public static class AppStrings
   public const string JsonEmptyObject = "{}";
   public const string JsonEmptyArray = "[]";
 
-  public const string ImageFolderName = "Images";
-
   public static ImmutableList<string> BitmapImageFileTypeFilter { get; } = [".jpg", ".jpeg", ".png", ".bmp", ".gif", ".tiff", ".ico"];
 
   public const string UserRootNavigationName = "Root";
+
+  public const string FallbackImagePath = "ms-appx:///Assets/Images/failure.png";
+  public static readonly string ImageFolderPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Images");
 }

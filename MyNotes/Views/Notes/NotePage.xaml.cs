@@ -89,6 +89,9 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     }
 
     Bindings.StopTracking();
+
+    _infoBarDismissTimer.Tick -= InfoBarDismissTimer_Tick;
+
     UnregisterMessengers();
 
     // 빈 노트 완전 삭제 로직

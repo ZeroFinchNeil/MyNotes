@@ -84,19 +84,22 @@ internal sealed partial class NoteWindow : Window
   {
     IsClosed = true;
 
+    this.Activated -= NoteWindow_Activated;
+    this.Closed -= NoteWindow_Closed;
+
     // WindowService에서 Window 테이블에서 제거
     NoteWindowService.NoteWindowTable.Remove(NoteId);
 
     if (_pageContent is not null)
     {
       await _pageContent.DisposeAsync();
+      _pageContent = null;
     }
   }
   #endregion
 
   private void NoteWindow_Activated(object sender, WindowActivatedEventArgs args)
   {
-
     if (AppWindow.Presenter is OverlappedPresenter presenter)
     {
       WindowPresenterState state = new() { WindowActivationState = args.WindowActivationState, OverlappedPresenterState = presenter.State };

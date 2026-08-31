@@ -1,12 +1,16 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
+using CommunityToolkit.Mvvm.ComponentModel;
+
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
+using MyNotes.Constants;
 using MyNotes.Models.Media;
+using MyNotes.Services.Windows;
 using MyNotes.Strings;
 using MyNotes.ViewModels.Media.Providers;
 
@@ -18,32 +22,72 @@ internal sealed partial class ImageViewModel : ViewModelBase
 {
   private readonly NoteImageService NoteImageService;
   private readonly ImageCollectionViewModelProvider ImageCollectionViewModelProvider;
+  private readonly ImageViewerWindowService ImageViewerWindowService;
 
   public ImageDescriptor ImageDescriptor { get; }
 
   public ImageCollectionKey CollectionKey => ImageDescriptor.CollectionKey;
 
-  public BitmapImage? Image { get; }
+  private readonly FileSystemWatcher _imageFileWatcher;
+
+  [ObservableProperty]
+  public partial BitmapImage Image { get; private set; }
+
+  private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
   public bool Failed { get; private set; } = false;
 
   #region Object Lifetime Management
-  public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageDescriptor imageDescriptor)
+  public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageDescriptor imageDescriptor)
   {
     NoteImageService = noteImageService;
     ImageCollectionViewModelProvider = imageCollectionViewModelProvider;
+    ImageViewerWindowService = imageViewerWindowService;
     ImageDescriptor = imageDescriptor;
 
-    Image = new()
-    {
-      UriSource = new Uri(ImageDescriptor.LocalFilePath),
-      DecodePixelType = DecodePixelType.Logical,
-      DecodePixelHeight = 1024
-    };
-    Image.ImageFailed += Image_ImageFailed;
+    LoadImage();
 
+    _imageFileWatcher = new(ImageDescriptor.LocalImageFolderPath)
+    {
+      Filter = ImageDescriptor.LocalImageFileName,
+      NotifyFilter = NotifyFilters.FileName | NotifyFilters.Size | NotifyFilters.LastWrite | NotifyFilters.CreationTime,
+      EnableRaisingEvents = true
+    };
+    _imageFileWatcher.Changed += ImageFileWatcher_Changed;
+    _imageFileWatcher.Deleted += ImageFileWatcher_Deleted;
     SetCommands();
   }
+
+  [MemberNotNull(nameof(Image))]
+  private void LoadImage()
+  {
+    Image = new()
+    {
+      DecodePixelType = DecodePixelType.Logical,
+      DecodePixelHeight = 1024,
+      CreateOptions = BitmapCreateOptions.IgnoreImageCache,
+      UriSource = new Uri(ImageDescriptor.LocalImageFilePath)
+    };
+
+    Image.ImageFailed -= Image_ImageFailed;
+    Image.ImageFailed += Image_ImageFailed;
+  }
+
+  private void SetFallbackImage()
+  {
+    Image.UriSource = new Uri(AppStrings.FallbackImagePath);
+  }
+
+  private void ImageFileWatcher_Changed(object sender, FileSystemEventArgs e)
+  {
+    _dispatcherQueue.TryEnqueue(LoadImage);
+  }
+
+  private void ImageFileWatcher_Deleted(object sender, FileSystemEventArgs e)
+  {
+    _dispatcherQueue.TryEnqueue(SetFallbackImage);
+  }
+
   protected override void Dispose(bool disposing)
   {
     if (Disposed)
@@ -53,7 +97,9 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
     if (disposing)
     {
-      Image?.ImageFailed -= Image_ImageFailed;
+      Image.ImageFailed -= Image_ImageFailed;
+      _imageFileWatcher.Changed -= ImageFileWatcher_Changed;
+      _imageFileWatcher.Deleted -= ImageFileWatcher_Deleted;
     }
 
     base.Dispose(disposing);
@@ -62,19 +108,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private void Image_ImageFailed(object sender, ExceptionRoutedEventArgs e)
   {
-    Image?.UriSource = new Uri("ms-appx:///Assets/Images/Failure.png");
+    SetFallbackImage();
     Failed = true;
-  }
-
-  public async Task<bool> DeleteImageAsync()
-  {
-    if (!Failed)
-    {
-      await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
-      return true;
-    }
-
-    return false;
   }
 }
 
@@ -92,12 +127,17 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        StorageFile localFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalFilePath);
-        await Launcher.LaunchFileAsync(localFile, new LauncherOptions()
+        try
         {
-          DisplayApplicationPicker = true,
-          TreatAsUntrusted = false
-        });
+          StorageFile localFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalImageFilePath);
+          await Launcher.LaunchFileAsync(localFile, new LauncherOptions()
+          {
+            DisplayApplicationPicker = true,
+            TreatAsUntrusted = false
+          });
+        }
+        catch
+        { }
       }
     };
 
@@ -105,11 +145,10 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(CollectionKey);
+        imageViewerWindow.Activate();
         using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
-        if (lease is not null)
-        {
-          await lease.ViewModel.ShowImageCommand.ExecuteAsync(this);
-        }
+        lease?.ViewModel.SelectedImage = this;
       }
     };
 
@@ -121,7 +160,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
         {
           SuggestedFileName = ImageDescriptor.OriginalFileName,
           DefaultFileExtension = ImageDescriptor.StoredExtension,
-          ShowOverwritePrompt = true
+          ShowOverwritePrompt = true,
+          SuggestedStartLocation = PickerLocationId.Desktop
         };
 
         savePicker.FileTypeChoices.Add(LocalizedStrings.FileSavePickerOriginalFileFormat, [ImageDescriptor.StoredExtension]);
@@ -131,9 +171,13 @@ internal sealed partial class ImageViewModel : ViewModelBase
         {
           if (await NoteImageService.GetImageAsync(ImageDescriptor.Id) is NoteImageDto imageDto)
           {
-            StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(pickFileResult.Path));
-            StorageFile localFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalFilePath);
-            await localFile.CopyAsync(destinationFolder, Path.GetFileName(pickFileResult.Path), NameCollisionOption.ReplaceExisting);
+            try
+            {
+              StorageFolder destinationFolder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(pickFileResult.Path));
+              StorageFile localFile = await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalImageFilePath);
+              await localFile.CopyAsync(destinationFolder, Path.GetFileName(pickFileResult.Path), NameCollisionOption.ReplaceExisting);
+            }
+            catch { }
           }
         }
       }
@@ -143,10 +187,11 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
-        if (lease is not null)
+        if (!Failed)
         {
-          await lease.ViewModel.DeleteImageCommand.ExecuteAsync(this);
+          await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
+          using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
+          lease?.ViewModel.RemoveImageFromCollection(this);
         }
       }
     };

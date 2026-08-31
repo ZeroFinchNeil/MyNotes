@@ -4,19 +4,13 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:sys="using:System"
-      xmlns:local="using:MyNotes.Views.Notes"
-      xmlns:navigations="using:MyNotes.Models.Navigations"
-      xmlns:mvm="using:MyNotes.ViewModels.Media"
       xmlns:helpers="using:MyNotes.Common.Helpers"
-      xmlns:commands="using:MyNotes.Common.Commands"
-      xmlns:converters="using:MyNotes.Common.Converters"
-      xmlns:tmpls="using:MyNotes.Templates"
+      xmlns:templates="using:MyNotes.Templates"
       xmlns:ctw="using:CommunityToolkit.WinUI"
       xmlns:ctwc="using:CommunityToolkit.WinUI.Controls"
-      xmlns:media="using:CommunityToolkit.WinUI.Media"
       xmlns:mxi="using:Microsoft.Xaml.Interactivity"
       xmlns:muxm="using:Microsoft.UI.Xaml.Media"
-      xmlns:appnotemodels="using:MyNotes.Application.Contracts.Notes.Models"
+      xmlns:manm="using:MyNotes.Application.Contracts.Notes.Models"
       RequestedTheme="{x:Bind helpers:ColorHelper.GetThemeFromColor(Note.BackgroundColor), Mode=OneWay}">
 
   <Page.Resources>
@@ -103,9 +97,9 @@
         </Rectangle.Fill>
       </Rectangle>
 
-      <Border>
+      <Border xmlns:ctwm="using:CommunityToolkit.WinUI.Media">
         <Border.Background>
-          <media:BackdropBlurBrush Amount="{x:Bind Note.BackgroundImageBlur, Mode=OneWay}" />
+          <ctwm:BackdropBlurBrush Amount="{x:Bind Note.BackgroundImageBlur, Mode=OneWay}" />
         </Border.Background>
       </Border>
     </Grid>
@@ -130,38 +124,38 @@
       </Grid.ColumnDefinitions>
 
       <!-- Pin Button -->
-      <tmpls:AlternateSubtleIconToggleButton x:Name="NotePage_PinButton"
-                                             x:Uid="/NotePage/PinButton"
-                                             Grid.Column="0"
-                                             IsChecked="{x:Bind Note.IsAlwaysOnTop, Mode=TwoWay}"
-                                             Command="{x:Bind NoteViewModel.PinWindowCommand}">
-        <tmpls:AlternateSubtleIconToggleButton.Icon>
+      <templates:AlternateSubtleIconToggleButton x:Name="NotePage_PinButton"
+                                                 x:Uid="/NotePage/PinButton"
+                                                 Grid.Column="0"
+                                                 IsChecked="{x:Bind Note.IsAlwaysOnTop, Mode=TwoWay}"
+                                                 Command="{x:Bind NoteViewModel.PinWindowCommand}">
+        <templates:AlternateSubtleIconToggleButton.Icon>
           <FontIcon Glyph="&#xE718;" />
-        </tmpls:AlternateSubtleIconToggleButton.Icon>
-        <tmpls:AlternateSubtleIconToggleButton.CheckedIcon>
+        </templates:AlternateSubtleIconToggleButton.Icon>
+        <templates:AlternateSubtleIconToggleButton.CheckedIcon>
           <Grid>
             <FontIcon Glyph="&#xE841;" />
             <FontIcon Glyph="&#xE718;" />
           </Grid>
-        </tmpls:AlternateSubtleIconToggleButton.CheckedIcon>
-        <tmpls:AlternateSubtleIconToggleButton.RenderTransform>
+        </templates:AlternateSubtleIconToggleButton.CheckedIcon>
+        <templates:AlternateSubtleIconToggleButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_PinButton_TranslateTransform" />
-        </tmpls:AlternateSubtleIconToggleButton.RenderTransform>
-        <tmpls:AlternateSubtleIconToggleButton.KeyboardAccelerators>
+        </templates:AlternateSubtleIconToggleButton.RenderTransform>
+        <templates:AlternateSubtleIconToggleButton.KeyboardAccelerators>
           <KeyboardAccelerator Modifiers="Control"
                                Key="P" />
-        </tmpls:AlternateSubtleIconToggleButton.KeyboardAccelerators>
-      </tmpls:AlternateSubtleIconToggleButton>
+        </templates:AlternateSubtleIconToggleButton.KeyboardAccelerators>
+      </templates:AlternateSubtleIconToggleButton>
 
       <!--#region More Button -->
-      <tmpls:SubtleIconButton x:Name="NotePage_MoreButton"
-                              x:Uid="/NotePage/MoreButton"
-                              Grid.Column="1"
-                              Content="{ctw:FontIcon Glyph=&#xE712;}">
-        <tmpls:SubtleIconButton.RenderTransform>
+      <templates:SubtleIconButton x:Name="NotePage_MoreButton"
+                                  x:Uid="/NotePage/MoreButton"
+                                  Grid.Column="1"
+                                  Content="{ctw:FontIcon Glyph=&#xE712;}">
+        <templates:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MoreButton_TranslateTransform" />
-        </tmpls:SubtleIconButton.RenderTransform>
-        <tmpls:SubtleIconButton.Flyout>
+        </templates:SubtleIconButton.RenderTransform>
+        <templates:SubtleIconButton.Flyout>
           <MenuFlyout x:Name="NotePage_MoreButtonMenuFlyout"
                       Placement="RightEdgeAlignedTop"
                       ShouldConstrainToRootBounds="False"
@@ -195,27 +189,27 @@
                             Icon="Tag" />
 
             <!-- Bookmark and Unbookmark -->
-            <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/BookmarkMenuFlyoutItem"
-                                           Icon="Favorite"
-                                           CheckedIcon="UnFavorite"
-                                           IsChecked="{x:Bind Note.IsBookmarked, Mode=OneWay}"
-                                           Command="{x:Bind NoteViewModel.ToggleBookmarkNoteCommand}" />
+            <templates:AlternateMenuFlyoutItem x:Uid="/NotePage/BookmarkMenuFlyoutItem"
+                                               Icon="Favorite"
+                                               CheckedIcon="UnFavorite"
+                                               IsChecked="{x:Bind Note.IsBookmarked, Mode=OneWay}"
+                                               Command="{x:Bind NoteViewModel.ToggleBookmarkNoteCommand}" />
 
             <!-- Show Images -->
-            <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
-                                           Icon="{ctw:FontIcon Glyph=&#xE8B9;}"
-                                           IsChecked="{x:Bind Note.ShowImagePanel, Mode=TwoWay}"
-                                           Visibility="{x:Bind ImageCollectionViewModel.HasImages, Mode=OneWay}">
-              <tmpls:AlternateMenuFlyoutItem.CheckedIcon>
+            <templates:AlternateMenuFlyoutItem x:Uid="/NotePage/ShowImagesMenuFlyoutItem"
+                                               Icon="{ctw:FontIcon Glyph=&#xE8B9;}"
+                                               IsChecked="{x:Bind Note.ShowImagePanel, Mode=TwoWay}"
+                                               Visibility="{x:Bind ImageCollectionViewModel.HasImages, Mode=OneWay}">
+              <templates:AlternateMenuFlyoutItem.CheckedIcon>
                 <IconSourceElement IconSource="{StaticResource ImageMultipleOffPathIconSource}" />
-              </tmpls:AlternateMenuFlyoutItem.CheckedIcon>
-            </tmpls:AlternateMenuFlyoutItem>
+              </templates:AlternateMenuFlyoutItem.CheckedIcon>
+            </templates:AlternateMenuFlyoutItem>
 
             <!-- View Mode -->
-            <tmpls:AlternateMenuFlyoutItem x:Uid="/NotePage/ViewModeFlyoutSubItem"
-                                           Icon="View"
-                                           CheckedIcon="Edit"
-                                           IsChecked="{x:Bind Note.IsTextEditorReadOnly, Mode=TwoWay}" />
+            <templates:AlternateMenuFlyoutItem x:Uid="/NotePage/ViewModeFlyoutSubItem"
+                                               Icon="View"
+                                               CheckedIcon="Edit"
+                                               IsChecked="{x:Bind Note.IsTextEditorReadOnly, Mode=TwoWay}" />
 
             <MenuFlyoutSeparator />
 
@@ -243,8 +237,8 @@
                             Icon="Delete"
                             Style="{StaticResource EmphasisCriticalMenuFlyoutItemStyle}" />
           </MenuFlyout>
-        </tmpls:SubtleIconButton.Flyout>
-      </tmpls:SubtleIconButton>
+        </templates:SubtleIconButton.Flyout>
+      </templates:SubtleIconButton>
       <!--#endregion -->
 
       <!--#region Title -->
@@ -275,24 +269,24 @@
       <!--#endregion -->
 
       <!--#region Caption Buttons -->
-      <tmpls:SubtleIconButton x:Name="NotePage_MinimizeButton"
-                              x:Uid="/NotePage/MinimizeButton"
-                              Grid.Column="3"
-                              Content="{ctw:FontIcon Glyph=&#xE738;}"
-                              Command="{x:Bind NoteViewModel.MinimizeWindowCommand}">
-        <tmpls:SubtleIconButton.RenderTransform>
+      <templates:SubtleIconButton x:Name="NotePage_MinimizeButton"
+                                  x:Uid="/NotePage/MinimizeButton"
+                                  Grid.Column="3"
+                                  Content="{ctw:FontIcon Glyph=&#xE738;}"
+                                  Command="{x:Bind NoteViewModel.MinimizeWindowCommand}">
+        <templates:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_MinimizeButton_TranslateTransform" />
-        </tmpls:SubtleIconButton.RenderTransform>
-      </tmpls:SubtleIconButton>
-      <tmpls:SubtleIconButton x:Name="NotePage_CloseButton"
-                              x:Uid="/NotePage/CloseButton"
-                              Grid.Column="4"
-                              Content="{ctw:FontIcon Glyph=&#xE711;}"
-                              Command="{x:Bind NoteViewModel.CloseWindowCommand}">
-        <tmpls:SubtleIconButton.RenderTransform>
+        </templates:SubtleIconButton.RenderTransform>
+      </templates:SubtleIconButton>
+      <templates:SubtleIconButton x:Name="NotePage_CloseButton"
+                                  x:Uid="/NotePage/CloseButton"
+                                  Grid.Column="4"
+                                  Content="{ctw:FontIcon Glyph=&#xE711;}"
+                                  Command="{x:Bind NoteViewModel.CloseWindowCommand}">
+        <templates:SubtleIconButton.RenderTransform>
           <TranslateTransform x:Name="NotePage_CloseButton_TranslateTransform" />
-        </tmpls:SubtleIconButton.RenderTransform>
-      </tmpls:SubtleIconButton>
+        </templates:SubtleIconButton.RenderTransform>
+      </templates:SubtleIconButton>
       <!--#endregion -->
     </Grid>
     <!--#endregion -->
@@ -335,32 +329,10 @@
         </GridView.ItemContainerStyle>
 
         <GridView.ItemTemplate>
-          <DataTemplate x:DataType="mvm:ImageViewModel">
-            <Image Source="{x:Bind Image}"
-                   DataContext="{x:Bind}">
-              <mxi:Interaction.Behaviors>
-                <mxi:EventTriggerBehavior EventName="DoubleTapped">
-                  <mxi:InvokeCommandAction Command="{x:Bind ShowImageCommand}" />
-                </mxi:EventTriggerBehavior>
-              </mxi:Interaction.Behaviors>
-              <Image.ContextFlyout>
-                <MenuFlyout>
-                  <MenuFlyoutItem Icon="NewWindow"
-                                  Text="Show"
-                                  Command="{x:Bind ShowImageCommand}" />
-                  <MenuFlyoutItem x:Name="NotePage_SaveImageMenuFlyoutItem"
-                                  Icon="SaveLocal"
-                                  Text="Save local"
-                                  Command="{x:Bind SaveImageCommand}"
-                                  CommandParameter="{Binding RelativeSource={RelativeSource Mode=TemplatedParent}, Path=XamlRoot.ContentIslandEnvironment.AppWindowId}" />
-                  <MenuFlyoutSeparator />
-                  <MenuFlyoutItem Icon="Delete"
-                                  Text="Delete"
-                                  Command="{x:Bind DeleteImageCommand}" />
-                </MenuFlyout>
-              </Image.ContextFlyout>
-            </Image>
-
+          <DataTemplate x:DataType="mvmm:ImageViewModel"
+                        xmlns:mvmm="using:MyNotes.ViewModels.Media"
+                        xmlns:mvm="using:MyNotes.Views.Media">
+            <mvm:ImageViewItemContainer ViewModel="{x:Bind}" />
           </DataTemplate>
         </GridView.ItemTemplate>
       </GridView>
@@ -418,14 +390,14 @@
     <!--#endregion -->
 
     <!--#region Find and Replace -->
-    <tmpls:FindReplaceBox x:Name="NotePage_FindReplaceBox"
-                          Grid.Row="2"
-                          VerticalAlignment="Top"
-                          HorizontalAlignment="Right"
-                          TargetEditor="{x:Bind NotePage_TextEditorRichEditBox}"
-                          IsOpen="False"
-                          RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
-                          Margin="12" />
+    <templates:FindReplaceBox x:Name="NotePage_FindReplaceBox"
+                              Grid.Row="2"
+                              VerticalAlignment="Top"
+                              HorizontalAlignment="Right"
+                              TargetEditor="{x:Bind NotePage_TextEditorRichEditBox}"
+                              IsOpen="False"
+                              RequestedTheme="{x:Bind NotePage_RootPage.RequestedTheme, Mode=OneTime}"
+                              Margin="12" />
     <!--#endregion -->
 
     <!--#region Command Bar -->
@@ -455,46 +427,46 @@
                     Orientation="Horizontal"
                     Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(Note.IsTextEditorReadOnly), Mode=OneWay}">
           <!-- Bold -->
-          <tmpls:SubtleIconToggleButton x:Name="NotePage_BoldButton"
-                                        x:Uid="/NotePage/BoldButton"
-                                        Content="{ctw:FontIcon Glyph=&#xE8DD;}"
-                                        AllowFocusOnInteraction="False"
-                                        IsChecked="{x:Bind EditorViewModel.IsSelectionBold, Mode=TwoWay}" />
+          <templates:SubtleIconToggleButton x:Name="NotePage_BoldButton"
+                                            x:Uid="/NotePage/BoldButton"
+                                            Content="{ctw:FontIcon Glyph=&#xE8DD;}"
+                                            AllowFocusOnInteraction="False"
+                                            IsChecked="{x:Bind EditorViewModel.IsSelectionBold, Mode=TwoWay}" />
 
           <!-- Italic -->
-          <tmpls:SubtleIconToggleButton x:Name="NotePage_ItalicButton"
-                                        x:Uid="/NotePage/ItalicButton"
-                                        Content="{ctw:FontIcon Glyph=&#xE8DB;}"
-                                        AllowFocusOnInteraction="False"
-                                        IsChecked="{x:Bind EditorViewModel.IsSelectionItalic, Mode=TwoWay}" />
+          <templates:SubtleIconToggleButton x:Name="NotePage_ItalicButton"
+                                            x:Uid="/NotePage/ItalicButton"
+                                            Content="{ctw:FontIcon Glyph=&#xE8DB;}"
+                                            AllowFocusOnInteraction="False"
+                                            IsChecked="{x:Bind EditorViewModel.IsSelectionItalic, Mode=TwoWay}" />
 
           <!-- Underline -->
-          <tmpls:SubtleIconToggleButton x:Name="NotePage_UnderlineButton"
-                                        x:Uid="/NotePage/UnderlineButton"
-                                        Content="{ctw:FontIcon Glyph=&#xE8DC;}"
-                                        AllowFocusOnInteraction="False"
-                                        IsChecked="{x:Bind EditorViewModel.IsSelectionUnderlined, Mode=TwoWay}" />
+          <templates:SubtleIconToggleButton x:Name="NotePage_UnderlineButton"
+                                            x:Uid="/NotePage/UnderlineButton"
+                                            Content="{ctw:FontIcon Glyph=&#xE8DC;}"
+                                            AllowFocusOnInteraction="False"
+                                            IsChecked="{x:Bind EditorViewModel.IsSelectionUnderlined, Mode=TwoWay}" />
 
           <!-- Strikethrough -->
-          <tmpls:SubtleIconToggleButton x:Name="NotePage_StrikethroughButton"
-                                        x:Uid="/NotePage/StrikethroughButton"
-                                        Content="{ctw:FontIcon Glyph=&#xEDE0;}"
-                                        AllowFocusOnInteraction="False"
-                                        IsChecked="{x:Bind EditorViewModel.IsSelectionStrikethrough, Mode=TwoWay}">
-            <tmpls:SubtleIconToggleButton.KeyboardAccelerators>
+          <templates:SubtleIconToggleButton x:Name="NotePage_StrikethroughButton"
+                                            x:Uid="/NotePage/StrikethroughButton"
+                                            Content="{ctw:FontIcon Glyph=&#xEDE0;}"
+                                            AllowFocusOnInteraction="False"
+                                            IsChecked="{x:Bind EditorViewModel.IsSelectionStrikethrough, Mode=TwoWay}">
+            <templates:SubtleIconToggleButton.KeyboardAccelerators>
               <KeyboardAccelerator Modifiers="Control"
                                    Key="T" />
-            </tmpls:SubtleIconToggleButton.KeyboardAccelerators>
-          </tmpls:SubtleIconToggleButton>
+            </templates:SubtleIconToggleButton.KeyboardAccelerators>
+          </templates:SubtleIconToggleButton>
 
           <!-- Bullets and Numbering -->
-          <tmpls:SubtleIconToggleSplitButton x:Name="NotePage_BulletsAndNumberingButton"
-                                             x:Uid="/NotePage/BulletsAndNumberingButton"
-                                             Content="{ctw:FontIcon Glyph=&#xE8BC;}"
-                                             AllowFocusOnInteraction="False"
-                                             IsChecked="{x:Bind EditorViewModel.IsSelectionParagraphList, Mode=TwoWay}">
+          <templates:SubtleIconToggleSplitButton x:Name="NotePage_BulletsAndNumberingButton"
+                                                 x:Uid="/NotePage/BulletsAndNumberingButton"
+                                                 Content="{ctw:FontIcon Glyph=&#xE8BC;}"
+                                                 AllowFocusOnInteraction="False"
+                                                 IsChecked="{x:Bind EditorViewModel.IsSelectionParagraphList, Mode=TwoWay}">
 
-            <tmpls:SubtleIconToggleSplitButton.Flyout>
+            <templates:SubtleIconToggleSplitButton.Flyout>
               <Flyout Placement="Top"
                       ShouldConstrainToRootBounds="False">
                 <StackPanel Spacing="12">
@@ -556,8 +528,8 @@
                   </GridView>
                 </StackPanel>
               </Flyout>
-            </tmpls:SubtleIconToggleSplitButton.Flyout>
-          </tmpls:SubtleIconToggleSplitButton>
+            </templates:SubtleIconToggleSplitButton.Flyout>
+          </templates:SubtleIconToggleSplitButton>
 
           <Rectangle Width="1"
                      Stretch="Fill"
@@ -565,10 +537,10 @@
                      Fill="{ThemeResource DividerStrokeColorDefault}" />
 
           <!-- Font Size -->
-          <tmpls:SubtleIconButton x:Name="NotePage_FontSizeButton"
-                                  x:Uid="/NotePage/FontSizeButton"
-                                  Content="{ctw:FontIcon Glyph=&#xE8E9;}">
-            <tmpls:SubtleIconButton.Flyout>
+          <templates:SubtleIconButton x:Name="NotePage_FontSizeButton"
+                                      x:Uid="/NotePage/FontSizeButton"
+                                      Content="{ctw:FontIcon Glyph=&#xE8E9;}">
+            <templates:SubtleIconButton.Flyout>
               <Flyout Placement="Top"
                       ShouldConstrainToRootBounds="False">
                 <StackPanel Spacing="12">
@@ -598,13 +570,13 @@
                   </StackPanel>
                 </StackPanel>
               </Flyout>
-            </tmpls:SubtleIconButton.Flyout>
-          </tmpls:SubtleIconButton>
+            </templates:SubtleIconButton.Flyout>
+          </templates:SubtleIconButton>
 
           <!-- Font Color -->
-          <tmpls:SubtleIconSplitButton x:Name="NotePage_FontColorButton"
-                                       x:Uid="/NotePage/FontColorButton">
-            <tmpls:SubtleIconSplitButton.Content>
+          <templates:SubtleIconSplitButton x:Name="NotePage_FontColorButton"
+                                           x:Uid="/NotePage/FontColorButton">
+            <templates:SubtleIconSplitButton.Content>
               <Grid>
                 <Border CornerRadius="3"
                         RenderTransformOrigin="0.5, 0.95">
@@ -617,7 +589,7 @@
                 <FontIcon Glyph="&#xE8D3;" />
 
               </Grid>
-            </tmpls:SubtleIconSplitButton.Content>
+            </templates:SubtleIconSplitButton.Content>
 
             <mxi:Interaction.Behaviors>
               <mxi:EventTriggerBehavior EventName="Click">
@@ -625,7 +597,7 @@
               </mxi:EventTriggerBehavior>
             </mxi:Interaction.Behaviors>
 
-            <tmpls:SubtleIconSplitButton.SecondaryFlyout>
+            <templates:SubtleIconSplitButton.SecondaryFlyout>
               <Flyout Placement="Top"
                       ShouldConstrainToRootBounds="False">
                 <StackPanel Spacing="12"
@@ -685,20 +657,20 @@
                   </ctwc:SwitchPresenter>
                 </StackPanel>
               </Flyout>
-            </tmpls:SubtleIconSplitButton.SecondaryFlyout>
-          </tmpls:SubtleIconSplitButton>
+            </templates:SubtleIconSplitButton.SecondaryFlyout>
+          </templates:SubtleIconSplitButton>
 
           <!-- Text Highlight Color -->
-          <tmpls:SubtleIconSplitButton x:Name="NotePage_TextHighlightColorButton"
-                                       x:Uid="/NotePage/TextHighlightColorButton">
-            <tmpls:SubtleIconSplitButton.Content>
+          <templates:SubtleIconSplitButton x:Name="NotePage_TextHighlightColorButton"
+                                           x:Uid="/NotePage/TextHighlightColorButton">
+            <templates:SubtleIconSplitButton.Content>
               <Grid>
                 <FontIcon Glyph="&#xE891;"
                           Foreground="{x:Bind helpers:ColorHelper.ToBrush(EditorViewModel.RecentHighlightColor), Mode=OneWay}" />
                 <FontIcon Glyph="&#xE7E6;" />
 
               </Grid>
-            </tmpls:SubtleIconSplitButton.Content>
+            </templates:SubtleIconSplitButton.Content>
 
             <mxi:Interaction.Behaviors>
               <mxi:EventTriggerBehavior EventName="Click">
@@ -706,7 +678,7 @@
               </mxi:EventTriggerBehavior>
             </mxi:Interaction.Behaviors>
 
-            <tmpls:SubtleIconSplitButton.SecondaryFlyout>
+            <templates:SubtleIconSplitButton.SecondaryFlyout>
               <Flyout Placement="Top"
                       ShouldConstrainToRootBounds="False">
                 <StackPanel Spacing="12"
@@ -781,18 +753,18 @@
                   </ctwc:SwitchPresenter>
                 </StackPanel>
               </Flyout>
-            </tmpls:SubtleIconSplitButton.SecondaryFlyout>
-            <tmpls:SubtleIconSplitButton.KeyboardAccelerators>
+            </templates:SubtleIconSplitButton.SecondaryFlyout>
+            <templates:SubtleIconSplitButton.KeyboardAccelerators>
               <KeyboardAccelerator Modifiers="Control,Shift"
                                    Key="H" />
-            </tmpls:SubtleIconSplitButton.KeyboardAccelerators>
-          </tmpls:SubtleIconSplitButton>
+            </templates:SubtleIconSplitButton.KeyboardAccelerators>
+          </templates:SubtleIconSplitButton>
         </StackPanel>
 
-        <tmpls:SubtleIconButton x:Uid="/NotePage/EnterEditModeButton"
-                                Content="{ctw:FontIcon Glyph=&#xE70F;}"
-                                Visibility="{x:Bind Note.IsTextEditorReadOnly, Mode=OneWay}"
-                                Command="{x:Bind EditorViewModel.EnterEditModeCommand}" />
+        <templates:SubtleIconButton x:Uid="/NotePage/EnterEditModeButton"
+                                    Content="{ctw:FontIcon Glyph=&#xE70F;}"
+                                    Visibility="{x:Bind Note.IsTextEditorReadOnly, Mode=OneWay}"
+                                    Command="{x:Bind EditorViewModel.EnterEditModeCommand}" />
 
         <Rectangle Width="1"
                    Stretch="Fill"
@@ -800,10 +772,10 @@
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
         <!-- Background and Backdrop -->
-        <tmpls:SubtleIconButton x:Name="NotePage_BackgroundButton"
-                                x:Uid="/NotePage/BackgroundButton"
-                                Content="{ctw:FontIcon Glyph=&#xE790;}">
-          <tmpls:SubtleIconButton.Flyout>
+        <templates:SubtleIconButton x:Name="NotePage_BackgroundButton"
+                                    x:Uid="/NotePage/BackgroundButton"
+                                    Content="{ctw:FontIcon Glyph=&#xE790;}">
+          <templates:SubtleIconButton.Flyout>
             <Flyout x:Name="NotePage_BackgroundFlyout"
                     Placement="Top"
                     ShouldConstrainToRootBounds="False"
@@ -937,13 +909,13 @@
                                 StepFrequency="0.01"
                                 IsThumbToolTipEnabled="False"
                                 Value="{x:Bind Note.BackdropTintOpacity, Mode=TwoWay}"
-                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}" />
-                        <tmpls:SubtleIconButton Grid.Row="1"
-                                                Grid.Column="2"
-                                                Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}"
-                                                Command="{x:Bind EditorViewModel.ChangeBackdropTintOpacityToDefaultCommand}" />
+                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, manm:BackdropKind.None), Mode=OneWay}" />
+                        <templates:SubtleIconButton Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                    IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, manm:BackdropKind.None), Mode=OneWay}"
+                                                    Command="{x:Bind EditorViewModel.ChangeBackdropTintOpacityToDefaultCommand}" />
                       </Grid>
 
                       <Grid RowSpacing="4"
@@ -977,13 +949,13 @@
                                 StepFrequency="0.01"
                                 IsThumbToolTipEnabled="False"
                                 Value="{x:Bind Note.BackdropLuminosityOpacity, Mode=TwoWay}"
-                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}" />
-                        <tmpls:SubtleIconButton Grid.Row="1"
-                                                Grid.Column="2"
-                                                Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, appnotemodels:BackdropKind.None), Mode=OneWay}"
-                                                Command="{x:Bind EditorViewModel.ChangeBackdropLuminosityOpacityToDefaultCommand}" />
+                                IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, manm:BackdropKind.None), Mode=OneWay}" />
+                        <templates:SubtleIconButton Grid.Row="1"
+                                                    Grid.Column="2"
+                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                    IsEnabled="{x:Bind helpers:ObjectHelper.IsNotEqual(Note.BackdropKind, manm:BackdropKind.None), Mode=OneWay}"
+                                                    Command="{x:Bind EditorViewModel.ChangeBackdropLuminosityOpacityToDefaultCommand}" />
                       </Grid>
                     </StackPanel>
                   </ctwc:Case>
@@ -1053,17 +1025,17 @@
                               <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageOpacityTextBlock"
-                                                      Grid.Row="0"
-                                                      Grid.Column="0"
-                                                      Grid.ColumnSpan="3" />
+                            <templates:TextContentControl x:Uid="/NotePage/BackgroundImageOpacityTextBlock"
+                                                          Grid.Row="0"
+                                                          Grid.Column="0"
+                                                          Grid.ColumnSpan="3" />
 
-                            <tmpls:TextContentControl Grid.Row="1"
-                                                      Grid.Column="0"
-                                                      VerticalAlignment="Center"
-                                                      HorizontalContentAlignment="Center"
-                                                      Width="32"
-                                                      Text="{x:Bind helpers:NumericHelper.GetPercentage(Note.BackgroundImageOpacity, 1.0), Mode=OneWay}" />
+                            <templates:TextContentControl Grid.Row="1"
+                                                          Grid.Column="0"
+                                                          VerticalAlignment="Center"
+                                                          HorizontalContentAlignment="Center"
+                                                          Width="32"
+                                                          Text="{x:Bind helpers:NumericHelper.GetPercentage(Note.BackgroundImageOpacity, 1.0), Mode=OneWay}" />
                             <Slider Grid.Row="1"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
@@ -1072,11 +1044,11 @@
                                     StepFrequency="0.01"
                                     IsThumbToolTipEnabled="False"
                                     Value="{x:Bind Note.BackgroundImageOpacity, Mode=TwoWay}" />
-                            <tmpls:SubtleIconButton Grid.Row="1"
-                                                    Grid.Column="2"
-                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                    Command="{x:Bind EditorViewModel.ChangeBackgroundImageOpacityToDefaultCommand}" />
+                            <templates:SubtleIconButton Grid.Row="1"
+                                                        Grid.Column="2"
+                                                        Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                        Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                        Command="{x:Bind EditorViewModel.ChangeBackgroundImageOpacityToDefaultCommand}" />
                           </Grid>
 
                           <Grid RowSpacing="4"
@@ -1091,17 +1063,17 @@
                               <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageBlurTextBlock"
-                                                      Grid.Row="0"
-                                                      Grid.Column="0"
-                                                      Grid.ColumnSpan="3" />
+                            <templates:TextContentControl x:Uid="/NotePage/BackgroundImageBlurTextBlock"
+                                                          Grid.Row="0"
+                                                          Grid.Column="0"
+                                                          Grid.ColumnSpan="3" />
 
-                            <tmpls:TextContentControl Grid.Row="1"
-                                                      Grid.Column="0"
-                                                      VerticalAlignment="Center"
-                                                      HorizontalContentAlignment="Center"
-                                                      Width="32"
-                                                      Text="{x:Bind helpers:NumericHelper.Round(Note.BackgroundImageBlur, 2), Mode=OneWay}" />
+                            <templates:TextContentControl Grid.Row="1"
+                                                          Grid.Column="0"
+                                                          VerticalAlignment="Center"
+                                                          HorizontalContentAlignment="Center"
+                                                          Width="32"
+                                                          Text="{x:Bind helpers:NumericHelper.Round(Note.BackgroundImageBlur, 2), Mode=OneWay}" />
                             <Slider Grid.Row="1"
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
@@ -1109,11 +1081,11 @@
                                     Maximum="100"
                                     IsThumbToolTipEnabled="False"
                                     Value="{x:Bind Note.BackgroundImageBlur, Mode=TwoWay}" />
-                            <tmpls:SubtleIconButton Grid.Row="1"
-                                                    Grid.Column="2"
-                                                    Content="{ctw:FontIcon Glyph=&#xE72C;}"
-                                                    Style="{StaticResource SubtleIconButtonStyle_32x16}"
-                                                    Command="{x:Bind EditorViewModel.ChangeBackgroundImageBlurToDefaultCommand}" />
+                            <templates:SubtleIconButton Grid.Row="1"
+                                                        Grid.Column="2"
+                                                        Content="{ctw:FontIcon Glyph=&#xE72C;}"
+                                                        Style="{StaticResource SubtleIconButtonStyle_32x16}"
+                                                        Command="{x:Bind EditorViewModel.ChangeBackgroundImageBlurToDefaultCommand}" />
                           </Grid>
 
                           <NavigationViewItemSeparator />
@@ -1129,17 +1101,17 @@
                               <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
 
-                            <tmpls:TextContentControl x:Uid="/NotePage/BackgroundImageSelectionTextBlock"
-                                                      Grid.Row="0"
-                                                      Grid.Column="0"
-                                                      Grid.ColumnSpan="2" />
-                            <tmpls:TextContentControl Grid.Row="1"
-                                                      Grid.Column="0"
-                                                      Text="{x:Bind helpers:StringHelper.GetFileName(Note.BackgroundImagePath), Mode=OneWay}"
-                                                      TextTrimming="CharacterEllipsis"
-                                                      VerticalAlignment="Center"
-                                                      IsTextSelectionEnabled="True"
-                                                      ToolTipService.ToolTip="{x:Bind Note.BackgroundImagePath, Mode=OneWay}" />
+                            <templates:TextContentControl x:Uid="/NotePage/BackgroundImageSelectionTextBlock"
+                                                          Grid.Row="0"
+                                                          Grid.Column="0"
+                                                          Grid.ColumnSpan="2" />
+                            <templates:TextContentControl Grid.Row="1"
+                                                          Grid.Column="0"
+                                                          Text="{x:Bind helpers:StringHelper.GetFileName(Note.BackgroundImagePath), Mode=OneWay}"
+                                                          TextTrimming="CharacterEllipsis"
+                                                          VerticalAlignment="Center"
+                                                          IsTextSelectionEnabled="True"
+                                                          ToolTipService.ToolTip="{x:Bind Note.BackgroundImagePath, Mode=OneWay}" />
                             <Button x:Uid="/NotePage/BackgroundImageBrowseButton"
                                     Grid.Row="1"
                                     Grid.Column="1"
@@ -1153,8 +1125,8 @@
                 </ctwc:SwitchPresenter>
               </StackPanel>
             </Flyout>
-          </tmpls:SubtleIconButton.Flyout>
-        </tmpls:SubtleIconButton>
+          </templates:SubtleIconButton.Flyout>
+        </templates:SubtleIconButton>
 
         <Rectangle Width="1"
                    Stretch="Fill"
@@ -1162,11 +1134,11 @@
                    Fill="{ThemeResource DividerStrokeColorDefault}" />
 
         <!-- Insert Image -->
-        <tmpls:SubtleIconButton x:Name="NotePage_InsertImagesButton"
-                                x:Uid="/NotePage/InsertImagesButton"
-                                Content="{ctw:FontIcon Glyph=&#xE91B;}"
-                                Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}"
-                                CommandParameter="{x:Bind XamlRoot.ContentIslandEnvironment.AppWindowId}" />
+        <templates:SubtleIconButton x:Name="NotePage_InsertImagesButton"
+                                    x:Uid="/NotePage/InsertImagesButton"
+                                    Content="{ctw:FontIcon Glyph=&#xE91B;}"
+                                    Command="{x:Bind ImageCollectionViewModel.InsertImageCommand}"
+                                    CommandParameter="{x:Bind XamlRoot.ContentIslandEnvironment.AppWindowId}" />
       </StackPanel>
     </ScrollViewer>
     <!--#endregion -->

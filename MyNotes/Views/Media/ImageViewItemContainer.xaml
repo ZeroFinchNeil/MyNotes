@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="MyNotes.Views.Media.ImageViewItemContainer"
+             x:Name="ImageViewItemContainer_Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:MyNotes.Views.Media"
+             xmlns:mxi="using:Microsoft.Xaml.Interactivity">
+
+  <Image Source="{x:Bind ViewModel.Image, Mode=OneWay}">
+    <mxi:Interaction.Behaviors>
+      <mxi:EventTriggerBehavior EventName="DoubleTapped" >
+        <mxi:InvokeCommandAction Command="{x:Bind ViewModel.ShowImageCommand, Mode=OneWay}" />
+      </mxi:EventTriggerBehavior>
+    </mxi:Interaction.Behaviors>
+    <Image.ContextFlyout>
+      <MenuFlyout>
+        <MenuFlyoutItem Icon="Pictures"
+                        Text="Show"
+                        Command="{x:Bind ViewModel.ShowImageCommand, Mode=OneWay}"
+                        Visibility="{x:Bind IsOpenInNewWindowAvailable, Mode=OneWay}"/>
+        <MenuFlyoutItem Icon="OpenWith"
+                        Text="Open with..."
+                        Command="{x:Bind ViewModel.OpenWithCommand, Mode=OneWay}" />
+        <MenuFlyoutItem Icon="SaveLocal"
+                        Text="Save local"
+                        Command="{x:Bind ViewModel.SaveImageCommand, Mode=OneWay}"
+                        CommandParameter="{x:Bind ImageViewItemContainer_Root.XamlRoot.ContentIslandEnvironment.AppWindowId}" />
+        <MenuFlyoutSeparator />
+        <MenuFlyoutItem Icon="Delete"
+                        Text="Delete"
+                        Command="{x:Bind ViewModel.DeleteImageCommand, Mode=OneWay}" />
+      </MenuFlyout>
+    </Image.ContextFlyout>
+  </Image>
+</UserControl>

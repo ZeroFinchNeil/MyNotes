@@ -1,40 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Page x:Class="MyNotes.Views.Media.ImageViewerPage"
+      x:Name="ImageViewerPage_Root"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      xmlns:tmpls="using:MyNotes.Templates"
+      xmlns:templates="using:MyNotes.Templates"
       xmlns:ctw="using:CommunityToolkit.WinUI"
-      xmlns:vmm="using:MyNotes.ViewModels.Media"
       xmlns:helpers="using:MyNotes.Common.Helpers">
 
   <Grid>
     <Grid.RowDefinitions>
       <RowDefinition Height="48" />
       <RowDefinition />
+      <RowDefinition Height="Auto" />
     </Grid.RowDefinitions>
     <StackPanel Orientation="Horizontal">
-      <tmpls:SubtleIconButton Content="{ctw:FontIcon Glyph=&#xE712;}"
-                              Width="48"
-                              Height="48">
-        <tmpls:SubtleIconButton.Flyout>
-          <MenuFlyout Placement="BottomEdgeAlignedLeft">
-            <MenuFlyoutItem x:Name="ImageViewerPage_OpenWithMenuFlyoutItem"
-                            Icon="NewWindow"
-                            Text="Open with..."
-                            Click="ImageViewerPage_OpenWithMenuFlyoutItem_Click" />
-            <MenuFlyoutItem x:Name="ImageViewerPage_SaveLocalMenuFlyoutItem"
-                            Icon="SaveLocal"
-                            Text="Save local"
-                            Click="ImageViewerPage_SaveLocalMenuFlyoutItem_Click" />
-            <MenuFlyoutSeparator />
-            <MenuFlyoutItem x:Name="ImageViewerPage_DeleteImageMenuFlyoutItem"
-                            Icon="Delete"
-                            Text="Delete"
-                            Command="{x:Bind ViewModel.DeleteImageCommand}"
-                            CommandParameter="{x:Bind ViewModel.SelectedImage, Mode=OneWay}" />
-          </MenuFlyout>
-        </tmpls:SubtleIconButton.Flyout>
-      </tmpls:SubtleIconButton>
+      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=OpenWith}"
+                                  Width="48"
+                                  Height="48"
+                                  Command="{x:Bind ViewModel.SelectedImage.OpenWithCommand, Mode=OneWay}" />
+      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=OpenLocal}"
+                                  Width="48"
+                                  Height="48" />
+      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=SaveLocal}"
+                                  Width="48"
+                                  Height="48"
+                                  Command="{x:Bind ViewModel.SelectedImage.SaveImageCommand, Mode=OneWay}"
+                                  CommandParameter="{x:Bind ImageViewerPage_Root.XamlRoot.ContentIslandEnvironment.AppWindowId}" />
+      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=Delete}"
+                                  Width="48"
+                                  Height="48"
+                                  Command="{x:Bind ViewModel.SelectedImage.DeleteImageCommand}" />
     </StackPanel>
 
     <FlipView Grid.Row="1"
@@ -55,8 +50,11 @@
         </Style>
       </FlipView.ItemContainerStyle>
       <FlipView.ItemTemplate>
-        <DataTemplate x:DataType="vmm:ImageViewModel">
-          <Image Source="{x:Bind Image}" />
+        <DataTemplate x:DataType="mvmm:ImageViewModel"
+                      xmlns:mvm="using:MyNotes.Views.Media"
+                      xmlns:mvmm="using:MyNotes.ViewModels.Media">
+          <mvm:ImageViewItemContainer ViewModel="{x:Bind}"
+                                      IsOpenInNewWindowAvailable="False"/>
         </DataTemplate>
       </FlipView.ItemTemplate>
     </FlipView>
@@ -67,5 +65,22 @@
                VerticalAlignment="Center"
                Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(ViewModel.HasImages), Mode=OneWay}"
                Style="{StaticResource HeaderTextBlockStyle}" />
+
+    <GridView Grid.Row="2"
+              ItemsSource="{x:Bind ViewModel.ImageViewModels}"
+              SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
+              SelectionMode="Single"
+              Height="96"
+              HorizontalAlignment="Center">
+      <GridView.ItemTemplate>
+        <DataTemplate x:DataType="mvmm:ImageViewModel"
+                      xmlns:mvm="using:MyNotes.Views.Media"
+                      xmlns:mvmm="using:MyNotes.ViewModels.Media">
+          <Image Source="{x:Bind Image, Mode=OneWay}" 
+                 Height="80"
+                 VerticalAlignment="Center"/>
+        </DataTemplate>
+      </GridView.ItemTemplate>
+    </GridView>
   </Grid>
 </Page>

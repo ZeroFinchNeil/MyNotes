@@ -68,8 +68,17 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   private LeasedImageViewModelCollection? _imageViewModelLeases;
   public IReadOnlyList<ImageViewModel> ImageViewModels => _imageViewModelLeases?.ViewModels ?? throw new InvalidOperationException("객체가 초기화되지 않음");
 
-  [ObservableProperty]
-  public partial ImageViewModel? SelectedImage { get; set; }
+  public ImageViewModel? SelectedImage
+  {
+    get; 
+    set 
+    {
+      if (ImageViewModels is not null && ImageViewModels.Contains(value))
+      {
+        SetProperty(ref field, value);
+      }
+    }
+  }
 
   [ObservableProperty]
   public partial bool HasImages { get; set; }
@@ -96,16 +105,19 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
     return true;
   }
+
+  public void RemoveImageFromCollection(ImageViewModel imageViewModel)
+  {
+    _imageViewModelLeases?.Remove(imageViewModel);
+    HasImages = ImageViewModels.Count > 0;
+  }
 }
 
 internal sealed partial class ImageCollectionViewModel : ViewModelBase
 {
-  public AsyncCommand<Microsoft.UI.WindowId> InsertImageCommand { get; private set; }
+  public AsyncCommand<Microsoft.UI.WindowId>? InsertImageCommand { get; private set; }
 
-  public AsyncCommand<ImageViewModel> ShowImageCommand { get; private set; }
-  public AsyncCommand<ImageViewModel> DeleteImageCommand { get; private set; }
-
-  [MemberNotNull(nameof(InsertImageCommand), nameof(ShowImageCommand), nameof(DeleteImageCommand))]
+  [MemberNotNull(nameof(InsertImageCommand))]
   private void SetCommands()
   {
     InsertImageCommand = new()
@@ -115,7 +127,8 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
         // FilePicker 열기
         FileOpenPicker picker = new(windowId)
         {
-          ViewMode = PickerViewMode.Thumbnail
+          ViewMode = PickerViewMode.Thumbnail,
+          SuggestedStartLocation = PickerLocationId.PicturesLibrary
         };
 
         foreach (var fileType in AppStrings.BitmapImageFileTypeFilter)
@@ -141,32 +154,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
           {
             ConsoleHelper.WriteLine(true, "{0}: {1}", "File Exception", e.Message);
           }
-        }
-
-        HasImages = ImageViewModels.Count > 0;
-      }
-    };
-
-    ShowImageCommand = new()
-    {
-      ExecuteFunc = async (imageViewModel) =>
-      {
-        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(imageViewModel.CollectionKey);
-        imageViewerWindow.Activate();
-        if (ImageViewModels is not null && ImageViewModels.Contains(imageViewModel))
-        {
-          SelectedImage = imageViewModel;
-        }
-      }
-    };
-
-    DeleteImageCommand = new()
-    {
-      ExecuteFunc = async (imageViewModel) =>
-      {
-        if (await imageViewModel.DeleteImageAsync())
-        {
-          _imageViewModelLeases?.Remove(imageViewModel);
         }
 
         HasImages = ImageViewModels.Count > 0;
