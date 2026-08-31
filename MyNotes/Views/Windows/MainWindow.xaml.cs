@@ -1,9 +1,7 @@
-using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
-
 using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Application.Settings.Services;
+using MyNotes.Common.Converters.Codecs;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
@@ -97,7 +95,7 @@ internal sealed partial class MainWindow : Window
     AppWindow.Changed += AppWindow_Changed;
 
     // 제목 표시줄 테마 설정
-    var theme = AppSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme);
+    var theme = AppSettingsService.Load(ElementThemeSettingsCodec.Default, AppSettingsDescriptors.AppTheme);
     AppWindow.TitleBar.PreferredTheme = theme switch
     {
       ElementTheme.Light => TitleBarTheme.Light,

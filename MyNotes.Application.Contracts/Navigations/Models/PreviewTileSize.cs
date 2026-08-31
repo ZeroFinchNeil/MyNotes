@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Navigations.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Navigations.Models;
 
 public enum PreviewTileSize
 {
@@ -11,9 +13,12 @@ public enum PreviewTileSize
   Largest       // 360
 }
 
-public static class PreviewTileSizeSettingsCodec
+public sealed class PreviewTileSizeSettingsCodec : ISettingsCodec<PreviewTileSize, int>
 {
-  public static int Encode(PreviewTileSize input) => (int)input;
+  public static PreviewTileSizeSettingsCodec Default => field ??= new();
 
-  public static PreviewTileSize Decode(int output) => (PreviewTileSize)output;
+  private PreviewTileSizeSettingsCodec() { }
+  public int Encode(PreviewTileSize input) => (int)input;
+
+  public PreviewTileSize Decode(int output) => (PreviewTileSize)output;
 }

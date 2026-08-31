@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Models.Navigations.Preferences;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Models.Navigations.Preferences;
 
 internal enum InitialPageType
 {
@@ -8,9 +10,12 @@ internal enum InitialPageType
   Preferred,
 }
 
-internal static class InitialPageTypeSettingsCodec
+internal sealed class InitialPageTypeSettingsCodec : ISettingsCodec<InitialPageType, int>
 {
-  public static int Encode(InitialPageType input) => (int)input;
+  public static InitialPageTypeSettingsCodec Default => field ??= new();
+  private InitialPageTypeSettingsCodec() { }
 
-  public static InitialPageType Decode(int output) => (InitialPageType)output;
+  public int Encode(InitialPageType input) => (int)input;
+
+  public InitialPageType Decode(int output) => (InitialPageType)output;
 }

@@ -7,6 +7,7 @@ using Microsoft.Windows.Storage.Pickers;
 
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Settings.Services;
+using MyNotes.Common.Converters.Codecs;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
@@ -53,7 +54,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     Note = note;
 
     var appSettingsService = App.Services.GetRequiredService<AppSettingsService>();
-    ChangeFlyoutTheme(appSettingsService.Load<ElementTheme, int>(e => (ElementTheme)e, AppSettingsDescriptors.AppTheme));
+    ChangeFlyoutTheme(appSettingsService.Load(ElementThemeSettingsCodec.Default, AppSettingsDescriptors.AppTheme));
 
     var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(new ImageCollectionKey(Note.Id.Value));

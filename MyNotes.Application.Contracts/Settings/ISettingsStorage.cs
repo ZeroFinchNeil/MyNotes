@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace MyNotes.Application.Contracts.Settings;
 
@@ -11,7 +12,7 @@ internal interface ISettingsStorage
 
   public void Save<T>(string settingsKey, T settingsValue) where T : notnull;
 
-  public T? Load<T>(string settingsKey) where T : notnull;
+  public bool TryLoad<T>(string settingsKey, [NotNullWhen(true)] out T? settingsValue) where T : notnull;
 
   public void SaveToComposite<T>(string settingsKey, KeyValuePair<string, T> pair) where T : notnull;
 

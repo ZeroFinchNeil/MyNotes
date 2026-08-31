@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Querying.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Querying.Models;
 
 public enum SortDirection
 {
@@ -6,9 +8,12 @@ public enum SortDirection
   Descending
 }
 
-public static class SortDirectionSettingsCodec
+public sealed class SortDirectionSettingsCodec : ISettingsCodec<SortDirection, int>
 {
-  public static int Encode(SortDirection input) => (int)input;
+  public static SortDirectionSettingsCodec Default => field ??= new();
 
-  public static SortDirection Decode(int output) => (SortDirection)output;
+  private SortDirectionSettingsCodec() { }
+  public int Encode(SortDirection input) => (int)input;
+
+  public SortDirection Decode(int output) => (SortDirection)output;
 }

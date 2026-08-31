@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Models.Navigations.Preferences;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Models.Navigations.Preferences;
 
 public enum GroupIconBadge
 {
@@ -6,9 +8,12 @@ public enum GroupIconBadge
   Folder
 }
 
-public static class GroupIconBadgeSettingsCodec
+public sealed class GroupIconBadgeSettingsCodec : ISettingsCodec<GroupIconBadge, int>
 {
-  public static int Encode(GroupIconBadge input) => (int)input;
+  public static GroupIconBadgeSettingsCodec Default => field ??= new();
+  private GroupIconBadgeSettingsCodec() { }
 
-  public static GroupIconBadge Decode(int output) => (GroupIconBadge)output;
+  public int Encode(GroupIconBadge input) => (int)input;
+
+  public GroupIconBadge Decode(int output) => (GroupIconBadge)output;
 }

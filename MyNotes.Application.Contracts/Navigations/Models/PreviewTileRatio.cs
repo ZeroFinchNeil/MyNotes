@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Navigations.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Navigations.Models;
 
 public enum PreviewTileRatio
 {
@@ -9,9 +11,12 @@ public enum PreviewTileRatio
   Taller      // 4:6 (1.50)
 }
 
-public static class PreviewTileRatioSettingsCodec
+public sealed class PreviewTileRatioSettingsCodec : ISettingsCodec<PreviewTileRatio, int>
 {
-  public static int Encode(PreviewTileRatio input) => (int)input;
+  public static PreviewTileRatioSettingsCodec Default => field ??= new();
 
-  public static PreviewTileRatio Decode(int output) => (PreviewTileRatio)output;
+  private PreviewTileRatioSettingsCodec() { }
+  public int Encode(PreviewTileRatio input) => (int)input;
+
+  public PreviewTileRatio Decode(int output) => (PreviewTileRatio)output;
 }

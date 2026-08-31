@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +8,6 @@ using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
-using MyNotes.Messaging;
 using MyNotes.Messaging.Messages;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Preferences;
@@ -83,7 +81,7 @@ internal partial class UserGroupNavigationViewModel : UserNavigationViewModel
 
   private async Task SetIconImage()
   {
-    IconImage = await IconHelper.GetIconImage((int)Navigation.Icon, AppSettingsService.Load<GroupIconBadge, int>(GroupIconBadgeSettingsCodec.Decode, AppSettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
+    IconImage = await IconHelper.GetIconImage((int)Navigation.Icon, AppSettingsService.Load(GroupIconBadgeSettingsCodec.Default, AppSettingsDescriptors.GroupIconBadge), Navigation is not NavigationUserRootNode);
   }
 
   private void ChildNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)

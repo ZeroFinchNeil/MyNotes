@@ -2,11 +2,12 @@
 
 using Microsoft.Windows.Globalization;
 
+using MyNotes.Common.Structures;
 using MyNotes.Strings;
 
 namespace MyNotes.Models.UI;
 
-public readonly record struct AppLanguage
+internal readonly record struct AppLanguage
 {
   public static SortedList<string, CultureInfo> ManifestLanguages { get; } = new();
 
@@ -44,9 +45,13 @@ public readonly record struct AppLanguage
   public string FormatLanguageString(string lang1, string lang2) => lang1 == lang2 ? string.Empty : lang1;
 }
 
-public static class AppLanguageSettingsCodec
+internal sealed class AppLanguageSettingsCodec : ISettingsCodec<AppLanguage, string>
 {
-  public static string Encode(AppLanguage input) => input.Language;
+  public static AppLanguageSettingsCodec Default => field ??= new();
 
-  public static AppLanguage Decode(string output) => new(output);
+  private AppLanguageSettingsCodec() { }
+
+  public string Encode(AppLanguage input) => input.Language;
+
+  public AppLanguage Decode(string output) => new(output);
 }

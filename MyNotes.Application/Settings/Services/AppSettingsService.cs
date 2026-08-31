@@ -12,27 +12,29 @@ internal sealed class AppSettingsService
     SettingsStorage = settingsStorage;
   }
 
-  public void Save<T>(SettingsDescriptor<T> settings, T settingsValue) where T : notnull
+  public void Save<TSupported>(SettingsDescriptor<TSupported> settings, TSupported settingsValue) where TSupported : notnull
   {
-    if (!SettingsStorage.IsValidType(typeof(T)))
+    if (!SettingsStorage.IsValidType(typeof(TSupported)))
     {
       throw new InvalidOperationException();
     }
 
-    var oldSettingsValue = SettingsStorage.Load<T>(settings.Key);
-    if (oldSettingsValue is null || !oldSettingsValue.Equals(settingsValue))
+    if (!SettingsStorage.TryLoad<TSupported>(settings.Key, out var oldSettingsValue) || !oldSettingsValue.Equals(settingsValue))
     {
       SettingsStorage.Save(settings.Key, settingsValue);
     }
   }
 
-  public void Save<T, TResult>(Converter<T, TResult> converter, SettingsDescriptor<T> settings, T settingsValue) where T : notnull where TResult : notnull => Save(settings.Convert(converter), converter(settingsValue));
+  public void Save<T, TSupported>(ISettingsCodec<T, TSupported> codec, SettingsDescriptor<T> settings, T settingsValue) where T : notnull where TSupported : notnull => Save(settings.Convert(codec.Encode), codec.Encode(settingsValue));
 
-  public T Load<T>(SettingsDescriptor<T> settings) where T : notnull => SettingsStorage.IsValidType(typeof(T))
-    ? SettingsStorage.Load<T>(settings.Key) is T TValue ? TValue : settings.DefaultValue
+  public TSupported Load<TSupported>(SettingsDescriptor<TSupported> settings) where TSupported : notnull => SettingsStorage.IsValidType(typeof(TSupported))
+    ? SettingsStorage.TryLoad<TSupported>(settings.Key, out var settingsValue)
+      ? settingsValue : settings.DefaultValue
     : throw new InvalidOperationException();
 
-  public T Load<T, TSource>(Converter<TSource, T> converter, SettingsDescriptor<T> settings) where T : notnull where TSource : notnull => SettingsStorage.IsValidType(typeof(TSource))
-    ? SettingsStorage.Load<TSource>(settings.Key) is TSource TValue ? converter(TValue) : settings.DefaultValue
+  public T Load<T, TSupported>(ISettingsCodec<T, TSupported> codec, SettingsDescriptor<T> settings) where T : notnull where TSupported : notnull => SettingsStorage.IsValidType(typeof(TSupported))
+    ? SettingsStorage.TryLoad<TSupported>(settings.Key, out var supportedValue)
+      ? codec.Decode(supportedValue)
+      : settings.DefaultValue
     : throw new InvalidOperationException();
 }

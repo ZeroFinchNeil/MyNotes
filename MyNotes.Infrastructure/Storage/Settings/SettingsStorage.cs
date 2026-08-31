@@ -1,6 +1,7 @@
 ﻿
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 using MyNotes.Application.Contracts.Settings;
 using MyNotes.Debugging;
@@ -62,10 +63,16 @@ internal sealed class SettingsStorage : ISettingsStorage
     _settingsSet[settingsKey] = settingsValue;
   }
 
-  public T? Load<T>(string settingsKey) where T : notnull
+  public bool TryLoad<T>(string settingsKey, [NotNullWhen(true)] out T? settingsValue) where T : notnull
   {
-    _settingsSet.TryGetValue(settingsKey, out var value);
-    return value is T TValue ? TValue : default;
+    if(_settingsSet.TryGetValue(settingsKey, out var value) && value is T TValue)
+    {
+      settingsValue = TValue;
+      return true;
+    }
+
+    settingsValue = default;
+    return false; 
   }
 
   public void SaveToComposite<T>(string settingsKey, KeyValuePair<string, T> pair) where T : notnull

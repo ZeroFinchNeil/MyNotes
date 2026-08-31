@@ -1,7 +1,7 @@
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Common.Layout;
+using MyNotes.Debugging;
 using MyNotes.ViewModels.Navigations.Contents;
-using MyNotes.ViewModels.Notes;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -13,6 +13,11 @@ internal sealed partial class NotePreviewItemsContainer : UserControl
   public NotePreviewItemsContainer()
   {
     InitializeComponent();
+  }
+
+  protected override void OnApplyTemplate()
+  {
+    base.OnApplyTemplate();
     ChangePreviewLayout();
   }
 
@@ -50,6 +55,7 @@ internal sealed partial class NotePreviewItemsContainer : UserControl
 
   private void ChangePreviewLayout()
   {
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "PreviewLayoutType", PreviewLayoutType);
     switch (PreviewLayoutType)
     {
       case PreviewLayoutType.Grid:
@@ -66,6 +72,8 @@ internal sealed partial class NotePreviewItemsContainer : UserControl
 
   private void ChangePreviewTile()
   {
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "PreviewTileSize", PreviewTileSize);
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "PreviewTileRatio", PreviewTileRatio);
     var size = PreviewTileSizeMetrics.GetWidth(PreviewTileSize);
     var ratio = PreviewTileRatioMetrics.GetRatio(PreviewTileRatio);
 

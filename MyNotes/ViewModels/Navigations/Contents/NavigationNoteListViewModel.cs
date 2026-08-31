@@ -1,6 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
-using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Navigations.Models;
 using MyNotes.Application.Contracts.Notes.Models;
@@ -12,6 +11,7 @@ using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Converters.Codecs;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
 using MyNotes.Domain.Navigations;
@@ -190,7 +190,7 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
       {
         if (Navigation is NavigationUserLeafNode leafNavigation)
         {
-          var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.DefaultNoteSize);
+          var size = AppSettingsService.Load(SizeInt32SettingsCodec.Default, AppSettingsDescriptors.DefaultNoteSize);
           var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.DefaultNoteWindowPosition.PointInt32;
           CreateNoteAppCommand createNoteAppCommand = new()
           {

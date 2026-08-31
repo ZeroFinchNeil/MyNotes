@@ -79,11 +79,11 @@ internal sealed partial class NavigationCreationService
           }
           : new LeafNavigationViewStateDto()
           {
-            NoteSortKey = AppSettingsService.Load<NoteSortKey, int>(NoteSortKeySettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortKey),
-            NoteSortDirection = AppSettingsService.Load<SortDirection, int>(SortDirectionSettingsCodec.Decode, NavigationSettingsDescriptors.NoteSortDirection),
-            PreviewLayoutType = AppSettingsService.Load<PreviewLayoutType, int>(PreviewLayoutTypeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewLayoutType),
-            PreviewTileSize = AppSettingsService.Load<PreviewTileSize, int>(PreviewTileSizeSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileSize),
-            PreviewTileRatio = AppSettingsService.Load<PreviewTileRatio, int>(PreviewTileRatioSettingsCodec.Decode, NavigationSettingsDescriptors.PreviewTileRatio),
+            NoteSortKey = AppSettingsService.Load(NoteSortKeySettingsCodec.Default, NavigationSettingsDescriptors.NoteSortKey),
+            NoteSortDirection = AppSettingsService.Load(SortDirectionSettingsCodec.Default, NavigationSettingsDescriptors.NoteSortDirection),
+            PreviewLayoutType = AppSettingsService.Load(PreviewLayoutTypeSettingsCodec.Default, NavigationSettingsDescriptors.PreviewLayoutType),
+            PreviewTileSize = AppSettingsService.Load(PreviewTileSizeSettingsCodec.Default, NavigationSettingsDescriptors.PreviewTileSize),
+            PreviewTileRatio = AppSettingsService.Load(PreviewTileRatioSettingsCodec.Default, NavigationSettingsDescriptors.PreviewTileRatio),
             Id = newNavigationId
           };
 

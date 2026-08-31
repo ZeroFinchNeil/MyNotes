@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Notes.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Notes.Models;
 
 public enum NoteSortKey
 {
@@ -7,9 +9,13 @@ public enum NoteSortKey
   Title
 }
 
-public static class NoteSortKeySettingsCodec
+public sealed class NoteSortKeySettingsCodec : ISettingsCodec<NoteSortKey, int>
 {
-  public static int Encode(NoteSortKey input) => (int)input;
+  public static NoteSortKeySettingsCodec Default => field ??= new();
 
-  public static NoteSortKey Decode(int output) => (NoteSortKey)output;
+  private NoteSortKeySettingsCodec() { }
+
+  public int Encode(NoteSortKey input) => (int)input;
+
+  public NoteSortKey Decode(int output) => (NoteSortKey)output;
 }

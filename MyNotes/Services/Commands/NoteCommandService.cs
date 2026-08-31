@@ -5,6 +5,7 @@ using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Application.Results;
 using MyNotes.Application.Settings.Services;
+using MyNotes.Common.Converters.Codecs;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Common.Interop;
@@ -113,7 +114,7 @@ internal sealed class NoteCommandService
       using var navigationLease = NavigationViewModelProvider.Acquire(targetNavigationId);
       if (navigationLease?.ViewModel is UserListNavigationViewModel navigationViewModel)
       {
-        var size = AppSettingsService.Load<SizeInt32, Size>(s => new((int)s.Width, (int)s.Height), AppSettingsDescriptors.DefaultNoteSize);
+        var size = AppSettingsService.Load(SizeInt32SettingsCodec.Default, AppSettingsDescriptors.DefaultNoteSize);
         var position = MainWindowService.GetNewWindowPosition(size) ?? AppSettingsDescriptors.DefaultNoteWindowPosition.PointInt32;
 
         CreateNoteAppCommand appCommand = new()

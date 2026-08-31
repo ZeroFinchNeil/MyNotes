@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Notes.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Notes.Models;
 
 public enum BackdropKind
 {
@@ -7,9 +9,12 @@ public enum BackdropKind
   Mica
 }
 
-public static class BackdropKindSettingsCodec
+public sealed class BackdropKindSettingsCodec : ISettingsCodec<BackdropKind, int>
 {
-  public static int Encode(BackdropKind input) => (int)input;
+  public static BackdropKindSettingsCodec Default => field ??= new();
+  private BackdropKindSettingsCodec() { }
 
-  public static BackdropKind Decode(int output) => (BackdropKind)output;
+  public int Encode(BackdropKind input) => (int)input;
+
+  public BackdropKind Decode(int output) => (BackdropKind)output;
 }

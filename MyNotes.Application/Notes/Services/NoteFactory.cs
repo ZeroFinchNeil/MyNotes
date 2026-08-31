@@ -40,7 +40,7 @@ internal sealed partial class NoteFactory
       BackgroundImageAlignment = NoteSettingsDescriptors.NoteBackgroundImageAlignment,
       BackgroundImageOpacity = NoteSettingsDescriptors.NoteBackgroundImageOpacity,
       BackgroundImageBlur = NoteSettingsDescriptors.NoteBackgroundImageBlur,
-      BackdropKind = SettingsService.Load<BackdropKind, int>(BackdropKindSettingsCodec.Decode, NoteSettingsDescriptors.NoteBackdropKind),
+      BackdropKind = SettingsService.Load(BackdropKindSettingsCodec.Default, NoteSettingsDescriptors.NoteBackdropKind),
       BackdropTintOpacity = NoteSettingsDescriptors.NoteBackdropTintOpacity,
       BackdropLuminosityOpacity = NoteSettingsDescriptors.NoteBackdropLuminosityOpacity,
       ShowImagePanel = NoteSettingsDescriptors.ShowNoteImagePanel,

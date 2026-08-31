@@ -1,4 +1,6 @@
-﻿namespace MyNotes.Application.Contracts.Navigations.Models;
+﻿using MyNotes.Common.Structures;
+
+namespace MyNotes.Application.Contracts.Navigations.Models;
 
 public enum PreviewLayoutType
 {
@@ -6,9 +8,13 @@ public enum PreviewLayoutType
   List
 }
 
-internal static class PreviewLayoutTypeSettingsCodec
+internal sealed class PreviewLayoutTypeSettingsCodec : ISettingsCodec<PreviewLayoutType, int>
 {
-  public static int Encode(PreviewLayoutType input) => (int)input;
+  public static PreviewLayoutTypeSettingsCodec Default => field ??= new();
 
-  public static PreviewLayoutType Decode(int output) => (PreviewLayoutType)output;
+  private PreviewLayoutTypeSettingsCodec() { }
+
+  public int Encode(PreviewLayoutType input) => (int)input;
+
+  public PreviewLayoutType Decode(int output) => (PreviewLayoutType)output;
 }
