@@ -1,4 +1,3 @@
-using MyNotes.Common.Commands;
 using MyNotes.ViewModels.Media;
 
 namespace MyNotes.Views.Media;
@@ -12,19 +11,11 @@ internal sealed partial class ImageViewItemContainer : UserControl
     set => SetValue(ViewModelProperty, value);
   }
 
-  public static readonly DependencyProperty IsOpenInNewWindowAvailableProperty = DependencyProperty.Register("IsOpenInNewWindowAvailable", typeof(bool), typeof(ImageViewItemContainer), new PropertyMetadata(true, OnIsOpenInNewWindowAvailableChanged));
-  public bool IsOpenInNewWindowAvailable
+  public static readonly DependencyProperty StretchProperty = DependencyProperty.Register("Stretch", typeof(Stretch), typeof(ImageViewItemContainer), new PropertyMetadata(Stretch.Uniform));
+  public Stretch Stretch
   {
-    get => (bool)GetValue(IsOpenInNewWindowAvailableProperty);
-    set => SetValue(IsOpenInNewWindowAvailableProperty, value);
-  }
-
-  private static void OnIsOpenInNewWindowAvailableChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-  {
-    if(d is ImageViewItemContainer container)
-    {
-      container._showImageCommand.NotifyCanExecuteChanged();
-    }
+    get => (Stretch)GetValue(StretchProperty);
+    set => SetValue(StretchProperty, value);
   }
 
   public ImageViewItemContainer()
@@ -32,12 +23,6 @@ internal sealed partial class ImageViewItemContainer : UserControl
     InitializeComponent();
     this.Loaded += ImageViewItemContainer_Loaded;
     this.Unloaded += ImageViewItemContainer_Unloaded;
-
-    _showImageCommand = new()
-    {
-      ExecuteFunc = async () => await ViewModel.ShowImageCommand.ExecuteAsync(),
-      CanExecuteFunc = () => IsOpenInNewWindowAvailable
-    };
   }
   private void ImageViewItemContainer_Loaded(object sender, RoutedEventArgs e)
   {
@@ -48,6 +33,4 @@ internal sealed partial class ImageViewItemContainer : UserControl
   {
     Bindings.StopTracking();
   }
-
-  private readonly AsyncCommand _showImageCommand;
 }

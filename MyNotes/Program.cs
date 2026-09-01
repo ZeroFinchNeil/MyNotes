@@ -85,6 +85,7 @@ public class Program
     ExtendedActivationKind kind = args.Kind;
 
     // Widget
+    return;
     if (IsWindowsVersion11OrHigher)
     {
       Guid CLSID_Factory = Guid.Parse(AppStrings.WidgetProvider_COM_CLSID);

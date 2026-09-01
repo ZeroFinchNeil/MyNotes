@@ -397,8 +397,6 @@ partial class NotePage
 
   private readonly SolidColorBrush _transparentBrush = new(Colors.Transparent);
   private SolidColorBrush GetBackgroundBrush(BackdropKind backdropKind, Color color) => backdropKind is BackdropKind.None ? new(color) : _transparentBrush;
-
-  private Visibility VisibleWhenAll(bool v1, bool v2) => v1 && v2 ? Visibility.Visible : Visibility.Collapsed;
 }
 
 partial class NotePage

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
 using MyNotes.Services.Windows;
+using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.Views.Windows;
 

@@ -62,26 +62,34 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   {
     var imageDtos = await NoteImageService.GetImagesByNoteIdAsync(NoteId);
     _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(NoteImageMapper.ToModel(i))));
-    HasImages = ImageViewModels.Count > 0;
+    CalculateImageCount();
   }
 
   private LeasedImageViewModelCollection? _imageViewModelLeases;
   public IReadOnlyList<ImageViewModel> ImageViewModels => _imageViewModelLeases?.ViewModels ?? throw new InvalidOperationException("객체가 초기화되지 않음");
 
-  public ImageViewModel? SelectedImage
-  {
-    get; 
-    set 
-    {
-      if (ImageViewModels is not null && ImageViewModels.Contains(value))
-      {
-        SetProperty(ref field, value);
-      }
-    }
-  }
+  [ObservableProperty]
+  public partial bool HasImages { get; private set; }
 
   [ObservableProperty]
-  public partial bool HasImages { get; set; }
+  public partial int ImageCount { get; private set; }
+
+  [ObservableProperty]
+  public partial bool ShowThumbnailsPanel { get; private set; }
+
+  private void CalculateImageCount()
+  {
+    ImageCount = ImageViewModels.Count;
+    HasImages = ImageCount > 0;
+  }
+
+  public void ResetImagesCache()
+  {
+    foreach(var viewmodel in ImageViewModels)
+    {
+      viewmodel.ResetImageCache();
+    }
+  }
 
   public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
   {
@@ -109,7 +117,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
   public void RemoveImageFromCollection(ImageViewModel imageViewModel)
   {
     _imageViewModelLeases?.Remove(imageViewModel);
-    HasImages = ImageViewModels.Count > 0;
+    CalculateImageCount();
   }
 }
 
@@ -156,7 +164,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
           }
         }
 
-        HasImages = ImageViewModels.Count > 0;
+        CalculateImageCount();
       }
     };
   }

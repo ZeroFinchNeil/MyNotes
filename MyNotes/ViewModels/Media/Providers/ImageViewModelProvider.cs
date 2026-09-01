@@ -73,6 +73,17 @@ internal class ImageViewModelProvider(IServiceProvider serviceProvider) : IViewM
     return null;
   }
 
+  public IEnumerable<IViewModelLease<ImageViewModel>> AcquireAll()
+  {
+    foreach (var key in ResolveTable.Keys)
+    {
+      if (Acquire(key) is IViewModelLease<ImageViewModel> lease)
+      {
+        yield return lease;
+      }
+    }
+  }
+
   private sealed class ViewModelLease() : IViewModelLease<ImageViewModel>
   {
     public required ImageViewModel ViewModel { get; init; }

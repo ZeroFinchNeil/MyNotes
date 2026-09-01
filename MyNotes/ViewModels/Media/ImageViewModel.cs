@@ -8,7 +8,6 @@ using Microsoft.Windows.Storage.Pickers;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
-using MyNotes.Constants;
 using MyNotes.Models.Media;
 using MyNotes.Services.Windows;
 using MyNotes.Strings;
@@ -30,10 +29,15 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private readonly FileSystemWatcher _imageFileWatcher;
 
-  [ObservableProperty]
-  public partial BitmapImage Image { get; private set; }
-
   private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
+
+  private Lazy<BitmapImage> _imageLazy;
+
+  public BitmapImage Image
+  {
+    get => _imageLazy.Value;
+    set => OnPropertyChanged();
+  }
 
   public bool Failed { get; private set; } = false;
 
@@ -45,7 +49,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     ImageViewerWindowService = imageViewerWindowService;
     ImageDescriptor = imageDescriptor;
 
-    LoadImage();
+    CreateImageLazy();
 
     _imageFileWatcher = new(ImageDescriptor.LocalImageFolderPath)
     {
@@ -58,34 +62,31 @@ internal sealed partial class ImageViewModel : ViewModelBase
     SetCommands();
   }
 
-  [MemberNotNull(nameof(Image))]
-  private void LoadImage()
+  private readonly Lock _syncRoot = new();
+
+  [MemberNotNull(nameof(_imageLazy))]
+  private void CreateImageLazy()
   {
-    Image = new()
+    lock (_syncRoot)
     {
-      DecodePixelType = DecodePixelType.Logical,
-      DecodePixelHeight = 1024,
-      CreateOptions = BitmapCreateOptions.IgnoreImageCache,
-      UriSource = new Uri(ImageDescriptor.LocalImageFilePath)
-    };
-
-    Image.ImageFailed -= Image_ImageFailed;
-    Image.ImageFailed += Image_ImageFailed;
+      _imageLazy = new Lazy<BitmapImage>(() => new BitmapImage
+      {
+        UriSource = new Uri(ImageDescriptor.LocalImageFilePath),
+        CreateOptions = BitmapCreateOptions.IgnoreImageCache,
+      });
+    }
   }
 
-  private void SetFallbackImage()
-  {
-    Image.UriSource = new Uri(AppStrings.FallbackImagePath);
-  }
+  public void ResetImageCache() => CreateImageLazy();
 
   private void ImageFileWatcher_Changed(object sender, FileSystemEventArgs e)
   {
-    _dispatcherQueue.TryEnqueue(LoadImage);
+    //_dispatcherQueue.TryEnqueue(LoadImage);
   }
 
   private void ImageFileWatcher_Deleted(object sender, FileSystemEventArgs e)
   {
-    _dispatcherQueue.TryEnqueue(SetFallbackImage);
+    //_dispatcherQueue.TryEnqueue(SetFallbackImage);
   }
 
   protected override void Dispose(bool disposing)
@@ -97,7 +98,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
     if (disposing)
     {
-      Image.ImageFailed -= Image_ImageFailed;
+      _imageFileWatcher.Dispose();
       _imageFileWatcher.Changed -= ImageFileWatcher_Changed;
       _imageFileWatcher.Deleted -= ImageFileWatcher_Deleted;
     }
@@ -105,12 +106,6 @@ internal sealed partial class ImageViewModel : ViewModelBase
     base.Dispose(disposing);
   }
   #endregion
-
-  private void Image_ImageFailed(object sender, ExceptionRoutedEventArgs e)
-  {
-    SetFallbackImage();
-    Failed = true;
-  }
 }
 
 internal sealed partial class ImageViewModel : ViewModelBase
@@ -145,10 +140,8 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(CollectionKey);
+        var imageViewerWindow = await ImageViewerWindowService.GetOrCreate(CollectionKey, this.ImageDescriptor);
         imageViewerWindow.Activate();
-        using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
-        lease?.ViewModel.SelectedImage = this;
       }
     };
 
@@ -187,7 +180,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     {
       ExecuteFunc = async () =>
       {
-        if (!Failed)
+        if (!Failed && File.Exists(ImageDescriptor.LocalImageFilePath))
         {
           await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
           using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);

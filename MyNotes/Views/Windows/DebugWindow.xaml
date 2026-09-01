@@ -58,7 +58,7 @@
                         Content="Always on top"
                         MinWidth="200"
                         Click="DebugWindow_AlwaysOnTopToggleButton_Click" />
-          
+
           <MenuFlyoutSeparator />
 
           <ToggleButton x:Name="DebugWindow_TrackFocusedElementToggleButton"

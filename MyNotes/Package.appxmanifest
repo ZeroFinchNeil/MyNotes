@@ -48,7 +48,7 @@
       </uap:VisualElements>
 
       <Extensions>
-        <com:Extension Category="windows.comServer">
+        <!--<com:Extension Category="windows.comServer">
           <com:ComServer>
             <com:ExeServer Executable="MyNotes.exe"
                            DisplayName="MyNotes">
@@ -101,7 +101,7 @@
                         <Screenshot Path="Assets\StoreLogo.scale-400.png"
                                     DisplayAltText="For accessibility" />
                       </Screenshots>
-                      <!-- DarkMode and LightMode are optional -->
+                       DarkMode and LightMode are optional 
                       <DarkMode />
                       <LightMode />
                     </ThemeResources>
@@ -110,7 +110,7 @@
               </WidgetProvider>
             </uap3:Properties>
           </uap3:AppExtension>
-        </uap3:Extension>
+        </uap3:Extension>-->
 
         <uap5:Extension Category="windows.startupTask">
           <uap5:StartupTask TaskId="StartupTaskId"

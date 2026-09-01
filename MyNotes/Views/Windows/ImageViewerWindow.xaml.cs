@@ -1,5 +1,3 @@
-using CommunityToolkit.Mvvm.Messaging;
-
 using MyNotes.Constants;
 using MyNotes.Models.Media;
 using MyNotes.Strings;
@@ -10,8 +8,9 @@ namespace MyNotes.Views.Windows;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ImageViewerWindow : Window
 {
-  #region Object Lifetime Management
+  private ImageViewerPage? _content;
 
+  #region Object Lifetime Management
   public ImageViewerWindow(ImageCollectionKey collectionKey)
   {
     TrackReference();
@@ -25,7 +24,8 @@ internal sealed partial class ImageViewerWindow : Window
     AppWindow.SetIcon(AppStrings.AppIconPath);
     AppWindow.SetTaskbarIcon(AppStrings.AppIconPath);
 
-    this.Content = new ImageViewerPage(collectionKey);
+    _content = new ImageViewerPage(collectionKey);
+    this.Content = _content;
 
     this.Closed += ImageViewerWindow_Closed;
   }
@@ -33,8 +33,17 @@ internal sealed partial class ImageViewerWindow : Window
 
   private void ImageViewerWindow_Closed(object sender, WindowEventArgs args)
   {
+    _content = null;
     this.Closed -= ImageViewerWindow_Closed;
     IsClosed = true;
   }
   #endregion
+
+  public void ChangeImageSelection(ImageDescriptor? imageDescriptor)
+  {
+    if (imageDescriptor is not null)
+    {
+      _content?.ChangeImageSelection(imageDescriptor);
+    }
+  }
 }

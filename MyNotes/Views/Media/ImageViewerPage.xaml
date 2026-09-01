@@ -17,25 +17,40 @@
       <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=OpenWith}"
                                   Width="48"
                                   Height="48"
-                                  Command="{x:Bind ViewModel.SelectedImage.OpenWithCommand, Mode=OneWay}" />
-      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=OpenLocal}"
+                                  Command="{x:Bind SelectedImage.OpenWithCommand, Mode=OneWay}" />
+      <templates:SubtleIconButton Content="{ctw:FontIcon Glyph=&#xEC50;}"
                                   Width="48"
                                   Height="48" />
-      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=SaveLocal}"
+      <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=Save}"
                                   Width="48"
                                   Height="48"
-                                  Command="{x:Bind ViewModel.SelectedImage.SaveImageCommand, Mode=OneWay}"
+                                  Command="{x:Bind SelectedImage.SaveImageCommand, Mode=OneWay}"
                                   CommandParameter="{x:Bind ImageViewerPage_Root.XamlRoot.ContentIslandEnvironment.AppWindowId}" />
+      <Rectangle Width="1"
+                 Stretch="Fill"
+                 Margin="0,6"
+                 Fill="{ThemeResource DividerStrokeColorDefault}" />
       <templates:SubtleIconButton Content="{ctw:SymbolIcon Symbol=Delete}"
                                   Width="48"
                                   Height="48"
-                                  Command="{x:Bind ViewModel.SelectedImage.DeleteImageCommand}" />
+                                  Command="{x:Bind SelectedImage.DeleteImageCommand, Mode=OneWay}" />
+      <Rectangle Width="1"
+                 Stretch="Fill"
+                 Margin="0,6"
+                 Fill="{ThemeResource DividerStrokeColorDefault}" />
+      <templates:SubtleIconToggleButton x:Name="ImageViewerPage_ShowPreviewToggleButton"
+                                        Content="{ctw:FontIcon Glyph=&#xF597;}"
+                                        IsChecked="False"
+                                        Width="48"
+                                        Height="48" />
     </StackPanel>
 
-    <FlipView Grid.Row="1"
+    <FlipView x:Name="ImageViewerPage_FlipView"
+              Grid.Row="1"
               ItemsSource="{x:Bind ViewModel.ImageViewModels}"
-              SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
-              Background="Transparent">
+              SelectedItem="{x:Bind SelectedImage, Mode=TwoWay}"
+              Background="Transparent"
+              CornerRadius="0" >
       <FlipView.ItemContainerStyle>
         <Style TargetType="FlipViewItem"
                BasedOn="{StaticResource DefaultFlipViewItemStyle}">
@@ -53,8 +68,7 @@
         <DataTemplate x:DataType="mvmm:ImageViewModel"
                       xmlns:mvm="using:MyNotes.Views.Media"
                       xmlns:mvmm="using:MyNotes.ViewModels.Media">
-          <mvm:ImageViewItemContainer ViewModel="{x:Bind}"
-                                      IsOpenInNewWindowAvailable="False"/>
+          <mvm:ImageViewItemContainer ViewModel="{x:Bind Mode=OneWay}" />
         </DataTemplate>
       </FlipView.ItemTemplate>
     </FlipView>
@@ -66,19 +80,44 @@
                Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(ViewModel.HasImages), Mode=OneWay}"
                Style="{StaticResource HeaderTextBlockStyle}" />
 
-    <GridView Grid.Row="2"
+    <PipsPager Grid.Row="2"
+               HorizontalAlignment="Center"
+               Margin="4"
+               NumberOfPages="{x:Bind ViewModel.ImageCount, Mode=OneWay}"
+               SelectedPageIndex="{x:Bind ImageViewerPage_FlipView.SelectedIndex, Mode=TwoWay}"
+               PreviousButtonVisibility="VisibleOnPointerOver"
+               NextButtonVisibility="VisibleOnPointerOver"
+               Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(ImageViewerPage_ShowPreviewToggleButton.IsChecked), Mode=OneWay}" />
+
+    <GridView x:Name="ImageViewerPage_ThumbnailsGridView"
+              x:Load="{x:Bind ImageViewerPage_ShowPreviewToggleButton.IsChecked.Value, Mode=OneWay}"
+              Grid.Row="2"
               ItemsSource="{x:Bind ViewModel.ImageViewModels}"
-              SelectedItem="{x:Bind ViewModel.SelectedImage, Mode=TwoWay}"
+              SelectedItem="{x:Bind SelectedImage, Mode=TwoWay}"
               SelectionMode="Single"
               Height="96"
-              HorizontalAlignment="Center">
+              Padding="8"
+              Background="{ThemeResource ControlAltFillColorQuarternary}"
+              ScrollViewer.HorizontalScrollMode="Enabled"
+              ScrollViewer.HorizontalScrollBarVisibility="Auto"
+              ScrollViewer.VerticalScrollMode="Disabled"
+              ScrollViewer.VerticalScrollBarVisibility="Disabled">
+      <GridView.ItemsPanel>
+        <ItemsPanelTemplate>
+          <ItemsStackPanel Orientation="Horizontal"
+                           HorizontalAlignment="Center" />
+        </ItemsPanelTemplate>
+      </GridView.ItemsPanel>
       <GridView.ItemTemplate>
         <DataTemplate x:DataType="mvmm:ImageViewModel"
                       xmlns:mvm="using:MyNotes.Views.Media"
                       xmlns:mvmm="using:MyNotes.ViewModels.Media">
-          <Image Source="{x:Bind Image, Mode=OneWay}" 
-                 Height="80"
-                 VerticalAlignment="Center"/>
+          <mvm:ImageThumbnailItemContainer ViewModel="{x:Bind}"
+                                           Width="96"
+                                           Height="80"
+                                           DecodePixelWidth="96"
+                                           VerticalAlignment="Center" 
+                                           IsEnabled="False" />
         </DataTemplate>
       </GridView.ItemTemplate>
     </GridView>

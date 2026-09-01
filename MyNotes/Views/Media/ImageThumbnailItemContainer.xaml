@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl x:Class="MyNotes.Views.Media.ImageThumbnailItemContainer"
+             x:Name="ImageViewItemContainer_Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="using:MyNotes.Views.Media"
+             xmlns:mxi="using:Microsoft.Xaml.Interactivity">
+
+  <Image Stretch="{x:Bind Stretch, Mode=OneWay}">
+    <Image.Source>
+      <BitmapImage UriSource="{x:Bind ViewModel.ImageDescriptor.LocalImageFilePath, Mode=OneWay}"
+                   DecodePixelWidth="{x:Bind DecodePixelWidth, Mode=OneWay}"
+                   DecodePixelHeight="{x:Bind DecodePixelHeight, Mode=OneWay}" />
+    </Image.Source>
+
+    <mxi:Interaction.Behaviors>
+      <mxi:EventTriggerBehavior EventName="DoubleTapped">
+        <mxi:InvokeCommandAction Command="{x:Bind ViewModel.ShowImageCommand}" />
+      </mxi:EventTriggerBehavior>
+    </mxi:Interaction.Behaviors>
+
+    <Image.ContextFlyout>
+      <MenuFlyout>
+        <MenuFlyoutItem Icon="Pictures"
+                        Text="Show"
+                        Command="{x:Bind ViewModel.ShowImageCommand}" />
+        <MenuFlyoutItem x:Uid="/ImageViewItemContainer/OpenWithMenuFlyoutItem"
+                        Icon="OpenWith"
+                        Command="{x:Bind ViewModel.OpenWithCommand}" />
+        <MenuFlyoutItem x:Uid="/ImageViewItemContainer/SaveLocalMenuFlyoutItem"
+                        Icon="Save"
+                        Command="{x:Bind ViewModel.SaveImageCommand}"
+                        CommandParameter="{x:Bind ImageViewItemContainer_Root.XamlRoot.ContentIslandEnvironment.AppWindowId}" />
+        <MenuFlyoutSeparator />
+        <MenuFlyoutItem x:Uid="/ImageViewItemContainer/DeleteMenuFlyoutItem"
+                        Icon="Delete"
+                        Command="{x:Bind ViewModel.DeleteImageCommand}" />
+      </MenuFlyout>
+    </Image.ContextFlyout>
+  </Image>
+</UserControl>
+

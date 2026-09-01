@@ -292,8 +292,9 @@
     <!--#endregion -->
 
     <!--#region Images -->
-    <Grid Grid.Row="1"
-          Visibility="{x:Bind VisibleWhenAll(ImageCollectionViewModel.HasImages, Note.ShowImagePanel), Mode=OneWay}"
+    <Grid x:Name="NotePage_ImagePanelGrid"
+          x:Load="{x:Bind helpers:BooleanHelper.And(ImageCollectionViewModel.HasImages, Note.ShowImagePanel), Mode=OneWay}"
+          Grid.Row="1"
           Padding="6,0">
       <GridView x:Name="NotePage_ImagesGridView"
                 Grid.Row="0"
@@ -332,13 +333,13 @@
           <DataTemplate x:DataType="mvmm:ImageViewModel"
                         xmlns:mvmm="using:MyNotes.ViewModels.Media"
                         xmlns:mvm="using:MyNotes.Views.Media">
-            <mvm:ImageViewItemContainer ViewModel="{x:Bind}" />
+            <mvm:ImageThumbnailItemContainer ViewModel="{x:Bind}"
+                                             DecodePixelHeight="512" />
           </DataTemplate>
         </GridView.ItemTemplate>
       </GridView>
 
-      <ctwc:ContentSizer x:Name="NotePage_ImagesContentSizer"
-                         TargetControl="{x:Bind NotePage_ImagesGridView}"
+      <ctwc:ContentSizer TargetControl="{x:Bind NotePage_ImagesGridView}"
                          Orientation="Horizontal"
                          VerticalAlignment="Bottom"
                          Cursor="Arrow"
@@ -1260,11 +1261,6 @@
                                     KeySpline="0.2,0.7 0.5,1.0"
                                     Value="0" />
             </DoubleAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
-                                           Storyboard.TargetProperty="Visibility">
-              <DiscreteObjectKeyFrame KeyTime="0:0:0"
-                                      Value="Visible" />
-            </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>
 
@@ -1325,11 +1321,6 @@
               <DiscreteObjectKeyFrame KeyTime="0"
                                       Value="-40" />
             </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
-                                           Storyboard.TargetProperty="Visibility">
-              <DiscreteObjectKeyFrame KeyTime="0:0:0"
-                                      Value="Collapsed" />
-            </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>
 
@@ -1369,11 +1360,6 @@
                                            Storyboard.TargetProperty="Y">
               <DiscreteObjectKeyFrame KeyTime="0"
                                       Value="-40" />
-            </ObjectAnimationUsingKeyFrames>
-            <ObjectAnimationUsingKeyFrames Storyboard.TargetName="NotePage_ImagesContentSizer"
-                                           Storyboard.TargetProperty="Visibility">
-              <DiscreteObjectKeyFrame KeyTime="0:0:0"
-                                      Value="Collapsed" />
             </ObjectAnimationUsingKeyFrames>
           </Storyboard>
         </VisualState>

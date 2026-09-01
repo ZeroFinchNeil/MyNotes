@@ -2,7 +2,6 @@
 
 using Microsoft.UI.Content;
 
-using MyNotes.Domain.Notes;
 using MyNotes.Models.Media;
 using MyNotes.Shell.Contracts.Windowing;
 using MyNotes.Views.Windows;
@@ -21,7 +20,7 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
     NativeWindowing = nativeWindowing;
   }
 
-  public async Task<ImageViewerWindow> GetOrCreate(ImageCollectionKey collectionKey)
+  public async Task<ImageViewerWindow> GetOrCreate(ImageCollectionKey collectionKey, ImageDescriptor? selection)
   {
     if (_imageViewerWindowPair is not null)
     {
@@ -30,6 +29,7 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
       {
         if (pair.Key == collectionKey && !imageViewerWindow.IsClosed)
         {
+          imageViewerWindow.ChangeImageSelection(selection);
           return imageViewerWindow;
         }
         else
@@ -40,6 +40,8 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
     }
 
     ImageViewerWindow newWindow = new(collectionKey);
+    newWindow.ChangeImageSelection(selection);
+
     _imageViewerWindowPair = new KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>(collectionKey, new(newWindow));
     return newWindow;
   }
