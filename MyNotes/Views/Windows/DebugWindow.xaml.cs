@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Debugging;
 using MyNotes.Services.Windows;
-using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.Views.Windows;
 
@@ -163,8 +162,6 @@ internal sealed partial class DebugWindow : Window
       }
     }
   }
-
-  private Visibility IsStringEmpty(string word) => string.IsNullOrWhiteSpace(word) ? Visibility.Collapsed : Visibility.Visible;
 }
 
 internal record DebugWindowReferenceItemGroup

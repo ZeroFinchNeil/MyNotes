@@ -120,7 +120,22 @@
   <data name="DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>삭제</value>
   </data>
+  <data name="OpenInFileExplorerMenuFlyoutItem.Text" xml:space="preserve">
+    <value>파일 탐색기에서 폴더 열기</value>
+  </data>
+  <data name="OpenInPhotosMenuFlyoutItem.Text" xml:space="preserve">
+    <value>사진 앱에서 이미지 열기</value>
+  </data>
+  <data name="OpenWithMenuFlyoutSubItem.Text" xml:space="preserve">
+    <value>다른 앱으로 열기</value>
+  </data>
   <data name="SaveLocalMenuFlyoutItem.Text" xml:space="preserve">
     <value>저장</value>
+  </data>
+  <data name="SelectAppMenuFlyoutItem.Text" xml:space="preserve">
+    <value>다른 앱 선택</value>
+  </data>
+  <data name="ShowMenuFlyoutItem.Text" xml:space="preserve">
+    <value>새 창에서 보기</value>
   </data>
 </root>

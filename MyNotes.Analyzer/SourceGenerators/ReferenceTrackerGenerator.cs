@@ -54,9 +54,9 @@ internal class ReferenceTrackerGenerator : IIncrementalGenerator
         sb.AppendLine($"partial class {className}{typeParams}");
         sb.AppendLine("""
           {
-            private void TrackReference()
+            private void TrackReference(bool registerWhenDebuggerAttached = false)
             {
-              if (System.Diagnostics.Debugger.IsAttached)
+              if (!registerWhenDebuggerAttached || System.Diagnostics.Debugger.IsAttached)
               {
                 MyNotes.Debugging.ReferenceTracker.Register(this);
               }

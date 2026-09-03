@@ -7,7 +7,7 @@ using MyNotes.Models.Media;
 
 namespace MyNotes.ViewModels.Media.Providers;
 
-internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IViewModelProvider<ImageCollectionKey, ImageCollectionViewModel>
+internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider) : IAsyncViewModelProvider<ImageCollectionKey, ImageCollectionViewModel>
 {
   private readonly ConcurrentDictionary<ImageCollectionKey, ViewModelCache> ResolveTable = new();
   private readonly Func<ImageCollectionKey, ViewModelCache> _cacheFactory = key => new
@@ -15,13 +15,14 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     referenceCounterFactory: () => new ReferenceCounter<ImageCollectionViewModel>(ActivatorUtilities.CreateInstance<ImageCollectionViewModel>(serviceProvider, key))
   );
 
-  public IViewModelLease<ImageCollectionViewModel> Resolve(ImageCollectionKey key)
+  public async Task<IAsyncViewModelLease<ImageCollectionViewModel>> ResolveAsync(ImageCollectionKey key)
   {
     while (true)
     {
       var cache = ResolveTable.GetOrAdd(key, _cacheFactory.Invoke);
 
-      lock (cache.SyncRoot)
+      await cache.Semaphore.WaitAsync();
+      try
       {
         if (ResolveTable.TryGetValue(key, out ViewModelCache? currentCache) && ReferenceEquals(currentCache, cache))
         {
@@ -33,30 +34,40 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
           ResolveTable.TryRemove(key, out _);
         }
       }
+      finally
+      {
+        cache.Semaphore.Release();
+      }
     }
   }
 
   private ViewModelLease CreateLease(ImageCollectionKey key, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
   {
     ViewModel = viewmodel,
-    ReleaseAction = () =>
+    ReleaseFunc = async () =>
     {
-      lock (cache.SyncRoot)
+      await cache.Semaphore.WaitAsync();
+      try
       {
         if (cache.ReferenceCounter.ReleaseOrDetach(out _))
         {
-          viewmodel.Dispose();
+          await viewmodel.DisposeAsync();
           ResolveTable.TryRemove(key, out _);
         }
+      }
+      finally
+      {
+        cache.Semaphore.Release();
       }
     }
   };
 
-  public IViewModelLease<ImageCollectionViewModel>? Acquire(ImageCollectionKey key)
+  public async Task<IAsyncViewModelLease<ImageCollectionViewModel>?> AcquireAsync(ImageCollectionKey key)
   {
     if (ResolveTable.TryGetValue(key, out var cache))
     {
-      lock (cache.SyncRoot)
+      await cache.Semaphore.WaitAsync();
+      try
       {
         if (cache.ReferenceCounter.TryAcquire(out var viewmodel))
         {
@@ -70,42 +81,40 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
           }
         }
       }
+      finally
+      {
+        cache.Semaphore.Release();
+      }
     }
     return null;
   }
 
-  private sealed class ViewModelLease() : IViewModelLease<ImageCollectionViewModel>
+  private sealed class ViewModelLease() : IAsyncViewModelLease<ImageCollectionViewModel>
   {
     public required ImageCollectionViewModel ViewModel { get; init; }
-    public required Action ReleaseAction { get; init; }
+    public required Func<Task> ReleaseFunc { get; init; }
 
-    public bool Disposed { get; private set; }
-
-    private void Dispose(bool disposing)
+    private bool _disposeStarted;
+    private async ValueTask DisposeAsyncCore()
     {
-      if (Disposed)
+      if (Interlocked.Exchange(ref _disposeStarted, true))
       {
         return;
       }
 
-      if (disposing)
-      {
-        ReleaseAction.Invoke();
-      }
-
-      Disposed = true;
+      await ReleaseFunc.Invoke();
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
-      Dispose(disposing: true);
+      await DisposeAsyncCore().ConfigureAwait(false);
       GC.SuppressFinalize(this);
     }
   }
 
   private sealed class ViewModelCache(Func<ReferenceCounter<ImageCollectionViewModel>> referenceCounterFactory)
   {
-    public Lock SyncRoot { get; } = new();
+    public SemaphoreSlim Semaphore { get; } = new(1, 1);
 
     private readonly Lazy<ReferenceCounter<ImageCollectionViewModel>> _referenceCounter = new(referenceCounterFactory);
 

@@ -10,9 +10,6 @@
 
     <Image.ContextFlyout>
       <MenuFlyout>
-        <MenuFlyoutItem x:Uid="/ImageViewItemContainer/OpenWithMenuFlyoutItem"
-                        Icon="OpenWith"
-                        Command="{x:Bind ViewModel.OpenWithCommand, Mode=OneWay}" />
         <MenuFlyoutItem x:Uid="/ImageViewItemContainer/SaveLocalMenuFlyoutItem"
                         Icon="Save"
                         Command="{x:Bind ViewModel.SaveImageCommand, Mode=OneWay}"
@@ -20,7 +17,8 @@
         <MenuFlyoutSeparator />
         <MenuFlyoutItem x:Uid="/ImageViewItemContainer/DeleteMenuFlyoutItem"
                         Icon="Delete"
-                        Command="{x:Bind ViewModel.DeleteImageCommand, Mode=OneWay}" />
+                        Command="{x:Bind ViewModel.DeleteImageCommand, Mode=OneWay}"
+                        CommandParameter="{x:Bind XamlRoot}" />
       </MenuFlyout>
     </Image.ContextFlyout>
   </Image>

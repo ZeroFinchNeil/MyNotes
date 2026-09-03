@@ -75,6 +75,14 @@
       <KeyboardAccelerator x:Name="NotePage_RenameTitleKeyboardAccelerator"
                            Key="F2"
                            Invoked="NotePage_RenameTitleKeyboardAccelerator_Invoked" />
+      <KeyboardAccelerator Modifiers="Control"
+                           Key="N">
+        <mxi:Interaction.Behaviors>
+          <mxi:EventTriggerBehavior EventName="Invoked">
+            <mxi:InvokeCommandAction Command="{x:Bind NoteViewModel.CreateNewNoteCommand}" />
+          </mxi:EventTriggerBehavior>
+        </mxi:Interaction.Behaviors>
+      </KeyboardAccelerator>
     </Grid.KeyboardAccelerators>
     <Grid.RowDefinitions>
       <RowDefinition Height="Auto" />
@@ -175,7 +183,12 @@
             <!-- New Note -->
             <MenuFlyoutItem x:Uid="/NotePage/NewNoteMenuFlyoutItem"
                             Icon="Add"
-                            Command="{x:Bind NoteViewModel.CreateNewNoteCommand}" />
+                            Command="{x:Bind NoteViewModel.CreateNewNoteCommand}">
+              <MenuFlyoutItem.KeyboardAccelerators>
+                <KeyboardAccelerator Modifiers="Control"
+                                     Key="N" />
+              </MenuFlyoutItem.KeyboardAccelerators>
+            </MenuFlyoutItem>
 
             <!-- View List -->
             <MenuFlyoutItem x:Uid="/NotePage/ViewListMenuFlyoutItem"
@@ -183,10 +196,6 @@
                             Command="{x:Bind NoteViewModel.ViewListCommand}" />
 
             <MenuFlyoutSeparator />
-
-            <!-- Edit Tags -->
-            <MenuFlyoutItem x:Uid="/NotePage/EditTagsMenuFlyoutItem"
-                            Icon="Tag" />
 
             <!-- Bookmark and Unbookmark -->
             <templates:AlternateMenuFlyoutItem x:Uid="/NotePage/BookmarkMenuFlyoutItem"
@@ -305,8 +314,8 @@
                 AllowFocusOnInteraction="False"
                 ScrollViewer.VerticalScrollMode="Disabled"
                 ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                ScrollViewer.HorizontalScrollMode="Enabled"
-                ScrollViewer.HorizontalScrollBarVisibility="Hidden"
+                ScrollViewer.HorizontalScrollMode="Auto"
+                ScrollViewer.HorizontalScrollBarVisibility="Visible"
                 Height="{x:Bind Note.ImagePanelHeight, Mode=TwoWay}"
                 MinHeight="120"
                 MaxHeight="{x:Bind NoteViewModel.ImagePanelMaxHeight, Mode=OneWay}"
@@ -422,11 +431,12 @@
 
       <StackPanel Orientation="Horizontal"
                   HorizontalAlignment="Center"
-                  Spacing="6"
+                  Spacing="3"
                   Padding="3">
         <StackPanel x:Name="NotePage_CommandBarEditPanel"
                     Orientation="Horizontal"
-                    Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(Note.IsTextEditorReadOnly), Mode=OneWay}">
+                    Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(Note.IsTextEditorReadOnly), Mode=OneWay}"
+                    Spacing="3">
           <!-- Bold -->
           <templates:SubtleIconToggleButton x:Name="NotePage_BoldButton"
                                             x:Uid="/NotePage/BoldButton"

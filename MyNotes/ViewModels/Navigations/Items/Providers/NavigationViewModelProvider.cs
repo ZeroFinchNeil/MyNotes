@@ -7,7 +7,6 @@ using MyNotes.Domain.Navigations;
 using MyNotes.Models.Navigations;
 using MyNotes.Models.Navigations.Core;
 using MyNotes.Models.Navigations.User;
-using MyNotes.ViewModels.Navigations.Contents;
 
 namespace MyNotes.ViewModels.Navigations.Items.Providers;
 

@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="BoldButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>굵게</value>
+    <value>굵게(Ctrl+B)</value>
   </data>
   <data name="BookmarkMenuFlyoutItem.CheckedText" xml:space="preserve">
     <value>북마크 해제</value>
@@ -137,9 +137,6 @@
   </data>
   <data name="DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>삭제</value>
-  </data>
-  <data name="EditTagsMenuFlyoutItem.Text" xml:space="preserve">
-    <value>태그 변경</value>
   </data>
   <data name="FontColorButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>글자 색</value>
@@ -163,7 +160,7 @@
     <value>크게</value>
   </data>
   <data name="ItalicButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>기울임</value>
+    <value>기울임(Ctrl+I)</value>
   </data>
   <data name="MinimizeButton.ToolTipService.ToolTip" xml:space="preserve">
     <value>최소화</value>
@@ -175,7 +172,7 @@
     <value>새 노트</value>
   </data>
   <data name="PinButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>창 고정</value>
+    <value>창 고정(Ctrl+P)</value>
   </data>
   <data name="RenameTitleMenuFlyoutItem.Text" xml:space="preserve">
     <value>제목 변경</value>
@@ -193,10 +190,10 @@
     <value>공유</value>
   </data>
   <data name="StrikethroughButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>취소선</value>
+    <value>취소선(Ctrl+T)</value>
   </data>
   <data name="UnderlineButton.ToolTipService.ToolTip" xml:space="preserve">
-    <value>밑줄</value>
+    <value>밑줄(Ctrl+U)</value>
   </data>
   <data name="ViewListMenuFlyoutItem.Text" xml:space="preserve">
     <value>목록 보기</value>
@@ -273,9 +270,6 @@
   <data name="BackdropLuminosityOpacityHeaderTextBlock.Text" xml:space="preserve">
     <value>밝기 레이어 불투명도</value>
   </data>
-  <data name="ShowBackdroundImageToggleButton.Content" xml:space="preserve">
-    <value>배경 이미지 보이기</value>
-  </data>
   <data name="BackgroundImageStretchRadioButtons.Header" xml:space="preserve">
     <value>맞춤</value>
   </data>
@@ -326,5 +320,8 @@
   </data>
   <data name="BackgroundImageSelectionTextBlock.Text" xml:space="preserve">
     <value>이미지 선택</value>
+  </data>
+  <data name="ShowBackdroundImageToggleButton.Content" xml:space="preserve">
+    <value>배경 이미지 보이기</value>
   </data>
 </root>

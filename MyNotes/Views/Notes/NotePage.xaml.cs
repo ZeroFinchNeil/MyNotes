@@ -39,8 +39,8 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
   private NoteEditorViewModel EditorViewModel => EditorViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
   private NoteViewModel NoteViewModel => EditorViewModel.NoteViewModel;
-  private readonly IViewModelLease<ImageCollectionViewModel> ImageCollectionViewModelLease;
-  private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease.ViewModel;
+  private IAsyncViewModelLease<ImageCollectionViewModel>? ImageCollectionViewModelLease;
+  private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
 
   public UIElement TitleBarElement { get; }
 
@@ -56,8 +56,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     var appSettingsService = App.Services.GetRequiredService<AppSettingsService>();
     ChangeFlyoutTheme(appSettingsService.Load(ElementThemeSettingsCodec.Default, AppSettingsDescriptors.AppTheme));
 
-    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ImageCollectionViewModelLease = ImageCollectionViewModelProvider.Resolve(new ImageCollectionKey(Note.Id.Value));
+    InitializationTask = InitializeAsync();
 
     RegisterMessengers();
 
@@ -68,10 +67,14 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     this.Unloaded += NotePage_Unloaded;
   }
 
-  public async Task InitializeAsync()
+  public Task InitializationTask { get; }
+  private async Task InitializeAsync()
   {
     var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
     EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(Note, NotePage_TextEditorRichEditBox.Document);
+
+    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
+    ImageCollectionViewModelLease = await ImageCollectionViewModelProvider.ResolveAsync(new ImageCollectionKey(Note.Id.Value));
   }
 
   private bool _disposeStarted;
@@ -106,8 +109,10 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
       await EditorViewModelLease.DisposeAsync();
     }
 
-    ImageCollectionViewModelLease.Dispose();
-
+    if (ImageCollectionViewModelLease is not null)
+    {
+      await ImageCollectionViewModelLease.DisposeAsync();
+    }
   }
 
   private async void NotePage_Loaded(object sender, RoutedEventArgs e)

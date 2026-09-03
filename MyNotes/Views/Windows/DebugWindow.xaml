@@ -3,6 +3,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:local="using:MyNotes.Views.Windows"
+        xmlns:helpers="using:MyNotes.Common.Helpers"
         Title="DebugWindow">
 
   <Window.SystemBackdrop>
@@ -35,7 +36,7 @@
 
           <Button x:Name="DebugWindow_SeparatorButton"
                   HorizontalAlignment="Center"
-                  Content="Separator"
+                  Content="Separator(Console)"
                   MinWidth="200"
                   Click="DebugWindow_SeparatorButton_Click" />
           <MenuFlyoutSeparator />
@@ -65,8 +66,9 @@
                         HorizontalAlignment="Center"
                         Content="Track Focused Element"
                         MinWidth="200" />
-          
-          <developerTools:FocusTracker IsActive="{Binding ElementName=DebugWindow_TrackFocusedElementToggleButton, Path=IsChecked}"
+
+          <developerTools:FocusTracker IsActive="{x:Bind helpers:BooleanHelper.GetValueOrDefault(DebugWindow_TrackFocusedElementToggleButton.IsChecked), Mode=OneWay}"
+                                       Visibility="{x:Bind helpers:BooleanHelper.ToVisibility(DebugWindow_TrackFocusedElementToggleButton.IsChecked), Mode=OneWay}"
                                        xmlns:developerTools="using:CommunityToolkit.WinUI.DeveloperTools" />
         </StackPanel>
       </ScrollViewer>

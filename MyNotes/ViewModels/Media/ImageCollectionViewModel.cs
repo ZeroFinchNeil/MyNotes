@@ -17,22 +17,20 @@ using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.ViewModels.Media;
 
-internal sealed partial class ImageCollectionViewModel : ViewModelBase
+internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDisposable
 {
   private readonly NoteImageService NoteImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
-  private readonly ImageViewerWindowService ImageViewerWindowService;
 
   private ImageCollectionKey CollectionKey { get; }
 
   private NoteId NoteId { get; }
 
   #region Object Lifetime Management
-  public ImageCollectionViewModel(NoteImageService noteImageService, ImageViewModelProvider imageViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageCollectionKey key)
+  public ImageCollectionViewModel(NoteImageService noteImageService, ImageViewModelProvider imageViewModelProvider, ImageCollectionKey key)
   {
     NoteImageService = noteImageService;
     ImageViewModelProvider = imageViewModelProvider;
-    ImageViewerWindowService = imageViewerWindowService;
 
     CollectionKey = key;
     NoteId = NoteId.Create(CollectionKey.Value);
@@ -40,23 +38,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     InitializationTask = InitializeAsync();
     SetCommands();
   }
-
-  protected override void Dispose(bool disposing)
-  {
-    if (Disposed)
-    {
-      return;
-    }
-
-    if (disposing)
-    {
-      _imageViewModelLeases?.Dispose();
-    }
-
-    base.Dispose(disposing);
-  }
-  #endregion
-
   public Task InitializationTask { get; }
   private async Task InitializeAsync()
   {
@@ -64,6 +45,24 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
     _imageViewModelLeases = new(imageDtos.Select(i => ImageViewModelProvider.Resolve(NoteImageMapper.ToModel(i))));
     CalculateImageCount();
   }
+
+  bool _disposeStarted;
+  private async ValueTask DisposeAsyncCore()
+  {
+    if (Interlocked.Exchange(ref _disposeStarted, true))
+    {
+      return;
+    }
+
+    _imageViewModelLeases?.Dispose();
+  }
+
+  public async ValueTask DisposeAsync()
+  {
+    await DisposeAsyncCore().ConfigureAwait(false);
+    Dispose(disposing: false);
+  }
+  #endregion
 
   private LeasedImageViewModelCollection? _imageViewModelLeases;
   public IReadOnlyList<ImageViewModel> ImageViewModels => _imageViewModelLeases?.ViewModels ?? throw new InvalidOperationException("객체가 초기화되지 않음");
@@ -85,7 +84,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase
 
   public void ResetImagesCache()
   {
-    foreach(var viewmodel in ImageViewModels)
+    foreach (var viewmodel in ImageViewModels)
     {
       viewmodel.ResetImageCache();
     }

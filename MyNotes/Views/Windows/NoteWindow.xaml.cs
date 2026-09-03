@@ -25,7 +25,7 @@ internal sealed partial class NoteWindow : Window
   public Task InitializationTask { get; }
   public event EventHandler? Loaded;
 
-  private NotePage? _pageContent;
+  private NotePage? _content;
 
   #region Object Lifetime Management
   public NoteWindow(NoteModel note)
@@ -54,7 +54,7 @@ internal sealed partial class NoteWindow : Window
     double scaleFactor = NativeMethods.GetWindowScaleFactor(_hWnd);
 
     // 창 최소 크기 지정
-    var minimumWindowSize = AppSettingsDescriptors.NoteWindowMinimumSize.DefaultValue;
+    var minimumWindowSize = AppSettingsDescriptors.NoteWindowMinimumSize;
     var presenter = AppWindow.Presenter as OverlappedPresenter;
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
@@ -70,10 +70,10 @@ internal sealed partial class NoteWindow : Window
 
   private async Task InitializeAsync(NoteModel noteModel)
   {
-    _pageContent = new NotePage(noteModel);
-    await _pageContent.InitializeAsync();
-    this.Content = _pageContent;
-    this.SetTitleBar(_pageContent.TitleBarElement);
+    _content = new NotePage(noteModel);
+    await _content.InitializationTask;
+    this.Content = _content;
+    this.SetTitleBar(_content.TitleBarElement);
 
     Loaded?.Invoke(this, EventArgs.Empty);
   }
@@ -90,10 +90,10 @@ internal sealed partial class NoteWindow : Window
     // WindowService에서 Window 테이블에서 제거
     NoteWindowService.NoteWindowTable.Remove(NoteId);
 
-    if (_pageContent is not null)
+    if (_content is not null)
     {
-      await _pageContent.DisposeAsync();
-      _pageContent = null;
+      await _content.DisposeAsync();
+      _content = null;
     }
   }
   #endregion

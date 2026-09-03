@@ -12,6 +12,10 @@ public static class BooleanHelper
 
   public static bool Or(bool v1, bool v2, bool v3) => v1 || v2 || v3;
 
+  public static bool GetValueOrDefault(bool? value) => GetValueOrDefault(value, false);
+
+  public static bool GetValueOrDefault(bool? value, bool nullValue = false) => value ?? nullValue;
+
   public static Visibility ToVisibility(bool value) => value ? Visibility.Visible : Visibility.Collapsed;
   public static Visibility ToVisibility(bool? value) => value is not null
   ? value.Value

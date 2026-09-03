@@ -118,9 +118,24 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="DeleteMenuFlyoutItem.Text" xml:space="preserve">
-    <value>삭제</value>
+    <value>Delete</value>
+  </data>
+  <data name="OpenInFileExplorerMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Open folder in File Explorer</value>
+  </data>
+  <data name="OpenInPhotosMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Open image in Photos</value>
+  </data>
+  <data name="OpenWithMenuFlyoutSubItem.Text" xml:space="preserve">
+    <value>Open with</value>
   </data>
   <data name="SaveLocalMenuFlyoutItem.Text" xml:space="preserve">
-    <value>저장</value>
+    <value>Save</value>
+  </data>
+  <data name="SelectAppMenuFlyoutItem.Text" xml:space="preserve">
+    <value>Select another app</value>
+  </data>
+  <data name="ShowMenuFlyoutItem.Text" xml:space="preserve">
+    <value>View in new window</value>
   </data>
 </root>

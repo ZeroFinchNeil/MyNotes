@@ -27,6 +27,12 @@
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Page Update="**\*.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
   <!--
     Defining the "Msix" ProjectCapability here allows the Single-project MSIX Packaging
     Tools extension to be activated for this project even if the Windows App SDK Nuget
@@ -63,30 +69,6 @@
     <ProjectReference Include="..\MyNotes.Infrastructure\MyNotes.Infrastructure.csproj" />
     <ProjectReference Include="..\MyNotes.Presentation.Contracts\MyNotes.Presentation.Contracts.csproj" />
     <ProjectReference Include="..\MyNotes.Templates\MyNotes.Templates.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Views\Media\ImageThumbnailItemContainer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Views\Media\ImageViewItemContainer.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Resources\NavigationResources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Page Update="Resources\NoteResources.xaml">
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
 
   <!--

@@ -120,13 +120,7 @@
   <data name="DeleteMenuFlyoutItem.Text" xml:space="preserve">
     <value>Delete</value>
   </data>
-  <data name="OpenWithMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Open with</value>
-  </data>
   <data name="SaveLocalMenuFlyoutItem.Text" xml:space="preserve">
     <value>Save</value>
-  </data>
-  <data name="ShowMenuFlyoutItem.Text" xml:space="preserve">
-    <value>Show image</value>
   </data>
 </root>

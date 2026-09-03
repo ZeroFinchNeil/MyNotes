@@ -106,11 +106,7 @@ internal static class AppSettingsDescriptors
   };
 
   // Settings - Note
-  public static SettingsDescriptor<Size> NoteWindowMinimumSize { get; } = new()
-  {
-    Key = "NoteWindowMinimumSize",
-    DefaultValue = new(400.0, 300.0)
-  };
+  public static Size NoteWindowMinimumSize { get; } = new(400.0, 300.0);
   public static SettingsDescriptor<int> NoteBodyUpdateFrequency { get; } = new()
   {
     Key = "NoteBodyUpdateFrequency",
@@ -118,4 +114,6 @@ internal static class AppSettingsDescriptors
   };
 
   public static Point DefaultNoteWindowPosition { get; } = new(32.0, 32.0);
+
+  public static Size ImageViewerWindowMinimumSize { get; } = new(600.0, 600.0);
 }

@@ -8,7 +8,9 @@ using Microsoft.Windows.Storage.Pickers;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
+using MyNotes.Common.Enums.Modes;
 using MyNotes.Models.Media;
+using MyNotes.Services.Dialogs;
 using MyNotes.Services.Windows;
 using MyNotes.Strings;
 using MyNotes.ViewModels.Media.Providers;
@@ -22,6 +24,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
   private readonly NoteImageService NoteImageService;
   private readonly ImageCollectionViewModelProvider ImageCollectionViewModelProvider;
   private readonly ImageViewerWindowService ImageViewerWindowService;
+  private readonly DialogService DialogService;
 
   public ImageDescriptor ImageDescriptor { get; }
 
@@ -31,25 +34,33 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
-  private Lazy<BitmapImage> _imageLazy;
-
-  public BitmapImage Image
+  private Lazy<BitmapImage> ImageLazy
   {
-    get => _imageLazy.Value;
-    set => OnPropertyChanged();
+    get;
+    set
+    {
+      if (field == value)
+      {
+        return;
+      }
+      field = value;
+      Image = value.Value;
+    }
   }
 
-  public bool Failed { get; private set; } = false;
+  [ObservableProperty]
+  public partial BitmapImage? Image { get; private set; }
 
   #region Object Lifetime Management
-  public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageViewerWindowService imageViewerWindowService, ImageDescriptor imageDescriptor)
+  public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageViewerWindowService imageViewerWindowService, DialogService dialogService, ImageDescriptor imageDescriptor)
   {
     NoteImageService = noteImageService;
     ImageCollectionViewModelProvider = imageCollectionViewModelProvider;
     ImageViewerWindowService = imageViewerWindowService;
+    DialogService = dialogService;
     ImageDescriptor = imageDescriptor;
 
-    CreateImageLazy();
+    CreateImage();
 
     _imageFileWatcher = new(ImageDescriptor.LocalImageFolderPath)
     {
@@ -64,12 +75,13 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private readonly Lock _syncRoot = new();
 
-  [MemberNotNull(nameof(_imageLazy))]
-  private void CreateImageLazy()
+  [MemberNotNull(nameof(ImageLazy))]
+  private void CreateImage()
   {
     lock (_syncRoot)
     {
-      _imageLazy = new Lazy<BitmapImage>(() => new BitmapImage
+      Image = null;
+      ImageLazy = new Lazy<BitmapImage>(() => new BitmapImage
       {
         UriSource = new Uri(ImageDescriptor.LocalImageFilePath),
         CreateOptions = BitmapCreateOptions.IgnoreImageCache,
@@ -77,17 +89,28 @@ internal sealed partial class ImageViewModel : ViewModelBase
     }
   }
 
-  public void ResetImageCache() => CreateImageLazy();
+  public void ResetImageCache() => CreateImage();
 
   private void ImageFileWatcher_Changed(object sender, FileSystemEventArgs e)
   {
-    //_dispatcherQueue.TryEnqueue(LoadImage);
+    _dispatcherQueue.TryEnqueue(() =>
+    {
+      CreateImage();
+      _ = ImageLazy.Value;
+      ImageChanged?.Invoke(this, new ImageChangedEventArgs(ImageChangeKind.Modified));
+    });
   }
 
   private void ImageFileWatcher_Deleted(object sender, FileSystemEventArgs e)
   {
-    //_dispatcherQueue.TryEnqueue(SetFallbackImage);
+    _dispatcherQueue.TryEnqueue(() =>
+    {
+      Image = null;
+      ImageChanged?.Invoke(this, new ImageChangedEventArgs(ImageChangeKind.Deleted));
+    });
   }
+
+  public event EventHandler<ImageChangedEventArgs>? ImageChanged;
 
   protected override void Dispose(bool disposing)
   {
@@ -110,14 +133,51 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
 internal sealed partial class ImageViewModel : ViewModelBase
 {
+  public AsyncCommand OpenInFileExplorerCommand { get; private set; }
+  public AsyncCommand OpenInPhotosCommand { get; private set; }
+
   public AsyncCommand OpenWithCommand { get; private set; }
   public AsyncCommand ShowImageCommand { get; private set; }
   public AsyncCommand<Microsoft.UI.WindowId> SaveImageCommand { get; private set; }
-  public AsyncCommand DeleteImageCommand { get; private set; }
+  public AsyncCommand<XamlRoot> DeleteImageCommand { get; private set; }
 
-  [MemberNotNull(nameof(OpenWithCommand), nameof(ShowImageCommand), nameof(SaveImageCommand), nameof(DeleteImageCommand))]
+  [MemberNotNull(nameof(OpenInFileExplorerCommand), nameof(OpenInPhotosCommand), nameof(OpenWithCommand), nameof(ShowImageCommand), nameof(SaveImageCommand), nameof(DeleteImageCommand))]
   private void SetCommands()
   {
+    OpenInFileExplorerCommand = new()
+    {
+      ExecuteFunc = async () =>
+      {
+        try
+        {
+          StorageFolder localFolder = await StorageFolder.GetFolderFromPathAsync(ImageDescriptor.LocalImageFolderPath);
+          FolderLauncherOptions options = new();
+          options.ItemsToSelect.Add(await StorageFile.GetFileFromPathAsync(ImageDescriptor.LocalImageFilePath));
+
+          await Launcher.LaunchFolderAsync(localFolder, options);
+        }
+        catch
+        { }
+      }
+    };
+
+    OpenInPhotosCommand = new()
+    {
+      ExecuteFunc = async () =>
+      {
+        try
+        {
+          Uri photosUri = new($"""ms-photos:viewer?fileName={ImageDescriptor.LocalImageFilePath}""");
+          await Launcher.LaunchUriAsync(photosUri, new LauncherOptions()
+          {
+            TreatAsUntrusted = false
+          });
+        }
+        catch
+        { }
+      }
+    };
+
     OpenWithCommand = new()
     {
       ExecuteFunc = async () =>
@@ -178,15 +238,37 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
     DeleteImageCommand = new()
     {
-      ExecuteFunc = async () =>
+      ExecuteFunc = async (xamlRoot) =>
       {
-        if (!Failed && File.Exists(ImageDescriptor.LocalImageFilePath))
+        var dialogResponse = await DialogService.ShowConfirmDeleteDialogAsync(xamlRoot, "Image", "Image", DeleteMode.MoveToTrash);
+        if (dialogResponse.Result == ContentDialogResult.Primary)
         {
-          await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
-          using var lease = ImageCollectionViewModelProvider.Acquire(CollectionKey);
-          lease?.ViewModel.RemoveImageFromCollection(this);
+          switch (dialogResponse.Data)
+          {
+            case DeleteMode.MoveToTrash:
+              {
+                await NoteImageService.DeleteImageAsync(ImageDescriptor.Id);
+                await using var lease = await ImageCollectionViewModelProvider.AcquireAsync(CollectionKey);
+                lease?.ViewModel.RemoveImageFromCollection(this);
+              }
+              break;
+            case DeleteMode.Permanent:
+              break;
+          }
         }
       }
     };
   }
+}
+
+public class ImageChangedEventArgs(ImageChangeKind imageChangeKind) : EventArgs
+{
+  public ImageChangeKind Kind { get; } = imageChangeKind;
+}
+
+public enum ImageChangeKind
+{
+  Modified,
+  Replaced,
+  Deleted
 }
