@@ -82,14 +82,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
     HasImages = ImageCount > 0;
   }
 
-  public void ResetImagesCache()
-  {
-    foreach (var viewmodel in ImageViewModels)
-    {
-      viewmodel.ResetImageCache();
-    }
-  }
-
   public async Task<bool> MoveImageAsync(int sourceIndex, int targetIndex)
   {
     if (ImageViewModels is null)

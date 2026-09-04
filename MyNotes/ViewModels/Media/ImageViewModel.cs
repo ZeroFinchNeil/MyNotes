@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-using CommunityToolkit.Mvvm.ComponentModel;
-
 using Microsoft.UI.Xaml.Media.Imaging;
 using Microsoft.Windows.Storage.Pickers;
 
@@ -9,6 +7,7 @@ using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Application.Notes.Services;
 using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Constants;
 using MyNotes.Models.Media;
 using MyNotes.Services.Dialogs;
 using MyNotes.Services.Windows;
@@ -34,22 +33,13 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private readonly Microsoft.UI.Dispatching.DispatcherQueue _dispatcherQueue = Microsoft.UI.Dispatching.DispatcherQueue.GetForCurrentThread();
 
-  private Lazy<BitmapImage> ImageLazy
-  {
-    get;
-    set
-    {
-      if (field == value)
-      {
-        return;
-      }
-      field = value;
-      Image = value.Value;
-    }
-  }
+  private Lazy<BitmapImage> _imageLazy;
 
-  [ObservableProperty]
-  public partial BitmapImage? Image { get; private set; }
+  public BitmapImage? Image
+  {
+    get => field ??= _imageLazy.Value;
+    private set => SetProperty(ref field, value);
+  }
 
   #region Object Lifetime Management
   public ImageViewModel(NoteImageService noteImageService, ImageCollectionViewModelProvider imageCollectionViewModelProvider, ImageViewerWindowService imageViewerWindowService, DialogService dialogService, ImageDescriptor imageDescriptor)
@@ -60,7 +50,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
     DialogService = dialogService;
     ImageDescriptor = imageDescriptor;
 
-    CreateImage();
+    ResetImageLazy();
 
     _imageFileWatcher = new(ImageDescriptor.LocalImageFolderPath)
     {
@@ -75,28 +65,25 @@ internal sealed partial class ImageViewModel : ViewModelBase
 
   private readonly Lock _syncRoot = new();
 
-  [MemberNotNull(nameof(ImageLazy))]
-  private void CreateImage()
+  [MemberNotNull(nameof(_imageLazy))]
+  private void ResetImageLazy()
   {
     lock (_syncRoot)
     {
       Image = null;
-      ImageLazy = new Lazy<BitmapImage>(() => new BitmapImage
+      _imageLazy = new Lazy<BitmapImage>(() => new BitmapImage
       {
         UriSource = new Uri(ImageDescriptor.LocalImageFilePath),
         CreateOptions = BitmapCreateOptions.IgnoreImageCache,
-      });
+      }, LazyThreadSafetyMode.ExecutionAndPublication);
     }
   }
-
-  public void ResetImageCache() => CreateImage();
 
   private void ImageFileWatcher_Changed(object sender, FileSystemEventArgs e)
   {
     _dispatcherQueue.TryEnqueue(() =>
     {
-      CreateImage();
-      _ = ImageLazy.Value;
+      ResetImageLazy();
       ImageChanged?.Invoke(this, new ImageChangedEventArgs(ImageChangeKind.Modified));
     });
   }
@@ -105,7 +92,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
   {
     _dispatcherQueue.TryEnqueue(() =>
     {
-      Image = null;
+      ResetImageLazy();
       ImageChanged?.Invoke(this, new ImageChangedEventArgs(ImageChangeKind.Deleted));
     });
   }
@@ -167,7 +154,7 @@ internal sealed partial class ImageViewModel : ViewModelBase
       {
         try
         {
-          Uri photosUri = new($"""ms-photos:viewer?fileName={ImageDescriptor.LocalImageFilePath}""");
+          Uri photosUri = AppStrings.GetPhotosUri(ImageDescriptor.LocalImageFilePath);
           await Launcher.LaunchUriAsync(photosUri, new LauncherOptions()
           {
             TreatAsUntrusted = false

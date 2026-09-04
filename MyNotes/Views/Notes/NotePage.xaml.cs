@@ -75,6 +75,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
 
     var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ImageCollectionViewModelLease = await ImageCollectionViewModelProvider.ResolveAsync(new ImageCollectionKey(Note.Id.Value));
+    await ImageCollectionViewModel.InitializationTask;
   }
 
   private bool _disposeStarted;

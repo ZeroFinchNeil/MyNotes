@@ -57,6 +57,7 @@ internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncD
   {
     var viewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ViewModelLease = await viewModelProvider.ResolveAsync(CollectionKey);
+    await ViewModel.InitializationTask;
   }
 
   private bool _disposeStarted;
@@ -74,7 +75,6 @@ internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncD
     }
 
     Bindings.StopTracking();
-    ViewModel.ResetImagesCache();
 
     if (ViewModelLease is not null)
     {

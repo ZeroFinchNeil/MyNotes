@@ -27,4 +27,6 @@ public static class AppStrings
 
   public const string FallbackImagePath = "ms-appx:///Assets/Images/failure.png";
   public static readonly string ImageFolderPath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "Images");
+
+  public static Uri GetPhotosUri(string filePath) => new($"ms-photos:viewer?fileName={filePath}");
 }
