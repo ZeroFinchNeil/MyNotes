@@ -28,6 +28,8 @@ using MyNotes.Services.Updates;
 using MyNotes.Services.Windows;
 using MyNotes.Templates.Media;
 
+using Windows.Storage.Streams;
+
 namespace MyNotes.ViewModels.Notes;
 
 internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
@@ -57,11 +59,21 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     NoteViewModelLease = noteViewModelLease;
     Document = document;
 
+    SetCommands();
+    InitializationTask = InitializeAsync();
+  }
+
+  public Task InitializationTask { get; }
+  private async Task InitializeAsync()
+  {
     // Editor BodyText
-    var rtfText = Note.Body;
-    if (!string.IsNullOrEmpty(rtfText))
+    try
     {
-      Document.SetText(TextSetOptions.FormatRtf, rtfText);
+      Document.LoadFromStream(TextSetOptions.FormatRtf, await StreamHelper.ToRandomAccessStreamAsync(Note.Body));
+    }
+    catch
+    {
+
     }
 
     Note.PropertyChanged += Note_PropertyChanged;
@@ -81,7 +93,6 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
       AlignmentPosition.BottomLeft or AlignmentPosition.BottomCenter or AlignmentPosition.BottomRight => AlignmentY.Bottom,
       _ => throw new InvalidOperationException()
     };
-    SetCommands();
   }
 
   private bool _disposeStarted;
@@ -791,16 +802,14 @@ partial class NoteEditorViewModel
 
   private void BodyEditorBatchTimer_Tick(object? sender, object e) => _updateNoteBodyTask = UpdateNoteBodyAsync();
 
-  public async Task UpdateNoteBodyAsync()
+  public async Task UpdateNoteBodyAsync(CancellationToken cancellationToken = default)
   {
     _bodyEditorBatchTimer.Stop();
 
-    Document.GetText(TextGetOptions.FormatRtf, out var editorText);
-    editorText = AppRegexes.LastParInRtfRegex().Replace(editorText, "}");
-
-    if (Note.Body != editorText)
+    using (IRandomAccessStream randomAccessStream = new InMemoryRandomAccessStream())
     {
-      Note.Body = editorText;
+      Document.SaveToStream(TextGetOptions.FormatRtf, randomAccessStream);
+      Note.Body = await StreamHelper.ToByteArrayAsync(randomAccessStream, cancellationToken);
       await UpdateAsync(nameof(NoteModel.Body));
     }
 

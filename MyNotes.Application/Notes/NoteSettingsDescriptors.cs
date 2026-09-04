@@ -19,7 +19,7 @@ internal static class NoteSettingsDescriptors
   };
 
   public static readonly string NoteTitle = string.Empty;
-  public static readonly string NoteBodyRtfText = string.Empty;
+  public static readonly byte[] NoteBodyRtfText = [];
   public static readonly string NoteBodyPlainText = string.Empty;
   public static readonly bool IsNoteBookmarked = false;
   public static readonly bool IsNoteDeleted = false;

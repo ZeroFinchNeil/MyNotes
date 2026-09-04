@@ -1,7 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 
-using Microsoft.UI.Xaml.Documents;
-
 using MyNotes.Application.Contracts.Media.Models;
 using MyNotes.Application.Contracts.Notes.Models;
 using MyNotes.Debugging.Attributes;
@@ -32,8 +30,7 @@ internal sealed partial class NoteModel : ObservableObject, IComparable<NoteMode
   [ObservableProperty]
   public required partial string Title { get; set; }
 
-  [ObservableProperty]
-  public required partial string Body { get; set; }
+  public required byte[] Body { get; set; }
 
   [ObservableProperty]
   public required partial Color BackgroundColor { get; set; }

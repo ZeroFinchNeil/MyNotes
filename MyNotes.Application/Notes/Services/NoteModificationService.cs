@@ -6,6 +6,7 @@ using MyNotes.Application.Notes.Commands;
 using MyNotes.Application.Notes.Results;
 using MyNotes.Application.Results;
 using MyNotes.Common.Enums.Modes;
+using MyNotes.Common.Helpers;
 using MyNotes.Domain.Notes;
 
 namespace MyNotes.Application.Notes.Services;
@@ -55,7 +56,7 @@ internal sealed partial class NoteModificationService
       NoteProjectionDto noteProjectionDto = await NoteRepository.GetNoteFieldValuesAsync(id, NoteProjectionFields.Title | NoteProjectionFields.Body, cancellationToken);
       if (noteProjectionDto.Title.TryGet(out var title) && noteProjectionDto.Body.TryGet(out var body))
       {
-        await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(id, title, RtfTextConverter.ToPlainText(body)), cancellationToken);
+        await NoteSearcher.WriteNoteIndexAsync(NoteMappers.ToSearchDocumentDto(id, title, RtfTextConverter.ToPlainText(await StreamHelper.ToRandomAccessStreamAsync(body))), cancellationToken);
       }
     }
 

@@ -73,9 +73,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
   [ObservableProperty]
   public partial int ImageCount { get; private set; }
 
-  [ObservableProperty]
-  public partial bool ShowThumbnailsPanel { get; private set; }
-
   private void CalculateImageCount()
   {
     ImageCount = ImageViewModels.Count;

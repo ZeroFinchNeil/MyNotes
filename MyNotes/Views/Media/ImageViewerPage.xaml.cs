@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 
+using MyNotes.Application.Settings.Services;
+using MyNotes.Constants;
 using MyNotes.Models.Media;
 using MyNotes.ViewModels;
 using MyNotes.ViewModels.Media;
@@ -10,6 +12,8 @@ namespace MyNotes.Views.Media;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncDisposable
 {
+  private readonly AppSettingsService AppSettingsService;
+
   public UIElement TitleBarElement { get; }
 
   private IAsyncViewModelLease<ImageCollectionViewModel>? ViewModelLease;
@@ -42,10 +46,28 @@ internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncD
     }
   }
 
+  public static readonly DependencyProperty IsFilmstripVisibleProperty = DependencyProperty.Register("IsFilmstripVisible", typeof(bool), typeof(ImageViewerPage), new PropertyMetadata(true, OnIsFilmstripVisibleChanged));
+  public bool IsFilmstripVisible
+  {
+    get => (bool)GetValue(IsFilmstripVisibleProperty);
+    set => SetValue(IsFilmstripVisibleProperty, value);
+  }
+
+  public static void OnIsFilmstripVisibleChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+  {
+    if (d is ImageViewerPage control && e.NewValue is bool newValue)
+    {
+      control.AppSettingsService.Save(AppSettingsDescriptors.ShowImageViewerFilmstrip, newValue);
+    }
+  }
+
   public ImageViewerPage(ImageCollectionKey collectionKey)
   {
     TrackReference();
     InitializeComponent();
+
+    AppSettingsService = App.Services.GetRequiredService<AppSettingsService>();
+    IsFilmstripVisible = AppSettingsService.Load(AppSettingsDescriptors.ShowImageViewerFilmstrip);
 
     TitleBarElement = ImageViewerPage_TitleBar;
     CollectionKey = collectionKey;

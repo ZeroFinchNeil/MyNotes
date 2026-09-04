@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Messaging.Messages;
 
 using MyNotes.Application.Contracts.Converters;
+using MyNotes.Common.Helpers;
 using MyNotes.Constants;
 using MyNotes.Domain.Notes;
 using MyNotes.Messaging;
@@ -25,7 +26,7 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
     NoteViewModelLease = noteViewModelLease;
 
     RtfTextConverter = rtfTextConverter;
-    _preview = GetPreview();
+    _ = SetPreviewAsync();
     RegisterMessengers();
     // TODO: 노트 본문 변경 시 일반 미리보기는 다시 계산하고,
     // 검색 미리보기는 검색 결과와 강조 범위를 함께 재계산할 수 있도록 갱신 흐름을 구현할 것.
@@ -55,11 +56,13 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
     set => SetProperty(ref _preview, value);
   }
 
-  private string GetPreview() => RtfTextConverter.GetPreview(Note.Body, 0, _previewTextMaxLength);
+  private async Task<string> GetPreviewAsync() => RtfTextConverter.GetPreview(await StreamHelper.ToRandomAccessStreamAsync(Note.Body), 0, _previewTextMaxLength);
+
+  private async Task SetPreviewAsync() => Preview = await GetPreviewAsync();
 
   private void RegisterMessengers()
   {
-    WeakReferenceMessenger.Default.Register<NotePreviewViewModel, NotePreviewUpdateRequestedMessage, MessageToken<NoteId>>(this, MessageToken<NoteId>.Create(Note.Id), static (recipient, message) => recipient.Preview = recipient.GetPreview());
+    WeakReferenceMessenger.Default.Register<NotePreviewViewModel, NotePreviewUpdateRequestedMessage, MessageToken<NoteId>>(this, MessageToken<NoteId>.Create(Note.Id), async static (recipient, message) => await recipient.SetPreviewAsync());
   }
 
   private void UnregisterMessengers() => WeakReferenceMessenger.Default.UnregisterAll(this);

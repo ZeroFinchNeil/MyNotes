@@ -19,7 +19,7 @@ internal sealed record NoteProjectionDto
 
   public Optional<string> Title { get; init; }
 
-  public Optional<string> Body { get; init; }
+  public Optional<byte[]> Body { get; init; }
 
   public Optional<string> BackgroundColor { get; init; }
 

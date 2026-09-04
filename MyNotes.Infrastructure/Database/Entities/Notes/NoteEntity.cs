@@ -20,7 +20,7 @@ internal sealed class NoteEntity : IDatabaseEntity<NoteEntity>
   public required string Title { get; set; }
 
   [Required]
-  public required string Body { get; set; }
+  public required byte[] Body { get; set; }
 
   [Required]
   public required string BackgroundColor { get; set; }

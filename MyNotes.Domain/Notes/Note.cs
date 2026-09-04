@@ -16,7 +16,7 @@ internal sealed class Note
 
   public required string Title { get; set; }
 
-  public required string Body { get; set; }
+  public required byte[] Body { get; set; }
 
   public required string BackgroundColor { get; set; }
 

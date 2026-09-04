@@ -26,11 +26,11 @@ internal static class NoteMappers
       BackgroundColor = ColorHelper.ToColor(noteDto.BackgroundColor),
       ShowBackgroundImage = viewStateDto.ShowBackgroundImage,
       BackgroundImageStretch = (Stretch)viewStateDto.BackgroundImageStretch,
-      BackgroundImageAlignment = (AlignmentPosition)viewStateDto.BackgroundImageAlignment,
+      BackgroundImageAlignment = viewStateDto.BackgroundImageAlignment,
       BackgroundImagePath = noteDto.BackgroundImagePath,
       BackgroundImageOpacity = viewStateDto.BackgroundImageOpacity,
       BackgroundImageBlur = viewStateDto.BackgroundImageBlur,
-      BackdropKind = (BackdropKind)viewStateDto.BackdropKind,
+      BackdropKind = viewStateDto.BackdropKind,
       BackdropTintOpacity = viewStateDto.BackdropTintOpacity,
       BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity,
       ShowImagePanel = viewStateDto.ShowImagePanel,
@@ -74,11 +74,11 @@ internal static class NoteMappers
     noteModel.BackgroundColor = ColorHelper.ToColor(noteDto.BackgroundColor);
     noteModel.ShowBackgroundImage = viewStateDto.ShowBackgroundImage;
     noteModel.BackgroundImageStretch = (Stretch)viewStateDto.BackgroundImageStretch;
-    noteModel.BackgroundImageAlignment = (AlignmentPosition)viewStateDto.BackgroundImageAlignment;
+    noteModel.BackgroundImageAlignment = viewStateDto.BackgroundImageAlignment;
     noteModel.BackgroundImagePath = noteDto.BackgroundImagePath;
     noteModel.BackgroundImageOpacity = viewStateDto.BackgroundImageOpacity;
     noteModel.BackgroundImageBlur = viewStateDto.BackgroundImageBlur;
-    noteModel.BackdropKind = (BackdropKind)viewStateDto.BackdropKind;
+    noteModel.BackdropKind = viewStateDto.BackdropKind;
     noteModel.BackdropTintOpacity = viewStateDto.BackdropTintOpacity;
     noteModel.BackdropLuminosityOpacity = viewStateDto.BackdropLuminosityOpacity;
     noteModel.ShowImagePanel = viewStateDto.ShowImagePanel;

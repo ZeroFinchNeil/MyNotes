@@ -121,7 +121,7 @@ internal class NoteRepository : INoteRepository
         Created = noteGetFields.HasFlag(NoteProjectionFields.Created) ? new(e.Created) : Optional<DateTimeOffset>.None,
         Modified = noteGetFields.HasFlag(NoteProjectionFields.Modified) ? new(e.Modified) : Optional<DateTimeOffset>.None,
         Title = noteGetFields.HasFlag(NoteProjectionFields.Title) ? new(e.Title) : Optional<string>.None,
-        Body = noteGetFields.HasFlag(NoteProjectionFields.Body) ? new(e.Body) : Optional<string>.None,
+        Body = noteGetFields.HasFlag(NoteProjectionFields.Body) ? new(e.Body) : Optional<byte[]>.None,
         BackgroundColor = noteGetFields.HasFlag(NoteProjectionFields.BackgroundColor) ? new(e.BackgroundColor) : Optional<string>.None,
         IsBookmarked = noteGetFields.HasFlag(NoteProjectionFields.IsBookmarked) ? new(e.IsBookmarked) : Optional<bool>.None,
         IsDeleted = noteGetFields.HasFlag(NoteProjectionFields.IsDeleted) ? new(e.IsDeleted) : Optional<bool>.None,

@@ -7,7 +7,9 @@
   </Configurations>
   <Folder Name="/솔루션 항목/">
     <File Path=".editorconfig" />
-    <File Path=".todo.md" />
+    <File Path="PLANNED_WORK.md" />
+    <File Path="README.md" />
+    <File Path="TECHNICAL_DEBT.md" />
   </Folder>
   <Project Path="MyNotes.Analyzer/MyNotes.Analyzer.csproj" Id="6fdc6275-206e-4e89-9292-8aeed107a1c3">
     <Platform Solution="*|x64" Project="x64" />

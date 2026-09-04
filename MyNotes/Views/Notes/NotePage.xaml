@@ -305,6 +305,10 @@
           x:Load="{x:Bind helpers:BooleanHelper.And(ImageCollectionViewModel.HasImages, Note.ShowImagePanel), Mode=OneWay}"
           Grid.Row="1"
           Padding="6,0">
+      <Grid.RowDefinitions>
+        <RowDefinition />
+        <RowDefinition Height="Auto" />
+      </Grid.RowDefinitions>
       <GridView x:Name="NotePage_ImagesGridView"
                 Grid.Row="0"
                 CanDragItems="True"
@@ -319,8 +323,7 @@
                 Height="{x:Bind Note.ImagePanelHeight, Mode=TwoWay}"
                 MinHeight="120"
                 MaxHeight="{x:Bind NoteViewModel.ImagePanelMaxHeight, Mode=OneWay}"
-                Padding="0,6"
-                Margin="0,0,0,6"
+                Padding="0,0,0,6"
                 DragItemsStarting="NotePage_ImagesGridView_DragItemsStarting"
                 DragOver="NotePage_ImagesGridView_DragOver"
                 Drop="NotePage_ImagesGridView_Drop">
@@ -349,12 +352,9 @@
       </GridView>
 
       <ctwc:ContentSizer TargetControl="{x:Bind NotePage_ImagesGridView}"
+                         Grid.Row="1"
                          Orientation="Horizontal"
-                         VerticalAlignment="Bottom"
-                         Cursor="Arrow"
-                         IsTabStop="True"
-                         AllowFocusOnInteraction="True"
-                         UseSystemFocusVisuals="True" />
+                         Cursor="Arrow" />
     </Grid>
     <!--#endregion -->
 

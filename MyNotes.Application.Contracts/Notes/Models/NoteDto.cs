@@ -17,7 +17,7 @@ internal sealed record NoteDto
 
   public required string Title { get; init; }
 
-  public required string Body { get; init; }
+  public required byte[] Body { get; init; }
 
   public required string BackgroundColor { get; init; }
 

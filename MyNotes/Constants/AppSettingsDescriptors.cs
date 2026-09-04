@@ -105,6 +105,12 @@ internal static class AppSettingsDescriptors
     DefaultValue = 20
   };
 
+  public static SettingsDescriptor<bool> ShowImageViewerFilmstrip { get; } = new()
+  {
+    Key = "ShowImageViewerFilmstrip",
+    DefaultValue = true
+  };
+
   // Settings - Note
   public static Size NoteWindowMinimumSize { get; } = new(400.0, 300.0);
   public static SettingsDescriptor<int> NoteBodyUpdateFrequency { get; } = new()

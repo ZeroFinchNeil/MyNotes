@@ -371,3 +371,5 @@ AGENTS.md
 .etc
 MyNotes.Tests/*/
 makepri.ps1
+/TECHNICAL_DEBT.md
+/PLANNED_WORK.md

@@ -41,7 +41,7 @@
           <templates:SubtleIconToggleButton x:Name="ImageViewerPage_ShowFilmstripToggleButton"
                                             x:Uid="/ImageViewerPage/ShowFilmstripToggleButton"
                                             Content="{ctw:FontIcon Glyph=&#xF597;}"
-                                            IsChecked="False">
+                                            IsChecked="{x:Bind IsFilmstripVisible, Mode=TwoWay}">
             <templates:SubtleIconToggleButton.KeyboardAccelerators>
               <KeyboardAccelerator Key="F" />
             </templates:SubtleIconToggleButton.KeyboardAccelerators>
@@ -56,8 +56,8 @@
                                       Content="{ctw:SymbolIcon Symbol=OpenWith}">
             <templates:SubtleIconButton.Flyout>
               <MenuFlyout Placement="Bottom">
-                <MenuFlyoutItem x:Uid="/ImageViewerPage/OpenInFileExplorerMenuFlyoutItem" 
-                                Command="{x:Bind SelectedImage.OpenInFileExplorerCommand}"/>
+                <MenuFlyoutItem x:Uid="/ImageViewerPage/OpenInFileExplorerMenuFlyoutItem"
+                                Command="{x:Bind SelectedImage.OpenInFileExplorerCommand}" />
                 <MenuFlyoutItem x:Uid="/ImageViewerPage/OpenInPhotosMenuFlyoutItem"
                                 Command="{x:Bind SelectedImage.OpenInPhotosCommand}" />
                 <MenuFlyoutSeparator />
@@ -139,17 +139,18 @@
                SelectedPageIndex="{x:Bind ImageViewerPage_FlipView.SelectedIndex, Mode=TwoWay}"
                PreviousButtonVisibility="VisibleOnPointerOver"
                NextButtonVisibility="VisibleOnPointerOver"
-               Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(ImageViewerPage_ShowFilmstripToggleButton.IsChecked), Mode=OneWay}" />
+               Visibility="{x:Bind helpers:BooleanHelper.ToInverseVisibility(IsFilmstripVisible), Mode=OneWay}" />
 
-    <GridView x:Name="ImageViewerPage_ThumbnailsGridView"
-              x:Load="{x:Bind ImageViewerPage_ShowFilmstripToggleButton.IsChecked.Value, Mode=OneWay}"
+    <GridView x:Name="ImageViewerPage_FlimstripGridView"
               Grid.Row="2"
+              x:Load="{x:Bind IsFilmstripVisible, Mode=OneWay}"
               ItemsSource="{x:Bind ViewModel.ImageViewModels}"
               SelectedItem="{x:Bind SelectedImage, Mode=TwoWay}"
               SelectionMode="Single"
-              Height="96"
+              BorderBrush="{ThemeResource DividerStrokeColorDefault}"
+              BorderThickness="1"
+              Height="100"
               Padding="8"
-              Background="{ThemeResource ControlAltFillColorQuarternary}"
               ScrollViewer.HorizontalScrollMode="Auto"
               ScrollViewer.HorizontalScrollBarVisibility="Visible"
               ScrollViewer.VerticalScrollMode="Disabled"
@@ -164,12 +165,14 @@
         <DataTemplate x:DataType="mvmm:ImageViewModel"
                       xmlns:mvm="using:MyNotes.Views.Media"
                       xmlns:mvmm="using:MyNotes.ViewModels.Media">
-          <mvm:ImageThumbnailItemContainer ViewModel="{x:Bind}"
-                                           Width="96"
-                                           Height="80"
-                                           DecodePixelWidth="96"
-                                           VerticalAlignment="Center"
-                                           IsEnabled="False" />
+          <Border Background="{ThemeResource ControlAltFillColorQuarternary}"
+                  Width="100"
+                  Height="80">
+            <mvm:ImageThumbnailItemContainer ViewModel="{x:Bind}"
+                                             DecodePixelWidth="96"
+                                             VerticalAlignment="Center"
+                                             IsEnabled="False" />
+          </Border>
         </DataTemplate>
       </GridView.ItemTemplate>
     </GridView>

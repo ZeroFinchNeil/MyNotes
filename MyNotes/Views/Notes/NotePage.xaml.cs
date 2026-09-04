@@ -72,6 +72,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
   {
     var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
     EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(Note, NotePage_TextEditorRichEditBox.Document);
+    await EditorViewModel.InitializationTask;
 
     var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
     ImageCollectionViewModelLease = await ImageCollectionViewModelProvider.ResolveAsync(new ImageCollectionKey(Note.Id.Value));
