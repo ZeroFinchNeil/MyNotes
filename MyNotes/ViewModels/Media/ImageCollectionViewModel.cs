@@ -17,7 +17,7 @@ using MyNotes.ViewModels.Media.Providers;
 
 namespace MyNotes.ViewModels.Media;
 
-internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class ImageCollectionViewModel : AsyncViewModelBase
 {
   private readonly NoteImageService NoteImageService;
   private readonly ImageViewModelProvider ImageViewModelProvider;
@@ -38,6 +38,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
     InitializationTask = InitializeAsync();
     SetCommands();
   }
+
   public Task InitializationTask { get; }
   private async Task InitializeAsync()
   {
@@ -46,8 +47,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
     CalculateImageCount();
   }
 
-  bool _disposeStarted;
-  private async ValueTask DisposeAsyncCore()
+  protected override async ValueTask DisposeAsyncCore()
   {
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
@@ -55,12 +55,6 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
     }
 
     _imageViewModelLeases?.Dispose();
-  }
-
-  public async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
   }
   #endregion
 
@@ -109,7 +103,7 @@ internal sealed partial class ImageCollectionViewModel : ViewModelBase, IAsyncDi
   }
 }
 
-internal sealed partial class ImageCollectionViewModel : ViewModelBase
+internal sealed partial class ImageCollectionViewModel
 {
   public AsyncCommand<Microsoft.UI.WindowId>? InsertImageCommand { get; private set; }
 

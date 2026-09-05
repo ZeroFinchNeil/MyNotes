@@ -74,7 +74,7 @@ internal sealed class NoteViewModelProvider(IServiceProvider serviceProvider) : 
     return null;
   }
 
-  private ViewModelLease CreateLease(NoteModel noteModel, NoteViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private ViewModelLease CreateLease(NoteModel noteModel, NoteViewModel viewmodel, ViewModelCache cache) => new()
   {
     ViewModel = viewmodel,
     ReleaseFunc = async () =>

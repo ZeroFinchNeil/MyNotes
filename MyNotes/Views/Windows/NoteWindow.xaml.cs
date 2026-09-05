@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using MyNotes.Common.Interop;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Messaging;
 using MyNotes.Messaging.Messages;
@@ -22,13 +23,18 @@ internal sealed partial class NoteWindow : Window
 
   private readonly IntPtr _hWnd;
   private readonly NoteId NoteId;
-  public Task InitializationTask { get; }
-  public event EventHandler? Loaded;
 
   private NotePage? _content;
 
   #region Object Lifetime Management
-  public NoteWindow(NoteModel note)
+  public static async Task<NoteWindow> CreateAsync(NoteModel note)
+  {
+    NoteWindow instance = new(note);
+    await instance.InitializeAsync(note);
+    return instance;
+  }
+
+  private NoteWindow(NoteModel note)
   {
     TrackReference();
     InitializeComponent();
@@ -44,8 +50,6 @@ internal sealed partial class NoteWindow : Window
     // WindowService에 등록
     NoteId = note.Id;
     NoteWindowService.NoteWindowTable[NoteId] = new WeakReference<NoteWindow>(this);
-
-    InitializationTask = InitializeAsync(note);
 
     // hWnd(Window Handle) 가져오기
     _hWnd = WinRT.Interop.WindowNative.GetWindowHandle(this);
@@ -70,12 +74,9 @@ internal sealed partial class NoteWindow : Window
 
   private async Task InitializeAsync(NoteModel noteModel)
   {
-    _content = new NotePage(noteModel);
-    await _content.InitializationTask;
+    _content = await NotePage.CreateAsync(noteModel);
     this.Content = _content;
     this.SetTitleBar(_content.TitleBarElement);
-
-    Loaded?.Invoke(this, EventArgs.Empty);
   }
 
   public bool IsClosed { get; set; } = false;

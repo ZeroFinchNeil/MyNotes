@@ -4,15 +4,15 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes.Providers;
 
-internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory, NoteViewModelProvider NoteViewModelProvider) : IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>
+internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFactory, NoteViewModelProvider NoteViewModelProvider) : IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>
 {
-  public async Task<IAsyncViewModelLease<NoteEditorViewModel>> ResolveAsync(NoteModel note, RichEditTextDocument document)
+  public async Task<IAsyncViewModelLease<NoteEditorViewModel>> ResolveAsync(NoteModel note)
   {
     var noteViewModelLease = await NoteViewModelProvider.ResolveAsync(note);
     var scope = ScopeFactory.CreateAsyncScope();
     try
     {
-      var viewmodel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, noteViewModelLease, document);
+      var viewmodel = ActivatorUtilities.CreateInstance<NoteEditorViewModel>(scope.ServiceProvider, noteViewModelLease);
       return new ViewModelLease()
       {
         ViewModel = viewmodel,
@@ -31,7 +31,7 @@ internal sealed class NoteEditorViewModelProvider(IServiceScopeFactory ScopeFact
     }
   }
 
-  Task<IAsyncViewModelLease<NoteEditorViewModel>?> IAsyncViewModelProvider<NoteModel, RichEditTextDocument, NoteEditorViewModel>.AcquireAsync(NoteModel model) => throw new InvalidOperationException();
+  Task<IAsyncViewModelLease<NoteEditorViewModel>?> IAsyncViewModelProvider<NoteModel, NoteEditorViewModel>.AcquireAsync(NoteModel model) => throw new InvalidOperationException();
 
   private class ViewModelLease : IAsyncViewModelLease<NoteEditorViewModel>
   {

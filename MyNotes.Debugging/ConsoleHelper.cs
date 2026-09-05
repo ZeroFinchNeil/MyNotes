@@ -13,6 +13,15 @@ public static class ConsoleHelper
     }
   }
 
+  public static void WriteLine(bool visible, string text)
+  {
+    if (visible)
+    {
+      Console.WriteLine(text);
+      //Debug.WriteLine(text);
+    }
+  }
+
   public static void WriteLine(bool visible, string format, params ReadOnlySpan<object?> objects)
   {
     if (visible)

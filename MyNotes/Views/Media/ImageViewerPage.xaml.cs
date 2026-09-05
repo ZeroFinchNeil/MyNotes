@@ -16,9 +16,8 @@ internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncD
 
   public UIElement TitleBarElement { get; }
 
-  private IAsyncViewModelLease<ImageCollectionViewModel>? ViewModelLease;
-  private ImageCollectionViewModel ViewModel => ViewModelLease?.ViewModel ?? throw new InvalidOperationException();
-  public ImageCollectionKey CollectionKey { get; }
+  private readonly IAsyncViewModelLease<ImageCollectionViewModel> ViewModelLease;
+  private ImageCollectionViewModel ViewModel => ViewModelLease.ViewModel;
 
   public static readonly DependencyProperty SelectedImageProperty = DependencyProperty.Register("SelectedImage", typeof(ImageViewModel), typeof(ImageViewerPage), new PropertyMetadata(null));
   public ImageViewModel? SelectedImage
@@ -61,25 +60,23 @@ internal sealed partial class ImageViewerPage : Page, ITitleBarProvider, IAsyncD
     }
   }
 
-  public ImageViewerPage(ImageCollectionKey collectionKey)
+  public async static Task<ImageViewerPage> CreateAsync(ImageCollectionKey collectionKey)
+  {
+    var viewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
+    var viewModelLease = await viewModelProvider.ResolveAsync(collectionKey);
+    return new ImageViewerPage(viewModelLease);
+  }
+
+  private ImageViewerPage(IAsyncViewModelLease<ImageCollectionViewModel> viewModelLease)
   {
     TrackReference();
     InitializeComponent();
 
+    ViewModelLease = viewModelLease;
     AppSettingsService = App.Services.GetRequiredService<AppSettingsService>();
     IsFilmstripVisible = AppSettingsService.Load(AppSettingsDescriptors.ShowImageViewerFilmstrip);
 
     TitleBarElement = ImageViewerPage_TitleBar;
-    CollectionKey = collectionKey;
-    InitializationTask = InitializeAsync();
-  }
-
-  public Task InitializationTask { get; }
-  private async Task InitializeAsync()
-  {
-    var viewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ViewModelLease = await viewModelProvider.ResolveAsync(CollectionKey);
-    await ViewModel.InitializationTask;
   }
 
   private bool _disposeStarted;

@@ -29,7 +29,6 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
       {
         if (pair.Key == collectionKey && !imageViewerWindow.IsClosed)
         {
-          await imageViewerWindow.InitializationTask;
           await imageViewerWindow.ChangeImageSelection(selection);
           return imageViewerWindow;
         }
@@ -40,8 +39,7 @@ internal class ImageViewerWindowService : IWindowService<ImageViewerWindow>
       }
     }
 
-    ImageViewerWindow newWindow = new(collectionKey);
-    await newWindow.InitializationTask;
+    ImageViewerWindow newWindow = await ImageViewerWindow.CreateAsync(collectionKey);
     await newWindow.ChangeImageSelection(selection);
 
     _imageViewerWindowPair = new KeyValuePair<ImageCollectionKey, WeakReference<ImageViewerWindow>>(collectionKey, new(newWindow));

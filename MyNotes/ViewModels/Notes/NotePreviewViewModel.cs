@@ -11,7 +11,7 @@ using MyNotes.Models.Notes;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
+internal partial class NotePreviewViewModel : AsyncViewModelBase
 {
   protected readonly IRtfTextConverter RtfTextConverter;
 
@@ -32,8 +32,7 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
     // 검색 미리보기는 검색 결과와 강조 범위를 함께 재계산할 수 있도록 갱신 흐름을 구현할 것.
   }
 
-  protected bool _disposeStarted;
-  protected virtual async ValueTask DisposeAsyncCore()
+  protected override async ValueTask DisposeAsyncCore()
   {
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
@@ -41,12 +40,6 @@ internal partial class NotePreviewViewModel : ViewModelBase, IAsyncDisposable
     }
     UnregisterMessengers();
     await NoteViewModelLease.DisposeAsync();
-  }
-
-  public virtual async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
   }
 
   protected string _preview = string.Empty;

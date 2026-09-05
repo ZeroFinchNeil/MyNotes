@@ -28,7 +28,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
         {
           if (cache.ReferenceCounter.TryAcquire(out var viewModel))
           {
-            return CreateLease(key, viewModel, cache);
+            return await CreateLease(key, viewModel, cache);
           }
 
           ResolveTable.TryRemove(key, out _);
@@ -41,26 +41,30 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
     }
   }
 
-  private ViewModelLease CreateLease(ImageCollectionKey key, ImageCollectionViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private async Task<ViewModelLease> CreateLease(ImageCollectionKey key, ImageCollectionViewModel viewmodel, ViewModelCache cache)
   {
-    ViewModel = viewmodel,
-    ReleaseFunc = async () =>
+    await viewmodel.InitializationTask;
+    return new ViewModelLease()
     {
-      await cache.Semaphore.WaitAsync();
-      try
+      ViewModel = viewmodel,
+      ReleaseFunc = async () =>
       {
-        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        await cache.Semaphore.WaitAsync();
+        try
         {
-          await viewmodel.DisposeAsync();
-          ResolveTable.TryRemove(key, out _);
+          if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+          {
+            await viewmodel.DisposeAsync();
+            ResolveTable.TryRemove(key, out _);
+          }
+        }
+        finally
+        {
+          cache.Semaphore.Release();
         }
       }
-      finally
-      {
-        cache.Semaphore.Release();
-      }
-    }
-  };
+    };
+  }
 
   public async Task<IAsyncViewModelLease<ImageCollectionViewModel>?> AcquireAsync(ImageCollectionKey key)
   {
@@ -73,7 +77,7 @@ internal class ImageCollectionViewModelProvider(IServiceProvider serviceProvider
         {
           if (!viewmodel.Disposed)
           {
-            return CreateLease(key, viewmodel, cache);
+            return await CreateLease(key, viewmodel, cache);
           }
           else
           {

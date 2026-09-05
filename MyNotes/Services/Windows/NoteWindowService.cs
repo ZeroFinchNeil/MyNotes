@@ -101,11 +101,10 @@ internal class NoteWindowService : IWindowService<NoteId, NoteWindow>
       && wr.TryGetTarget(out var existingNoteWindow)
       && !existingNoteWindow.IsClosed
       ? existingNoteWindow
-      : new(noteModel);
+      : await NoteWindow.CreateAsync(noteModel);
 
     if (activate)
     {
-      await noteWindow.InitializationTask;
       noteWindow.Activate();
     }
 

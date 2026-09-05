@@ -20,7 +20,7 @@ using MyNotes.Services.Updates;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NoteViewModel : AsyncViewModelBase
 {
   private readonly NoteCommandService NoteCommandService;
   private readonly NavigationCommandService NavigationCommandService;
@@ -46,8 +46,7 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     SetCommands();
   }
 
-  private bool _disposeStarted;
-  private async ValueTask DisposeAsyncCore()
+  protected override async ValueTask DisposeAsyncCore()
   {
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
@@ -55,12 +54,6 @@ internal sealed partial class NoteViewModel : ViewModelBase, IAsyncDisposable
     }
 
     Note.PropertyChanged -= Note_PropertyChanged;
-  }
-
-  public async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
   }
   #endregion
 

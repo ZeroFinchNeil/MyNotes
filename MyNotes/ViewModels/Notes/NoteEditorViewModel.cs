@@ -19,6 +19,7 @@ using MyNotes.Common.Commands;
 using MyNotes.Common.Enums.Modes;
 using MyNotes.Common.Helpers;
 using MyNotes.Constants;
+using MyNotes.Debugging;
 using MyNotes.Domain.Notes;
 using MyNotes.Messaging;
 using MyNotes.Messaging.Messages;
@@ -32,7 +33,7 @@ using Windows.Storage.Streams;
 
 namespace MyNotes.ViewModels.Notes;
 
-internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NoteEditorViewModel : AsyncViewModelBase
 {
   private readonly IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> NoteUpdateCoordinator;
   private readonly IUpdateCoordinator<string, NoteViewStatePatchDto> ViewStateUpdateCoordinator;
@@ -44,10 +45,15 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   private readonly IAsyncViewModelLease<NoteViewModel> NoteViewModelLease;
   public NoteViewModel NoteViewModel => NoteViewModelLease.ViewModel;
   private NoteModel Note => NoteViewModel.Note;
-  private readonly RichEditTextDocument Document;
+
+  private RichEditTextDocument Document
+  {
+    get => field ?? throw new InvalidOperationException("Document가 초기화되지 않았습니다. AttachDocument 메서드를 호출하여 RichEditTextDocument를 연결하세요.");
+    set;
+  }
 
   #region Object Lifetime Management
-  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteService noteService, NoteWindowService noteWindowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, AppSettingsService appSettingsService, IAsyncViewModelLease<NoteViewModel> noteViewModelLease, RichEditTextDocument document)
+  public NoteEditorViewModel(IUpdateCoordinator<string, NotePatchDto, UpdateNoteResult> noteUpdateCoordinator, IUpdateCoordinator<string, NoteViewStatePatchDto> viewStateUpdateCoordinator, NoteService noteService, NoteWindowService noteWindowService, [FromKeyedServices(CommandServiceType.Note)] ICommandService noteCommandService, AppSettingsService appSettingsService, IAsyncViewModelLease<NoteViewModel> noteViewModelLease)
   {
     NoteUpdateCoordinator = noteUpdateCoordinator;
     ViewStateUpdateCoordinator = viewStateUpdateCoordinator;
@@ -57,27 +63,18 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     AppSettingsService = appSettingsService;
 
     NoteViewModelLease = noteViewModelLease;
-    Document = document;
 
+    InitializeMembers();
+
+    ChangeSystemBackdrop();
+    ChangeSystemBackdropExtended();
     SetCommands();
-    InitializationTask = InitializeAsync();
   }
 
-  public Task InitializationTask { get; }
-  private async Task InitializeAsync()
+  public void AttachDocument(RichEditTextDocument document) => Document = document;
+
+  private void InitializeMembers()
   {
-    // Editor BodyText
-    try
-    {
-      Document.LoadFromStream(TextSetOptions.FormatRtf, await StreamHelper.ToRandomAccessStreamAsync(Note.Body));
-    }
-    catch
-    {
-
-    }
-
-    Note.PropertyChanged += Note_PropertyChanged;
-    _bodyEditorBatchTimer.Tick += BodyEditorBatchTimer_Tick;
     _selectedPaletteBackgroundColor = PaletteBackgroundColors.FirstOrDefault(b => b.Color == Note.BackgroundColor);
     _backgroundImageAlignmentX = Note.BackgroundImageAlignment switch
     {
@@ -95,8 +92,22 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     };
   }
 
-  private bool _disposeStarted;
-  private async ValueTask DisposeAsyncCore()
+  public async Task LoadAsync()
+  {
+    // Editor BodyText
+    try
+    {
+      Document.LoadFromStream(TextSetOptions.FormatRtf, await StreamHelper.ToRandomAccessStreamAsync(Note.Body));
+    }
+    catch
+    {
+    }
+
+    Note.PropertyChanged += Note_PropertyChanged;
+    _bodyEditorBatchTimer.Tick += BodyEditorBatchTimer_Tick;
+  }
+
+  protected override async ValueTask DisposeAsyncCore()
   {
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
@@ -106,25 +117,14 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     Note.PropertyChanged -= Note_PropertyChanged;
 
     _bodyEditorBatchTimer.Tick -= BodyEditorBatchTimer_Tick;
-    await UpdateNoteBodyAsync();
-    await NoteService.Modification.CommitSearchIndexAsync();
+    if (!await DeleteNotePermanentlyWhenEmpty())
+    {
+      await UpdateNoteBodyAsync();
+      await NoteService.Modification.CommitSearchIndexAsync();
+    }
     await NoteViewModelLease.DisposeAsync();
   }
-
-  public async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
-  }
   #endregion
-
-  [Flags]
-  private enum NoteDebouncingProperties
-  {
-    None = 0,
-    Body = 1 << 0,
-    BackgroundColor = 1 << 1,
-  }
 
   private async void Note_PropertyChanged(object? sender, PropertyChangedEventArgs e)
   {
@@ -167,7 +167,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
     ? await NoteUpdateCoordinator.Submit(notePatchDescriptor.Key, notePatchDescriptor.CreatePatch(Note), notePatchDescriptor.BatchMode)
     : new UpdateNoteResult() { Status = AppUpdateStatus.Failed };
 
-  public async Task DeleteNotePermanentlyWhenEmpty()
+  private async Task<bool> DeleteNotePermanentlyWhenEmpty()
   {
     if (AppSettingsService.Load(AppSettingsDescriptors.DeleteEmptyNote))
     {
@@ -175,8 +175,11 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
       if (string.IsNullOrEmpty(Note.Title) && string.IsNullOrWhiteSpace(bodyPlainText))
       {
         await NoteCommandService.DeleteNoteAsync(Note, DeleteMode.Permanent);
+        return true;
       }
     }
+
+    return false;
   }
 
   #region Background
@@ -275,6 +278,7 @@ internal sealed partial class NoteEditorViewModel : ViewModelBase, IAsyncDisposa
   private bool _isUpdatingSelectionFormatStates = false;
   public void UpdateSelectionFormatStates()
   {
+    ConsoleHelper.WriteLine(true, "{0}: {1}", "UpdateSelectionFormatStates", true);
     _isUpdatingSelectionFormatStates = true;
     var characterFormat = Document.Selection.CharacterFormat;
     var paragraphFormat = Document.Selection.ParagraphFormat;

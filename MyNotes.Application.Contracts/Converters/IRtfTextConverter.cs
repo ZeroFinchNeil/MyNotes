@@ -15,6 +15,5 @@ public interface IRtfTextConverter
 
   public string GetPreview(IRandomAccessStream randomAccessStream, int start, int end);
 
-
   public void Highlight(ref string body, IReadOnlyList<Range> highlightRanges, string highlightColor);
 }

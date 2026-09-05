@@ -417,13 +417,7 @@
                   VerticalScrollMode="Disabled"
                   HorizontalScrollBarVisibility="Hidden"
                   VerticalScrollBarVisibility="Disabled"
-                  Background="{StaticResource SubtleFillColorSecondaryBrush}">
-      <!--<ScrollViewer.Background>
-        <muxm:AcrylicBrush TintOpacity="0.2"
-                           TintLuminosityOpacity="0.1"
-                           TintColor="{ThemeResource SubtleFillColorSecondary}"
-                           FallbackColor="{ThemeResource SubtleFillColorSecondary}" />
-      </ScrollViewer.Background>-->
+                  Background="{ThemeResource SubtleFillColorSecondaryBrush}">
 
       <ScrollViewer.RenderTransform>
         <TranslateTransform x:Name="NotePage_CommandBarScrollViewer_TranslateTransform" />

@@ -13,7 +13,14 @@ internal sealed partial class ImageViewerWindow : Window
   private ImageViewerPage? _content;
 
   #region Object Lifetime Management
-  public ImageViewerWindow(ImageCollectionKey collectionKey)
+  public async static Task<ImageViewerWindow> CreateAsync(ImageCollectionKey collectionKey)
+  {
+    ImageViewerWindow instance = new(collectionKey);
+    await instance.InitializeAsync(collectionKey);
+    return instance;
+  }
+
+  private ImageViewerWindow(ImageCollectionKey collectionKey)
   {
     TrackReference();
     InitializeComponent();
@@ -36,17 +43,13 @@ internal sealed partial class ImageViewerWindow : Window
     presenter?.PreferredMinimumWidth = (int)(minimumWindowSize.Width * scaleFactor);
     presenter?.PreferredMinimumHeight = (int)(minimumWindowSize.Height * scaleFactor);
 
-    InitializationTask = InitializeAsync(collectionKey);
-
     this.Closed += ImageViewerWindow_Closed;
   }
   public bool IsClosed { get; private set; }
 
-  public Task InitializationTask { get; }
   private async Task InitializeAsync(ImageCollectionKey collectionKey)
   {
-    _content = new ImageViewerPage(collectionKey);
-    await _content.InitializationTask;
+    _content = await ImageViewerPage.CreateAsync(collectionKey);
     this.Content = _content;
     this.SetTitleBar(_content.TitleBarElement);
   }

@@ -35,28 +35,43 @@ namespace MyNotes.Views.Notes;
 [Debugging.Attributes.ReferenceTracker]
 internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposable
 {
-  private NoteModel Note { get; }
-  private IAsyncViewModelLease<NoteEditorViewModel>? EditorViewModelLease;
-  private NoteEditorViewModel EditorViewModel => EditorViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
-  private NoteViewModel NoteViewModel => EditorViewModel.NoteViewModel;
-  private IAsyncViewModelLease<ImageCollectionViewModel>? ImageCollectionViewModelLease;
-  private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease?.ViewModel ?? throw new InvalidOperationException("페이지 초기화가 완료되지 않음");
+  // ViewModel Lease
+  private IAsyncViewModelLease<NoteEditorViewModel> EditorViewModelLease;
+  private IAsyncViewModelLease<ImageCollectionViewModel> ImageCollectionViewModelLease;
 
+  // ViewModel
+  private NoteEditorViewModel EditorViewModel => EditorViewModelLease.ViewModel;
+  private NoteViewModel NoteViewModel => EditorViewModel.NoteViewModel;
+  private ImageCollectionViewModel ImageCollectionViewModel => ImageCollectionViewModelLease.ViewModel;
+
+  private NoteModel Note => NoteViewModel.Note;
   public UIElement TitleBarElement { get; }
 
   #region Object Lifetime Management
-  public NotePage(NoteModel note)
+  public static async Task<NotePage> CreateAsync(NoteModel note)
+  {
+    var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
+    var editorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(note);
+
+    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
+    var imageCollectionViewModelLease = await ImageCollectionViewModelProvider.ResolveAsync(new ImageCollectionKey(note.Id.Value));
+
+    return new NotePage(editorViewModelLease, imageCollectionViewModelLease);
+  }
+
+  private NotePage(IAsyncViewModelLease<NoteEditorViewModel> editorViewModelLease, IAsyncViewModelLease<ImageCollectionViewModel> imageCollectionViewModelLease)
   {
     TrackReference();
     InitializeComponent();
     TitleBarElement = NotePage_TitleBarGrid;
 
-    Note = note;
+    EditorViewModelLease = editorViewModelLease;
+    ImageCollectionViewModelLease = imageCollectionViewModelLease;
+
+    EditorViewModel.AttachDocument(NotePage_TextEditorRichEditBox.Document);
 
     var appSettingsService = App.Services.GetRequiredService<AppSettingsService>();
     ChangeFlyoutTheme(appSettingsService.Load(ElementThemeSettingsCodec.Default, AppSettingsDescriptors.AppTheme));
-
-    InitializationTask = InitializeAsync();
 
     RegisterMessengers();
 
@@ -65,18 +80,6 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     this.SizeChanged += NotePage_SizeChanged;
     this.Loaded += NotePage_Loaded;
     this.Unloaded += NotePage_Unloaded;
-  }
-
-  public Task InitializationTask { get; }
-  private async Task InitializeAsync()
-  {
-    var NoteEditorViewModelProvider = App.Services.GetRequiredService<NoteEditorViewModelProvider>();
-    EditorViewModelLease = await NoteEditorViewModelProvider.ResolveAsync(Note, NotePage_TextEditorRichEditBox.Document);
-    await EditorViewModel.InitializationTask;
-
-    var ImageCollectionViewModelProvider = App.Services.GetRequiredService<ImageCollectionViewModelProvider>();
-    ImageCollectionViewModelLease = await ImageCollectionViewModelProvider.ResolveAsync(new ImageCollectionKey(Note.Id.Value));
-    await ImageCollectionViewModel.InitializationTask;
   }
 
   private bool _disposeStarted;
@@ -98,12 +101,6 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
     _infoBarDismissTimer.Tick -= InfoBarDismissTimer_Tick;
 
     UnregisterMessengers();
-
-    // 빈 노트 완전 삭제 로직
-    if (NoteViewModel is not null)
-    {
-      await EditorViewModel.DeleteNotePermanentlyWhenEmpty();
-    }
 
     // 에디터 내용을 저장 후 정리
     if (EditorViewModelLease is not null)
@@ -169,8 +166,7 @@ internal sealed partial class NotePage : Page, ITitleBarProvider, IAsyncDisposab
       }
     }
 
-    EditorViewModel.ChangeSystemBackdrop();
-    EditorViewModel.ChangeSystemBackdropExtended();
+    await EditorViewModel.LoadAsync();
   }
 
   private void NotePage_Unloaded(object sender, RoutedEventArgs e)

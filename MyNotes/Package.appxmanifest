@@ -12,15 +12,15 @@
   IgnorableNamespaces="uap rescap systemai">
 
   <Identity
-    Name="ZeroFinchNeil.MyNotesbyZeroFinchNeil"
+    Name="Redrift16.MyNotes"
     Publisher="CN=ACFE7180-3770-466E-A22B-9BCEFA69DEDA"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="495eaf2e-b112-4ce5-a4ac-7eab5baa3c1e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>MyNotes by ZeroFinchNeil</DisplayName>
-    <PublisherDisplayName>ZeroFinchNeil</PublisherDisplayName>
+    <DisplayName>MyNotes by Redrift16</DisplayName>
+    <PublisherDisplayName>Redrift16</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -39,7 +39,7 @@
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
         DisplayName="MyNotes"
-        Description="MyNotes by ZeroFinchNeil"
+        Description="MyNotes by Redrift16"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">

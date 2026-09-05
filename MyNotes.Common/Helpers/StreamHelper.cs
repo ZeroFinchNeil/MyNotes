@@ -17,10 +17,9 @@ public static class StreamHelper
   {
     ArgumentNullException.ThrowIfNull(source);
 
-    if (source.Size > int.MaxValue)
+    if (source.Size > (ulong)Array.MaxLength)
     {
-      throw new IOException(
-          "스트림이 너무 커서 하나의 byte 배열로 변환할 수 없습니다.");
+      throw new IOException("스트림이 너무 커서 하나의 byte 배열로 변환할 수 없습니다.");
     }
 
     // 원본 Position과 관계없이 처음부터 읽습니다.

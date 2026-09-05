@@ -30,7 +30,7 @@ using MyNotes.ViewModels.Notes.Providers;
 
 namespace MyNotes.ViewModels.Navigations.Contents;
 
-internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyncDisposable
+internal sealed partial class NavigationNoteListViewModel : AsyncViewModelBase
 {
   private readonly AppSettingsService AppSettingsService;
   private readonly NavigationService NavigationService;
@@ -40,6 +40,8 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
   private readonly IModelFactory<NoteDto, NoteModel> NoteModelFactory;
   private readonly IModelStore<NoteId, NoteModel> NoteModelStore;
   private readonly NotePreviewViewModelProvider NotePreviewViewModelProvider;
+  private readonly LeasedNotePreviewViewModelCollection _notePreviewViewModelLeases;
+  public IReadOnlyList<NotePreviewViewModel> NotePreviewViewModels => _notePreviewViewModelLeases.ViewModels;
   private readonly INavigationNoteList Navigation;
 
   #region Object Lifetime Management
@@ -63,8 +65,7 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
     InitializeTask = InitializeAsync();
   }
 
-  bool _disposeStarted;
-  private async ValueTask DisposeAsyncCore()
+  protected override async ValueTask DisposeAsyncCore()
   {
     if (Interlocked.Exchange(ref _disposeStarted, true))
     {
@@ -75,18 +76,10 @@ internal sealed partial class NavigationNoteListViewModel : ViewModelBase, IAsyn
     Navigation.PropertyChanged -= Navigation_PropertyChanged;
     UnregisterMessengers();
   }
-  public async ValueTask DisposeAsync()
-  {
-    await DisposeAsyncCore().ConfigureAwait(false);
-    Dispose(disposing: false);
-  }
   #endregion
 
-  private readonly LeasedNotePreviewViewModelCollection _notePreviewViewModelLeases;
-  public IReadOnlyList<NotePreviewViewModel> NotePreviewViewModels => _notePreviewViewModelLeases.ViewModels;
-
   public Task InitializeTask { get; }
-  public async Task InitializeAsync()
+  private async Task InitializeAsync()
   {
     switch (Navigation)
     {

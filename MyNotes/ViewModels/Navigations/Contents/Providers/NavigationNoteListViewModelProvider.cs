@@ -35,7 +35,7 @@ internal sealed class NavigationNoteListViewModelProvider(IServiceProvider servi
         {
           if (cache.ReferenceCounter.TryAcquire(out var viewModel))
           {
-            return CreateLease(navigation, viewModel, cache);
+            return await CreateLease(navigation, viewModel, cache);
           }
 
           ResolveTable.TryRemove(navigation, out _);
@@ -59,7 +59,7 @@ internal sealed class NavigationNoteListViewModelProvider(IServiceProvider servi
         {
           if (!viewmodel.Disposed)
           {
-            return CreateLease(navigation, viewmodel, cache);
+            return await CreateLease(navigation, viewmodel, cache);
           }
           else
           {
@@ -88,27 +88,31 @@ internal sealed class NavigationNoteListViewModelProvider(IServiceProvider servi
     return null;
   }
 
-  private ViewModelLease CreateLease(INavigationNoteList navigation, NavigationNoteListViewModel viewmodel, ViewModelCache cache) => new ViewModelLease()
+  private async Task<ViewModelLease> CreateLease(INavigationNoteList navigation, NavigationNoteListViewModel viewmodel, ViewModelCache cache)
   {
-    ViewModel = viewmodel,
-    ReleaseFunc = async () =>
+    await viewmodel.InitializeTask;
+    return new ViewModelLease()
     {
-      await cache.Semaphore.WaitAsync();
-      try
+      ViewModel = viewmodel,
+      ReleaseFunc = async () =>
       {
-        if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+        await cache.Semaphore.WaitAsync();
+        try
         {
-          await viewmodel.DisposeAsync();
-          await cache.ServiceScope.DisposeAsync();
-          ResolveTable.TryRemove(navigation, out _);
+          if (cache.ReferenceCounter.ReleaseOrDetach(out _))
+          {
+            await viewmodel.DisposeAsync();
+            await cache.ServiceScope.DisposeAsync();
+            ResolveTable.TryRemove(navigation, out _);
+          }
+        }
+        finally
+        {
+          cache.Semaphore.Release();
         }
       }
-      finally
-      {
-        cache.Semaphore.Release();
-      }
-    }
-  };
+    };
+  }
 
   private class ViewModelLease : IAsyncViewModelLease<NavigationNoteListViewModel>
   {
